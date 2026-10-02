@@ -146,3 +146,36 @@ CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
 UPSTREAM_DISPOSITION = Keep open; cluster with Recipe/automation findings after Round 1.
 RERUN_RESULT = PENDING
 ```
+
+
+### R1-C003-001 — binary reference transport repaired
+
+```text
+FINDING_ID = R1-C003-001
+CASE_ID = C003
+DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+CAPABILITY_FAMILY = C07 C19 C22 C40 C42
+RESULT = PARTIAL
+OBSERVED = Initial JSON-only bridge could not satisfy INK's required File/Blob handoff and returned CHAT_REFERENCE_HANDOFF_BINARY_REQUIRED. MR repaired the bridge with bounded qa/fixtures File materialization. Rerun imported the PNG Reference, recorded history/provenance, and completed reference decomposition. Editable Frame/Text structure also executed.
+EXPECTED = CHAT can hand a real binary reference into INK and continue with editable structure/reconstruction.
+MINIMAL_REPRO = round1-C003-binary-preflight-001 → round1-C003-001
+CLASS = CHAT_EXPOSURE_GAP → REPAIRED / WORKFLOW_USABILITY_GAP
+UPSTREAM_DISPOSITION = Binary transport repair retained in INK-Browser-QA Live bridge; selection/layout-specific C003 coverage remains for later scan.
+RERUN_RESULT = BINARY HANDOFF PASS
+```
+
+### R1-TEST-INFRA-001 — decomposition evidence payload oversized
+
+```text
+FINDING_ID = R1-TEST-INFRA-001
+CASE_ID = CROSS-CASE / C003 C009
+DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+CAPABILITY_FAMILY = C40 C41 C42
+RESULT = PARTIAL
+OBSERVED = Successful reference decomposition produced a structured Live result of roughly 1.8 MB because thousands of createdRefs were serialized into working/INK_LIVE_CHAT_RESULT.json. The operation completed, but ordinary connector reads become cumbersome.
+EXPECTED = Live test transport should retain full artifact evidence while keeping the GitHub SSOT summary compact enough for rapid CHAT scan/review.
+MINIMAL_REPRO = round1-C003-001
+CLASS = TEST_ENVIRONMENT_LIMIT / WORKFLOW_USABILITY_GAP
+UPSTREAM_DISPOSITION = Queue transport-result compaction; do not modify INK product authority for this.
+RERUN_RESULT = PENDING
+```
