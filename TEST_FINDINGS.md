@@ -322,3 +322,19 @@ UPSTREAM_DISPOSITION = PR #121 merged. brightnessContrast is Live-qualified. Fil
 RERUN_RESULT = PASS
 ```
 
+### R1-B2-FILTER-001 — gaussianBlur Live qualified
+
+```text
+FINDING_ID = R1-B2-FILTER-001
+CASE_ID = C010 / C011 / C013 / C014 / C015
+DEPLOYED_SOURCE_SHA = e2ce5e409f42c992bcf411e5e23d8f02435b1a63
+CAPABILITY_FAMILY = C14 C22 C23 C24 C25 C26 C27 C28
+RESULT = PARTIAL / B2 FILTER PASS
+OBSERVED = CHAT imported one editable native PNG raster, proposed/approved/executed image.filter.add.v1 gaussianBlur through the bounded-edit authority, observed renderer fingerprint 34d01658→c6017f2e, recorded scoped History, captured Preview, then Undo restored 34d01658 and Redo restored c6017f2e.
+EXPECTED = B2 must qualify existing non-destructive image-stack authorities one family at a time; tool-call success alone is insufficient.
+MINIMAL_REPRO = clusterB-B2-filter-live-002
+CLASS = CHAT_EXPOSURE_GAP → FILTER REPAIRED
+UPSTREAM_DISPOSITION = PR #122 merged. gaussianBlur is Live-qualified. Blend/effect/Liquify remain separately open and must not inherit this PASS.
+RERUN_RESULT = PASS
+```
+
