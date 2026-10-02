@@ -58,8 +58,9 @@ RESULT = PARTIAL
 OBSERVED = CHAT created native Path + Text, translated both, grouped them, created a Frame, and verified Context/History/Preview. Six scoped History entries were retained. C05/C08/C09/C39 were not proven in this probe.
 EXPECTED = C001 probe should establish its distinctive poster-layout capability subset without completing the artwork.
 MINIMAL_REPRO = round1-C001-001
-CLASS = WORKFLOW_USABILITY_GAP
-UPSTREAM_DISPOSITION = Continue Round 1; do not repair until shared gaps are clustered.
+CLASS = CHAT_EXPOSURE_GAP / SEPARATE_MATERIAL_ASSET_GAP
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_C_LAYOUT_PAGE_ARTBOARD_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = C05/C08/C09 layout-assist side is product-existing: Page/Artboard, align/distribute and precision snap/guide authorities are already History-backed upstream and need bounded CHAT exposure only. C39 Material remains a separate Cluster D asset/catalog issue.
 RERUN_RESULT = PENDING
 ```
 
@@ -91,8 +92,9 @@ RESULT = PARTIAL
 OBSERVED = CHAT created vector primitives, executed Boolean union, rotation, radial Repeat and raw SVG import. All mutations produced native History/Revision evidence and final Preview. Align/distribute, smart-guide/snapping and usable material route remain unproven.
 EXPECTED = C008 should establish the distinctive geometric-logo vector construction path.
 MINIMAL_REPRO = round1-C008-001
-CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
-UPSTREAM_DISPOSITION = Continue Round 1; cluster C08/C09/C39 gaps across cases.
+CLASS = CHAT_EXPOSURE_GAP / SEPARATE_MATERIAL_ASSET_GAP
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_C_LAYOUT_PAGE_ARTBOARD_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = Align/distribute and Smart Snap/Guides are confirmed existing product authorities and need bounded CHAT exposure only. Reuse InkApp.alignSelection() and editor/precision-layout.js; do not duplicate layout math. C39 Material remains separate.
 RERUN_RESULT = PENDING
 ```
 
@@ -108,8 +110,9 @@ RESULT = PARTIAL
 OBSERVED = CHAT created a Frame and Text, reparented Text, applied Frame layout, registered a Component, edited Text, and rediscovered the Component through Creative Library with a reusable component.instance.create.v1 descriptor. Page mutation, raster/image path, and material path were not established.
 EXPECTED = C002 should prove multi-page/layout/component/text/image reuse fundamentals without completing the full deck.
 MINIMAL_REPRO = round1-C002-001
-CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
-UPSTREAM_DISPOSITION = Continue Round 1; cluster page/raster/material gaps.
+CLASS = CHAT_EXPOSURE_GAP / SEPARATE_RASTER_AND_MATERIAL_GAPS
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_C_LAYOUT_PAGE_ARTBOARD_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = Page mutation is product-existing and needs CHAT exposure; existing add/delete/duplicate/rename routes already use native Document + History authority. Raster/image follows Cluster B and Material follows Cluster D. Do not fold New Document/A4 redesign into this finding.
 RERUN_RESULT = PENDING
 ```
 
@@ -160,7 +163,7 @@ OBSERVED = Initial JSON-only bridge could not satisfy INK's required File/Blob h
 EXPECTED = CHAT can hand a real binary reference into INK and continue with editable structure/reconstruction.
 MINIMAL_REPRO = round1-C003-binary-preflight-001 → round1-C003-001
 CLASS = CHAT_EXPOSURE_GAP → REPAIRED / WORKFLOW_USABILITY_GAP
-UPSTREAM_DISPOSITION = Binary transport repair retained in INK-Browser-QA Live bridge; selection/layout-specific C003 coverage remains for later scan.
+UPSTREAM_DISPOSITION = Binary transport repair retained in INK-Browser-QA Live bridge. Any remaining page/layout-assist coverage follows the existing-authority exposure design in INK-Browser-QA/working/INK_LIVE_CLUSTER_C_LAYOUT_PAGE_ARTBOARD_SOURCE_AUDIT_20261002.md; binary transport itself remains PASS.
 RERUN_RESULT = BINARY HANDOFF PASS
 ```
 
