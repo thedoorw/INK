@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "cc9b623258123da0e00e31a9e686357fba0d4ec0",
+  "source_sha": "be6baa7085b9520a67e0952968650d4648af4d0a",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster B2 non-destructive image-stack CHAT exposure is Live-qualified at representative operation-family coverage: brightnessContrast adjustment, gaussianBlur filter, multiply blend, colorOverlay effect, and twirl Liquify. B3/B4/C019 remain outside this closure."
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to exact accepted source SHA be6baa7085b9520a67e0952968650d4648af4d0a. Paint Session world/content bounds now reuse native replay + strokeBoundingBox through the existing Renderer authority; formal Live rerun pending. Prior A1 Paint Session, B0/B1 raster ingest, and B2 representative adjustment/filter/blend/effect/Liquify PASS baselines must remain clean."
 }
