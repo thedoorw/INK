@@ -17,7 +17,7 @@ Status values:
 | Case | Reference | Distinctive capability probe | Round-1 action | Status |
 | --- | --- | --- | --- | --- |
 | C001 | Figma — minimal poster | C03 C05 C08 C09 C11 C13 C15 C16 C20 C39 | create text + shape, align/snap, transform, group/frame, apply material | PARTIAL — create/transform/group/frame PASS; align/snap/artboard/material unresolved |
-| C002 | Figma — year-in-review deck | C02 C18 C19 C20 C22 C39 | create/switch page, text+image hierarchy, layout/component/reuse probe | PENDING |
+| C002 | Figma — year-in-review deck | C02 C18 C19 C20 C22 C39 | create/switch page, text+image hierarchy, layout/component/reuse probe | PARTIAL — Frame/Layout/Text/Component/Library PASS; page mutation/raster/material unresolved |
 | C003 | Figma — reference → portfolio design | C07 C19 C22 C40 C42 | import reference, select/target, create editable structure/layout | PENDING |
 | C004 | Figma — concept poster | overlap check | short poster probe only where it exercises a path not already proven by C001 | PENDING |
 | C005 | Adobe — invitation | mixed text/layout/image | quick text + image + layout/edit probe | PENDING |
@@ -153,3 +153,23 @@ Not established in this probe:
 - C08 Smart guides / snapping;
 - C09 Align / distribute;
 - C39 usable material catalog/apply route.
+
+
+### C002
+
+Request: `round1-C002-001`
+
+Verified:
+
+- Frame creation + Text creation/edit: PASS;
+- object reparent into Frame: PASS;
+- Frame layout metadata: PASS;
+- Component registration: PASS;
+- Creative Library component discovery/reuse descriptor: PASS;
+- Context/History/Preview verification: PASS.
+
+Not established:
+
+- C02 page creation/switch mutation through CHAT;
+- C22 raster/image creation/import path for this case;
+- C39 material path.
