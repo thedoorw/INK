@@ -7,7 +7,7 @@ This repository is the deployed test mirror for INK.
 Development authority remains:
 `thedoorw/INK-Browser-QA`
 
-The Live lane validates whether INK's practical creative capabilities actually work in use. The current method is **breadth-first**: quickly probe every selected mature-work case and its mapped capabilities before spending time completing one whole artwork.
+The Live lane validates whether INK's practical creative capabilities actually work **when operated by CHAT through INK's own Public Creative API / named-tool surface**. The current method is **breadth-first**: quickly probe every selected mature-work case and its mapped capabilities before spending time completing one whole artwork.
 
 A Live test must always identify the exact deployed source SHA before conclusions are recorded.
 
@@ -37,12 +37,13 @@ Round 1 does **not** try to finish each artwork. Each case should be reduced to 
 
 For each candidate case:
 
-1. identify its distinctive mapped capability families;
-2. perform only 1–3 minimal operations needed to exercise them;
-3. observe the actual visible/structural result;
-4. make one small correction if the operation is editable;
-5. classify the result;
-6. move immediately to the next case unless the defect prevents further testing.
+1. call INK capability discovery / context through `window.INK_APP.inkPublicApi` or its registered named tools;
+2. identify the case's distinctive mapped capability families;
+3. perform only 1–3 minimal CHAT-driven operations needed to exercise them;
+4. use Preview / inspect / History / Revision receipts to verify the actual visible/structural result;
+5. make one small CHAT-driven correction if the operation is editable;
+6. classify the result;
+7. move immediately to the next case unless the defect prevents further testing.
 
 Result classes:
 
@@ -52,7 +53,35 @@ Result classes:
 - `NOT_EXPOSED` — capability exists/planned but cannot be reached through the current usable surface;
 - `TEST_ENVIRONMENT_LIMIT` — current environment prevents a valid test.
 
-A source symbol, menu item, tool call, or command return by itself is **not** a PASS.
+A source symbol, UI control, named-tool call, or command return by itself is **not** a PASS. PASS requires a CHAT-operated INK result plus inspect/Preview verification.
+
+## CHAT operation boundary
+
+INK is not being qualified as a mouse-driven drawing app for this lane. The browser page is the runtime host and visual feedback surface.
+
+Primary control path:
+
+```text
+CHAT
+→ get_ink_capabilities / get_ink_context
+→ inspect / target
+→ propose_ink_edit or use_ink
+→ explicit approval
+→ execute_ink_edit or use_ink execute
+→ get_ink_preview / inspect_ink_output
+→ History / Revision / provenance verification
+→ correction
+```
+
+The runtime installs the API on:
+
+`window.INK_APP.inkPublicApi`
+
+The named-tool registry is available through:
+
+`window.INK_APP.inkPublicApi.tools.registry()`
+
+Testing should exercise this CHAT control surface first. Human UI is supporting evidence and fallback diagnosis, not the primary execution method.
 
 ## Round 1 stop rule
 
