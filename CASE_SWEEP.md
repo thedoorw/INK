@@ -4,6 +4,8 @@
 
 Round 1 is a fast breadth scan across the selected mature-work cases.
 
+All Round-1 operations are executed by CHAT through INK's Public Creative API / named tools. Do not substitute manual mouse drawing for a CHAT capability test.
+
 Do not reproduce the full artwork. Use each case as a compact probe for the capabilities that make that case useful.
 
 Status values:
