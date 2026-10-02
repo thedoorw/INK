@@ -301,3 +301,17 @@ The same exact-SHA Live capability registry scan shows no CHAT-exposed:
 - brush / natural-media / Blender / Smudge authority for C018.
 
 These cases therefore stop at `NOT_EXPOSED` in Round 1 rather than pretending a vector Path is equivalent to a brush/natural-media operation.
+
+
+## Round 1 closure
+
+Round 1 breadth sweep is complete: every C001–C019 case has at least one current disposition of PASS, PARTIAL, or NOT_EXPOSED.
+
+Do not treat PARTIAL as failure of the whole case; it identifies the exact capability subset that remains unresolved.
+
+Next stage is source audit and repair clustering before Round 2 combined-capability testing. Priority order:
+
+1. Drawing / Natural Media
+2. Raster / Mask / Filter / Blend / Effect / Deformation
+3. Layout Assist / Page / Artboard
+4. Material / Recipe
