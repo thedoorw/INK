@@ -272,20 +272,22 @@ UPSTREAM_DISPOSITION = A1 Paint Session is merged, deployed and Live-qualified. 
 RERUN_RESULT = A1 PASS / CLUSTER REMAINS PARTIAL
 ```
 
-### R1-PAINT-SESSION-BOUNDS-001 — Paint Session content bounds fallback
+### R1-PAINT-SESSION-BOUNDS-001 — Paint Session content bounds repaired
 
 ```text
 FINDING_ID = R1-PAINT-SESSION-BOUNDS-001
 CASE_ID = C016 / C017 / C018
-DEPLOYED_SOURCE_SHA = 58adf13cd98a8594eb8e63faedc735ce0c5179f0
+DEPLOYED_SOURCE_SHA = be6baa7085b9520a67e0952968650d4648af4d0a
 CAPABILITY_FAMILY = C29 C30 C34 / Preview geometry
-RESULT = OPEN / NON-BLOCKING FOR A1
-OBSERVED = A1 Paint Session renders and History/Preview execute successfully, but get_ink_preview(scope=content) returned 49×49 bounds although recorded stroke samples span roughly x=-110..100 and y=-95..70. Source renderer has an explicit paint-session draw route but no dedicated paint-session world-bounds specialization.
-EXPECTED = Content Preview / fit / selection geometry should derive bounds from the replay/session stroke geometry rather than a generic fallback box.
-MINIMAL_REPRO = clusterA-A1-live-rerun-004
-CLASS = PRODUCT_INTEGRATION_GAP / PREVIEW_BOUNDS_USABILITY
-UPSTREAM_DISPOSITION = Keep separate from A1 exposure closure. Reuse Stroke Session/replay geometry to provide bounds; do not create a second drawing model.
-RERUN_RESULT = PENDING
+RESULT = PASS / REPAIRED
+OBSERVED = The previous 49×49 generic content-bounds fallback is closed. PR #126 exact candidate b7c73f7ea32a25013dddd9721e1a35e7e052fc26 reused native Paint Session replay + existing strokeBoundingBox through the Renderer world-bounds authority; merged source be6baa7085b9520a67e0952968650d4648af4d0a was deployed without a second Document / History / Renderer / drawing authority.
+EXPECTED = Content Preview / fit / selection geometry derives bounds from replay/session stroke geometry rather than a generic fallback box.
+MINIMAL_REPRO = paint-session-bounds-live-rerun-003
+CLASS = PRODUCT_INTEGRATION_GAP → REPAIRED
+LIVE_EVIDENCE = Runtime sourceSha be6baa7085b9520a67e0952968650d4648af4d0a; apiReady=true; 23 public tools; one native paint-session chat-paint-fnv1a32-5a313234; one scoped History entry; content Preview bounds x=-135.13 y=-120.46648 w=274.0064 h=231.12032; render fingerprint fnv1a32:1b8d3443; Undo returned zero objects; Redo restored the same object and identical Preview bounds/fingerprint.
+TRANSPORT_NOTE = live-rerun-001 and -002 stopped before API readiness while the newly pinned exact-SHA jsDelivr module graph was propagating (first run multiple transient 403/404; second run only tiled-export.js 403). GitHub SSOT showed tiled-export.js was byte-identical to the prior Live-qualified source. rerun-003 on the same exact source completed successfully, so those failures are recorded as deployment transport/readiness variability, not a product regression.
+UPSTREAM_DISPOSITION = PR #126 merged and Live-qualified. Paint Session bounds issue closed; A1 remains closed. Continue separate A2 native Stroke/NaturalMedia/Airbrush exposure.
+RERUN_RESULT = PASS
 ```
 
 ### R1-C013-001 — raster filter/effect side exists upstream but is not CHAT-exposed
