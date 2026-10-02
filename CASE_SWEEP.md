@@ -24,7 +24,7 @@ Status values:
 | C006 | Adobe — promotional flyer | layout/output | assemble minimal flyer structure and verify output route | PENDING |
 | C007 | Adobe — social ads | C55 automation | create one base design, run one repeat/automation-style variant step | PARTIAL — Repeat/Clone variant mechanics PASS; Recipe library empty |
 | C008 | Adobe — geometric logo | C08 C09 C10 C11 C12 C13 C17 C21 C39 | path/shape → boolean → align → repeat → SVG round-trip | PARTIAL — Path/Boolean/Rotate/Repeat/SVG PASS; align/snap/material unresolved |
-| C009 | Canva — Run Club poster | C40 C41 C42 | import/reference → extraction/reconstruction → editable correction | PENDING |
+| C009 | Canva — Run Club poster | C40 C41 C42 | import/reference → extraction/reconstruction → editable correction | PASS — binary import/decompose/editable repaint/Preview verified |
 | C010 | Canva — campaign visual | C22 C23 C40 C42 | raster import → mask/targeted edit → transform/reconstruction probe | PENDING |
 | C011 | Canva — pastry hero image | C22 C23 C26 | raster + mask + blend/composition probe | PENDING |
 | C012 | Canva — quote card | overlap check | use only to confirm any still-unproven text/format/reuse path | PENDING |
@@ -229,3 +229,18 @@ Verified:
 Observation:
 
 - decomposition returned a very large structured result (~1.8 MB), so evidence-result compaction is needed in the test transport even though the INK operation itself completed.
+
+
+### C009
+
+Request: `round1-C009-001`
+
+Verified:
+
+- bounded binary fixture → browser `File` → `import_ink_reference`: PASS;
+- Reference decomposition: PASS;
+- 1471 color Paths + 1471 line Paths created on bounded trace raster;
+- two reconstructed native Paths repainted through normal proposal → approval → execute: PASS;
+- Context and Preview: PASS.
+
+Test-transport result compaction was also added: full workflow artifact remains available while the GitHub SSOT result keeps counts/samples instead of serializing every created ref.
