@@ -386,3 +386,22 @@ UPSTREAM_DISPOSITION = PR #125 merged. brightnessContrast adjustment, gaussianBl
 RERUN_RESULT = PASS
 ```
 
+
+
+### TEST-B-B4-C1-C2-EXPOSURE-001 — Vector / Layout qualification blocked at CHAT exposure
+
+```text
+FINDING_ID = TEST-B-B4-C1-C2-EXPOSURE-001
+DEPLOYED_SOURCE_SHA = cc9b623258123da0e00e31a9e686357fba0d4ec0
+RESULT = BLOCKED_AT_PUBLIC_EXPOSURE
+OBSERVED = Formal Live capability inventory testB-capability-inventory-002 completed on exact deployed source SHA with apiReady=true and 23 named tools. No path.warp.v1 / path.distort.v1 / path.perspective.v1, Page CRUD/activate, object.align.v1, guide/snap, or page.artboard.set.v1 operation is exposed. Existing B4 discovery reproducer fails at describeWarp with INK_CAPABILITY_NOT_FOUND before a legal edit proposal can reach native state, Canvas, History, Preview, Undo or Redo.
+EXPECTED = Expose bounded operations over the existing native Path deformation, Page, align/distribute, guide/snap and Artboard authorities, then rerun the full CHAT → public API → native state → Canvas → History → Preview → Undo/Redo qualification.
+MINIMAL_REPRO = clusterB-B4-discovery-live-001 + testB-capability-inventory-002
+CLASS = EXPOSURE_GAP
+SOURCE_RECORD = INK-Browser-QA/working/INK_TEST_B_VECTOR_LAYOUT_QUALIFICATION_20261003.md
+SOURCE_RECORD_COMMIT = 668819134601d9a870748d4713c2789037036c39
+PRODUCT_MUTATION = NONE
+POINTER_MOUSE_SIMULATION = NONE
+TEXT_DEFORMATION = EXCLUDED
+RERUN_RESULT = PENDING_PUBLIC_EXPOSURE
+```
