@@ -114,22 +114,22 @@ RERUN_RESULT = PENDING
 ```
 
 
-### R1-C019-001 — text deformation not exposed
+### R1-C019-001 — editable text deformation is not yet a rendered product capability
 
 ```text
 FINDING_ID = R1-C019-001
 CASE_ID = C019
 DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
 CAPABILITY_FAMILY = C10 C14 C20
-RESULT = PARTIAL
-OBSERVED = CHAT created and edited native Text, created a native vector Path, and transformed the Path. The deployed Public Creative API returned INK_CAPABILITY_NOT_FOUND for text.warp.v1, and no text-warp/deformation route appears in the exposed registry.
-EXPECTED = Curved-text case needs an editable warp/deformation authority in addition to ordinary Text and Path operations.
+RESULT = PARTIAL / PRODUCT_RENDER_GAP
+OBSERVED = CHAT created and edited native Text, created a native vector Path, and transformed the Path. The deployed Public Creative API returned INK_CAPABILITY_NOT_FOUND for text.warp.v1. Source audit found a stored pathText descriptor in the Text model, but the installed formal drawText() renderer does not consume it, and current warp/distort/perspective execution is Path-only.
+EXPECTED = Curved-text case needs a real editable Text warp/path-text rendering authority in addition to ordinary Text and Path operations.
 MINIMAL_REPRO = round1-C019-002
-CLASS = CHAT_EXPOSURE_GAP
-UPSTREAM_DISPOSITION = Keep open and cluster with C14 deformation findings after Round 1.
+CLASS = PRODUCT_CAPABILITY_GAP / RENDER_INTEGRATION_GAP
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_B_RASTER_EFFECTS_DEFORMATION_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = Do not add a registry-only text.warp operation over the current descriptor. Implement and qualify actual editable text-deformation rendering first, then add bounded CHAT exposure.
 RERUN_RESULT = PENDING
 ```
-
 
 ### R1-C007-001 — recipe route incomplete
 
@@ -230,7 +230,7 @@ UPSTREAM_DISPOSITION = Cluster brush/stroke exposure with C016/C018 before repai
 RERUN_RESULT = PENDING
 ```
 
-### R1-RASTER-EDIT-001 — raster/reference ingest works; raster editing is not exposed
+### R1-RASTER-EDIT-001 — mutable raster editing exists upstream but is not CHAT-exposed
 
 ```text
 FINDING_ID = R1-RASTER-EDIT-001
@@ -238,11 +238,12 @@ CASE_ID = C010 / C011 / C014 / C015
 DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
 CAPABILITY_FAMILY = C14 C22 C23 C24 C25 C26 C27 C28 C40
 RESULT = PARTIAL / NOT_EXPOSED
-OBSERVED = CHAT imported a real PNG Reference, captured Preview and exported PNG. A generic clone/transform proposal against the imported ReferenceImage failed with CHAT_EDIT_TARGET_LOCKED. The exact-SHA Live capability registry exposed no capability descriptor matching mask, filter, blend, effect, adjustment, warp, deformation or raster-edit semantics.
-EXPECTED = Raster-heavy mature cases need CHAT-callable masking, adjustment/filter/blend/effect and reusable raster placement/deformation routes where the product supports them.
+OBSERVED = CHAT imported a real PNG through the Reference channel, captured Preview and exported PNG. The generic edit failure CHAT_EDIT_TARGET_LOCKED is expected because Reference import intentionally creates a locked provenance/extraction image rather than a mutable raster image. Source audit confirms a separate native editable-raster authority already exists through InkApp.importImageFormat() and the installed Studio raster stack renderer.
+EXPECTED = Raster-heavy mature cases need CHAT-callable native mutable raster ingest plus bounded masking, adjustment/filter/blend/effect, Liquify, direct-raster edit and deformation routes where the existing product already supports them.
 MINIMAL_REPRO = round1-batch-C010-C011-C014-C015-001 → round1-batch-C010-C011-C014-C015-002
-CLASS = CHAT_EXPOSURE_GAP / PRODUCT_CAPABILITY_GAP
-UPSTREAM_DISPOSITION = Source-audit existing raster authorities before deciding exposure repair versus new product capability work.
+CLASS = CHAT_EXPOSURE_GAP
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_B_RASTER_EFFECTS_DEFORMATION_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = Do not unlock ReferenceImage. Expose the existing native mutable raster ingest / rasterState / image-core / Studio renderer authorities through bounded CHAT operations. Product-source merge and Live promotion remain HOLD under the current separate C04 combined-promotion gate.
 RERUN_RESULT = PENDING
 ```
 
@@ -263,7 +264,7 @@ UPSTREAM_DISPOSITION = Source audit split the finding: general drawing / native 
 RERUN_RESULT = PENDING
 ```
 
-### R1-C013-001 — shader/filter/effect case not exposed
+### R1-C013-001 — raster filter/effect side exists upstream but is not CHAT-exposed
 
 ```text
 FINDING_ID = R1-C013-001
@@ -271,36 +272,11 @@ CASE_ID = C013
 DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
 CAPABILITY_FAMILY = C14 C22 C25 C26 C27 C39
 RESULT = NOT_EXPOSED
-OBSERVED = Live registry exposes no deformation/filter/blend/effect raster-edit route. Material application operation exists, but the fresh-document material catalog is empty.
-EXPECTED = C013 needs at least one CHAT-callable shader/filter/blend/effect path plus usable material semantics.
+OBSERVED = Live registry exposes no deformation/filter/blend/effect raster-edit route. Source audit confirms the product already has rendered non-destructive adjustment/filter/mask/blend/effect/Liquify authority through image-core + Studio renderer. Material application exists, but the fresh-document material catalog is still empty.
+EXPECTED = C013 needs CHAT exposure to the existing raster/filter/effect authorities plus separately usable material semantics.
 MINIMAL_REPRO = round1-batch-C010-C011-C014-C015-002 + round1-library-materials-001
-CLASS = CHAT_EXPOSURE_GAP / PRODUCT_CAPABILITY_GAP
-UPSTREAM_DISPOSITION = Cluster with raster/effect and material repairs.
+CLASS = CHAT_EXPOSURE_GAP / SEPARATE_MATERIAL_ASSET_GAP
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_B_RASTER_EFFECTS_DEFORMATION_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = Treat raster/filter/effect exposure as Cluster B. Keep the material-catalog absence in the separate reusable-creative-asset/material cluster; do not close it from a raster exposure repair.
 RERUN_RESULT = PENDING
 ```
-
-## Round 1 gap clusters
-
-```text
-CLUSTER A — DRAWING / NATURAL MEDIA
-C29 C30 C31 C32 C33 C34 C35 C38
-Cases: C016 C017 C018
-Priority: HIGHEST for the CHAT-operated drawing goal
-
-CLUSTER B — RASTER / MASK / FILTER / BLEND / EFFECT / DEFORMATION
-C14 C22 C23 C24 C25 C26 C27 C28
-Cases: C010 C011 C013 C014 C015 C019
-
-CLUSTER C — LAYOUT ASSIST / PAGE / ARTBOARD
-C02 C05 C08 C09
-Cases: C001 C002 C003 C008
-
-CLUSTER D — REUSABLE CREATIVE ASSETS
-C39 Material / C55 Recipe
-Cases: C001 C002 C007 C008 C013
-
-CROSS-CASE VERIFIED
-C43 History / C44 Revision / C53 Output / C57 CHAT control / Reference import+decomposition
-```
-
-Round 2 does not start until the highest-value open clusters have been source-audited and the smallest coherent repair packages are identified.
