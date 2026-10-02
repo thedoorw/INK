@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "66cdb5b4ddc322a2b1027cab2627426f868027d3",
+  "source_sha": "58adf13cd98a8594eb8e63faedc735ce0c5179f0",
   "source_entry": "product/source/index.html",
-  "source_entry_blob_sha": "8bbef18a9b2fcad0f7c6d0a12244f17dc54d9deb",
+  "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact source SHA."
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster A A1 Paint Session exposure merged and exact-candidate browser-qualified before publish."
 }
