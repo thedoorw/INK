@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "11551eab8c1ec78e04031f178b7ab24b91b40d26",
+  "source_sha": "e2ce5e409f42c992bcf411e5e23d8f02435b1a63",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster B2 first incremental exposure image.adjustment.add.v1 is merged and Live-qualified for brightnessContrast. Filter/blend/effect/Liquify remain separately unqualified/open."
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster B2 brightnessContrast adjustment is Live-qualified; gaussianBlur filter passed exact-candidate browser QA and is published for formal Live qualification. Blend/effect/Liquify remain separately unqualified/open."
 }
