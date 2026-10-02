@@ -8,5 +8,5 @@
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster B2 first bounded qualification exposes existing native image.adjustment.add.v1; brightnessContrast passed exact-candidate browser QA. Filter/blend/effect/Liquify remain separately unqualified/open."
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster B2 first incremental exposure image.adjustment.add.v1 is merged and Live-qualified for brightnessContrast. Filter/blend/effect/Liquify remain separately unqualified/open."
 }
