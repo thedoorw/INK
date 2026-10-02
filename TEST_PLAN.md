@@ -7,124 +7,112 @@ This repository is the deployed test mirror for INK.
 Development authority remains:
 `thedoorw/INK-Browser-QA`
 
-The primary purpose of the current Live lane is to test whether INK can actually be used to draw and support a complete drawing workflow. UI incompleteness is recorded when it blocks or degrades drawing, but it is not the main test target by itself.
+The Live lane validates whether INK's practical creative capabilities actually work in use. The current method is **breadth-first**: quickly probe every selected mature-work case and its mapped capabilities before spending time completing one whole artwork.
 
 A Live test must always identify the exact deployed source SHA before conclusions are recorded.
 
-## Deployment gate
-
-Before publishing a product build:
-
-1. select one explicit `INK-Browser-QA` source SHA;
-2. publish the required product build to `thedoorw/INK`;
-3. record the SHA in `BUILD_INFO.json`;
-4. verify the GitHub Pages URL loads that build;
-5. then run the drawing tests.
-
-Do not treat a moving `main` as the deployed identity.
-
-## Test sequence
-
-### LT-00 — Load preflight
-
-This is only a prerequisite, not the main test.
-
-- Live URL loads;
-- `BUILD_INFO.json` identifies the deployed source SHA;
-- canvas can initialize;
-- no fatal startup error prevents drawing.
-
-### LT-01 — Basic drawing
-
-Primary first test.
-
-- Pencil stroke;
-- Brush stroke;
-- Eraser;
-- short stroke / long stroke;
-- slow stroke / fast stroke;
-- curves and direction changes;
-- repeated strokes;
-- foreground/background color use where applicable;
-- visible stroke result matches the executed input closely enough for drawing.
-
-Record:
-- missed or broken strokes;
-- unexpected joins/gaps;
-- cursor/stroke-size mismatch;
-- latency or visible lag;
-- rendering artifacts;
-- tool-state failures.
-
-### LT-02 — Drawing + navigation
-
-Verify that drawing remains usable while operating the canvas.
-
-- zoom in / out;
-- pan;
-- rotate/reset where supported;
-- draw at different zoom levels;
-- draw near canvas/page edges;
-- continue drawing after navigation;
-- selection must not unexpectedly capture or move drawing objects.
-
-Known UI/capability gaps may be recorded but do not automatically stop the drawing test unless they prevent the workflow.
-
-### LT-03 — Drawing edit / history / structure
-
-- undo / redo strokes;
-- erase then undo / redo;
-- layer creation and switching;
-- visibility / lock where exposed;
-- duplicate / delete selected drawing content where applicable;
-- move / resize / rotate selected content where applicable;
-- save/reload or equivalent persistence check;
-- page/layer state remains coherent.
-
-This stage also catches spatial-index / selection consistency defects exposed by real drawing.
-
-### LT-04 — Drawing output
-
-- preview remains visually consistent with the working canvas;
-- export a representative drawing;
-- verify exported dimensions / background / crop or page scope as applicable;
-- compare exported result with the visible drawing;
-- record clipping, scaling, missing-content or fidelity defects.
-
-### LT-05 — CHAT × INK Draw qualification
-
-After manual/basic drawing behavior is usable, test whether CHAT can operate the same drawing capabilities through INK's public/control surface.
-
-Start with the `Draw` bounded multi-capability exercise before expanding to `Construct` or `Reference`.
-
-A command/tool return is not a PASS. Require:
+## Strategy
 
 ```text
-execute
-→ visible result
-→ inspect
-→ correct
-→ verify final result
+Round 1 — case-by-case capability sweep
+→ record PASS / PARTIAL / BLOCKED / NOT EXPOSED
+→ collect defects and gaps
+→ repair a bounded batch in INK-Browser-QA
+→ republish exact SHA
+
+Round 2 — rerun failed/weak probes + combine related capabilities
+→ verify functions still work together
+→ collect integration defects
+→ repair / republish / rerun
+
+Round 3 — complete representative artworks
+→ end-to-end workflow
+→ Preview / correction / History / Revision / export
+→ mature-work reproduction evidence
 ```
 
-### LT-06 — Mature-work drawing reproduction
+Round 1 does **not** try to finish each artwork. Each case should be reduced to the smallest useful probe that exercises its distinctive mapped capabilities.
 
-Only after the drawing workflow is usable:
+## Round 1 — breadth scan rules
 
-- choose one selected mature drawing/painting reference case;
-- analyze the required INK capabilities;
-- reproduce it through INK;
+For each candidate case:
+
+1. identify its distinctive mapped capability families;
+2. perform only 1–3 minimal operations needed to exercise them;
+3. observe the actual visible/structural result;
+4. make one small correction if the operation is editable;
+5. classify the result;
+6. move immediately to the next case unless the defect prevents further testing.
+
+Result classes:
+
+- `PASS` — usable for the intended probe;
+- `PARTIAL` — works but with a material defect or missing sub-operation;
+- `BLOCKED` — cannot complete the probe;
+- `NOT_EXPOSED` — capability exists/planned but cannot be reached through the current usable surface;
+- `TEST_ENVIRONMENT_LIMIT` — current environment prevents a valid test.
+
+A source symbol, menu item, tool call, or command return by itself is **not** a PASS.
+
+## Round 1 stop rule
+
+Do not stop the whole sweep for an isolated defect.
+
+Record it and continue unless:
+
+- the app cannot initialize;
+- document/canvas state becomes corrupt;
+- the defect destroys later test validity;
+- continuing risks overwriting evidence or product data.
+
+After the first sweep, group findings by shared root cause before repairing them.
+
+## Round 2 — combined capability checks
+
+After the first repair batch, combine capabilities that commonly occur together:
+
+- drawing + navigation + erasing + history;
+- vector path + shapes + boolean + align;
+- text + hierarchy + layout + transform;
+- raster + mask + adjustment/filter/blend;
+- reference import + extraction/reconstruction + transform;
+- repeat/material/component + reuse;
+- Preview/compare + correction + Revision/provenance;
+- output/export after mixed-content editing.
+
+Round 2 exists to find failures that isolated probes cannot reveal.
+
+## Round 3 — representative finished works
+
+Only after the major Round-1/2 blockers are cleared:
+
+- select representative mature-work cases;
+- reproduce complete works;
 - Preview / compare;
-- correct;
-- verify History / Revision / provenance where applicable;
+- bounded correction;
+- verify History / Revision / provenance;
 - export;
-- record capability and workflow gaps.
+- record final capability/workflow gaps.
 
-Do not start by trying to cover every mature-work case.
+## Drawing priority
+
+Drawing remains a primary creative path. The breadth scan must include:
+
+- Pencil / Marker / Brush / Airbrush / Eraser;
+- brush preset/engine behavior;
+- natural-media modes;
+- dynamics where testable;
+- Blender / Smudge;
+- stroke editing/session;
+- drawing + zoom/pan;
+- undo/redo and layer interaction;
+- export fidelity.
+
+UI incompleteness is recorded when it blocks or degrades a capability, but visual UI polish alone is not the purpose of this lane.
 
 ## Finding classes
 
-Each finding must be classified as one of:
+Each finding must be classified as one or more of:
 
 - DRAWING_DEFECT
 - PRODUCT_DEFECT
@@ -142,10 +130,15 @@ Each finding must be classified as one of:
 Live finding in thedoorw/INK
 → record exact deployed SHA
 → reproduce/classify
+→ continue Round-1 sweep when safe
+→ group related findings
 → repair only in thedoorw/INK-Browser-QA
 → focused QA / required review
 → publish a new exact SHA to thedoorw/INK
-→ rerun the same drawing test
+→ rerun failed/weak probes
 ```
 
 Never repair product source directly in this repository.
+
+Current case queue and per-case probe definitions:
+`CASE_SWEEP.md`
