@@ -1,0 +1,8 @@
+{
+  "product": "INK",
+  "role": "live-test-deployment-mirror",
+  "source_repo": "thedoorw/INK-Browser-QA",
+  "source_sha": null,
+  "channel": "live-test",
+  "deployment_status": "SKELETON_INITIALIZED"
+}
