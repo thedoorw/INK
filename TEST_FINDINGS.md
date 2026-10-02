@@ -338,3 +338,19 @@ UPSTREAM_DISPOSITION = PR #122 merged. gaussianBlur is Live-qualified. Blend/eff
 RERUN_RESULT = PASS
 ```
 
+### R1-B2-BLEND-001 — multiply Live qualified
+
+```text
+FINDING_ID = R1-B2-BLEND-001
+CASE_ID = C010 / C011 / C013 / C014 / C015
+DEPLOYED_SOURCE_SHA = 789e9efb77d1edaac15420483c9ce71dd43f414b
+CAPABILITY_FAMILY = C14 C22 C23 C24 C25 C26 C27 C28
+RESULT = PARTIAL / B2 BLEND PASS
+OBSERVED = CHAT imported two editable native PNG rasters, proposed/approved/executed image.blend.set.v1 multiply on the upper raster, observed renderer fingerprint 34d01658→89aa5042, recorded scoped History, captured Preview, then Undo restored 34d01658 and Redo restored 89aa5042.
+EXPECTED = B2 must qualify existing non-destructive image-stack authorities one family at a time; tool-call success alone is insufficient.
+MINIMAL_REPRO = clusterB-B2-blend-live-002
+CLASS = CHAT_EXPOSURE_GAP → BLEND REPAIRED
+UPSTREAM_DISPOSITION = PR #123 merged. multiply is Live-qualified. Effect/Liquify remain separately open and must not inherit this PASS.
+RERUN_RESULT = PASS
+```
+
