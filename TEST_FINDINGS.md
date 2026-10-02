@@ -221,20 +221,21 @@ UPSTREAM_DISPOSITION = No immediate product repair from this batch; C005 image p
 RERUN_RESULT = PASS for tested subset
 ```
 
-### R1-C017-001 — vector path editing works, brush route absent
+### R1-C017-001 — vector path editing works; A1 Paint Session added
 
 ```text
 FINDING_ID = R1-C017-001
 CASE_ID = C017
-DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+DEPLOYED_SOURCE_SHA = 58adf13cd98a8594eb8e63faedc735ce0c5179f0
 CAPABILITY_FAMILY = C10 C17 C29 C30 C34
-RESULT = PARTIAL
-OBSERVED = CHAT created a native Path, edited one anchor through path.edit.v1, cloned the object, and verified History/Revision/Context/Preview. Current CHAT registry exposes no brush/stroke-drawing authority equivalent to the mature paintbrush/pencil path.
-EXPECTED = Vector path editing and freehand brush/pencil drawing should both be callable when this case is used as a drawing probe.
-MINIMAL_REPRO = round1-C017-001
+RESULT = PARTIAL / A1 PASS
+OBSERVED = Existing native Path creation/edit/clone remains proven. The updated Live registry now also exposes paint.session.create.v1; clusterA-A1-live-rerun-004 created a native two-stroke Paint Session through direct bounded-edit proposal/approval/execution and proved Preview plus History Undo/Redo.
+EXPECTED = C017 drawing coverage still needs the formal native type:'stroke' / NaturalMedia path where paintbrush/pencil/airbrush identity and paper-coupled stroke behavior are required; Paint Session is now a real drawing route but does not replace that separate native Stroke authority.
+MINIMAL_REPRO = round1-C017-001 + clusterA-A1-live-rerun-004
 CLASS = CHAT_EXPOSURE_GAP
-UPSTREAM_DISPOSITION = Cluster brush/stroke exposure with C016/C018 before repair.
-RERUN_RESULT = PENDING
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_A_DRAWING_NATURAL_MEDIA_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = A1 Paint Session is closed. Continue A2 native Stroke/NaturalMedia/Airbrush exposure; do not reopen the A1 renderer/session authority.
+RERUN_RESULT = PARTIAL / A1 PAINT SESSION PASS
 ```
 
 ### R1-RASTER-EDIT-001 — mutable raster editing exists upstream but is not CHAT-exposed
@@ -254,20 +255,36 @@ UPSTREAM_DISPOSITION = Do not unlock ReferenceImage. Existing PSD/TIFF/EXR/RAW m
 RERUN_RESULT = PENDING
 ```
 
-### R1-DRAWING-EXPOSURE-001 — drawing/natural-media lane not exposed to CHAT
+### R1-DRAWING-EXPOSURE-001 — A1 Paint Session exposed; remaining Drawing families open
 
 ```text
 FINDING_ID = R1-DRAWING-EXPOSURE-001
 CASE_ID = C016 / C017 / C018
-DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+DEPLOYED_SOURCE_SHA = 58adf13cd98a8594eb8e63faedc735ce0c5179f0
 CAPABILITY_FAMILY = C29 C30 C31 C32 C33 C34 C35 C38
-RESULT = NOT_EXPOSED / PARTIAL
-OBSERVED = Exact-SHA Live capability discovery contains no CHAT-exposed brush, natural-media, paper, Blender or Smudge capability. C017 proves native vector Path editing, but vector Path editing is not accepted as a substitute for brush/natural-media operation.
-EXPECTED = INK is intended for CHAT-operated creative work, so existing drawing authorities must be callable through a bounded CHAT surface before drawing cases can pass.
-MINIMAL_REPRO = transport-proof-capabilities-003; round1-C017-001; round1-batch-C010-C011-C014-C015-002 capability registry scan
-CLASS = CHAT_EXPOSURE_GAP / PRODUCT_CAPABILITY_GAP
+RESULT = PARTIAL / A1 PASS
+OBSERVED = Live capability discovery now exposes paint.session.create.v1. clusterA-A1-live-rerun-004 used direct propose_ink_edit → approve_ink_edit → execute_ink_edit to create one native paint-session with pencil + watercolor, 2 strokes / 6 samples, one scoped History entry, completed Preview, successful Undo to zero objects, and successful Redo restoring the same paint-session.
+EXPECTED = Cluster A still requires bounded exposure for formal native Stroke/NaturalMedia/Airbrush, Paper and targeted Eraser. Blender/Smudge remain a separate pigment-surface render-integration product gap.
+MINIMAL_REPRO = clusterA-A1-live-rerun-004
+CLASS = CHAT_EXPOSURE_GAP / PRODUCT_RENDER_INTEGRATION_GAP
 SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_A_DRAWING_NATURAL_MEDIA_SOURCE_AUDIT_20261002.md
-UPSTREAM_DISPOSITION = Source audit split the finding: general drawing / native Stroke / Airbrush / Paper / Eraser authorities exist and need bounded CHAT exposure; Blender / Smudge preset/model exists but current pigment-surface render integration is incomplete and remains a separate product gap. Draft PR #112 covers only a safe Paint Session subset and is not yet runtime-qualified or promoted.
+UPSTREAM_DISPOSITION = A1 Paint Session is merged, deployed and Live-qualified. Continue A2 native Stroke/NaturalMedia/Airbrush → A3 Paper → A4 targeted Eraser. Keep A5 Blender/Smudge separate. The earlier CHAT_PLAN_STEPS_INVALID probe was a QA routing mistake because use_ink Creative Plan requires 2–32 steps; single A1 edits correctly use the direct bounded-edit named tools.
+RERUN_RESULT = A1 PASS / CLUSTER REMAINS PARTIAL
+```
+
+### R1-PAINT-SESSION-BOUNDS-001 — Paint Session content bounds fallback
+
+```text
+FINDING_ID = R1-PAINT-SESSION-BOUNDS-001
+CASE_ID = C016 / C017 / C018
+DEPLOYED_SOURCE_SHA = 58adf13cd98a8594eb8e63faedc735ce0c5179f0
+CAPABILITY_FAMILY = C29 C30 C34 / Preview geometry
+RESULT = OPEN / NON-BLOCKING FOR A1
+OBSERVED = A1 Paint Session renders and History/Preview execute successfully, but get_ink_preview(scope=content) returned 49×49 bounds although recorded stroke samples span roughly x=-110..100 and y=-95..70. Source renderer has an explicit paint-session draw route but no dedicated paint-session world-bounds specialization.
+EXPECTED = Content Preview / fit / selection geometry should derive bounds from the replay/session stroke geometry rather than a generic fallback box.
+MINIMAL_REPRO = clusterA-A1-live-rerun-004
+CLASS = PRODUCT_INTEGRATION_GAP / PREVIEW_BOUNDS_USABILITY
+UPSTREAM_DISPOSITION = Keep separate from A1 exposure closure. Reuse Stroke Session/replay geometry to provide bounds; do not create a second drawing model.
 RERUN_RESULT = PENDING
 ```
 
