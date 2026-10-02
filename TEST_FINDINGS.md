@@ -129,3 +129,20 @@ CLASS = CHAT_EXPOSURE_GAP
 UPSTREAM_DISPOSITION = Keep open and cluster with C14 deformation findings after Round 1.
 RERUN_RESULT = PENDING
 ```
+
+
+### R1-C007-001 — recipe route incomplete
+
+```text
+FINDING_ID = R1-C007-001
+CASE_ID = C007
+DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+CAPABILITY_FAMILY = C55 Recipe / automation
+RESULT = PARTIAL
+OBSERVED = CHAT created a base design, generated a linked grid Repeat and cloned Text successfully. Creative Library recipe search returned zero entries.
+EXPECTED = C55 case should eventually prove reusable Recipe/automation semantics, not only repeat/clone primitives.
+MINIMAL_REPRO = round1-C007-001
+CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
+UPSTREAM_DISPOSITION = Keep open; cluster with Recipe/automation findings after Round 1.
+RERUN_RESULT = PENDING
+```
