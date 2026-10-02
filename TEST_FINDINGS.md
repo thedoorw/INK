@@ -238,21 +238,21 @@ UPSTREAM_DISPOSITION = A1 Paint Session is closed. Continue A2 native Stroke/Nat
 RERUN_RESULT = PARTIAL / A1 PAINT SESSION PASS
 ```
 
-### R1-RASTER-EDIT-001 — mutable raster editing exists upstream but is not CHAT-exposed
+### R1-RASTER-EDIT-001 — mutable web-raster ingest exposed; raster edit stack remains open
 
 ```text
 FINDING_ID = R1-RASTER-EDIT-001
 CASE_ID = C010 / C011 / C014 / C015
-DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+DEPLOYED_SOURCE_SHA = 3a785b90d6f7922175cca3662fd2b72bf95430ce
 CAPABILITY_FAMILY = C14 C22 C23 C24 C25 C26 C27 C28 C40
-RESULT = PARTIAL / NOT_EXPOSED
-OBSERVED = CHAT imported a real PNG through the Reference channel, captured Preview and exported PNG. The generic edit failure CHAT_EDIT_TARGET_LOCKED is expected because Reference import intentionally creates a locked provenance/extraction image rather than a mutable raster image. Source audit confirms a separate native editable-raster authority already exists through InkApp.importImageFormat() and the installed Studio raster stack renderer.
-EXPECTED = Raster-heavy mature cases need CHAT-callable native mutable raster ingest plus bounded masking, adjustment/filter/blend/effect, Liquify, direct-raster edit and deformation routes where the existing product already supports them.
-MINIMAL_REPRO = round1-batch-C010-C011-C014-C015-001 → round1-batch-C010-C011-C014-C015-002
-CLASS = CHAT_EXPOSURE_GAP / PRODUCT_CONVERSION_INTEGRATION_GAP
+RESULT = PARTIAL / B0+B1 PASS
+OBSERVED = Formal Live registry now exposes raster.import / import_ink_raster. clusterB-B1-live-rerun-004 imported rose-window-primary.png through browser-local attachment handoff as one editable native image+rasterState (1086×1448), returned a stable created ref and source SHA-256, rendered a content Preview, created one scoped History entry, Undo removed the image, and Redo restored it. ReferenceImage remains separate and locked.
+EXPECTED = Raster-heavy mature cases still require bounded adjustment/filter/blend/effect/Liquify exposure, later masks/local raster edits, and native Path deformation where applicable.
+MINIMAL_REPRO = clusterB-B1-live-rerun-004
+CLASS = PARTIAL CHAT EXPOSURE / REMAINING RASTER STACK GAPS
 SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_B_RASTER_EFFECTS_DEFORMATION_SOURCE_AUDIT_20261002.md
-UPSTREAM_DISPOSITION = Do not unlock ReferenceImage. Existing PSD/TIFF/EXR/RAW mutable raster ingest needs CHAT exposure; Round 1 PNG/JPEG/WEBP need a small product bridge from validated browser raster data into the existing rasterState representation before the existing image-core / Studio renderer authorities can be exposed truthfully. Product-source merge and Live promotion remain HOLD under the current separate C04 combined-promotion gate.
-RERUN_RESULT = PENDING
+UPSTREAM_DISPOSITION = B0 web-raster conversion bridge and B1 PNG/JPEG/WebP mutable raster named-tool import are merged and Live-qualified. Continue B2 non-destructive image-stack edits next. PSD/TIFF/EXR/RAW native ingest exists upstream but is not included in the current B1 named-tool PASS. Do not unlock ReferenceImage.
+RERUN_RESULT = B0+B1 PASS / CLUSTER REMAINS PARTIAL
 ```
 
 ### R1-DRAWING-EXPOSURE-001 — A1 Paint Session exposed; remaining Drawing families open
