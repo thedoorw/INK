@@ -23,7 +23,7 @@ Status values:
 | C005 | Adobe — invitation | mixed text/layout/image | quick text + image + layout/edit probe | PENDING |
 | C006 | Adobe — promotional flyer | layout/output | assemble minimal flyer structure and verify output route | PENDING |
 | C007 | Adobe — social ads | C55 automation | create one base design, run one repeat/automation-style variant step | PENDING |
-| C008 | Adobe — geometric logo | C08 C09 C10 C11 C12 C13 C17 C21 C39 | path/shape → boolean → align → repeat → SVG round-trip | PENDING |
+| C008 | Adobe — geometric logo | C08 C09 C10 C11 C12 C13 C17 C21 C39 | path/shape → boolean → align → repeat → SVG round-trip | PARTIAL — Path/Boolean/Rotate/Repeat/SVG PASS; align/snap/material unresolved |
 | C009 | Canva — Run Club poster | C40 C41 C42 | import/reference → extraction/reconstruction → editable correction | PENDING |
 | C010 | Canva — campaign visual | C22 C23 C40 C42 | raster import → mask/targeted edit → transform/reconstruction probe | PENDING |
 | C011 | Canva — pastry hero image | C22 C23 C26 | raster + mask + blend/composition probe | PENDING |
@@ -133,3 +133,23 @@ Not yet established for C001:
 - C39 Material system.
 
 Separate material-library probe returned zero material entries in a fresh Live document. Material application authority exists, but an immediately reusable CHAT-visible material preset was not available in that state.
+
+
+### C008
+
+Request: `round1-C008-001`
+
+Verified:
+
+- native vector primitive creation: PASS;
+- `boolean.apply.v1` union: PASS;
+- `object.rotate.v1`: PASS;
+- `repeat.radial.v1`: PASS;
+- `svg.import.v1`: PASS;
+- Context/History/Preview verification: PASS.
+
+Not established in this probe:
+
+- C08 Smart guides / snapping;
+- C09 Align / distribute;
+- C39 usable material catalog/apply route.
