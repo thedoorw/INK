@@ -305,3 +305,20 @@ MATERIAL_SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_D_MATERIAL_RECIP
 UPSTREAM_DISPOSITION = Treat raster/filter/effect exposure as Cluster B. Material core/template authority exists, but fresh catalog is empty and current path-material semantics are bounded; keep C39 open until a case-appropriate reusable material route is qualified.
 RERUN_RESULT = PENDING
 ```
+
+### R1-B2-ADJUSTMENT-001 — brightnessContrast Live qualified
+
+```text
+FINDING_ID = R1-B2-ADJUSTMENT-001
+CASE_ID = C010 / C011 / C013 / C014 / C015
+DEPLOYED_SOURCE_SHA = 11551eab8c1ec78e04031f178b7ab24b91b40d26
+CAPABILITY_FAMILY = C14 C22 C23 C24 C25 C26 C27 C28
+RESULT = PARTIAL / B2 ADJUSTMENT PASS
+OBSERVED = CHAT imported one editable native PNG raster, proposed/approved/executed image.adjustment.add.v1 brightnessContrast through the bounded-edit authority, observed renderer fingerprint 34d01658→17debb38, recorded scoped History, captured Preview, then Undo restored 34d01658 and Redo restored 17debb38.
+EXPECTED = B2 must qualify existing non-destructive image-stack authorities one family at a time; tool-call success alone is insufficient.
+MINIMAL_REPRO = clusterB-B2-adjustment-live-002
+CLASS = CHAT_EXPOSURE_GAP → ADJUSTMENT REPAIRED
+UPSTREAM_DISPOSITION = PR #121 merged. brightnessContrast is Live-qualified. Filter/blend/effect/Liquify remain separately open and must not inherit this PASS.
+RERUN_RESULT = PASS
+```
+
