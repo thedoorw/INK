@@ -78,3 +78,20 @@ CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
 UPSTREAM_DISPOSITION = Keep open; cluster with all C39 case results after Round 1.
 RERUN_RESULT = PENDING
 ```
+
+
+### R1-C008-001 — partial
+
+```text
+FINDING_ID = R1-C008-001
+CASE_ID = C008
+DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+CAPABILITY_FAMILY = C08 C09 C10 C11 C12 C13 C17 C21 C39
+RESULT = PARTIAL
+OBSERVED = CHAT created vector primitives, executed Boolean union, rotation, radial Repeat and raw SVG import. All mutations produced native History/Revision evidence and final Preview. Align/distribute, smart-guide/snapping and usable material route remain unproven.
+EXPECTED = C008 should establish the distinctive geometric-logo vector construction path.
+MINIMAL_REPRO = round1-C008-001
+CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
+UPSTREAM_DISPOSITION = Continue Round 1; cluster C08/C09/C39 gaps across cases.
+RERUN_RESULT = PENDING
+```
