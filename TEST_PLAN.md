@@ -7,88 +7,126 @@ This repository is the deployed test mirror for INK.
 Development authority remains:
 `thedoorw/INK-Browser-QA`
 
+The primary purpose of the current Live lane is to test whether INK can actually be used to draw and support a complete drawing workflow. UI incompleteness is recorded when it blocks or degrades drawing, but it is not the main test target by itself.
+
 A Live test must always identify the exact deployed source SHA before conclusions are recorded.
 
 ## Deployment gate
 
 Before publishing a product build:
 
-1. current bounded development package has reached its required review/stop;
-2. select one exact `INK-Browser-QA` source SHA;
-3. copy/deploy only the required product files;
-4. record the SHA in `BUILD_INFO.json`;
-5. verify the GitHub Pages URL loads the same build;
-6. only then begin Live testing.
+1. select one explicit `INK-Browser-QA` source SHA;
+2. publish the required product build to `thedoorw/INK`;
+3. record the SHA in `BUILD_INFO.json`;
+4. verify the GitHub Pages URL loads that build;
+5. then run the drawing tests.
 
-Do not deploy a moving/unreviewed development state merely because it is the newest commit.
+Do not treat a moving `main` as the deployed identity.
 
 ## Test sequence
 
-### LT-00 — Identity / load
+### LT-00 — Load preflight
 
-- GitHub Pages URL loads;
-- `BUILD_INFO.json` is readable;
-- deployed source SHA matches the selected source baseline;
-- no missing required static assets;
-- startup completes without a fatal product error.
+This is only a prerequisite, not the main test.
 
-### LT-01 — Workstation smoke test
+- Live URL loads;
+- `BUILD_INFO.json` identifies the deployed source SHA;
+- canvas can initialize;
+- no fatal startup error prevents drawing.
 
-- document opens/creates;
-- canvas renders;
-- Tools / Options Bar / right panels render;
-- basic selection works;
-- basic vector object can be created and transformed;
-- undo / redo works;
-- page/layer state remains coherent;
-- save/export entry points remain reachable.
+### LT-01 — Basic drawing
 
-### LT-02 — Core mutation consistency
+Primary first test.
 
-Focused on the current spatial-index/Lasso risk area:
+- Pencil stroke;
+- Brush stroke;
+- Eraser;
+- short stroke / long stroke;
+- slow stroke / fast stroke;
+- curves and direction changes;
+- repeated strokes;
+- foreground/background color use where applicable;
+- visible stroke result matches the executed input closely enough for drawing.
 
-- create;
-- move;
-- resize;
-- rotate;
-- duplicate;
-- delete;
-- undo / redo;
-- group / frame / reparent;
-- page switch;
-- click / marquee / Lasso selection consistency.
+Record:
+- missed or broken strokes;
+- unexpected joins/gaps;
+- cursor/stroke-size mismatch;
+- latency or visible lag;
+- rendering artifacts;
+- tool-state failures.
 
-### LT-03 — CHAT × INK qualification preparation
+### LT-02 — Drawing + navigation
 
-Use the accepted capability-qualification plan and mature-case matrix.
+Verify that drawing remains usable while operating the canvas.
 
-Do not attempt the full 19-case reproduction set first.
+- zoom in / out;
+- pan;
+- rotate/reset where supported;
+- draw at different zoom levels;
+- draw near canvas/page edges;
+- continue drawing after navigation;
+- selection must not unexpectedly capture or move drawing objects.
 
-Begin with bounded multi-capability exercises:
+Known UI/capability gaps may be recorded but do not automatically stop the drawing test unless they prevent the workflow.
 
-- Construct;
-- Reference;
-- Draw.
+### LT-03 — Drawing edit / history / structure
 
-A tool call or command return is not a PASS. Require visible/structural result plus correction and final verification.
+- undo / redo strokes;
+- erase then undo / redo;
+- layer creation and switching;
+- visibility / lock where exposed;
+- duplicate / delete selected drawing content where applicable;
+- move / resize / rotate selected content where applicable;
+- save/reload or equivalent persistence check;
+- page/layer state remains coherent.
 
-### LT-04 — Mature-work reproduction
+This stage also catches spatial-index / selection consistency defects exposed by real drawing.
 
-Only after the prior gates are usable:
+### LT-04 — Drawing output
 
-- use selected mature reference case;
-- analyze required INK capabilities;
-- execute through INK native authorities;
+- preview remains visually consistent with the working canvas;
+- export a representative drawing;
+- verify exported dimensions / background / crop or page scope as applicable;
+- compare exported result with the visible drawing;
+- record clipping, scaling, missing-content or fidelity defects.
+
+### LT-05 — CHAT × INK Draw qualification
+
+After manual/basic drawing behavior is usable, test whether CHAT can operate the same drawing capabilities through INK's public/control surface.
+
+Start with the `Draw` bounded multi-capability exercise before expanding to `Construct` or `Reference`.
+
+A command/tool return is not a PASS. Require:
+
+```text
+execute
+→ visible result
+→ inspect
+→ correct
+→ verify final result
+```
+
+### LT-06 — Mature-work drawing reproduction
+
+Only after the drawing workflow is usable:
+
+- choose one selected mature drawing/painting reference case;
+- analyze the required INK capabilities;
+- reproduce it through INK;
 - Preview / compare;
 - correct;
 - verify History / Revision / provenance where applicable;
 - export;
-- record capability gaps.
+- record capability and workflow gaps.
+
+Do not start by trying to cover every mature-work case.
 
 ## Finding classes
 
 Each finding must be classified as one of:
 
+- DRAWING_DEFECT
 - PRODUCT_DEFECT
 - CHAT_EXPOSURE_GAP
 - TARGETING_GAP
@@ -105,9 +143,9 @@ Live finding in thedoorw/INK
 → record exact deployed SHA
 → reproduce/classify
 → repair only in thedoorw/INK-Browser-QA
-→ normal review / evidence
+→ focused QA / required review
 → publish a new exact SHA to thedoorw/INK
-→ rerun the same Live test
+→ rerun the same drawing test
 ```
 
 Never repair product source directly in this repository.
