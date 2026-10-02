@@ -18,7 +18,7 @@ Status values:
 | --- | --- | --- | --- | --- |
 | C001 | Figma — minimal poster | C03 C05 C08 C09 C11 C13 C15 C16 C20 C39 | create text + shape, align/snap, transform, group/frame, apply material | PARTIAL — create/transform/group/frame PASS; align/snap/artboard/material unresolved |
 | C002 | Figma — year-in-review deck | C02 C18 C19 C20 C22 C39 | create/switch page, text+image hierarchy, layout/component/reuse probe | PARTIAL — Frame/Layout/Text/Component/Library PASS; page mutation/raster/material unresolved |
-| C003 | Figma — reference → portfolio design | C07 C19 C22 C40 C42 | import reference, select/target, create editable structure/layout | PENDING |
+| C003 | Figma — reference → portfolio design | C07 C19 C22 C40 C42 | import reference, select/target, create editable structure/layout | PARTIAL — binary Reference import/decompose + editable structure PASS; selection/layout-specific probe pending |
 | C004 | Figma — concept poster | overlap check | short poster probe only where it exercises a path not already proven by C001 | PENDING |
 | C005 | Adobe — invitation | mixed text/layout/image | quick text + image + layout/edit probe | PENDING |
 | C006 | Adobe — promotional flyer | layout/output | assemble minimal flyer structure and verify output route | PENDING |
@@ -207,3 +207,25 @@ Gap:
 
 - Creative Library search for `recipe` returned zero entries in the fresh Live document;
 - this proves repeat/variant mechanics, not a complete reusable Recipe/automation workflow.
+
+
+### C003
+
+Requests: `round1-C003-binary-preflight-001`, repair, then `round1-C003-001`
+
+Transport gap discovered and repaired during the scan:
+
+- preflight failed with `CHAT_REFERENCE_HANDOFF_BINARY_REQUIRED`;
+- Live bridge was extended to materialize a bounded fixture into a browser `File`;
+- rerun imported a 1086×1448 PNG successfully through `import_ink_reference`.
+
+Verified:
+
+- CHAT binary Reference import: PASS;
+- Reference history commit + provenance: PASS;
+- `decompose_ink_reference`: PASS;
+- editable post-reference Frame/Text structure: PASS.
+
+Observation:
+
+- decomposition returned a very large structured result (~1.8 MB), so evidence-result compaction is needed in the test transport even though the INK operation itself completed.
