@@ -95,3 +95,20 @@ CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
 UPSTREAM_DISPOSITION = Continue Round 1; cluster C08/C09/C39 gaps across cases.
 RERUN_RESULT = PENDING
 ```
+
+
+### R1-C002-001 — partial
+
+```text
+FINDING_ID = R1-C002-001
+CASE_ID = C002
+DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+CAPABILITY_FAMILY = C02 C18 C19 C20 C22 C39
+RESULT = PARTIAL
+OBSERVED = CHAT created a Frame and Text, reparented Text, applied Frame layout, registered a Component, edited Text, and rediscovered the Component through Creative Library with a reusable component.instance.create.v1 descriptor. Page mutation, raster/image path, and material path were not established.
+EXPECTED = C002 should prove multi-page/layout/component/text/image reuse fundamentals without completing the full deck.
+MINIMAL_REPRO = round1-C002-001
+CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
+UPSTREAM_DISPOSITION = Continue Round 1; cluster page/raster/material gaps.
+RERUN_RESULT = PENDING
+```
