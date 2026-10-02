@@ -2,7 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": null,
+  "source_sha": "66cdb5b4ddc322a2b1027cab2627426f868027d3",
+  "source_entry": "product/source/index.html",
+  "source_entry_blob_sha": "8bbef18a9b2fcad0f7c6d0a12244f17dc54d9deb",
+  "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "SKELETON_INITIALIZED"
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact source SHA."
 }
