@@ -241,9 +241,9 @@ RESULT = PARTIAL / NOT_EXPOSED
 OBSERVED = CHAT imported a real PNG through the Reference channel, captured Preview and exported PNG. The generic edit failure CHAT_EDIT_TARGET_LOCKED is expected because Reference import intentionally creates a locked provenance/extraction image rather than a mutable raster image. Source audit confirms a separate native editable-raster authority already exists through InkApp.importImageFormat() and the installed Studio raster stack renderer.
 EXPECTED = Raster-heavy mature cases need CHAT-callable native mutable raster ingest plus bounded masking, adjustment/filter/blend/effect, Liquify, direct-raster edit and deformation routes where the existing product already supports them.
 MINIMAL_REPRO = round1-batch-C010-C011-C014-C015-001 → round1-batch-C010-C011-C014-C015-002
-CLASS = CHAT_EXPOSURE_GAP
+CLASS = CHAT_EXPOSURE_GAP / PRODUCT_CONVERSION_INTEGRATION_GAP
 SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_B_RASTER_EFFECTS_DEFORMATION_SOURCE_AUDIT_20261002.md
-UPSTREAM_DISPOSITION = Do not unlock ReferenceImage. Expose the existing native mutable raster ingest / rasterState / image-core / Studio renderer authorities through bounded CHAT operations. Product-source merge and Live promotion remain HOLD under the current separate C04 combined-promotion gate.
+UPSTREAM_DISPOSITION = Do not unlock ReferenceImage. Existing PSD/TIFF/EXR/RAW mutable raster ingest needs CHAT exposure; Round 1 PNG/JPEG/WEBP need a small product bridge from validated browser raster data into the existing rasterState representation before the existing image-core / Studio renderer authorities can be exposed truthfully. Product-source merge and Live promotion remain HOLD under the current separate C04 combined-promotion gate.
 RERUN_RESULT = PENDING
 ```
 
