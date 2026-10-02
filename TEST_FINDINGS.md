@@ -164,7 +164,7 @@ UPSTREAM_DISPOSITION = Binary transport repair retained in INK-Browser-QA Live b
 RERUN_RESULT = BINARY HANDOFF PASS
 ```
 
-### R1-TEST-INFRA-001 — decomposition evidence payload oversized
+### R1-TEST-INFRA-001 — decomposition evidence payload oversized / repaired
 
 ```text
 FINDING_ID = R1-TEST-INFRA-001
@@ -176,6 +176,23 @@ OBSERVED = Successful reference decomposition produced a structured Live result 
 EXPECTED = Live test transport should retain full artifact evidence while keeping the GitHub SSOT summary compact enough for rapid CHAT scan/review.
 MINIMAL_REPRO = round1-C003-001
 CLASS = TEST_ENVIRONMENT_LIMIT / WORKFLOW_USABILITY_GAP
-UPSTREAM_DISPOSITION = Queue transport-result compaction; do not modify INK product authority for this.
-RERUN_RESULT = PENDING
+UPSTREAM_DISPOSITION = Live bridge workflow now compacts oversized GitHub SSOT results while retaining the full JSON + screenshot in the workflow artifact; INK product authority was not changed.
+RERUN_RESULT = PASS — round1-C009-001 produced a compact SSOT summary from a 1,255,011-byte full result
+```
+
+
+### R1-C009-001 — pass
+
+```text
+FINDING_ID = R1-C009-001
+CASE_ID = C009
+DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+CAPABILITY_FAMILY = C40 C41 C42
+RESULT = PASS
+OBSERVED = CHAT imported a real PNG Reference, decomposed it into 1471 editable color Paths plus 1471 editable line Paths, then repainted two reconstructed Paths through INK native proposal/approval/execute. Preview completed.
+EXPECTED = Reference can enter INK, become editable reconstructed structure, and receive a bounded correction.
+MINIMAL_REPRO = round1-C009-001
+CLASS = PASS
+UPSTREAM_DISPOSITION = No product repair required for this probe.
+RERUN_RESULT = PASS
 ```
