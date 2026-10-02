@@ -1,20 +1,800 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>INK · Live Test</title>
-<style>
-html,body{height:100%;margin:0}body{display:grid;place-items:center;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f3;color:#222}
-main{max-width:560px;padding:32px}h1{font-size:28px;margin:0 0 12px}p{line-height:1.65;color:#555}
-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#e7e7e7">
+  <meta name="application-name" content="INK v0.1 · Web">
+  <meta name="description" content="INK — editable drawing with infinite creation space and print layout space">
+
+  <base href="https://cdn.jsdelivr.net/gh/thedoorw/INK-Browser-QA@66cdb5b4ddc322a2b1027cab2627426f868027d3/product/source/">
+  <meta name="ink-live-source-sha" content="66cdb5b4ddc322a2b1027cab2627426f868027d3">
+<link rel="manifest" href="manifest.webmanifest?v=0.1">
+  <link rel="icon" href="assets/favicon.svg?v=0.1" type="image/svg+xml" sizes="32x32">
+  <title>INK v0.1 · Web</title>
+  <style id="inkFirstPaintStyle">
+    html,body{margin:0;background:#e7e7e7;color:#262626}
+    body{min-height:100vh}
+    #app{background:#e7e7e7;color:#262626}
+  </style>
+  <link rel="stylesheet" href="styles.css?v=0.1-ui-20261002-sup08-11">
 </head>
-<body>
-<main>
-<h1>INK · Live Test</h1>
-<p>Deployment mirror initialized.</p>
-<p>The first selected build from <code>thedoorw/INK-Browser-QA</code> has not been published yet.</p>
-</main>
+<body data-ink-first-paint="workstation">
+<svg class="svg-sprite" aria-hidden="true">
+  <symbol id="i-pages" viewBox="0 0 24 24"><path d="M7 3.5h9.5A2.5 2.5 0 0 1 19 6v12.5H9.5A2.5 2.5 0 0 1 7 16V3.5Z"/><path d="M7 6H5.5A2.5 2.5 0 0 0 3 8.5V19h12"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="m9 7-4 4 4 4"/><path d="M5 11h8a6 6 0 0 1 6 6"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 7 4 4-4 4"/><path d="M19 11h-8a6 6 0 0 0-6 6"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.25"/><circle cx="12" cy="12" r="1.25"/><circle cx="19" cy="12" r="1.25"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h3M11 12h9M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3zM18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15z"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><circle cx="12" cy="12" r="2.25"/><path d="M12 6v2M12 16v2M6 12h2M16 12h2"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="m20 3-3 12-8 6-6-6 6-8 11-4Z"/><path d="m3 21 8-8M9 7l8 8"/><circle cx="12" cy="12" r="1.5"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="m16.5 3.5 4 4L8.2 19.8 3 21l1.2-5.2L16.5 3.5Z"/><path d="m14.5 5.5 4 4M4.2 15.8l4 4"/></symbol>
+  <symbol id="i-marker" viewBox="0 0 24 24"><path d="m14.2 3.8 6 6-9.4 9.4H4.8v-6l9.4-9.4Z"/><path d="M3 21h12M11.5 6.5l6 6"/></symbol>
+  <symbol id="i-brush" viewBox="0 0 24 24"><path d="M15.5 3.5c2.5.8 4.2 2.7 5 5-4.2 4.7-6.3 7.1-8.2 8.2-1.7 1-3.5.4-4.7-.8-1.2-1.2-1.8-3-.8-4.7 1.1-1.9 3.5-4 8.7-7.7Z"/><path d="M8.2 16.3c-1.2 3-3.1 4.2-5.7 4.2 1-1.5 1.4-3 .9-4.5 1.8-.7 3.3-.6 4.8.3Z"/></symbol>
+  <symbol id="i-airbrush" viewBox="0 0 24 24"><path d="M4 12h8M6 8h8M7 16h7"/><circle cx="17.5" cy="12" r="3.5"/><path d="M21 12h1"/></symbol>
+  <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m14.5 4 5.5 5.5-9.8 9.8H6.5L3 15.8 14.5 4Z"/><path d="m8.5 9.8 5.7 5.7M10.2 19.3H21"/></symbol>
+  <symbol id="i-select" viewBox="0 0 24 24"><path d="M5 3.5 18 14l-6.1 1.1L9 21 5 3.5Z"/><path d="m13.5 15.2 4.2 5.3"/></symbol>
+  <symbol id="i-lasso" viewBox="0 0 24 24"><path d="M18.5 8.2c1.7 3.7-.4 7.2-4.4 8.3-4.9 1.3-10.1-.5-10.6-4.4-.5-4.1 4.4-7.8 9.4-7.1 2.4.3 4.5 1.4 5.6 3.2Z"/><path d="M14 16.5c.3 3.6 2 4.6 5 3.1"/></symbol>
+  <symbol id="i-shape" viewBox="0 0 24 24"><rect x="3.5" y="4" width="8" height="8" rx="1"/><circle cx="16.5" cy="15.5" r="4"/><path d="m8 21 5-8"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M5 5h14M12 5v15M8.5 20h7"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m5 18 5-5 3.5 3 2.5-2.5 3 4.5"/></symbol>
+  <symbol id="i-pan" viewBox="0 0 24 24"><path d="M8.5 11V6.5a1.5 1.5 0 0 1 3 0V11M11.5 10V4.5a1.5 1.5 0 0 1 3 0V10M14.5 10V6a1.5 1.5 0 0 1 3 0v6M8.5 10.5V9a1.5 1.5 0 0 0-3 0v5.5c0 4 2.8 6.5 6.7 6.5h.6c4.5 0 7.2-3 7.2-7v-3a1.5 1.5 0 0 0-3 0v1"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M4 5v5h5"/><path d="M5.2 9.2A8 8 0 1 1 4.6 15"/><path d="M12 7v5l3.2 2"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 13v7h14v-7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/><path d="m3 8 6-6M21 8l-6-6M3 16l6 6M21 16l-6 6"/></symbol>
+  <symbol id="i-contract" viewBox="0 0 24 24"><path d="M9 9H4M9 9V4M15 9h5M15 9V4M9 15H4M9 15v5M15 15h5M15 15v5"/><path d="m4 9 5-5M20 9l-5-5M4 15l5 5M20 15l-5 5"/></symbol>
+  <symbol id="i-panel-width" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M9 4v16M13 12h5M13 12l2-2M13 12l2 2"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="7" r="1"/><circle cx="15" cy="7" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="17" r="1"/><circle cx="15" cy="17" r="1"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  <symbol id="i-collapse" viewBox="0 0 8 6"><path d="m.5 .5 2.5 2.5L.5 5.5m4-5 2.5 2.5L4.5 5.5"/></symbol>
+  <symbol id="i-panel-menu" viewBox="0 0 10 7"><path d="M0 .5h10M0 3.5h10M0 6.5h10"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
+  <symbol id="i-group" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/><path d="M13 7h4v4M11 17H7v-4"/></symbol>
+  <symbol id="i-front" viewBox="0 0 24 24"><rect x="8" y="5" width="11" height="11" rx="1"/><path d="M15 16v3H5V9h3"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 3h6l1 4H8l1-4Z"/><path d="m7 7 1 14h8l1-14M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-align-left" viewBox="0 0 24 24"><path d="M4 4v16M8 7h10v4H8zM8 14h7v4H8z"/></symbol>
+  <symbol id="i-align-center" viewBox="0 0 24 24"><path d="M12 3v18M6 7h12v4H6zM8 14h8v4H8z"/></symbol>
+  <symbol id="i-align-right" viewBox="0 0 24 24"><path d="M20 4v16M6 7h10v4H6zM9 14h7v4H9z"/></symbol>
+  <symbol id="i-align-top" viewBox="0 0 24 24"><path d="M4 4h16M7 8v10h4V8zM14 8v7h4V8z"/></symbol>
+  <symbol id="i-align-middle" viewBox="0 0 24 24"><path d="M3 12h18M7 6v12h4V6zM14 8v8h4V8z"/></symbol>
+  <symbol id="i-align-bottom" viewBox="0 0 24 24"><path d="M4 20h16M7 6v10h4V6zM14 9v7h4V9z"/></symbol>
+  <symbol id="i-distribute-h" viewBox="0 0 24 24"><path d="M4 4v16M20 4v16M8 8h3v8H8zM14 8h3v8h-3z"/></symbol>
+  <symbol id="i-distribute-v" viewBox="0 0 24 24"><path d="M4 4h16M4 20h16M8 8h8v3H8zM8 14h8v3H8z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-infinite" viewBox="0 0 24 24"><path d="M8.2 8.1c-2.3 0-4.2 1.7-4.2 3.9s1.9 3.9 4.2 3.9c2.8 0 4.7-2.7 7.6-6 1-1.2 2.1-1.8 3.1-1.8 1.8 0 3.1 1.7 3.1 3.9s-1.3 3.9-3.1 3.9c-1.1 0-2.2-.6-3.2-1.8L12 10c-1.3-1.3-2.5-1.9-3.8-1.9Z"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+  <symbol id="i-quick-selection" viewBox="0 0 24 24"><path d="M4 11V4h8M4 15v5h8M16 20h4v-5" stroke-dasharray="2 2"/><path d="m13 11 5-6 3 3-6 5-2-2Z"/><path d="M13 11c-3-1-5 1-5 4 3 0 5-1 5-4Z"/></symbol>
+  <symbol id="i-fill" viewBox="0 0 24 24"><path d="m6 5 8 8-6 6-5-5 6-6"/><path d="M14 13h6l1 7H9"/><path d="M16 5h4M18 3v4"/></symbol>
+  <symbol id="i-eyedropper" viewBox="0 0 24 24"><path d="m14 4 6 6-3 3-2-2-7.5 7.5L4 20l1.5-3.5L13 9l-2-2 3-3Z"/><path d="M6 17h4"/></symbol>
+  <symbol id="i-clone-stamp" viewBox="0 0 24 24"><path d="M9 4h6l1 5 3 2v3H5v-3l3-2 1-5Z"/><path d="M6 14v5h12v-5M8 17h8"/></symbol>
+  <symbol id="i-healing" viewBox="0 0 24 24"><path d="m6 17 11-11M4 10l10 10M10 4l10 10"/><path d="M6 6h4v4H6zM14 14h4v4h-4z"/></symbol>
+  <symbol id="i-dodge" viewBox="0 0 24 24"><circle cx="10" cy="10" r="5"/><path d="m14 14 6 6M4 10h2M10 4V2M16 10h2M10 16v2"/></symbol>
+  <symbol id="i-blur" viewBox="0 0 24 24"><path d="M12 3c4 5 7 8.5 7 12a7 7 0 1 1-14 0c0-3.5 3-7 7-12Z"/><path d="M9 17c1.5 1.5 4.5 1.5 6 0"/></symbol>
+  <symbol id="i-color-reset" viewBox="0 0 24 24"><rect x="5" y="5" width="9" height="9"/><rect x="10" y="10" width="9" height="9"/><path d="M4 18v2h2M20 6V4h-2"/></symbol>
+  <symbol id="i-color-swap" viewBox="0 0 24 24"><path d="M5 8h12l-3-3M19 16H7l3 3"/><path d="m14 5 3 3-3 3M10 13l-3 3 3 3"/></symbol>
+  <symbol id="i-screen-mode" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="1"/><path d="M8 21h8M12 18v3"/></symbol>
+  <symbol id="i-mountain-small" viewBox="0 0 24 24"><path d="m3 18 6-8 4 5 3-4 5 7Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-mountain-large" viewBox="0 0 24 24"><path d="m2 19 8-13 5 8 3-5 4 10Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M4 4l16 16M3 12s3.5-6 9-6c2.1 0 3.8.7 5.2 1.6M21 12s-3.5 6-9 6c-2.2 0-4-.7-5.4-1.7"/></symbol>
+  <symbol id="i-zoom-out" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 20 20M7 10h6"/></symbol>
+  <symbol id="i-zoom-in" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5 20 20M7 10h6M10 7v6"/></symbol>
+  <symbol id="i-mask" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14"/><circle cx="12" cy="12" r="4"/></symbol>
+  <symbol id="i-fx" viewBox="0 0 24 24"><path d="M5 18 11 6h6M7 11h9M14 18l5-8M14 10l5 8"/></symbol>
+<symbol id="i-object-select" viewBox="0 0 24 24"><path d="M4 3h16v17H4z" stroke-dasharray="2 2"/><path d="m10 8 8 4-4 2-2 4z"/></symbol><symbol id="i-crop" viewBox="0 0 24 24"><path d="M6 2v16h16M2 6h16v16M9 6h9v9"/></symbol><symbol id="i-frame" viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 3l18 18M21 3 3 21"/></symbol><symbol id="i-path" viewBox="0 0 24 24"><path d="m4 20 5-14 11 11-16 3zm5-14 8-3 4 4-1 10M4 20l8-8"/></symbol></svg>
+
+<div id="app" class="app web-shell-v0-1 toolbar-layout-dual" data-panel="brush" data-space="creation" data-shell-panel="layers" data-toolbar-layout="dual" data-document-active="false" data-rulers="false" data-first-paint="ready" style="--active-panel-w:252px">
+  <div class="menu-strip" role="menubar" aria-label="應用程式選單">
+    <div class="menu-app-mark" aria-label="INK v0.1 · Web"><img class="brand-source-mark" data-brand-logo src="assets/INK_MARK_SOURCE_W-300.jpg?v=0.1" alt="" aria-hidden="true"><strong data-brand-app-name>INK</strong><small>0.1</small></div>
+    <nav id="applicationMenus" class="application-menus" aria-label="主選單">
+      <div class="application-menu application-file-menu" data-application-menu="file">
+        <button id="fileMenuToggle" type="button" data-application-menu-trigger="file" aria-haspopup="menu" aria-expanded="false">檔案(F)</button>
+        <div id="fileMenu" class="application-command-menu" role="menu" aria-label="檔案" data-ui-home="file" data-ui-route="PRIMARY_HOME" hidden>
+          <button type="button" role="menuitem" data-ui-b-command="tool:image"><span>置入圖片…</span></button>
+          <button type="button" role="menuitem" data-file-command="new"><span>新增</span><kbd>Ctrl+N</kbd></button>
+          <button type="button" role="menuitem" data-file-command="open"><span>開啟</span><kbd>Ctrl+O</kbd></button>
+          <button type="button" role="menuitem" data-file-command="save"><span>儲存</span><kbd>Ctrl+S</kbd></button>
+          <span class="application-menu-separator" aria-hidden="true"></span>
+          <button type="button" role="menuitem" data-file-command="export"><span>匯出</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="file-external-open" data-ui-b-command="external-open"><span>開啟／匯入外部影像…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="file-import-reference" data-ui-b-command="reference-import"><span>匯入參考圖…</span></button><button type="button" role="menuitem" data-ui-b-contribution="file-import-svg" data-ui-b-command="svg-import"><span>匯入 SVG…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="file-print" data-ui-b-command="print"><span>列印…</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="edit">
+        <button type="button" data-application-menu-trigger="edit" aria-haspopup="menu" aria-expanded="false">編輯(E)</button>
+        <div id="editMenu" class="application-command-menu" role="menu" aria-label="編輯" hidden>
+          <button type="button" role="menuitem" data-shell-action="undo"><span>復原</span><kbd>Ctrl+Z</kbd></button>
+          <button type="button" role="menuitem" data-shell-action="redo"><span>重做</span><kbd>Ctrl+Shift+Z</kbd></button>
+          <span class="application-menu-separator" aria-hidden="true"></span>
+          <button type="button" role="menuitem" data-ui-b-contribution="edit-duplicate" data-ui-b-command="duplicate"><span>建立副本</span><kbd>Ctrl+D</kbd></button><button type="button" role="menuitem" data-ui-b-contribution="edit-delete" data-ui-b-command="delete"><span>刪除</span><kbd>Delete</kbd></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="object-skew" data-ui-b-command="transform:skew"><span>變形：傾斜…</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-distort" data-ui-b-command="transform:distort"><span>變形：扭曲…</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-perspective" data-ui-b-command="transform:perspective"><span>變形：透視…</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-warp" data-ui-b-command="transform:warp"><span>變形：彎曲…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="help-shortcuts" data-ui-b-command="keyboard-shortcuts"><span>鍵盤快捷鍵…</span></button><button type="button" role="menuitem" data-ui-b-contribution="edit-settings" data-ui-b-command="preferences"><span>偏好設定…</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="image">
+        <button type="button" data-application-menu-trigger="image" aria-haspopup="menu" aria-expanded="false">影像(I)</button>
+        <div id="imageMenu" class="application-command-menu" role="menu" aria-label="影像" hidden>
+<span class="application-menu-separator" role="separator"></span>
+          <button type="button" role="menuitem" data-shell-action="canvas-settings"><span>畫布設定…</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="image-mode-8" data-ui-b-command="bit-depth:8"><span>模式：8-bit</span></button><button type="button" role="menuitem" data-ui-b-contribution="image-mode-16" data-ui-b-command="bit-depth:16"><span>模式：16-bit</span></button><button type="button" role="menuitem" data-ui-b-contribution="image-mode-32" data-ui-b-command="bit-depth:32"><span>模式：32-bit</span></button><button type="button" role="menuitem" data-ui-b-contribution="image-mode-rgb" data-ui-b-command="color-mode:RGB"><span>色彩模式：RGB</span></button><button type="button" role="menuitem" data-ui-b-contribution="image-mode-cmyk" data-ui-b-command="color-mode:CMYK"><span>色彩模式：CMYK</span></button><button type="button" role="menuitem" data-ui-b-contribution="image-mode-lab" data-ui-b-command="color-mode:Lab"><span>色彩模式：Lab</span></button><button type="button" role="menuitem" data-ui-b-contribution="image-mode-multi" data-ui-b-command="color-mode:Multichannel"><span>色彩模式：多色版</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="image-profile" data-ui-b-command="color-profile"><span>色彩描述檔…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="image-adjustments" data-ui-b-command="panel:adjustments"><span>調整…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="image-crop" data-ui-b-command="image-crop"><span>裁切選取影像…</span></button><button type="button" role="menuitem" data-ui-b-contribution="image-resize" data-ui-b-command="image-resize"><span>影像尺寸…</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="layer">
+        <button type="button" data-application-menu-trigger="layer" aria-haspopup="menu" aria-expanded="false">圖層(L)</button>
+        <div id="layerMenu" class="application-command-menu" role="menu" aria-label="圖層" hidden>
+          <button type="button" role="menuitem" data-shell-panel="layers"><span>圖層面板</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="layer-new" data-ui-b-command="layer-new"><span>新增圖層</span></button><button type="button" role="menuitem" data-ui-b-contribution="layer-duplicate" data-ui-b-command="layer-duplicate"><span>複製圖層</span></button><button type="button" role="menuitem" data-ui-b-contribution="layer-delete" data-ui-b-command="layer-delete"><span>刪除圖層</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="layer-group" data-ui-b-command="group"><span>群組選取</span></button><button type="button" role="menuitem" data-ui-b-contribution="layer-ungroup" data-ui-b-command="ungroup"><span>解散群組</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="layer-mask-add" data-ui-b-command="mask-add"><span>建立遮色片</span></button><button type="button" role="menuitem" data-ui-b-contribution="layer-mask-select" data-ui-b-command="select-and-mask"><span>選取並遮住…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="layer-effects" data-ui-b-command="layer-effects"><span>圖層效果…</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="type">
+        <button type="button" data-application-menu-trigger="type" aria-haspopup="menu" aria-expanded="false">文字(Y)</button>
+        <div id="typeMenu" class="application-command-menu" role="menu" aria-label="文字" hidden>
+          <button type="button" role="menuitem" data-shell-panel="properties"><span>文字屬性</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="type-horizontal" data-ui-b-command="text-mode:horizontal-tb"><span>水平／段落文字</span></button><button type="button" role="menuitem" data-ui-b-contribution="type-vertical-rl" data-ui-b-command="text-mode:vertical-rl"><span>垂直文字（右至左）</span></button><button type="button" role="menuitem" data-ui-b-contribution="type-vertical-lr" data-ui-b-command="text-mode:vertical-lr"><span>垂直文字（左至右）</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="type-path" data-ui-b-command="text-on-path"><span>文字沿路徑…</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="select">
+        <button type="button" data-application-menu-trigger="select" aria-haspopup="menu" aria-expanded="false">選取(S)</button>
+        <div id="selectMenu" class="application-command-menu" role="menu" aria-label="選取" hidden>
+          <button type="button" role="menuitem" data-shell-panel="properties"><span>選取屬性</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="select-all" data-ui-b-command="select-all"><span>全部選取</span><kbd>Ctrl+A</kbd></button><button type="button" role="menuitem" data-ui-b-contribution="select-clear" data-ui-b-command="select-clear"><span>取消選取</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="select-polygon" data-ui-b-command="tool:polygonalLasso"><span>多邊形套索</span></button><button type="button" role="menuitem" data-ui-b-contribution="select-magnetic" data-ui-b-command="tool:magneticLasso"><span>磁性套索</span></button><button type="button" role="menuitem" data-ui-b-contribution="select-quick" data-ui-b-command="tool:quickSelection"><span>快速選取</span></button><button type="button" role="menuitem" data-ui-b-contribution="select-magic" data-ui-b-command="tool:magicWand"><span>魔術棒</span></button><button type="button" role="menuitem" data-ui-b-contribution="select-object" data-ui-b-command="tool:objectSelection"><span>物件選取</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="select-refine" data-ui-b-command="select-and-mask"><span>選取並遮住…</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="filter">
+        <button type="button" data-application-menu-trigger="filter" aria-haspopup="menu" aria-expanded="false">濾鏡(T)</button>
+        <div id="filterMenu" class="application-command-menu" role="menu" aria-label="濾鏡" hidden>
+          <button type="button" role="menuitem" disabled><span>命令控制由 UI-B 配線</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="filter-gallery" data-ui-b-command="filter-gallery"><span>濾鏡收藏館…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-gaussian" data-ui-b-command="filter:gaussianBlur"><span>高斯模糊…</span></button><button type="button" role="menuitem" data-ui-b-contribution="filter-motion" data-ui-b-command="filter:motionBlur"><span>動態模糊…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-median" data-ui-b-command="filter:median"><span>中間值…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-sharpen" data-ui-b-command="filter:sharpen"><span>銳利化</span></button><button type="button" role="menuitem" data-ui-b-contribution="filter-unsharp" data-ui-b-command="filter:unsharpMask"><span>遮色片銳利化…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-highpass" data-ui-b-command="filter:highPass"><span>顏色快調…</span></button><button type="button" role="menuitem" data-ui-b-contribution="filter-edge" data-ui-b-command="filter:edgeDetection"><span>邊緣偵測…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-noise" data-ui-b-command="filter:noiseGrain"><span>雜訊／顆粒…</span></button><button type="button" role="menuitem" data-ui-b-contribution="filter-reduce-noise" data-ui-b-command="filter:reduceNoise"><span>減少雜訊…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-texture" data-ui-b-command="filter:textureOverlay"><span>紋理疊加…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-emboss" data-ui-b-command="filter:emboss"><span>浮雕…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-mosaic" data-ui-b-command="filter:mosaic"><span>馬賽克／像素化…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-minimum" data-ui-b-command="filter:minimum"><span>最小值…</span></button><button type="button" role="menuitem" data-ui-b-contribution="filter-maximum" data-ui-b-command="filter:maximum"><span>最大值…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="filter-liquify" data-ui-b-command="liquify"><span>液化…</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="object">
+        <button type="button" data-application-menu-trigger="object" aria-haspopup="menu" aria-expanded="false">物件(O)</button>
+        <div id="objectMenu" class="application-command-menu" role="menu" aria-label="物件" hidden>
+          <button type="button" role="menuitem" data-shell-panel="properties"><span>物件屬性</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="object-front" data-ui-b-command="arrange:front"><span>移至最上</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-back" data-ui-b-command="arrange:back"><span>移至最下</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="object-group" data-ui-b-command="group"><span>群組</span><kbd>Ctrl+G</kbd></button><button type="button" role="menuitem" data-ui-b-contribution="object-ungroup" data-ui-b-command="ungroup"><span>解散群組</span><kbd>Ctrl+Shift+G</kbd></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="object-align-left" data-ui-b-command="align:left"><span>對齊：靠左</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-align-center-x" data-ui-b-command="align:centerX"><span>對齊：水平置中</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-align-right" data-ui-b-command="align:right"><span>對齊：靠右</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-align-top" data-ui-b-command="align:top"><span>對齊：靠上</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-align-center-y" data-ui-b-command="align:centerY"><span>對齊：垂直置中</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-align-bottom" data-ui-b-command="align:bottom"><span>對齊：靠下</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-distribute-x" data-ui-b-command="align:distributeX"><span>分布：水平等距</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-distribute-y" data-ui-b-command="align:distributeY"><span>分布：垂直等距</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="object-frame-selection" data-ui-b-command="frame-selection"><span>建立框架</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="object-path-edit" data-ui-b-command="proxy:pathEditToggle"><span>路徑／節點編輯</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-boolean-union" data-ui-b-command="proxy:booleanUnion"><span>路徑布林：聯集</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-boolean-difference" data-ui-b-command="proxy:booleanDifference"><span>路徑布林：差集</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-boolean-intersection" data-ui-b-command="proxy:booleanIntersection"><span>路徑布林：交集</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-boolean-xor" data-ui-b-command="proxy:booleanXor"><span>路徑布林：互斥</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="object-repeat-radial" data-ui-b-command="proxy:repeatRadial"><span>重複：放射</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-repeat-mirror" data-ui-b-command="proxy:repeatMirror"><span>重複：鏡射</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-repeat-grid" data-ui-b-command="proxy:repeatGrid"><span>重複：格狀</span></button><button type="button" role="menuitem" data-ui-b-contribution="object-repeat-expand" data-ui-b-command="proxy:repeatExpand"><span>重複：展開路徑</span></button>
+        </div>
+      </div>
+      <div class="application-menu" data-application-menu="view">
+        <button type="button" data-application-menu-trigger="view" aria-haspopup="menu" aria-expanded="false">檢視(V)</button>
+        <div id="viewMenu" class="application-command-menu" role="menu" aria-label="檢視" hidden>
+          <button type="button" role="menuitem" data-ui-b-command="proxy:zoomInBtn"><span>放大</span><kbd>＋</kbd></button>
+          <button type="button" role="menuitem" data-ui-b-command="proxy:zoomOutBtn"><span>縮小</span><kbd>−</kbd></button>
+          <button type="button" role="menuitem" data-ui-b-command="proxy:rotateResetBtn"><span>重設旋轉</span><kbd>0</kbd></button>
+          <button type="button" role="menuitem" data-shell-action="fit-current"><span>符合目前內容</span><kbd>F</kbd></button>
+          <button type="button" role="menuitemcheckbox" data-shell-action="toggle-rulers" aria-checked="false"><span>標尺</span></button>
+          <span class="application-menu-separator" aria-hidden="true"></span>
+          <button type="button" role="menuitem" data-shell-action="fullscreen"><span>全螢幕</span><kbd>Ctrl+Shift+F</kbd></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="view-grid" data-ui-b-command="snap:grid"><span>格線吸附</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="view-snap" data-ui-b-command="snap:enabled"><span>吸附</span></button><button type="button" role="menuitem" data-ui-b-contribution="view-snap-guides" data-ui-b-command="snap:guides"><span>吸附至參考線</span></button><button type="button" role="menuitem" data-ui-b-contribution="view-snap-edges" data-ui-b-command="snap:edges"><span>吸附至物件邊緣</span></button><button type="button" role="menuitem" data-ui-b-contribution="view-snap-centers" data-ui-b-command="snap:centers"><span>吸附至物件中心</span></button><button type="button" role="menuitem" data-ui-b-contribution="view-snap-angle" data-ui-b-command="snap:angle"><span>吸附至角度</span></button><button type="button" role="menuitem" data-ui-b-contribution="view-snap-equal" data-ui-b-command="snap:equalDistance"><span>吸附至等距</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="view-guides-show" data-ui-b-command="guides:toggle"><span>顯示／隱藏參考線</span></button><button type="button" role="menuitem" data-ui-b-contribution="view-guides-lock" data-ui-b-command="guides:lock"><span>鎖定／解鎖參考線</span></button><button type="button" role="menuitem" data-ui-b-contribution="view-guides-clear" data-ui-b-command="guides:clear"><span>清除參考線</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="view-workspace-layout" data-ui-b-command="workspace:fit-current"><span>文件符合視窗</span></button>
+        </div>
+      </div>
+      <div class="application-menu application-window-menu" data-application-menu="window">
+        <button id="windowMenuToggle" type="button" data-application-menu-trigger="window" aria-haspopup="menu" aria-expanded="false">視窗(W)</button>
+      </div>
+      <div class="application-menu" data-application-menu="help">
+        <button type="button" data-application-menu-trigger="help" aria-haspopup="menu" aria-expanded="false">說明(H)</button>
+        <div id="helpMenu" class="application-command-menu" role="menu" aria-label="說明" hidden>
+          <button type="button" role="menuitem" data-shell-action="about"><span>關於 INK 工作區</span></button>
+          <button type="button" role="menuitem" data-ui-b-contribution="help-updates" data-ui-b-command="updates"><span>更新</span></button><button type="button" role="menuitem" data-ui-b-contribution="help-diagnostics" data-ui-b-command="panel:specialist"><span>產品診斷</span></button><button type="button" role="menuitem" data-ui-b-contribution="help-pen" data-ui-b-command="pen-calibration"><span>觸控筆校準…</span></button><span class="application-menu-separator" role="separator"></span><button type="button" role="menuitem" data-ui-b-contribution="help-recovery" data-ui-b-command="recovery"><span>復原…</span></button>
+        </div>
+      </div>
+    </nav>
+    <div class="window-visual-controls" aria-label="視窗控制"><button type="button" disabled aria-label="最小化視窗"><svg viewBox="0 0 12 12"><path d="M1 9h10"/></svg></button><button type="button" disabled aria-label="還原視窗"><svg viewBox="0 0 12 12"><path d="M4 5V2h7v7H8M1 5h7v6H1z"/></svg></button><button type="button" disabled aria-label="關閉視窗"><svg viewBox="0 0 12 12"><path d="m2 2 8 8m0-8-8 8"/></svg></button></div>
+    <div class="menu-workspace" aria-label="工作區狀態" data-ui-home="workspace" data-ui-route="SECONDARY_SHORTCUT"><span>繪畫與向量</span><button id="workspaceMenuToggle" type="button" title="工作區清單" aria-haspopup="menu" aria-expanded="false">▾</button>
+      <div id="workspaceMenu" class="workspace-menu" role="menu" hidden>
+        <button type="button" role="menuitemradio" data-workspace-command="creation"><svg><use href="#i-infinite"/></svg><span>創作空間</span><kbd>Ctrl+1</kbd></button>
+        <button type="button" role="menuitemradio" data-workspace-command="layout"><svg><use href="#i-layout"/></svg><span>版面空間</span><kbd>Ctrl+2</kbd></button>
+        <span class="workspace-menu-separator"></span>
+        <button type="button" role="menuitem" data-workspace-command="fit-current"><span>符合目前空間</span></button>
+        <button type="button" role="menuitem" data-workspace-command="reset-current"><span>重設目前視圖</span></button>
+        <button type="button" role="menuitem" data-workspace-command="fit-viewport"><span>將內容符合 A4 視埠</span></button>
+      </div>
+    </div>
+  </div>
+  <header class="topbar glass-surface">
+    <div class="topbar-leading">
+      <button id="pagesToggle" class="icon-button" title="頁面（P）" aria-label="頁面"><svg><use href="#i-pages"/></svg></button>
+      <div class="brand" aria-label="INK v0.1 · Web"><img class="brand-source-mark" data-brand-logo src="assets/INK_MARK_SOURCE_W-300.jpg?v=0.1" alt="" aria-hidden="true"><strong data-brand-app-name>INK</strong><span class="version">0.1</span><span class="web-surface-badge">WEB</span></div>
+      <span class="top-divider"></span>
+      <input id="docTitle" class="doc-title" value="未命名作品" aria-label="作品名稱">
+    </div>
+
+    <button id="homeVisualControl" class="chrome-home" type="button" disabled aria-label="首頁（功能待定）" title="首頁（功能待定）"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg></button>
+    <section id="contextualOptions" class="contextual-options glass-surface" aria-label="目前工具選項" data-context-mode="select" data-context-tool="select" data-ui-home="immediate-context" data-ui-route="PRIMARY_HOME">
+      <div class="contextual-tool-identity" aria-live="polite">
+        <svg aria-hidden="true"><use id="contextualToolUse" href="#i-select"/></svg>
+        <strong id="contextualToolName">選取</strong>
+      </div>
+      <span class="contextual-divider" aria-hidden="true"></span>
+      <div id="contextualControlHost" class="contextual-control-host"></div>
+    </section>
+
+    <div class="topbar-center">
+      <div id="workspaceSwitch" class="workspace-switch" role="group" aria-label="工作空間" data-ui-home="workspace" data-ui-route="PRIMARY_HOME">
+        <button type="button" data-space="creation" class="active" title="創作空間 Ctrl+1"><svg><use href="#i-infinite"/></svg><span>創作</span></button>
+        <button type="button" data-space="layout" title="版面空間 Ctrl+2"><svg><use href="#i-layout"/></svg><span>版面</span></button>
+      </div>
+      <div class="history-group pill-group" aria-label="歷程" data-ui-home="edit-history" data-ui-route="SHORTCUT">
+        <button id="undoBtn" class="icon-button" title="復原 Ctrl+Z" disabled><svg><use href="#i-undo"/></svg></button>
+        <button id="redoBtn" class="icon-button" title="重做 Ctrl+Shift+Z" disabled><svg><use href="#i-redo"/></svg></button>
+      </div>
+    </div>
+
+    <div class="file-group">
+      <button id="newBtn" class="quiet-button desktop-file" data-ui-home="file" data-ui-route="RESPONSIVE_ALTERNATIVE">新增</button>
+      <button id="openBtn" class="quiet-button desktop-file" data-ui-home="file" data-ui-route="RESPONSIVE_ALTERNATIVE">開啟</button>
+      <button id="saveBtn" class="quiet-button desktop-file" data-ui-home="file" data-ui-route="RESPONSIVE_ALTERNATIVE">儲存</button>
+      <button id="exportBtn" class="primary-button mobile-file-export" data-ui-home="file" data-ui-route="RESPONSIVE_ALTERNATIVE"><svg><use href="#i-export"/></svg><span>匯出</span></button>
+      <button id="fullscreenToggle" class="icon-button" title="進入全螢幕 Ctrl+Shift+F" aria-label="進入全螢幕" aria-pressed="false"><svg><use href="#i-expand"/></svg></button>
+      <button id="inspectorToggle" class="icon-button legacy-inspector-toggle" title="開啟檢查器" aria-label="開啟檢查器" aria-expanded="false"><svg><use href="#i-sliders"/></svg></button>
+      <button id="settingsToggle" class="icon-button" title="畫布設定" aria-label="畫布設定" hidden><svg><use href="#i-settings"/></svg></button>
+    </div>
+  </header>
+
+
+
+  <aside id="pagesPanel" class="pages-panel elevated-panel" aria-label="頁面">
+    <div class="panel-header">
+      <div><span class="eyebrow">DOCUMENT</span><strong>頁面</strong></div>
+      <div class="header-actions">
+        <button id="addPageBtn" class="mini-button" title="新增頁面"><svg><use href="#i-plus"/></svg></button>
+        <button id="closePagesBtn" class="mini-button" title="關閉"><svg><use href="#i-close"/></svg></button>
+      </div>
+    </div>
+    <div id="pagesList" class="pages-list"></div>
+  </aside>
+
+  <nav class="tool-rail glass-surface" aria-label="主要工具" data-ui-home="tool-selection" data-ui-route="PRIMARY_HOME">
+    <div class="tool-group">
+      <button id="psBrushTool" class="tool-button" data-tool="brush" title="毛筆（I）" aria-label="毛筆"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-brush"/></svg></span><span class="tool-label">毛筆</span></button>
+      <button id="psZoomControls" class="tool-action ps-zoom-controls" type="button" title="縮放控制" aria-label="縮放控制" aria-haspopup="menu" aria-expanded="false"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-zoom-in"/></svg></span></button>
+      <button id="drawToolButton" class="tool-button tool-stack" data-tool-stack="draw" data-tool="pen" title="繪圖工具；再按一次或長按可切換筆種（W）" aria-haspopup="true" aria-expanded="false">
+        <span class="tool-icon"><svg viewBox="0 0 24 24"><use id="drawToolUse" href="#i-pen"/></svg></span><span id="drawToolLabel" class="tool-label">鋼筆</span><span class="stack-corner" aria-hidden="true"></span>
+      </button>
+      <button class="tool-button" data-tool="eraser" title="橡皮擦（E）"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-eraser"/></svg></span><span class="tool-label">橡皮擦</span></button>
+      <button class="tool-button emphasis" data-tool="select" title="選取與移動（V）"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-move"/></svg></span><span class="tool-label">選取</span></button>
+      <button class="tool-button" data-tool="lasso" title="套索（L）"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-lasso"/></svg></span><span class="tool-label">套索</span></button>
+      <button class="tool-button" data-tool="shape" title="幾何（S）"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-shape"/></svg></span><span class="tool-label">幾何</span></button>
+      <button class="tool-button" data-tool="text" title="文字（T）"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-text"/></svg></span><span class="tool-label">文字</span></button>
+      <button class="tool-button" data-tool="image" title="圖片"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-image"/></svg></span><span class="tool-label">圖片</span></button>
+      <button class="tool-button" data-tool="pan" title="移動畫布（H／空白鍵）"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-pan"/></svg></span><span class="tool-label">移動</span></button>
+    </div>
+    <div class="tool-layout-controls" aria-label="工具列版面">
+      <button id="toolbarLayoutToggle" class="tool-layout-toggle" type="button" title="切換為雙欄工具列" aria-label="切換為雙欄工具列" aria-pressed="false">
+        <span class="edge-chevron" aria-hidden="true"><svg viewBox="0 0 8 6"><use href="#i-collapse"/></svg></span>
+      </button>
+    </div>
+    <div class="tool-colors" aria-label="前景與背景色">
+      <button id="resetToolColors" class="color-utility color-reset" aria-label="重設前景與背景色"><svg><use href="#i-color-reset"/></svg></button>
+      <button id="swapToolColors" class="color-utility color-swap" aria-label="交換前景與背景色"><svg><use href="#i-color-swap"/></svg></button>
+      <input id="toolBackgroundColor" class="tool-color background-swatch" type="color" value="#ffffff" aria-label="背景色">
+      <input id="toolForegroundColor" class="tool-color foreground-swatch" type="color" value="#202020" aria-label="前景色">
+    </div>
+    <div class="tool-bottom-utilities" aria-label="工具列顯示"><button id="toolScreenMode" type="button" data-shell-action="fullscreen" title="切換螢幕模式" aria-label="切換螢幕模式"><svg><use href="#i-screen-mode"/></svg></button></div>
+  </nav>
+
+  <section id="brushFamilyPopover" class="brush-family-popover elevated-panel" hidden aria-label="繪圖子工具">
+    <div class="brush-family-head"><span class="eyebrow">DRAW TOOLS</span><strong>選擇筆種</strong><span>快捷鍵可直接切換</span></div>
+    <div class="brush-family-list">
+      <button class="subtool-button active" data-subtool="pen"><svg><use href="#i-pen"/></svg><span><strong>鋼筆</strong><small>B</small></span></button>
+      <button class="subtool-button" data-subtool="pencil"><svg><use href="#i-pencil"/></svg><span><strong>鉛筆</strong><small>N</small></span></button>
+      <button class="subtool-button" data-subtool="marker"><svg><use href="#i-marker"/></svg><span><strong>麥克筆</strong><small>M</small></span></button>
+      <button class="subtool-button" data-subtool="brush"><svg><use href="#i-brush"/></svg><span><strong>毛筆</strong><small>I</small></span></button>
+      <button class="subtool-button" data-subtool="airbrush"><svg><use href="#i-airbrush"/></svg><span><strong>噴筆</strong><small>A</small></span></button>
+    </div>
+  </section>
+
+  <main id="stageWrap" class="stage-wrap">
+    <canvas id="stage" tabindex="0" aria-label="INK 畫布"></canvas>
+
+    <div class="canvas-vignette" aria-hidden="true"></div>
+    <div id="emptyHint" class="empty-hint">
+      <div class="empty-mark"><span>INK</span></div>
+      <strong>在畫布上留下第一筆</strong>
+      <span>觸控筆繪圖；雙指平移、縮放與旋轉</span>
+      <div class="hint-keys"><kbd>B</kbd> 鋼筆 <kbd>I</kbd> 毛筆 <kbd>V</kbd> 選取</div>
+    </div>
+
+    <section id="quickControls" class="quick-controls glass-surface" aria-label="快速工具控制" data-ui-home="immediate-context" data-ui-route="PRIMARY_HOME">
+      <div class="context-inline-control" data-context-control="color"><span class="context-control-label">顏色</span><div class="quick-color-wrap"><button id="quickColor" class="quick-color" type="button" title="目前顏色" tabindex="-1" aria-hidden="true"><span></span></button><input id="quickColorInput" class="quick-color-input" type="color" value="#202020" aria-label="選擇目前顏色"></div></div>
+      <label class="quick-slider context-inline-control" data-context-control="size" title="工具大小"><span class="context-control-label">大小</span><input id="quickSizeInput" type="range" min="0.5" max="120" step="0.5" value="4"><output id="quickSizeOutput">4</output></label>
+      <label class="quick-slider context-inline-control" data-context-control="opacity" title="透明度"><span class="context-control-label">透明度</span><input id="quickOpacityInput" type="range" min="1" max="100" step="1" value="100"><output id="quickOpacityOutput">100</output></label>
+    </section>
+
+    <section id="selectionBar" class="selection-bar glass-surface" data-ui-home="selection-actions" data-ui-route="CONTEXTUAL_SHORTCUT" hidden>
+      <span class="selection-title"><svg><use href="#i-select"/></svg><strong><span id="selectionBarCount">1</span> 個物件</strong></span>
+      <span class="selection-divider"></span>
+      <button data-selection-action="duplicate" title="複製"><svg><use href="#i-copy"/></svg><span>複製</span></button>
+      <button data-selection-action="group" title="群組"><svg><use href="#i-group"/></svg><span>群組</span></button>
+      <button data-selection-action="front" title="移至最上"><svg><use href="#i-front"/></svg><span>最上</span></button>
+      <button data-selection-action="alignCenter" title="水平置中"><svg><use href="#i-align-center"/></svg><span>置中</span></button>
+      <button data-selection-action="delete" class="danger" title="刪除"><svg><use href="#i-trash"/></svg><span>刪除</span></button>
+    </section>
+
+    <div id="textEditor" class="text-editor" hidden>
+      <textarea id="textInput" rows="1" placeholder="輸入文字"></textarea>
+      <div class="text-editor-actions"><button id="textCancel">取消</button><button id="textCommit">完成</button></div>
+    </div>
+
+
+    <div id="zoomHud" class="zoom-hud">100%</div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <div id="panelScrim" class="panel-scrim" hidden></div>
+
+  <aside id="inspector" class="inspector elevated-panel" aria-hidden="true">
+    <div id="inspectorResizer" class="inspector-resizer" role="separator" aria-orientation="vertical" aria-label="調整檢查器寬度"></div>
+    <div class="inspector-head">
+      <div><span class="eyebrow">INSPECTOR</span><strong id="inspectorTitle">工具屬性</strong></div>
+      <div class="header-actions">
+        <button id="inspectorSizeToggle" class="mini-button panel-mode-button desktop-only" title="切換檢查器寬度" aria-label="切換檢查器寬度"><svg><use href="#i-panel-width"/></svg></button>
+        <button id="closeInspector" class="mini-button panel-close-button" title="關閉檢查器" aria-label="關閉檢查器"><svg><use href="#i-close"/></svg></button>
+      </div>
+    </div>
+    <div class="inspector-tabs properties-subnav" data-panel-subnav="properties" aria-label="面板子導覽">
+      <button class="inspector-tab properties-subtab active" data-tab="brush"><svg><use href="#i-sliders"/></svg><span>工具</span></button>
+      <button class="inspector-tab properties-subtab" data-tab="object"><svg><use href="#i-select"/></svg><span>物件</span></button>
+      <button class="inspector-tab properties-subtab" data-tab="geometry"><svg><use href="#i-group"/></svg><span>幾何</span></button>
+      <button class="inspector-tab specialist-subtab" data-tab="ai"><svg><use href="#i-spark"/></svg><span>AI</span></button>
+      <button class="inspector-tab specialist-subtab" data-tab="studio"><svg><use href="#i-settings"/></svg><span>進階</span></button>
+    </div>
+
+    <section class="inspector-section tab-content active" data-content="brush" data-ui-home="properties" data-ui-route="DEEP_SETTINGS">
+      <div class="section-title tool-heading"><div><strong id="activeToolName">鋼筆</strong><span id="pointerInfo">滑鼠</span></div><span class="shortcut-badge" id="activeShortcut">B</span></div>
+      <div id="brushPresetGrid" class="preset-grid"></div>
+      <div class="property-card brush-preview-card"><div class="subpanel-title"><strong>即時筆刷預覽</strong><span>LIVE</span></div><canvas id="brushLivePreview" class="brush-live-preview" aria-label="即時筆刷預覽"></canvas></div>
+
+      <div class="property-card color-card">
+        <label class="control-row color-row"><span>顏色</span><div class="color-control"><input id="colorInput" type="color" value="#202020"><input id="hexInput" value="#202020" maxlength="9"></div></label>
+        <div id="recentColors" class="recent-colors"></div>
+      </div>
+
+      <div class="property-card slider-card">
+        <label class="control-row range-row"><span>寬度</span><input id="sizeInput" type="range" min="0.5" max="120" step="0.5" value="4"><output id="sizeOutput">4</output></label>
+        <label class="control-row range-row"><span>透明度</span><input id="opacityInput" type="range" min="1" max="100" step="1" value="100"><output id="opacityOutput">100%</output></label>
+        <label class="control-row range-row"><span>平滑</span><input id="smoothingInput" type="range" min="0" max="100" step="1" value="52"><output id="smoothingOutput">52%</output></label>
+        <label class="control-row range-row"><span>壓力</span><input id="pressureInput" type="range" min="0" max="100" step="1" value="82"><output id="pressureOutput">82%</output></label>
+      </div>
+
+      <div id="brushOptions" class="property-card subpanel brush-options" hidden>
+        <div class="subpanel-title"><strong>毛筆動態</strong><span>INK ENGINE</span></div>
+        <label class="control-row range-row"><span>墨量</span><input id="brushFlowInput" type="range" min="10" max="100" value="78"><output id="brushFlowOutput">78%</output></label>
+        <label class="control-row range-row"><span>含水</span><input id="brushWetnessInput" type="range" min="0" max="100" value="34"><output id="brushWetnessOutput">34%</output></label>
+        <label class="control-row range-row"><span>筆毫</span><input id="brushBristleInput" type="range" min="0" max="100" value="30"><output id="brushBristleOutput">30%</output></label>
+      </div>
+
+
+      <div id="renderEngineCard" class="property-card render-engine-card" hidden>
+        <div class="subpanel-title"><strong>媒材渲染</strong><span id="renderEngineStatus" class="engine-status" data-state="checking">偵測中</span></div>
+        <label class="control-row"><span>引擎</span><select id="renderEngineMode" aria-label="自然媒材渲染引擎"><option value="auto">自動選擇</option><option value="gpu">WebGL2 GPU</option><option value="canvas2d">Canvas 相容</option></select></label>
+        <div class="render-engine-meta"><span id="renderEngineBackend">Canvas 2D</span><span id="renderEngineStats">0 draw</span></div>
+        <p class="render-engine-note">連續濕筆畫使用顏料／水分／沉積多通道合成；GPU 不可用時自動改用 Canvas 參考模擬。</p>
+      </div>
+
+      <div id="eraserOptions" class="property-card subpanel" hidden>
+        <div class="subpanel-title"><strong>橡皮擦模式</strong></div>
+        <div class="segmented"><button data-eraser-mode="segment" class="active">局部</button><button data-eraser-mode="object">物件</button></div>
+      </div>
+
+      <div id="shapeOptions" class="property-card subpanel" hidden>
+        <div class="subpanel-title"><strong>幾何類型</strong></div>
+        <div class="shape-grid"><button data-shape="line" class="active">線</button><button data-shape="arrow">箭頭</button><button data-shape="rect">矩形</button><button data-shape="ellipse">橢圓</button><button data-shape="triangle">三角</button></div>
+        <label class="toggle-row"><input id="shapeFill" type="checkbox"><span>填色</span></label>
+      </div>
+
+      <div id="textOptions" class="property-card subpanel" hidden>
+        <label class="control-row"><span>字型</span><select id="fontFamily"><option value="system-ui">系統字型</option><option value="serif">明體</option><option value="sans-serif">黑體</option><option value="monospace">等寬</option></select></label>
+        <label class="control-row range-row"><span>字級</span><input id="fontSize" type="range" min="8" max="160" value="32"><output id="fontSizeOutput">32</output></label>
+      </div>
+    </section>
+
+    <section class="inspector-section tab-content layers-panel" data-content="layers">
+      <div class="section-title layer-section-title"><div><strong>圖層</strong><span>拖曳列可調整前後次序</span></div></div>
+      <div id="layersList" class="layers-list" role="listbox" aria-label="圖層清單"></div>
+      <div class="property-card layer-opacity-card"><label class="control-row range-row"><span>透明度</span><input id="layerOpacity" type="range" min="0" max="100" value="100"><output id="layerOpacityOutput">100%</output></label></div>
+      <div class="layer-bottom-toolbar" role="toolbar" aria-label="圖層操作">
+        <button id="addLayerBtn" class="layer-tool-button" title="新增圖層" aria-label="新增圖層"><svg><use href="#i-plus"/></svg></button>
+        <button id="duplicateLayerBtn" class="layer-tool-button" title="複製圖層" aria-label="複製圖層"><svg><use href="#i-copy"/></svg></button>
+        <span class="layer-toolbar-spacer"></span>
+        <button id="deleteLayerBtn" class="layer-tool-button danger" title="刪除圖層" aria-label="刪除圖層"><svg><use href="#i-trash"/></svg></button>
+      </div>
+    </section>
+
+    <section class="inspector-section tab-content history-panel" data-content="history">
+      <div class="section-title history-section-title"><div><strong>歷史記錄</strong><span>點擊步驟可返回該狀態</span></div></div>
+      <div class="property-card history-settings-card">
+        <label class="control-row"><span>保留步數</span><select id="historyLimit" aria-label="歷史記錄保留步數"><option value="20">20</option><option value="30" selected>30</option><option value="50">50</option></select></label>
+      </div>
+      <div id="historyList" class="history-list" role="listbox" aria-label="歷史記錄步驟"></div>
+      <div class="history-panel-footer"><span id="historyUsage">0／30</span><span>本次工作階段</span></div>
+    </section>
+
+    <section class="inspector-section tab-content" data-content="object" data-ui-home="properties" data-ui-route="DEEP_SETTINGS">
+      <div id="noSelection" class="no-selection"><svg><use href="#i-select"/></svg><strong>尚未選取物件</strong><span>選擇左側「選取」或按 V，再點擊畫布物件。</span></div>
+      <div id="selectionControls" hidden>
+        <div class="section-title"><div><strong>已選取 <span id="selectionCount">1</span> 個</strong><span>拖曳控制點可縮放與旋轉</span></div></div>
+        <div class="selection-command-proxies" hidden aria-hidden="true">
+          <button id="duplicateSelectionBtn" tabindex="-1">複製</button>
+          <button id="groupSelectionBtn" tabindex="-1">群組</button>
+          <button id="frontSelectionBtn" tabindex="-1">移至最上</button>
+          <button id="deleteSelectionBtn" class="danger" tabindex="-1">刪除</button>
+        </div>
+        <div class="object-actions object-deep-actions" data-ui-home="selection-actions" data-ui-route="DEEP_SECONDARY">
+          <button id="ungroupSelectionBtn">解散</button><button id="backSelectionBtn">移至最下</button>
+        </div>
+        <div id="strokeEditCard" class="property-card stroke-edit-card" hidden>
+          <div class="subpanel-title"><strong>筆畫節點與區段</strong><span>STROKE EDIT</span></div>
+          <p id="strokeEditStatus" class="stroke-edit-status">選取一筆筆畫後進入編輯。</p>
+          <div class="stroke-edit-entry"><button id="enterStrokeEditBtn" class="wide-button">編輯筆畫</button><button id="exitStrokeEditBtn" class="wide-button" hidden>完成編輯</button></div>
+          <div id="strokeEditActions" class="stroke-edit-actions" hidden>
+            <button id="selectAllStrokeNodesBtn">全選節點</button><button id="simplifyStrokeBtn">簡化節點</button>
+            <button id="insertStrokeNodeBtn" disabled>插入節點</button><button id="splitStrokeSegmentBtn" disabled>切割區段</button>
+            <button id="nodeCornerBtn" disabled>角點</button><button id="nodeSmoothBtn" disabled>平滑</button><button id="nodeSymmetricBtn" disabled>對稱</button>
+            <button id="deleteStrokeNodesBtn" class="danger" disabled>刪除節點</button>
+          </div>
+          <div id="segmentStyleControls" class="segment-style-controls" hidden>
+            <div class="subpanel-title"><strong>區段樣式</strong><span>SEGMENT</span></div>
+            <label class="control-row"><span>顏色</span><input id="segmentColor" type="color" value="#202020"></label>
+            <label class="control-row range-row"><span>寬度</span><input id="segmentSize" type="range" min="0.5" max="120" step="0.5" value="8"><output id="segmentSizeOutput">8</output></label>
+            <button id="resetSegmentStyleBtn" class="wide-button">恢復整筆樣式</button>
+          </div>
+        </div>
+        <div id="pathEditCard" class="property-card stroke-edit-card" hidden>
+          <div class="subpanel-title"><strong>Path 節點</strong><span>PATH EDIT</span></div>
+          <p id="pathEditStatus" class="stroke-edit-status">選取一個 Path 後進入編輯。</p>
+          <div class="stroke-edit-entry"><button id="enterPathEditBtn" class="wide-button">編輯 Path</button><button id="exitPathEditBtn" class="wide-button" hidden>完成編輯</button></div>
+          <div id="pathEditActions" class="stroke-edit-actions" hidden>
+            <button id="selectAllPathAnchorsBtn">全選節點</button><button id="simplifyPathBtn">簡化</button>
+            <button id="insertPathAnchorBtn" disabled>插入節點</button><button id="refinePathBtn">Refine</button>
+            <button id="pathCornerBtn" disabled>角點</button><button id="pathSmoothBtn" disabled>平滑</button><button id="pathSymmetricBtn" disabled>對稱</button>
+            <button id="togglePathClosedBtn">閉合路徑</button><button id="deletePathAnchorsBtn" class="danger" disabled>刪除節點</button>
+          </div>
+          <div id="pathStrokeControls" class="segment-style-controls" hidden>
+            <div class="subpanel-title"><strong>Path 表現筆畫</strong><span>APPEARANCE</span></div>
+            <label class="control-row"><span>筆刷來源</span><select id="pathStrokePreset"><option value="ink">Ink</option><option value="pencil">Pencil</option><option value="marker">Marker</option><option value="opaque-paint">Opaque</option><option value="soft-paint">Soft</option><option value="watercolor">Watercolor</option><option value="oil-like">Oil-like</option><option value="dry-brush">Dry Brush</option><option value="texture-brush">Texture</option></select></label>
+            <label class="control-row"><span>顏色</span><input id="pathStrokeColor" type="color" value="#202020"></label>
+            <label class="control-row range-row"><span>基準寬度</span><input id="pathStrokeWidth" type="range" min="0.5" max="120" step="0.5" value="6"><output id="pathStrokeWidthOutput">6</output></label>
+            <label class="control-row range-row"><span>起點收尖</span><input id="pathStrokeTaperStart" type="range" min="0" max="100" step="1" value="0"><output id="pathStrokeTaperStartOutput">0%</output></label>
+            <label class="control-row range-row"><span>終點收尖</span><input id="pathStrokeTaperEnd" type="range" min="0" max="100" step="1" value="0"><output id="pathStrokeTaperEndOutput">0%</output></label>
+            <div class="stroke-edit-entry"><button id="applyPathStrokeBtn" class="wide-button">套用／更新</button><button id="removePathStrokeBtn" class="wide-button">移除表現</button></div>
+            <p id="pathStrokeStatus" class="stroke-edit-status">ORDINARY VECTOR</p>
+          </div>
+        </div>
+        <div class="property-card transform-card">
+          <div class="subpanel-title"><strong>位置與尺寸</strong><button id="aspectLockBtn" class="aspect-lock active" title="鎖定比例" aria-pressed="true"><svg><use href="#i-lock"/></svg></button></div>
+          <div class="transform-grid">
+            <label><span>X</span><input id="transformX" type="number" step="1"></label>
+            <label><span>Y</span><input id="transformY" type="number" step="1"></label>
+            <label><span>W</span><input id="transformW" type="number" min="0.1" step="1"></label>
+            <label><span>H</span><input id="transformH" type="number" min="0.1" step="1"></label>
+            <label class="rotation-field"><span>R°</span><input id="transformR" type="number" step="1"></label>
+          </div>
+        </div>
+        <div class="property-card align-card" data-ui-home="selection-alignment" data-ui-route="DEEP_SETTINGS">
+          <div class="subpanel-title"><strong>對齊與分布</strong><span>2 個以上</span></div>
+          <div class="align-grid">
+            <button data-align="left" title="靠左"><svg><use href="#i-align-left"/></svg></button>
+            <button data-align="centerX" title="水平置中"><svg><use href="#i-align-center"/></svg></button>
+            <button data-align="right" title="靠右"><svg><use href="#i-align-right"/></svg></button>
+            <button data-align="top" title="靠上"><svg><use href="#i-align-top"/></svg></button>
+            <button data-align="centerY" title="垂直置中"><svg><use href="#i-align-middle"/></svg></button>
+            <button data-align="bottom" title="靠下"><svg><use href="#i-align-bottom"/></svg></button>
+            <button data-align="distributeX" title="水平等距"><svg><use href="#i-distribute-h"/></svg></button>
+            <button data-align="distributeY" title="垂直等距"><svg><use href="#i-distribute-v"/></svg></button>
+          </div>
+        </div>
+        <div class="property-card"><label class="control-row range-row"><span>透明度</span><input id="objectOpacity" type="range" min="0" max="100" value="100"><output id="objectOpacityOutput">100%</output></label></div>
+      </div>
+    </section>
+
+    <section class="inspector-section tab-content geometry-panel" data-content="geometry" aria-label="Path and Repeat controls" data-ui-home="properties" data-ui-route="DEEP_SETTINGS">
+      <div class="section-title"><div><strong>Path／Repeat</strong><span>既有幾何命令端點</span></div></div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Path Boolean</strong><span>EDITABLE</span></div>
+        <button id="pathEditToggle" class="wide-button">Path／Node 編輯</button>
+        <div class="transform-grid"><label><span>Node X</span><input id="pathNodeX" type="number" step="1" value="0"></label><label><span>Node Y</span><input id="pathNodeY" type="number" step="1" value="0"></label></div>
+        <button id="pathNodeApply" class="wide-button">更新所選 Node</button>
+        <div class="studio-button-grid"><button id="booleanUnion">Union</button><button id="booleanDifference">Difference</button><button id="booleanIntersection">Intersection</button><button id="booleanXor">XOR</button><button id="booleanDivide">Divide</button></div>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Repeat</strong><span>LIVE INSTANCES</span></div>
+        <label class="control-row"><span>數量</span><input id="repeatCount" type="number" min="2" max="72" value="8"></label>
+        <div class="studio-button-grid"><button id="repeatRadial">Radial</button><button id="repeatMirror">Mirror</button><button id="repeatGrid">Grid</button><button id="repeatExpand">展開 Path</button></div>
+      </div>
+    </section>
+
+    <section class="inspector-section tab-content ai-panel" data-content="ai" aria-label="AI-assisted controls">
+      <div class="property-card ai-card">
+        <div class="subpanel-title"><strong>AI-assisted</strong><span id="aiPermission" class="ai-permission">PROPOSE</span></div>
+        <label class="control-row"><span>啟動模式</span><select id="aiStartupMode"><option value="STANDARD">Standard</option><option value="AI_ASSISTED">AI-assisted</option><option value="LOCAL_ONLY">Local-only</option><option value="SAFE">Safe</option><option value="VALIDATION">Validation</option></select></label>
+        <details id="aiConnectionSettings" class="ai-connection-settings">
+          <summary>Connection Settings</summary>
+          <label class="control-row"><span>Provider</span><select id="aiProvider"><option value="manual-json">Manual JSON</option><option value="deterministic-test">Deterministic Test</option><option value="openai-compatible">OpenAI-compatible</option><option value="http-model">HTTP Model</option><option value="custom-endpoint">Custom Endpoint</option></select></label>
+          <label class="control-row"><span>Endpoint</span><input id="aiEndpoint" type="url" autocomplete="off" placeholder="https://…"></label>
+          <label class="control-row"><span>Model</span><input id="aiModel" type="text" autocomplete="off" placeholder="model id"></label>
+          <label class="control-row"><span>API Version</span><input id="aiApiVersion" type="text" autocomplete="off"></label>
+          <label class="control-row"><span>Auth</span><select id="aiAuthMethod"><option value="NONE">None</option><option value="BEARER">Bearer</option><option value="API_KEY_HEADER">API key header</option></select></label>
+          <label class="control-row"><span>Alias</span><input id="aiCredentialAlias" type="text" autocomplete="off" value="session-model"></label>
+          <label class="control-row"><span>Credential</span><input id="aiCredential" type="password" autocomplete="new-password" placeholder="Session-only"></label>
+          <div class="ai-settings-grid"><label><span>Timeout ms</span><input id="aiTimeout" type="number" min="1000" max="300000" value="30000"></label><label><span>Retry</span><input id="aiRetry" type="number" min="0" max="3" value="1"></label><label><span>Max context</span><input id="aiMaxContext" type="number" min="256" max="1000000" value="16000"></label><label class="ai-check"><input id="aiStreaming" type="checkbox" checked><span>Streaming</span></label></div>
+          <label class="control-row"><span>Data</span><select id="aiDataPolicy"><option value="TEXT_SUMMARY">文字摘要</option><option value="SELECTED_LAYERS">指定圖層</option><option value="SELECTED_REGION">指定區域</option><option value="LOCAL_ONLY">Local-only</option></select></label>
+          <label class="control-row"><span>Image</span><select id="aiImagePolicy"><option value="NO_IMAGE">不傳圖片</option><option value="SELECTED_REGION">只傳選區</option><option value="LOW_RES_PREVIEW">低解析 Preview</option><option value="FULL_IMAGE">完整圖片</option></select></label>
+          <label class="control-row"><span>Logging</span><select id="aiLoggingPolicy"><option value="METADATA_ONLY">Metadata only</option><option value="NO_PROVIDER_LOG">Request no provider log</option></select></label>
+          <label class="toggle-row"><input id="aiLocalOnly" type="checkbox"><span>Local-only，禁止外部網路</span></label>
+          <div class="studio-button-grid"><button id="aiSaveCredential">暫存本次憑證</button><button id="aiConnect">套用連線設定</button><button id="aiDisconnect">中斷並清除憑證</button></div>
+          <p id="aiConnectionStatus" class="studio-report" data-state="partial">Standard Mode · 未建立外部連線</p>
+        </details>
+        <p id="aiDocumentContext" class="studio-report program-summary">讀取文件狀態中…</p>
+        <label class="ai-prompt-label" for="aiPrompt">作品要求</label>
+        <textarea id="aiPrompt" class="ai-prompt" rows="4" placeholder="描述要修改的目標、範圍與保留條件"></textarea>
+        <div class="studio-button-grid"><button id="aiGeneratePlan">建立可編輯 Plan</button><button id="aiImagePick">圖片 → Plan</button><button id="aiDocumentPlan">文件 → Plan</button><button id="aiInspectBtn">讀取文件</button><button id="aiCapabilitiesBtn">能力清單</button><button id="aiAuditBtn">稽核紀錄</button></div>
+        <input id="aiImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+        <div id="aiImageAnalysis" class="ai-analysis" hidden></div>
+        <details><summary>Manual JSON Command Console</summary><textarea id="aiCommandJSON" class="ai-prompt" rows="5">{"command":{"operation":"document.inspect","permissionLevel":"OBSERVE","parameters":{"limit":50}}}</textarea><button id="aiRunJSON" class="wide-button">執行 JSON Command</button></details>
+      </div>
+      <div class="property-card ai-card">
+        <div class="subpanel-title"><strong>Plan Editor</strong><span>EDITABLE · REVALIDATED</span></div>
+        <div id="aiPlanOverview" class="ai-plan-overview"><p class="muted">自然語言摘要、目標、保留條件、風險與信心會顯示於此。</p></div>
+        <div id="aiPlanSteps" class="ai-plan-steps"><p class="muted">尚無 Plan</p></div>
+        <label class="control-row"><span>Deterministic Seed</span><input id="aiPlanSeed" type="number" value="1500" min="0" step="1"></label>
+        <label class="control-row"><span>Preview 品質</span><select id="aiPreviewQuality"><option>BALANCED</option><option>FAST</option><option>HIGH</option></select></label>
+        <div class="studio-button-grid ai-sticky-actions"><button id="aiPreviewBtn" disabled>Preview</button><button id="aiApproveBtn" disabled>核准所選步驟</button><button id="aiRejectBtn" disabled>拒絕</button><button id="aiCancelBtn">取消執行</button></div>
+        <div id="aiVisualPreview" class="ai-visual-preview" data-view="split" hidden><div class="ai-preview-banner"><strong>PREVIEW BRANCH</strong><span id="aiPreviewStatus">CURRENT</span></div><div class="ai-preview-toolbar"><button data-ai-preview-view="side">Before／After</button><button data-ai-preview-view="split">Split</button><button data-ai-preview-view="overlay">Overlay</button><button data-ai-preview-view="difference">Difference</button></div><div class="ai-preview-stage"><figure><img id="aiPreviewBefore" alt="Before preview"><figcaption>Before</figcaption></figure><figure><img id="aiPreviewAfter" alt="After isolated preview"><figcaption>After · isolated branch</figcaption></figure><input id="aiPreviewSlider" type="range" min="0" max="100" value="50" aria-label="Before and after split position"></div><div id="aiDifferenceSummary" class="ai-difference-summary"></div></div>
+        <pre id="aiApprovalSummary" class="ai-output studio-report" hidden></pre>
+        <div class="studio-button-grid"><button id="aiRollbackBtn" disabled>Rollback</button></div>
+      </div>
+      <div class="property-card ai-card">
+        <div class="subpanel-title"><strong>Difference／Audit</strong><span>ISOLATED PREVIEW</span></div>
+        <pre id="aiOutput" class="ai-output studio-report" data-state="partial">預設權限為 PROPOSE；未核准不修改正式文件。</pre>
+      </div>
+    </section>
+
+    <dialog id="aiTransmissionDialog" class="ai-transmission-dialog">
+      <form method="dialog">
+        <div class="subpanel-title"><strong>傳輸前確認</strong><span>EXPLICIT CONSENT</span></div>
+        <div id="aiTransmissionPreview" class="ai-transmission-preview"></div>
+        <div class="studio-button-grid"><button value="cancel">取消</button><button id="aiTransmissionApprove" value="approve">核准本次傳輸</button></div>
+      </form>
+    </dialog>
+
+    <section class="inspector-section tab-content studio-panel specialist-panel" data-content="studio">
+      <div class="section-title"><div><strong>進階製作／診斷</strong><span>既有工程與驗證工具</span></div></div>
+      <div class="property-card studio-card diagnostic-card">
+        <div class="subpanel-title"><strong>GPU Validation</strong><span>DIAGNOSTIC</span></div>
+        <button id="runGPUValidationBtn" class="wide-button compact-button">執行 GPU 自我檢查</button>
+        <p id="gpuValidationStatus" class="gpu-validation-status">尚未檢查</p>
+      </div>
+      <div class="property-card studio-card program-asset-card">
+        <div class="subpanel-title"><strong>程序資產</strong><span>SAFE IMPORT → RECIPE</span></div>
+        <label class="control-row"><span>安全模式</span><select id="programSafetyMode"><option value="STATIC_PARSE">STATIC_PARSE</option><option value="SANDBOX_ANALYSIS">SANDBOX_ANALYSIS</option><option value="TRANSLATE_ONLY">TRANSLATE_ONLY</option><option value="TRUSTED_EXTERNAL_RUN">TRUSTED_EXTERNAL_RUN</option></select></label>
+        <label class="control-row"><span>授權 SPDX</span><input id="programLicense" type="text" placeholder="必填，例如 MIT"></label>
+        <label class="control-row"><span>來源網址</span><input id="programSourceUrl" type="url" placeholder="選填；本機檔會標記使用者提供"></label>
+        <button id="programAssetPick" class="wide-button">匯入外部資產</button>
+        <p id="programAssetSummary" class="studio-report program-summary" data-state="partial">尚未匯入程序資產</p>
+        <div class="studio-button-grid"><button id="programTranslate">編譯 Recipe</button><button id="programTrialRun">試跑</button><button id="programStepRun">單步執行</button><button id="programBreakpoint">Breakpoint</button></div>
+        <div class="studio-button-grid"><button id="programBeforeAfter">Before／After</button><button id="programAttachDocument">保存於 .ink</button><button id="programSaveRecipe">保存 Recipe</button><button id="programSaveReport">保存報告</button></div>
+        <div class="subpanel-title"><strong>原軟體基準</strong><span>REFERENCE EVIDENCE</span></div>
+        <label class="control-row"><span>Runner</span><select id="referenceRunner"><option value="photoshop">Photoshop</option><option value="illustrator">Illustrator</option><option value="inkscape">Inkscape</option><option value="gimp-krita">GIMP／Krita</option><option value="paint-session">Paint Session</option></select></label>
+        <div class="studio-button-grid"><button id="referenceManualKit">建立人工基準包</button><button id="referenceEvidencePick">匯入原軟體證據</button><button id="referenceAttach">保存 Reference Package</button><button id="referenceSave">匯出 Reference Package</button></div>
+        <p id="referenceStatus" class="studio-report program-summary" data-state="partial">尚無原軟體 Reference Evidence</p>
+        <details><summary>原始步驟</summary><textarea id="programOriginalSteps" class="program-preview" readonly></textarea></details>
+        <details><summary>正規化步驟</summary><textarea id="programCanonicalSteps" class="program-preview" readonly></textarea></details>
+        <details><summary>Recipe 預覽與參數</summary><textarea id="programRecipePreview" class="program-preview tall" readonly></textarea></details>
+        <details><summary>依賴／不支援／拒絕原因</summary><textarea id="programIssuesPreview" class="program-preview tall" readonly></textarea></details>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>跨骨架 Recipe</strong><span>STRUCTURE INPUT</span></div>
+        <label class="control-row"><span>骨架</span><select id="studioSkeleton"><option value="radial">放射單層花</option><option value="layered">多層重疊花</option><option value="side">側視花</option><option value="trumpet">喇叭形花</option><option value="asymmetric">不對稱花序</option></select></label>
+        <button id="studioLoadSkeleton" class="wide-button">載入結構</button>
+        <div class="studio-button-grid"><button id="recipeLoadFile">載入 Recipe JSON</button><button id="svgImportFile">匯入 SVG Path</button></div>
+        <label class="control-row"><span>主色</span><input id="recipeFill" type="color" value="#cf6e82"></label>
+        <label class="control-row range-row"><span>紋理</span><input id="recipeTexture" type="range" min="0" max="60" value="14"><output>14</output></label>
+        <label class="control-row range-row"><span>對比</span><input id="recipeContrast" type="range" min="-50" max="50" value="8"><output>8</output></label>
+        <div class="studio-button-grid"><button id="studioRunRecipe">執行全部</button><button id="studioReplayStep">局部重播</button><button id="studioRollback">回滾</button><button id="studioQA">執行 QA</button></div>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Mask</strong><span>PATH BOUNDARY</span></div>
+        <label class="toggle-row"><input id="maskInvert" type="checkbox"><span>Invert</span></label>
+        <label class="control-row"><span>Feather</span><input id="maskFeather" type="number" min="0" max="30" value="0"></label>
+        <label class="control-row"><span>Expand</span><input id="maskExpand" type="number" min="-30" max="30" value="0"></label>
+        <button id="maskAdd" class="wide-button">建立 Mask</button>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Adjustment Layer</strong><span>NON-DESTRUCTIVE</span></div>
+        <label class="control-row"><span>類型</span><select id="adjustmentType"><option value="brightnessContrast">Brightness／Contrast</option><option value="levels">Levels</option><option value="curves">Curves</option><option value="hueSaturation">Hue／Saturation</option><option value="colorBalance">Color Balance</option><option value="gradientMap">Gradient Map</option></select></label>
+        <label class="control-row"><span>參數</span><input id="adjustmentAmount" type="number" min="-100" max="100" value="12"></label>
+        <button id="adjustmentAdd" class="wide-button">加入 Adjustment</button>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Filter Stack</strong><span>REORDERABLE</span></div>
+        <label class="control-row"><span>類型</span><select id="filterType"><option value="gaussianBlur">Gaussian Blur</option><option value="sharpen">Sharpen</option><option value="highPass">High Pass</option><option value="edgeDetection">Edge Detection</option><option value="noiseGrain">Noise／Grain</option><option value="textureOverlay">Texture Overlay</option></select></label>
+        <label class="control-row"><span>參數</span><input id="filterAmount" type="number" min="0" max="100" value="2"></label>
+        <div class="studio-button-grid"><button id="filterAdd">加入 Filter</button><button id="filterMoveUp">上移 Filter</button></div>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Stroke Session</strong><span>RECORD · REPLAY · REPLACE</span></div>
+        <label class="control-row"><span>替換筆刷</span><select id="paintBrush"><option value="pencil">Pencil</option><option value="ink">Ink</option><option value="marker">Marker</option><option value="opaque-paint">Opaque Paint</option><option value="soft-paint">Soft Paint</option><option value="watercolor" selected>Watercolor</option><option value="oil-like">Oil-like</option><option value="dry-brush">Dry Brush</option><option value="texture-brush">Texture Brush</option><option value="blender">Blender</option><option value="smudge">Smudge</option><option value="eraser">Eraser</option></select></label>
+        <div class="studio-button-grid"><button id="strokeRecordStart">開始錄製</button><button id="strokeRecordPause">暫停／繼續</button><button id="strokeRecordFinish">結束保存</button><button id="drawingWorkflowPick">匯入手繪流程</button></div>
+        <div class="studio-button-grid"><button id="paintSessionCreate">建立完整筆畫</button><button id="paintReplay">替換並重播</button><button id="strokeSessionExport">匯出 Session</button><button id="brushPackageExport">匯出 Brush Package</button></div>
+        <p id="strokeSessionStatus" class="studio-report program-summary" data-state="partial">尚未錄製 Stroke Session</p>
+        <details><summary>手繪匯入／重播報告</summary><textarea id="drawingWorkflowPreview" class="program-preview tall" readonly></textarea></details>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Device Validation Mode</strong><span>USER VALIDATION REQUIRED</span></div>
+        <label class="control-row"><span>測試</span><select id="stylusTestPattern"><option value="pressure-curve">壓力曲線</option><option value="low-pressure-start">低壓起筆</option><option value="high-pressure-saturation">高壓飽和</option><option value="tilt-x-y">Tilt X／Y</option><option value="azimuth">方位角</option><option value="altitude">高度角</option><option value="fast-stroke">快速筆畫</option><option value="slow-stroke">慢速筆畫</option><option value="long-stroke">長筆畫</option><option value="short-stroke">短筆畫</option><option value="straight-line">直線</option><option value="curve">曲線</option><option value="spiral">螺旋</option><option value="crosshatch">交叉線</option><option value="dot">點按</option><option value="repeated-stroke">重複筆畫</option><option value="palm-rejection">手掌誤觸</option><option value="pen-up-down-stability">Pen Up／Down</option></select></label>
+        <canvas id="stylusTestCanvas" class="brush-live-preview stylus-test-canvas" width="320" height="120" aria-label="實體觸控筆測試區"></canvas>
+        <label class="control-row"><span>裝置名稱</span><input id="deviceName" value="HP x360 + MPP Stylus"></label>
+        <label class="control-row"><span>Profile</span><select id="calibrationProfileSelect"><option value="ink-default-device">INK Default</option></select></label>
+        <div class="studio-button-grid"><button id="stylusTestStart">開始量測</button><button id="stylusTestFinish">儲存 Device Report</button><button id="calibrationProfileSave">保存校準</button><button id="calibrationProfileExport">匯出 Profile</button><button id="calibrationProfileImport">匯入 Profile</button><button id="calibrationProfileReset">恢復預設</button></div>
+        <p id="stylusTestStatus" class="studio-report program-summary" data-state="partial">手感仍需 USER VALIDATION REQUIRED</p>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>Browser Interactive Benchmark</strong><span>ACTUAL RENDERING</span></div>
+        <canvas id="interactiveBenchmarkCanvas" class="brush-live-preview" width="320" height="180" aria-label="互動渲染效能測試畫布"></canvas>
+        <button id="interactiveBenchmarkRun" class="wide-button">執行 1K／10K／100K 實際渲染</button>
+        <p id="interactiveBenchmarkStatus" class="studio-report program-summary" data-state="partial">尚未執行真實瀏覽器渲染</p>
+      </div>
+      <div class="property-card studio-card">
+        <div class="subpanel-title"><strong>專業作品人工驗收</strong><span>USER VALIDATION REQUIRED</span></div>
+        <label class="control-row"><span>Benchmark</span><select id="artworkQaBenchmark"><option>線稿花卉</option><option>水彩花卉</option><option>油畫／厚塗花卉</option></select></label>
+        <label class="control-row"><span>評分</span><input id="artworkQaScore" type="number" min="1" max="5" placeholder="1–5"></label>
+        <textarea id="artworkQaNotes" class="program-preview" placeholder="構圖、花瓣、葉片、線條、邊緣、色彩、混色、紋理、筆觸方向、主次、媒材、完成度"></textarea>
+        <button id="artworkQaExport" class="wide-button">匯出未核准人工驗收表</button>
+      </div>
+      <div class="property-card studio-card">
+        <button id="layerManifestExport" class="wide-button">匯出分層 Manifest</button>
+        <p id="studioReport" class="studio-report" data-state="pass">核心載入中…</p>
+      </div>
+    </section>
+  </aside>
+
+  <nav class="mobile-dock glass-surface" aria-label="手機工具列">
+    <button class="tool-button active" data-tool="pen"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-pen"/></svg></span><span class="tool-label">鋼筆</span></button>
+    <button class="tool-button" data-tool="brush"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-brush"/></svg></span><span class="tool-label">毛筆</span></button>
+    <button class="tool-button" data-tool="eraser"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-eraser"/></svg></span><span class="tool-label">橡皮</span></button>
+    <button class="tool-button emphasis" data-tool="select"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-select"/></svg></span><span class="tool-label">選取</span></button>
+    <button id="mobileToolsToggle" class="dock-action"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-more"/></svg></span><span class="tool-label">更多</span></button>
+  </nav>
+
+  <section id="mobileToolSheet" class="mobile-tool-sheet elevated-panel" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><div><span class="eyebrow">TOOLS</span><strong>全部工具</strong></div><button id="closeMobileTools" class="mini-button"><svg><use href="#i-close"/></svg></button></div>
+    <div class="mobile-tool-grid">
+      <button class="tool-button" data-tool="pencil"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-pencil"/></svg></span><span class="tool-label">鉛筆</span></button>
+      <button class="tool-button" data-tool="marker"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-marker"/></svg></span><span class="tool-label">麥克筆</span></button>
+      <button class="tool-button" data-tool="airbrush"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-airbrush"/></svg></span><span class="tool-label">噴筆</span></button>
+      <button class="tool-button" data-tool="lasso"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-lasso"/></svg></span><span class="tool-label">套索</span></button>
+      <button class="tool-button" data-tool="shape"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-shape"/></svg></span><span class="tool-label">幾何</span></button>
+      <button class="tool-button" data-tool="text"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-text"/></svg></span><span class="tool-label">文字</span></button>
+      <button class="tool-button" data-tool="image"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-image"/></svg></span><span class="tool-label">圖片</span></button>
+      <button class="tool-button" data-tool="pan"><span class="tool-icon"><svg viewBox="0 0 24 24"><use href="#i-pan"/></svg></span><span class="tool-label">移動畫布</span></button>
+    </div>
+  </section>
+
+  <section id="canvasSettings" class="floating-panel elevated-panel" hidden>
+    <div class="panel-header"><div><span class="eyebrow">CANVAS</span><strong>畫布設定</strong></div><button id="closeSettings" class="mini-button panel-close-button" title="關閉畫布設定" aria-label="關閉畫布設定"><svg><use href="#i-close"/></svg></button></div>
+    <div class="subpanel-title artboard-title"><strong>版面與列印</strong><span>LAYOUT / PRINT</span></div>
+    <p class="workspace-settings-note">文件依下列尺寸顯示；縮放與平移只改變觀看位置，不改變文件尺寸。</p>
+    <label class="control-row" data-artboard-fixed><span>尺寸</span><select id="artboardPreset"><option value="A4">A4 · 210 × 297 mm</option></select></label>
+    <label class="control-row" data-artboard-fixed><span>方向</span><select id="artboardOrientation"><option value="portrait">直式</option><option value="landscape">橫式</option></select></label>
+    <label class="control-row" data-artboard-fixed><span>解析度</span><select id="artboardPpi"><option value="150">150 PPI</option><option value="300" selected>300 PPI</option><option value="600">600 PPI</option></select></label>
+    <label class="control-row" data-artboard-fixed><span>出血</span><div class="number-unit"><input id="artboardBleed" type="number" min="0" max="25" step="0.5" value="0"><span>mm</span></div></label>
+    <label class="control-row" data-artboard-fixed><span>安全邊界</span><div class="number-unit"><input id="artboardSafeMargin" type="number" min="0" max="100" step="1" value="10"><span>mm</span></div></label>
+    <label class="control-row" data-artboard-fixed><span>標尺單位</span><select id="artboardUnit"><option value="mm">毫米 mm</option><option value="px">像素 px</option></select></label>
+    <label class="toggle-row" data-artboard-fixed><input id="showBleed" type="checkbox" checked><span>顯示出血線</span></label>
+    <label class="toggle-row" data-artboard-fixed><input id="showSafeArea" type="checkbox" checked><span>顯示安全邊界</span></label>
+    <label class="toggle-row" data-artboard-fixed><input id="showCenterGuides" type="checkbox" checked><span>顯示中心線</span></label>
+    <label class="toggle-row" data-artboard-fixed><input id="clipArtboardContent" type="checkbox" checked><span>版面空間隱藏畫板外內容</span></label>
+    <div class="subpanel-title viewport-title"><strong>版面視埠</strong><span>MODEL VIEWPORT</span></div>
+    <p class="viewport-note">創作內容保持原始尺寸；版面視埠只決定 A4 中觀看的範圍與比例，不移動原始物件。</p>
+    <label class="control-row range-row"><span>視埠比例</span><input id="layoutViewportScale" type="range" min="1" max="400" step="1" value="100"><output id="layoutViewportScaleOutput">100%</output></label>
+    <label class="control-row"><span>模型中心 X</span><input id="layoutViewportX" class="viewport-number" type="number" step="1" value="0"></label>
+    <label class="control-row"><span>模型中心 Y</span><input id="layoutViewportY" class="viewport-number" type="number" step="1" value="0"></label>
+    <label class="control-row"><span>視埠旋轉</span><div class="number-unit"><input id="layoutViewportRotation" type="number" min="-180" max="180" step="1" value="0"><span>°</span></div></label>
+    <div class="viewport-actions"><button id="fitViewportContentBtn" class="wide-button">將全部內容符合 A4 視埠</button><button id="resetViewportBtn" class="wide-button">視埠 1:1 置中</button></div>
+    <p id="artboardSummary" class="artboard-summary">A4 直式 · 210 × 297 mm · 300 PPI</p>
+    <button id="fitArtboardBtn" class="wide-button" data-artboard-fixed>文件符合視窗</button>
+    <label class="control-row"><span>紙張</span><select id="paperType"><option value="blank">空白</option><option value="dots">點陣</option><option value="grid">方格</option><option value="ruled">橫線</option></select></label>
+    <label class="control-row"><span>背景色</span><input id="paperColor" type="color" value="#fffef9"></label>
+    <label class="control-row range-row"><span>格線間距</span><input id="gridSize" type="range" min="8" max="100" value="32"><output id="gridSizeOutput">32</output></label>
+    <div class="subpanel-title paper-media-title"><strong>紙張媒材</strong><span>MULTI-CHANNEL</span></div>
+    <label class="control-row range-row"><span>吸水率</span><input id="paperAbsorbency" type="range" min="0" max="100" value="58"><output id="paperAbsorbencyOutput">58%</output></label>
+    <label class="control-row range-row"><span>粗糙度</span><input id="paperRoughness" type="range" min="0" max="100" value="42"><output id="paperRoughnessOutput">42%</output></label>
+    <label class="control-row range-row"><span>纖維強度</span><input id="paperFiberStrength" type="range" min="0" max="100" value="36"><output id="paperFiberStrengthOutput">36%</output></label>
+    <label class="control-row range-row"><span>纖維角度</span><input id="paperFiberAngle" type="range" min="-90" max="90" value="0"><output id="paperFiberAngleOutput">0°</output></label>
+    <label class="control-row range-row"><span>施膠</span><input id="paperSizing" type="range" min="0" max="100" value="28"><output id="paperSizingOutput">28%</output></label>
+    <label class="control-row range-row"><span>沉澱顆粒</span><input id="paperGranulation" type="range" min="0" max="100" value="32"><output id="paperGranulationOutput">32%</output></label>
+    <label class="toggle-row"><input id="paperTextureVisible" type="checkbox" checked><span>顯示紙張纖維</span></label>
+    <label class="toggle-row"><input id="snapToggle" type="checkbox" checked><span>幾何角度吸附（15°）</span></label>
+    <label class="toggle-row"><input id="smartGuidesToggle" type="checkbox" checked><span>智慧參考線與物件吸附</span></label>
+    <label class="toggle-row"><input id="gridSnapToggle" type="checkbox"><span>移動時吸附紙張格線</span></label>
+    <label class="toggle-row"><input id="fingerDrawToggle" type="checkbox"><span>單指使用目前工具（預設為導航）</span></label>
+    <div class="subpanel-title pen-calibration-title"><strong>觸控筆校準</strong><span>DEVICE</span></div>
+    <label class="control-row range-row"><span>起始壓力</span><input id="penPressureMin" type="range" min="0" max="40" value="2"><output id="penPressureMinOutput">2%</output></label>
+    <label class="control-row range-row"><span>最大壓力</span><input id="penPressureMax" type="range" min="60" max="100" value="100"><output id="penPressureMaxOutput">100%</output></label>
+    <label class="control-row range-row"><span>壓力曲線</span><input id="penPressureGamma" type="range" min="25" max="400" value="100"><output id="penPressureGammaOutput">1×</output></label>
+    <label class="control-row range-row"><span>壓力平滑</span><input id="penPressureSmoothing" type="range" min="0" max="95" value="16"><output id="penPressureSmoothingOutput">16%</output></label>
+    <label class="control-row range-row"><span>傾斜靈敏度</span><input id="penTiltSensitivity" type="range" min="0" max="200" value="100"><output id="penTiltSensitivityOutput">1×</output></label>
+    <label class="toggle-row"><input id="penUsePredicted" type="checkbox"><span>使用預測事件（實驗性）</span></label>
+    <label class="toggle-row"><input id="penPalmRejection" type="checkbox" checked><span>掌壓排除與筆觸保護</span></label>
+    <div class="pen-calibration-actions"><button id="penCalibrationCheckBtn" class="wide-button">檢查輸入</button><button id="penCalibrationResetBtn" class="wide-button">重設</button></div><p id="penCalibrationStatus" class="pen-calibration-status">尚未收到觸控筆資料</p>
+    <button id="resetViewBtn" class="wide-button">重設視圖</button><button id="storageHealthBtn" class="wide-button">檢查儲存與離線狀態</button><p id="storageHealthStatus" class="storage-health-status">尚未檢查</p><button id="releaseHealthBtn" class="wide-button">執行發布健康檢查</button><p id="releaseHealthStatus" class="storage-health-status">尚未檢查</p><button id="downloadDiagnosticsBtn" class="wide-button">下載外部測試診斷包</button><div class="button-row"><button id="checkUpdateBtn">檢查更新</button><button id="activateUpdateBtn">啟用更新</button></div><p id="updateStatus" class="storage-health-status">更新服務尚未初始化</p>
+  </section>
+
+  <section id="brandingSettingsDialog" class="dialog-backdrop branding-settings-backdrop" role="dialog" aria-modal="true" aria-labelledby="brandingSettingsTitle" hidden>
+    <div class="dialog elevated-panel branding-settings-dialog">
+      <div class="panel-header">
+        <div><span class="eyebrow">INK</span><strong id="brandingSettingsTitle">偏好設定</strong></div>
+        <button id="closeBrandingSettings" class="mini-button panel-close-button" title="關閉偏好設定" aria-label="關閉偏好設定"><svg><use href="#i-close"/></svg></button>
+      </div>
+      <div class="preferences-layout">
+        <nav id="preferencesCategories" class="preferences-categories" aria-label="設定分類"></nav>
+        <div id="preferencesContent" class="preferences-content">
+      <section class="branding-settings-body preferences-category" data-preference-page="branding" aria-label="品牌">
+        <p class="branding-settings-note">名稱、標題、標誌與網站圖示會即時預覽並自動保存。</p>
+        <div class="branding-preview" aria-label="品牌即時預覽">
+          <img id="brandingPreviewLogo" src="assets/INK_MARK_SOURCE_W-300.jpg?v=0.1" alt="">
+          <div><strong id="brandingPreviewName">INK</strong><span id="brandingPreviewTitle">INK v0.1 · Web</span></div>
+        </div>
+        <label class="branding-field"><span>應用程式名稱</span><input id="brandingAppName" type="text" maxlength="40" autocomplete="off" spellcheck="false"></label>
+        <label class="branding-field"><span>視窗標題</span><input id="brandingAppTitle" type="text" maxlength="100" autocomplete="off" spellcheck="false"></label>
+        <div class="branding-asset-row">
+          <div class="branding-asset-copy"><strong>標誌</strong><span>PNG / JPG / WEBP / SVG · ≤ 768 KB</span></div>
+          <button id="brandingLogoChoose" type="button">選擇檔案…</button>
+          <input id="brandingLogoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+        </div>
+        <div class="branding-asset-row">
+          <div class="branding-asset-copy"><strong>網站圖示</strong><span>PNG / JPG / WEBP / SVG · ≤ 256 KB</span></div>
+          <button id="brandingFaviconChoose" type="button">選擇檔案…</button>
+          <input id="brandingFaviconInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon" hidden>
+        </div>
+        <p id="brandingSettingsStatus" class="branding-settings-status" role="status" aria-live="polite">使用目前產品預設</p>
+        <div class="branding-settings-actions">
+          <button id="brandingReset" type="button">重設為產品預設</button>
+          <button id="brandingPromoteDefault" type="button" class="primary-button">設為產品預設</button>
+          <button id="brandingRestoreFactory" type="button">恢復原廠 INK</button>
+        </div>
+      </section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="exportDialog" class="dialog-backdrop" hidden>
+    <div class="dialog elevated-panel">
+      <div class="panel-header"><div><span class="eyebrow">EXPORT</span><strong>匯出作品</strong></div><button id="closeExport" class="mini-button"><svg><use href="#i-close"/></svg></button></div>
+      <label class="control-row"><span>格式</span><select id="exportFormat"><option value="png">PNG</option><option value="svg">SVG</option><option value="pdf">PDF（固定實體尺寸）</option><option value="print">瀏覽器列印</option></select></label>
+      <label class="control-row"><span>範圍</span><select id="exportScope"><option value="artboard" selected>固定畫板</option><option value="content">全部內容</option><option value="viewport">目前畫面</option></select></label>
+      <label id="exportScaleRow" class="control-row"><span>倍率</span><select id="exportScale"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×（自動分塊）</option></select></label>
+      <label id="exportPpiRow" class="control-row"><span>解析度</span><select id="exportPpi"><option value="150">150 PPI</option><option value="300" selected>300 PPI</option><option value="600">600 PPI</option></select></label>
+      <label id="exportBleedRow" class="toggle-row"><input id="exportBleed" type="checkbox"><span>包含出血</span></label>
+      <label id="exportCropMarksRow" class="toggle-row"><input id="exportCropMarks" type="checkbox"><span>加入裁切線</span></label>
+      <label class="toggle-row"><input id="exportBackground" type="checkbox" checked><span>包含背景</span></label>
+      <p id="exportSummary" class="export-summary">A4 直式 · 2480 × 3508 px · 300 PPI</p>
+      <div class="button-row"><button id="runExportBtn" class="primary-button wide-button">建立檔案</button><button id="cancelExportBtn" class="wide-button" hidden>取消匯出</button></div><p id="exportProgress" class="export-progress" hidden></p>
+    </div>
+  </section>
+
+  <footer id="documentStatusStrip" class="statusbar document-status-strip glass-surface" aria-label="作用中文件狀態">
+    <div class="status-cluster document-status-info"><span id="statusSpace">創作空間</span><span id="statusArtboard">A4 直式</span></div>
+    <div class="status-cluster status-hidden-telemetry" aria-hidden="true"><span class="status-dot"></span><span id="statusTool">鋼筆</span><span class="version-badge">v0.1 · Web</span><span id="statusObjects">0 個物件</span><span id="selectionModeStatus">選取：框選</span><span id="autosaveStatus">自動儲存已啟用</span></div>
+    <div class="status-cluster view-controls"><button id="rotateResetBtn" title="重設旋轉">旋轉 0°</button><button id="fitBtn" title="符合內容（F）">符合內容</button><button id="zoomOutBtn" aria-label="縮小">−</button><span id="zoomText">100%</span><button id="zoomInBtn" aria-label="放大">＋</button></div>
+  </footer>
+
+  <input id="projectInput" type="file" accept=".ink,.json,application/json" hidden>
+  <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+  <input id="svgStudioInput" type="file" accept="image/svg+xml,.svg" hidden>
+  <input id="recipeStudioInput" type="file" accept="application/json,.json" hidden>
+  <input id="programAssetInput" type="file" accept=".atn,.jsx,.js,.mjs,.svg,.inx,.py,.scm,.gms,.bas,.vba,.pspscript,.sut,.tos,.script,.macro,.session,.json,.xml,.txt" hidden>
+  <input id="drawingWorkflowInput" type="file" accept=".js,.mjs,.html,.svg,.py,.scm,.script,.macro,.session,.json,.xml,.txt" hidden>
+  <input id="calibrationProfileInput" type="file" accept=".json,.inkprofile" hidden>
+  <input id="referenceEvidenceInput" type="file" accept="application/json,.json" hidden>
+</div>
+<script src="web-shell.js?v=0.1-ui-20261002-sup08-11"></script>
+<script src="ui/branding-settings.js?v=0.1-ui-20261002-sup08-11"></script>
+<script type="module" src="src/ink.js?v=0.1-ui-20261002-sup08-11"></script>
+
 </body>
 </html>
