@@ -7,6 +7,6 @@
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to exact accepted source SHA be6baa7085b9520a67e0952968650d4648af4d0a. Paint Session world/content bounds now reuse native replay + strokeBoundingBox through the existing Renderer authority; formal Live rerun pending. Prior A1 Paint Session, B0/B1 raster ingest, and B2 representative adjustment/filter/blend/effect/Liquify PASS baselines must remain clean."
+  "deployment_status": "PUBLISHED_AND_LIVE_QUALIFIED",
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to exact accepted source SHA be6baa7085b9520a67e0952968650d4648af4d0a. Paint Session world/content bounds are Live-qualified via paint-session-bounds-live-rerun-003: native paint-session, scoped History, content Preview bounds 274.0064×231.12032, Undo to zero objects, Redo restoring the same object and render fingerprint. The first two reruns stopped before API readiness during transient exact-SHA jsDelivr module propagation and did not execute product operations. Prior A1 Paint Session, B0/B1 raster ingest, and B2 representative adjustment/filter/blend/effect/Liquify PASS baselines remain required regressions."
 }
