@@ -257,8 +257,9 @@ RESULT = NOT_EXPOSED / PARTIAL
 OBSERVED = Exact-SHA Live capability discovery contains no CHAT-exposed brush, natural-media, paper, Blender or Smudge capability. C017 proves native vector Path editing, but vector Path editing is not accepted as a substitute for brush/natural-media operation.
 EXPECTED = INK is intended for CHAT-operated creative work, so existing drawing authorities must be callable through a bounded CHAT surface before drawing cases can pass.
 MINIMAL_REPRO = transport-proof-capabilities-003; round1-C017-001; round1-batch-C010-C011-C014-C015-002 capability registry scan
-CLASS = CHAT_EXPOSURE_GAP / possible PRODUCT_CAPABILITY_GAP
-UPSTREAM_DISPOSITION = Highest-priority source audit after Round 1; expose existing native drawing authorities rather than creating duplicate drawing state.
+CLASS = CHAT_EXPOSURE_GAP / PRODUCT_CAPABILITY_GAP
+SOURCE_AUDIT = INK-Browser-QA/working/INK_LIVE_CLUSTER_A_DRAWING_NATURAL_MEDIA_SOURCE_AUDIT_20261002.md
+UPSTREAM_DISPOSITION = Source audit split the finding: general drawing / native Stroke / Airbrush / Paper / Eraser authorities exist and need bounded CHAT exposure; Blender / Smudge preset/model exists but current pigment-surface render integration is incomplete and remains a separate product gap. Draft PR #112 covers only a safe Paint Session subset and is not yet runtime-qualified or promoted.
 RERUN_RESULT = PENDING
 ```
 
