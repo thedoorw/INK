@@ -112,3 +112,20 @@ CLASS = CHAT_EXPOSURE_GAP / WORKFLOW_USABILITY_GAP
 UPSTREAM_DISPOSITION = Continue Round 1; cluster page/raster/material gaps.
 RERUN_RESULT = PENDING
 ```
+
+
+### R1-C019-001 — text deformation not exposed
+
+```text
+FINDING_ID = R1-C019-001
+CASE_ID = C019
+DEPLOYED_SOURCE_SHA = 66cdb5b4ddc322a2b1027cab2627426f868027d3
+CAPABILITY_FAMILY = C10 C14 C20
+RESULT = PARTIAL
+OBSERVED = CHAT created and edited native Text, created a native vector Path, and transformed the Path. The deployed Public Creative API returned INK_CAPABILITY_NOT_FOUND for text.warp.v1, and no text-warp/deformation route appears in the exposed registry.
+EXPECTED = Curved-text case needs an editable warp/deformation authority in addition to ordinary Text and Path operations.
+MINIMAL_REPRO = round1-C019-002
+CLASS = CHAT_EXPOSURE_GAP
+UPSTREAM_DISPOSITION = Keep open and cluster with C14 deformation findings after Round 1.
+RERUN_RESULT = PENDING
+```
