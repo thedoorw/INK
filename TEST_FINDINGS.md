@@ -370,3 +370,19 @@ UPSTREAM_DISPOSITION = PR #124 merged. colorOverlay is Live-qualified. Prior dro
 RERUN_RESULT = PASS
 ```
 
+### R1-B2-LIQUIFY-001 — twirl Live qualified / B2 representative closure
+
+```text
+FINDING_ID = R1-B2-LIQUIFY-001
+CASE_ID = C010 / C011 / C013 / C014 / C015
+DEPLOYED_SOURCE_SHA = cc9b623258123da0e00e31a9e686357fba0d4ec0
+CAPABILITY_FAMILY = C14 C22 C23 C24 C25 C26 C27 C28
+RESULT = PASS / B2 FIVE PRIORITY OPERATION FAMILIES QUALIFIED
+OBSERVED = CHAT imported one editable native PNG raster, proposed/approved/executed image.liquify.add.v1 with one twirl operation, observed renderer fingerprint 34d01658→755eb849, recorded scoped History, captured Preview, then Undo restored 34d01658 and Redo restored 755eb849.
+EXPECTED = B2 qualifies the existing non-destructive image-stack authorities through real native state mutation, observable rendering, History, Preview, Undo and Redo; tool-call success alone is insufficient.
+MINIMAL_REPRO = clusterB-B2-liquify-live-003
+CLASS = CHAT_EXPOSURE_GAP → LIQUIFY REPAIRED / B2 REPRESENTATIVE CLOSURE
+UPSTREAM_DISPOSITION = PR #125 merged. brightnessContrast adjustment, gaussianBlur filter, multiply blend, colorOverlay effect and twirl Liquify are each independently Live-qualified. This closes B2 at the operation-family representative-coverage level; B3 local/destructive raster and masks, B4 Path deformation, and C019 Text warp remain outside this closure.
+RERUN_RESULT = PASS
+```
+
