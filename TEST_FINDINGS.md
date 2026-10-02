@@ -7,12 +7,12 @@ Development fixes belong in `thedoorw/INK-Browser-QA`.
 ## Current deployment
 
 - Live URL: https://thedoorw.github.io/INK/
-- Source SHA: not yet published
-- Status: PREPARATION
+- Source SHA: `66cdb5b4ddc322a2b1027cab2627426f868027d3`
+- Status: PUBLISHED / LIVE VERIFICATION PENDING
 
 ## Findings
 
-No product build has been tested yet.
+First product build published; LT-00 live identity/load verification is pending.
 
 ### Record format
 
