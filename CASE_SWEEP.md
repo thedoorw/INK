@@ -22,7 +22,7 @@ Status values:
 | C004 | Figma — concept poster | overlap check | short poster probe only where it exercises a path not already proven by C001 | PENDING |
 | C005 | Adobe — invitation | mixed text/layout/image | quick text + image + layout/edit probe | PENDING |
 | C006 | Adobe — promotional flyer | layout/output | assemble minimal flyer structure and verify output route | PENDING |
-| C007 | Adobe — social ads | C55 automation | create one base design, run one repeat/automation-style variant step | PENDING |
+| C007 | Adobe — social ads | C55 automation | create one base design, run one repeat/automation-style variant step | PARTIAL — Repeat/Clone variant mechanics PASS; Recipe library empty |
 | C008 | Adobe — geometric logo | C08 C09 C10 C11 C12 C13 C17 C21 C39 | path/shape → boolean → align → repeat → SVG round-trip | PARTIAL — Path/Boolean/Rotate/Repeat/SVG PASS; align/snap/material unresolved |
 | C009 | Canva — Run Club poster | C40 C41 C42 | import/reference → extraction/reconstruction → editable correction | PENDING |
 | C010 | Canva — campaign visual | C22 C23 C40 C42 | raster import → mask/targeted edit → transform/reconstruction probe | PENDING |
@@ -190,3 +190,20 @@ Exposure gap:
 
 - `describe_ink_capability("text.warp.v1")` returned `INK_CAPABILITY_NOT_FOUND`;
 - no CHAT-exposed text warp/deformation route was identified in the deployed capability registry.
+
+
+### C007
+
+Request: `round1-C007-001`
+
+Verified:
+
+- base Path + Text creation: PASS;
+- `repeat.grid.v1` variant generation: PASS;
+- `object.clone.v1`: PASS;
+- Context/Preview verification: PASS.
+
+Gap:
+
+- Creative Library search for `recipe` returned zero entries in the fresh Live document;
+- this proves repeat/variant mechanics, not a complete reusable Recipe/automation workflow.
