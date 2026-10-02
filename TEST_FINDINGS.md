@@ -354,3 +354,19 @@ UPSTREAM_DISPOSITION = PR #123 merged. multiply is Live-qualified. Effect/Liquif
 RERUN_RESULT = PASS
 ```
 
+### R1-B2-EFFECT-001 — colorOverlay Live qualified
+
+```text
+FINDING_ID = R1-B2-EFFECT-001
+CASE_ID = C010 / C011 / C013 / C014 / C015
+DEPLOYED_SOURCE_SHA = 9d73a8018c0c37861aa3c76412951eb26bf78e62
+CAPABILITY_FAMILY = C14 C22 C23 C24 C25 C26 C27 C28
+RESULT = PARTIAL / B2 EFFECT PASS
+OBSERVED = CHAT imported one editable native PNG raster, proposed/approved/executed image.effect.add.v1 colorOverlay, observed renderer fingerprint 34d01658→7cd33282, recorded scoped History, captured Preview, then Undo restored 34d01658 and Redo restored 7cd33282.
+EXPECTED = B2 must qualify existing non-destructive image-stack authorities one family at a time; tool-call success alone is insufficient.
+MINIMAL_REPRO = clusterB-B2-effect-live-003
+CLASS = CHAT_EXPOSURE_GAP → EFFECT REPAIRED
+UPSTREAM_DISPOSITION = PR #124 merged. colorOverlay is Live-qualified. Prior dropShadow no-delta evidence was case-visibility limited, not proof of missing native effect authority. Liquify remains separately open.
+RERUN_RESULT = PASS
+```
+
