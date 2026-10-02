@@ -405,3 +405,78 @@ POINTER_MOUSE_SIMULATION = NONE
 TEXT_DEFORMATION = EXCLUDED
 RERUN_RESULT = PENDING_PUBLIC_EXPOSURE
 ```
+
+
+### TEST-A-A2-STROKE-NATURALMEDIA-AIRBRUSH-001 — blocked at CHAT exposure
+
+```text
+FINDING_ID = TEST-A-A2-STROKE-NATURALMEDIA-AIRBRUSH-001
+CASE_ID = C016 / C017 / C018
+DEPLOYED_SOURCE_SHA = cc9b623258123da0e00e31a9e686357fba0d4ec0
+LIVE_REPO_HEAD_AT_TEST = 145a00587bcc6dbc9717b05179f2c5e131a5b587
+CAPABILITY_FAMILY = C29 C30 C31 C34
+AFFECTED_CAPABILITY = native Stroke / NaturalMedia / Airbrush
+RESULT = BLOCKED_AT_PUBLIC_EXPOSURE
+EXPECTED = stroke.create.v1 is discoverable and can create the existing native type:'stroke' through proposal/approval/execute so Renderer/Canvas, History, Preview, Undo and Redo can be qualified for pencil, brush/drybrush and airbrush.
+ACTUAL = describe_ink_capability("stroke.create.v1") returned INK_CAPABILITY_NOT_FOUND. The formal lifecycle cannot legally advance past discovery on this deployment.
+REPRO_STEPS = get_ink_capabilities → describe_ink_capability("stroke.create.v1")
+MINIMAL_REPRO = clusterA-A2-native-stroke-discovery-live-001
+REQUEST_COMMIT = 0753b4971abdb41749fbc66fadb663243d716660
+RESULT_COMMIT = 9f7dd86e246014e18e8be71010b3a545e07bfd42
+CLASS = EXPOSURE_GAP
+EXISTING_NATIVE_AUTHORITY = YES — interactive beginStroke / native Stroke / NaturalMediaController / airbrush remain product-owned upstream
+POINTER_MOUSE_SIMULATION = NONE
+UPSTREAM_DISPOSITION = Record only. Do not treat this test failure as authorization to implement. Reuse existing native Stroke/NaturalMedia authorities if a later work order exposes them.
+SOURCE_RECORD = INK-Browser-QA/working/INK_TEST_A_DRAWING_NATURAL_MEDIA_QUALIFICATION_20261003.md
+SOURCE_RECORD_COMMIT = 230483602831f7e5bf7fc907ccf49c7517bbcae3
+RERUN_RESULT = PENDING_PUBLIC_EXPOSURE
+```
+
+### TEST-A-A3-PAPER-001 — blocked at CHAT exposure
+
+```text
+FINDING_ID = TEST-A-A3-PAPER-001
+CASE_ID = C016
+DEPLOYED_SOURCE_SHA = cc9b623258123da0e00e31a9e686357fba0d4ec0
+LIVE_REPO_HEAD_AT_TEST = 145a00587bcc6dbc9717b05179f2c5e131a5b587
+CAPABILITY_FAMILY = C31 C38
+AFFECTED_CAPABILITY = page Paper profile / mutation
+RESULT = BLOCKED_AT_PUBLIC_EXPOSURE
+EXPECTED = page.paper.set.v1 is discoverable and reuses existing page.paper + InkApp.changePaper + History/cache invalidation so paper state and natural-media render can be qualified through Preview and Undo/Redo.
+ACTUAL = describe_ink_capability("page.paper.set.v1") returned INK_CAPABILITY_NOT_FOUND. No formal CHAT paper mutation can reach native state on this deployment.
+REPRO_STEPS = get_ink_capabilities → describe_ink_capability("page.paper.set.v1")
+MINIMAL_REPRO = clusterA-A3-paper-discovery-live-001
+REQUEST_COMMIT = 00a1bcc4503b1367a889ff7a8c2308c1234ba85b
+RESULT_COMMIT = b66739f60e79b7705b2f8a7b5b228f1d20d1e674
+CLASS = EXPOSURE_GAP
+EXISTING_NATIVE_AUTHORITY = YES — page.paper / InkApp.changePaper / render/paper-profile.js
+POINTER_MOUSE_SIMULATION = NONE
+UPSTREAM_DISPOSITION = Record only. No second Paper model or implementation task is created by this test package.
+SOURCE_RECORD = INK-Browser-QA/working/INK_TEST_A_DRAWING_NATURAL_MEDIA_QUALIFICATION_20261003.md
+SOURCE_RECORD_COMMIT = 230483602831f7e5bf7fc907ccf49c7517bbcae3
+RERUN_RESULT = PENDING_PUBLIC_EXPOSURE
+```
+
+### TEST-A-A1-REGRESSION-001 — Paint Session remains PASS
+
+```text
+FINDING_ID = TEST-A-A1-REGRESSION-001
+CASE_ID = C016 / C017
+DEPLOYED_SOURCE_SHA = cc9b623258123da0e00e31a9e686357fba0d4ec0
+LIVE_REPO_HEAD_AT_TEST = 145a00587bcc6dbc9717b05179f2c5e131a5b587
+CAPABILITY_FAMILY = C29 C30 C34
+RESULT = PASS / REGRESSION CLEAN
+OBSERVED = Current Live source exposes paint.session.create.v1. CHAT proposed, approved and executed a two-stroke pencil+watercolor native paint-session with 6 samples. Document changed from 0→1 object. History added exactly one scoped entry "CHAT create Paint Session". Preview completed with render fingerprint fnv1a32:a6535881. Undo removed the object; Redo restored the same stable object id chat-paint-fnv1a32-a5525b8e and the exact same Preview fingerprint.
+EXPECTED = Previously accepted A1 remains functional after later Live source integrations.
+MINIMAL_REPRO = clusterA-A1-regression-live-001
+REQUEST_COMMIT = b96ac419baa9a1f7ae65609ffdee90106a7714aa
+RESULT_COMMIT = 9b26e502664b38f2068840d9b6eb3852087eebda
+CLASS = PASS
+JSON_SAFE = YES
+POINTER_MOUSE_SIMULATION = NONE
+KNOWN_NON_BLOCKING = paint-session content Preview still uses the previously recorded 49×49 fallback world/content bounds.
+UPSTREAM_DISPOSITION = A1 remains closed. Do not reopen A1 from the A2/A3 exposure gaps.
+SOURCE_RECORD = INK-Browser-QA/working/INK_TEST_A_DRAWING_NATURAL_MEDIA_QUALIFICATION_20261003.md
+SOURCE_RECORD_COMMIT = 230483602831f7e5bf7fc907ccf49c7517bbcae3
+RERUN_RESULT = PASS
+```
