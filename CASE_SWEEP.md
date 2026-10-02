@@ -34,7 +34,7 @@ Status values:
 | C016 | Adobe — watercolor/oil/pencil/cartoon action | C29 C30 C31 C38 C55 | draw strokes using media/paper settings, then one automation/recipe-style action | PENDING |
 | C017 | Adobe — butterfly paintbrush/pencil | C10 C17 C29 C30 C34 | draw/edit stroke/path, repeat/duplicate structural element | PENDING |
 | C018 | Adobe — flowing ribbons | C29 C30 C31 C33 | brush/natural media + Blender/Smudge probe | PENDING |
-| C019 | Adobe — curved text poster | C10 C14 C20 | editable text → path/warp/deformation → correction | PENDING |
+| C019 | Adobe — curved text poster | C10 C14 C20 | editable text → path/warp/deformation → correction | PARTIAL — Text/Path/edit/transform PASS; text warp/deformation NOT EXPOSED |
 
 ## Cross-case capability probes
 
@@ -173,3 +173,20 @@ Not established:
 - C02 page creation/switch mutation through CHAT;
 - C22 raster/image creation/import path for this case;
 - C39 material path.
+
+
+### C019
+
+Requests: `round1-C019-001`, corrected evidence run `round1-C019-002`
+
+Verified:
+
+- native editable Text creation/edit: PASS;
+- native Path creation: PASS;
+- object transform/rotation: PASS;
+- Context/Preview verification: PASS.
+
+Exposure gap:
+
+- `describe_ink_capability("text.warp.v1")` returned `INK_CAPABILITY_NOT_FOUND`;
+- no CHAT-exposed text warp/deformation route was identified in the deployed capability registry.
