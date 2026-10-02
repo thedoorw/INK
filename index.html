@@ -7,8 +7,8 @@
   <meta name="application-name" content="INK v0.1 · Web">
   <meta name="description" content="INK — editable drawing with infinite creation space and print layout space">
 
-  <base href="https://cdn.jsdelivr.net/gh/thedoorw/INK-Browser-QA@66cdb5b4ddc322a2b1027cab2627426f868027d3/product/source/">
-  <meta name="ink-live-source-sha" content="66cdb5b4ddc322a2b1027cab2627426f868027d3">
+  <base href="https://cdn.jsdelivr.net/gh/thedoorw/INK-Browser-QA@58adf13cd98a8594eb8e63faedc735ce0c5179f0/product/source/">
+  <meta name="ink-live-source-sha" content="58adf13cd98a8594eb8e63faedc735ce0c5179f0">
 <link rel="manifest" href="manifest.webmanifest?v=0.1">
   <link rel="icon" href="assets/favicon.svg?v=0.1" type="image/svg+xml" sizes="32x32">
   <title>INK v0.1 · Web</title>
@@ -17,7 +17,7 @@
     body{min-height:100vh}
     #app{background:#e7e7e7;color:#262626}
   </style>
-  <link rel="stylesheet" href="styles.css?v=0.1-ui-20261002-sup08-11">
+  <link rel="stylesheet" href="styles.css?v=0.1-ui-20261002-current-main-recovery">
 </head>
 <body data-ink-first-paint="workstation">
 <svg class="svg-sprite" aria-hidden="true">
@@ -183,8 +183,8 @@
     <div class="window-visual-controls" aria-label="視窗控制"><button type="button" disabled aria-label="最小化視窗"><svg viewBox="0 0 12 12"><path d="M1 9h10"/></svg></button><button type="button" disabled aria-label="還原視窗"><svg viewBox="0 0 12 12"><path d="M4 5V2h7v7H8M1 5h7v6H1z"/></svg></button><button type="button" disabled aria-label="關閉視窗"><svg viewBox="0 0 12 12"><path d="m2 2 8 8m0-8-8 8"/></svg></button></div>
     <div class="menu-workspace" aria-label="工作區狀態" data-ui-home="workspace" data-ui-route="SECONDARY_SHORTCUT"><span>繪畫與向量</span><button id="workspaceMenuToggle" type="button" title="工作區清單" aria-haspopup="menu" aria-expanded="false">▾</button>
       <div id="workspaceMenu" class="workspace-menu" role="menu" hidden>
-        <button type="button" role="menuitemradio" data-workspace-command="creation"><svg><use href="#i-infinite"/></svg><span>創作空間</span><kbd>Ctrl+1</kbd></button>
-        <button type="button" role="menuitemradio" data-workspace-command="layout"><svg><use href="#i-layout"/></svg><span>版面空間</span><kbd>Ctrl+2</kbd></button>
+        <button type="button" role="menuitemradio" data-workspace-command="creation"><svg><use href="#i-infinite"/></svg><span>手繪板</span><kbd>Ctrl+1</kbd></button>
+        <button type="button" role="menuitemradio" data-workspace-command="layout"><svg><use href="#i-layout"/></svg><span>圖紙</span><kbd>Ctrl+2</kbd></button>
         <span class="workspace-menu-separator"></span>
         <button type="button" role="menuitem" data-workspace-command="fit-current"><span>符合目前空間</span></button>
         <button type="button" role="menuitem" data-workspace-command="reset-current"><span>重設目前視圖</span></button>
@@ -208,13 +208,13 @@
       </div>
       <span class="contextual-divider" aria-hidden="true"></span>
       <div id="contextualControlHost" class="contextual-control-host"></div>
+      <div id="workspaceSwitch" class="workspace-switch" role="group" aria-label="工作空間" data-ui-home="workspace" data-ui-route="PRIMARY_HOME">
+        <button type="button" data-space="creation" disabled aria-pressed="false" title="手繪板 Ctrl+1"><svg><use href="#i-infinite"/></svg><span>手繪板</span></button>
+        <button type="button" data-space="layout" disabled aria-pressed="false" title="圖紙 Ctrl+2"><svg><use href="#i-layout"/></svg><span>圖紙</span></button>
+      </div>
     </section>
 
     <div class="topbar-center">
-      <div id="workspaceSwitch" class="workspace-switch" role="group" aria-label="工作空間" data-ui-home="workspace" data-ui-route="PRIMARY_HOME">
-        <button type="button" data-space="creation" class="active" title="創作空間 Ctrl+1"><svg><use href="#i-infinite"/></svg><span>創作</span></button>
-        <button type="button" data-space="layout" title="版面空間 Ctrl+2"><svg><use href="#i-layout"/></svg><span>版面</span></button>
-      </div>
       <div class="history-group pill-group" aria-label="歷程" data-ui-home="edit-history" data-ui-route="SHORTCUT">
         <button id="undoBtn" class="icon-button" title="復原 Ctrl+Z" disabled><svg><use href="#i-undo"/></svg></button>
         <button id="redoBtn" class="icon-button" title="重做 Ctrl+Shift+Z" disabled><svg><use href="#i-redo"/></svg></button>
