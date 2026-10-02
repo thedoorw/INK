@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "789e9efb77d1edaac15420483c9ce71dd43f414b",
+  "source_sha": "9d73a8018c0c37861aa3c76412951eb26bf78e62",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster B2 brightnessContrast adjustment, gaussianBlur filter, and multiply blend are Live-qualified. Effect/Liquify remain separately unqualified/open."
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to the exact accepted source SHA. Cluster B2 brightnessContrast adjustment, gaussianBlur filter, and multiply blend are Live-qualified; image.effect.add.v1 colorOverlay passed exact-candidate browser QA and is published for formal Live qualification. Liquify remains separately unqualified/open."
 }
