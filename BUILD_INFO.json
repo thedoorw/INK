@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "701c22beabd873376c71dc2dd15abc8bfe073732",
+  "source_sha": "ff6e329e372a0b3c8b756cd74cc881b28fa404f9",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "Cluster C C1-C4 CLOSED. PR #151 C4 exact candidate 6dca38862352a5ffcd2193b943c017f70eecd4e2 accepted; integrated/deployed source 701c22beabd873376c71dc2dd15abc8bfe073732. Candidate QA run 37112623108/artifact 11270164226 PASS. Live mirror deploy commit 4ed90eaeb5b28768f0ef2e31402da6bb83233623; Pages run 37113340966 PASS. Formal Live request clusterC-C4-artboard-formal-live-001/run 37113424982/artifact 11270326548/digest sha256:1f23c6d3c0333b69adb11e307ea12fd87bf182eadf263d73665b14e53d8f361b COMPLETED: exact source, apiReady, C4 discovery/propose/approve/execute, native Artboard History, landscape/portrait Preview, Undo/Redo, final restore; C3 guide regression PASS. C3 candidate PR #149/run 37108921873 and prior Formal Live carrier run 37109933114 also PASS. FORMAT_VERSION=4. B3/advanced ingest/D/C019/UI/PWA/C06/New Document unchanged."
+  "deployment_status": "PUBLISHED_PENDING_FORMAL_LIVE",
+  "notes": "C019 native curved/path Text integration accepted from PR #152. DEV exact browser-qualified candidate 35872e4f498950c58d47aac64f8e515967b081e9 / run 37113470082 / artifact 11270487286 / digest sha256:26953eb734742959d361cd849e210290f399a77d2f987e5e554cb865054bb245. Integrated source ff6e329e372a0b3c8b756cd74cc881b28fa404f9 preserves Cluster C C1-C4 authority and adds Renderer pathText consumption plus text.path.set.v1. Formal Live pending. FORMAT_VERSION=4; D/UI/PWA/C06/New Document/B3 unchanged."
 }
