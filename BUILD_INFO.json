@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "701c3777dba854df893f61f1d75b97ea694ede62",
+  "source_sha": "468873503155f66585564a6ca7b11f7a82586d7a",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "PR #130 closes the single native Brush/DryBrush page.paper render-integration gap by routing eligible singleton native Strokes through the existing NaturalMedia multichannel renderer. Exact candidate 29e23abf609bf57603ecfe5e366355b788ddc2fd and accepted merge source 701c3777dba854df893f61f1d75b97ea694ede62 share the identical product/source tree 5749d904364217df2438550e759b64d2df3d579e. Hosted exact-candidate singleton Brush/DryBrush, A3 two-stroke, A2 Stroke, and A1 Paint Session qualification PASS. Focused Live singleton qualification pending. WebGL roughness parity remains the next separate gap."
+  "notes": "PR #131: bounded reversible native B4 warp/distort/perspective. Exact candidate 938016b79e10c6ac1c06ad930be35a67654c381b and accepted merge share product/source tree 8d35c9a8a3f69d2f51cf02703fd78b9d8b090e4b. Hosted B4 three-operation qualification plus A1/A2/A3/B2 regressions PASS; MR accepted exact integration. Latest Paper singleton integration preserved. Formal Live B4 qualification pending."
 }
