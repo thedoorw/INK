@@ -1176,3 +1176,50 @@ FormalLive core-perf-spatial-batch-formal-live-001 / run37109933114 / artifact11
 Native16-Pathpubliccreate/align performs one existing index rebuild and zero incremental object updates. Fresh metadata/query parity,visible delta,Preview and exact geometry/pixelUndoRedo PASS.3000object/100target/20cycle cardinality and query parity PASS. Existing natural-media/image-stack cache, B4threeoperation/reset/reapplication and C3snap/guide public steps PASS.
 46localchecks and candidate affected A1/A2/A3/A4/A5/B2/B4/C1/C2/C3 PASS. No new cache/authority,UI orFORMAT_VERSION change.20cycles is bounded repeated-operation evidence; no heap/leak/hour-longendurance/browser-speedup-ratio claim. dropShadowfinding remains separate.
 CORE_PERFORMANCE_STABILITY_003 = CLOSED / ACCEPTED / MERGED / DEPLOYED / FORMAL_LIVE_QUALIFIED.
+
+## Cluster C3 + C4 closure — 2026-10-03
+
+```text
+CLUSTER_C = CLOSED / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+C3_PR = #149
+C3_EXACT_CANDIDATE = 1cc82a17b50063a4ed6acfd45b31662c8a97faa6
+C3_MERGE_COMMIT = 3aa4c8268851d778aeea9fadcc99b53c4aed8ad0
+C3_CANDIDATE_RUN = 37108921873
+C3_CANDIDATE_ARTIFACT = 11269220888
+C3_CANDIDATE_DIGEST = sha256:2a4fe47761cc207c1ee8733acf5a389bcaa7512891312a061f77f7555907d5a6
+C3_FORMAL_LIVE_CARRIER_RUN = 37109933114
+C3_FORMAL_LIVE_CARRIER_ARTIFACT = 11269336938
+C3_FORMAL_LIVE_CARRIER_DIGEST = sha256:0ef52e90d29c8a8bfdfe31c2a61304d922cc07110748809f8e3979ab6fa597b7
+C4_PR = #151
+C4_EXACT_CANDIDATE = 6dca38862352a5ffcd2193b943c017f70eecd4e2
+C4_MERGED_DEPLOYED_SOURCE = 701c22beabd873376c71dc2dd15abc8bfe073732
+LIVE_DEPLOY_COMMIT = 4ed90eaeb5b28768f0ef2e31402da6bb83233623
+LIVE_PAGES_RUN = 37113340966
+C4_CANDIDATE_RUN = 37112623108
+C4_CANDIDATE_ARTIFACT = 11270164226
+C4_CANDIDATE_DIGEST = sha256:f641600e0f6bafe03044fd8ee318e48a5af2d082be393174c5b665e2029f1e0b
+C4_FORMAL_LIVE_REQUEST = clusterC-C4-artboard-formal-live-001
+C4_FORMAL_LIVE_REQUEST_COMMIT = 31890b7aed78194df1f3714ab8630616a3736659
+C4_FORMAL_LIVE_RUN = 37113424982
+C4_FORMAL_LIVE_ARTIFACT = 11270326548
+C4_FORMAL_LIVE_DIGEST = sha256:1f23c6d3c0333b69adb11e307ea12fd87bf182eadf263d73665b14e53d8f361b
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+FORMAT_VERSION = 4 / UNCHANGED
+```
+
+C3 authority:
+- `page.snap.set.v1` plus native ruler-guide add/move/remove/lock/visibility routes were candidate-qualified on PR #149.
+- Formal Live run `37109933114` exercised snap and guide public steps on the integrated Live source; the later C4 Formal Live run independently rechecked guide add, scoped History and Undo.
+- Existing InkApp precision-layout/snap/guide authority remains sole mutation authority; no duplicate snap engine, pointer simulation, UI change or FORMAT_VERSION change.
+
+C4 authority:
+- `page.artboard.set.v1` is discoverable and available through the existing proposal → approval → execute route.
+- Runtime loaded exact source `701c22beabd873376c71dc2dd15abc8bfe073732`; `apiReady=true`; 23 named tools; document `formatVersion=4`.
+- Orientation mutation used existing `InkApp.changeArtboard()`: A4 portrait 210×297 mm → landscape 297×210 mm with native scoped History label `調整畫板`.
+- Live artboard Preview changed from portrait bounds 793.700787×1122.519685 to landscape 1122.519685×793.700787; Undo restored portrait; Redo restored landscape; final Undo returned the Artboard to baseline.
+- The tested C3 regression guide added native History `新增參考線` and Undo completed; final test-session context fingerprint returned to baseline.
+
+Boundary:
+- New Document/A4 redesign, UI PR #109, PWA, C06, Cluster D and C019 remain separate.
+- B3 and advanced mutable raster ingest stay closed and are not reopened.
+- no new Document, History, Layout, Artboard or Renderer authority was created.
