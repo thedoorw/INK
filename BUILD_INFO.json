@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "468873503155f66585564a6ca7b11f7a82586d7a",
+  "source_sha": "698ce0ef781eeb5899ab5b84183d9a0d0eb8e6f5",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "PR #131 B4 CLOSED: warp, asymmetric Distort and constrained Perspective independently qualify through existing native deformation Core, History, Renderer and CHAT tools. Formal Live run 37088553315 verifies exact accepted source; Canvas/Preview deltas, exact Undo/Redo, native reset and repeat-from-base PASS; Distort != Perspective. Candidate/merge product-source tree 8d35c9a8a3f69d2f51cf02703fd78b9d8b090e4b identical. Required local 65/65 and hosted A1/A2/A3/B2 regressions PASS. Latest Paper singleton repair preserved."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "B4 remains preserved from accepted source 468873503155f66585564a6ca7b11f7a82586d7a. PR #134 adds dedicated page.paper roughness consumption to the existing WebGL multichannel NaturalMedia simulation without changing Paper/Stroke/Renderer authority. Accepted merge 698ce0ef781eeb5899ab5b84183d9a0d0eb8e6f5 has product/source tree 6f616cdbf54f172c569d69d14b197c3b6eae746f, identical to latest qualified development main. Exact merged roughness-only, A1, A2 and A3 candidate qualification PASS. Formal Live roughness qualification pending."
 }
