@@ -992,3 +992,57 @@ B3_DIRECT_AND_LOCAL_RASTER_SCOPE = CLOSED FOR QUALIFIED CHAT ROUTES
 SECOND_AUTHORITY = NONE
 FORMAT_VERSION_CHANGE = NONE
 ```
+
+
+## Advanced mutable raster ingest — closed 2026-10-03
+
+```text
+FINDING = R2-ADVANCED-MUTABLE-RASTER-INGEST-001
+CLASS = PRODUCT EXISTS / CHAT EXPOSURE GAP → REPAIRED
+PR = #144
+EXACT_CANDIDATE = 87ee8acc08e83ead4bc581382575f244143651a5
+CANDIDATE_REQUEST = clusterB-advanced-raster-ingest-candidate-002-regressions
+CANDIDATE_RUN = 37103105857
+CANDIDATE_ARTIFACT = 11265924364
+CANDIDATE_ARTIFACT_DIGEST = sha256:eb0e895928ed00488e436151038641195145b77f8a5de2a4b1fdf5ec0a372e85
+MERGED_SOURCE_SHA = 8d5a8ee9fdd0b4e2c63d910e75f29d48514ccf3f
+FORMAL_LIVE_REQUEST = clusterB-advanced-raster-ingest-live-001
+REQUEST_COMMIT = 2b7599acd9a44581a7e38c1b7e3df57d01bcae6f
+RESULT_COMMIT = b0b551f3209529de00e7bc51ae8542c2d078db6f
+RUN = 37103384547
+ARTIFACT = 11266704573
+ARTIFACT_DIGEST = sha256:11eb862ab880032ad21ce583a82897e5fa564e7885bb278e293082946b093354
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Formal Live evidence:
+- exact runtime source `8d5a8ee9fdd0b4e2c63d910e75f29d48514ccf3f`; `apiReady=true`; 23 named tools.
+- PSD imported through the existing native format authority as editable `image + rasterState`, 16×12, 8-bit RGB. Preview `fnv1a32:71adb35d`.
+- TIFF imported as editable native raster, 16×12, 8-bit RGB. Preview `fnv1a32:507bbe66`.
+- EXR imported as editable native raster, 16×12, 32-bit RGB. Preview `fnv1a32:7b46ec2b`.
+- Undo EXR restored `fnv1a32:507bbe66`; Redo EXR restored `fnv1a32:7b46ec2b`.
+- downstream PSD Paint Bucket changed Preview `fnv1a32:7b46ec2b → fnv1a32:60483704`; Undo restored `7b46ec2b`; Redo restored `60483704`.
+- final Context contains three editable native Image objects; final History contains three scoped `匯入格式影像` entries plus one scoped `CHAT raster Paint Bucket` entry.
+- default Live runtime has no approved RAW decoder; a DNG-like input fails explicitly with `INK_AGENT_RASTER_RAW_DECODER_UNAVAILABLE`. No support is fabricated.
+
+RAW contract evidence from the exact candidate:
+- without an adapter: explicit `INK_AGENT_RASTER_RAW_DECODER_UNAVAILABLE`;
+- after registering an adapter accepted by the existing RAW policy (`browserCompatible=true`, `deterministic=true`, non-empty license): the same `import_ink_raster` route imported a native editable 16-bit RGB RAW through `advanced-format-raw`; Preview `fnv1a32:c2ddfd3c`.
+- the default deployed runtime does not contain such an adapter, so a successful RAW Formal Live import is configuration-inapplicable rather than a hidden PASS claim.
+
+Authority boundary:
+- PNG/JPEG/WebP retain the existing web-raster route.
+- PSD/TIFF/EXR and policy-approved RAW reuse `imageFormatProbe() → importImageFormat()`.
+- ReferenceImage remains locked/separate.
+- PSB is not qualified by this CHAT route.
+- no duplicate decoder, raster-state owner, Renderer, History, Document authority, UI change or FORMAT_VERSION change.
+
+```text
+ADVANCED_MUTABLE_RASTER_PSD = CLOSED / FORMAL LIVE QUALIFIED
+ADVANCED_MUTABLE_RASTER_TIFF = CLOSED / FORMAL LIVE QUALIFIED
+ADVANCED_MUTABLE_RASTER_EXR = CLOSED / FORMAL LIVE QUALIFIED
+RAW_ADAPTER_ROUTE = CLOSED / CANDIDATE QUALIFIED / CONDITIONAL ON APPROVED ADAPTER
+RAW_DEFAULT_RUNTIME = EXPLICITLY UNAVAILABLE / NOT A PRODUCT GAP
+PSB = NOT QUALIFIED
+NEXT_AUTHORITY_QUEUE = CLUSTER_C_NATIVE_LAYOUT_DOCUMENT_OPERATIONS
+```
