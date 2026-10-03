@@ -7,6 +7,6 @@
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "PR #131: bounded reversible native B4 warp/distort/perspective. Exact candidate 938016b79e10c6ac1c06ad930be35a67654c381b and accepted merge share product/source tree 8d35c9a8a3f69d2f51cf02703fd78b9d8b090e4b. Hosted B4 three-operation qualification plus A1/A2/A3/B2 regressions PASS; MR accepted exact integration. Latest Paper singleton integration preserved. Formal Live B4 qualification pending."
+  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
+  "notes": "PR #131 B4 CLOSED: warp, asymmetric Distort and constrained Perspective independently qualify through existing native deformation Core, History, Renderer and CHAT tools. Formal Live run 37088553315 verifies exact accepted source; Canvas/Preview deltas, exact Undo/Redo, native reset and repeat-from-base PASS; Distort != Perspective. Candidate/merge product-source tree 8d35c9a8a3f69d2f51cf02703fd78b9d8b090e4b identical. Required local 65/65 and hosted A1/A2/A3/B2 regressions PASS. Latest Paper singleton repair preserved."
 }
