@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "3aa4c8268851d778aeea9fadcc99b53c4aed8ad0",
+  "source_sha": "e139682a8c374e275061872ba9f27bc06ca0d492",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_PENDING_FORMAL_LIVE_QUALIFICATION",
-  "notes": "Exact merged source 3aa4c8268851d778aeea9fadcc99b53c4aed8ad0 deploys Cluster C3 bounded snap settings and ruler-guide CHAT exposure. Exact integration candidate 1cc82a17b50063a4ed6acfd45b31662c8a97faa6 passed C3 plus C2/C1/A3/B2 regressions. Formal Live C3 qualification pending; no UI or FORMAT_VERSION change in the C3 package."
+  "notes": "Core performance stability 003 / PR #150: use one existing spatial-index rebuild above configured capacity; preserve small incremental updates. 46 local checks, exact browser native 16-object align/Preview/Undo/Redo, 3000-object20-cycle query/cardinality controls and affected regressions PASS. Prior C3 Formal Live clusterC-C3-snap-guides-live-002 COMPLETED before this deployment. Formal Live spatial review pending. No new cache/authority, UI or FORMAT_VERSION change; existing CSP/base wrapper preserved. No heap/leak/endurance claim."
 }
