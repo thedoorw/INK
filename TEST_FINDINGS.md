@@ -573,3 +573,23 @@ C1_C2_LAYOUT = SEPARATE / NOT_CLOSED_BY_B4
 ```
 
 Source closure: https://github.com/thedoorw/INK-Browser-QA/blob/0a363d0def9073da1b444c79ef135b78815b3d72/working/INK_LIVE_B4_NATIVE_DEFORMATION_CLOSURE_20261003.md
+
+### PAPER-LOCAL-MAIN-PROGRAM-OPTIMIZATION — closed 2026-10-03
+
+Two previously evidenced Paper renderer integration gaps are closed without changing Paper, Stroke, Renderer authority, UI, or FORMAT_VERSION.
+
+- `PAPER_SINGLE_STROKE_RENDER_INTEGRATION`: PR #130; accepted source `701c3777dba854df893f61f1d75b97ea694ede62`; formal Live run `37087999061`. A single native Brush and DryBrush now consume existing `page.paper` through the existing multichannel NaturalMedia renderer. Stroke identity remained stable; Paper created one scoped History entry; Preview and exact Undo/Redo passed. Existing 2+ adjacent Stroke behavior plus A1/A2/A3 regressions passed.
+- `PAPER_WEBGL_ROUGHNESS_PARITY`: PR #134; accepted source `698ce0ef781eeb5899ab5b84183d9a0d0eb8e6f5`; product/source tree `6f616cdbf54f172c569d69d14b197c3b6eae746f`. WebGL multichannel simulation now consumes the existing Paper `roughness` authority as paper resistance instead of incorrectly using `granulation` for that role. Existing absorbency and granulation semantics remain separate.
+- Exact merged source roughness qualification: roughness-only state change `0.42 -> 0.95`; WebGL Preview delta; exact Undo/Redo; direct Canvas2D and WebGL roughness responses; higher roughness increases resistance; absorbency remains unchanged. A1/A2/A3 merged-source regressions passed.
+- Formal Live run `37089417471`: exact source identity `698ce0ef...`; Preview `fnv1a32:f4fdfe1a -> fnv1a32:633c4d8e`; Undo restored `f4fdfe1a`; Redo restored `633c4d8e`. Paper result retained absorbency `0.58`, set roughness `0.95`, and History retained only one native Stroke entry plus one scoped Paper entry.
+- B4 native Path deformation remains present because the deployed source is the post-B4 accepted main plus the bounded roughness patch.
+
+```text
+PAPER_SINGLE_STROKE_RENDER_INTEGRATION = CLOSED / MERGED / DEPLOYED / QUALIFIED / RECORDED
+PAPER_WEBGL_ROUGHNESS_PARITY = CLOSED / MERGED / DEPLOYED / QUALIFIED / RECORDED
+A1_A2_A3_REGRESSION = CLEAN
+NO_B4_CONFLICT = TRUE
+SECOND_AUTHORITY = NONE
+UI_CHANGE = NONE
+FORMAT_VERSION_CHANGE = NONE
+```
