@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "d64aa172ef6d4f3c100642aec8bcc4195c33b2dd",
+  "source_sha": "2d1c67f398c19cbbec1e935095b5dc991c886213",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "B3.1_PAINT_BUCKET is CLOSED by PR #138 / merged source d64aa172ef6d4f3c100642aec8bcc4195c33b2dd. Exact candidate fedb8f62fa8cf21e3499c8307cfae77cc8714709 passed raster-direct-paint-bucket-b3 plus B1 raster import, B2 brightnessContrast and A5 Blender/Smudge regressions. Formal Live request clusterB-B3-paint-bucket-live-001 / run 37096080332 / artifact 11264177272 verified exact source, apiReady=true and 23 named tools. Preview fnv1a32:34d01658 -> fnv1a32:bfcf7afe; Undo restored 34d01658; Redo restored bfcf7afe. Same-color repeat rejected CHAT_EDIT_NO_OP. Existing paintBucketFill()/magicWandSelection() remains the pixel authority; CHAT mutates the same native 8-bit RGB rasterState.colorRaster through scoped History. Reference remains locked. No pointer emulation, second raster model/Renderer/History authority, UI or FORMAT_VERSION change. B3 remains partial; masks and other structured local raster edits remain separate."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "B3.2 raster mask promotion candidate: PR #139 merged source 2d1c67f398c19cbbec1e935095b5dc991c886213; exact candidate e018a08c5c8e352908eee5e066f2e33eee883946 passed raster-mask-b3 plus B3.1 Paint Bucket, B2 brightnessContrast and A5 Blender/Smudge regressions. image.mask.raster.set.v1 exposes rectangle/invert/feather/expand only, uses existing rasterizePathMask()/native rasterMask/renderImageStack. Operation-specific image fingerprints now include raster pixels + rasterMask and reject stale proposals after either changes. Raw alpha and unrendered enabled=false state are not exposed. Formal Live qualification pending."
 }
