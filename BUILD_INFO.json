@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "698ce0ef781eeb5899ab5b84183d9a0d0eb8e6f5",
+  "source_sha": "3ab58f771f927f50d4548c40ca153834df08600d",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "B4 remains preserved and qualified. PAPER_SINGLE_STROKE_RENDER_INTEGRATION is CLOSED by PR #130 / accepted source 701c3777dba854df893f61f1d75b97ea694ede62 and formal Live run 37087999061. PAPER_WEBGL_ROUGHNESS_PARITY is CLOSED by PR #134 / accepted source 698ce0ef781eeb5899ab5b84183d9a0d0eb8e6f5; current product/source tree 6f616cdbf54f172c569d69d14b197c3b6eae746f. Exact merged roughness-only + A1/A2/A3 candidate qualification PASS. Formal Live run 37089417471 verified sourceSha 698ce0ef..., roughness-only Preview delta fnv1a32:f4fdfe1a -> fnv1a32:633c4d8e, exact Undo/Redo restoration, absorbency 0.58 preserved, and scoped History. No second Paper/Stroke/Renderer authority, no UI change, no FORMAT_VERSION change."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "A4_TARGETED_ERASER published from merged PR #136 / source 3ab58f771f927f50d4548c40ca153834df08600d. Exact candidate daff9553dfc8c433eadc6ee2119703c9770b49a6 PASS for stroke.erase.circle.v1: one explicit native Pencil Stroke became two deterministic native Stroke fragments; Canvas 52e1086e -> f8fd8c45; Preview fnv1a32:482bfe2b -> fnv1a32:786ce305; History CHAT erase Stroke; exact Undo/Redo restoration; stale target rejected CHAT_EDIT_TARGET_STALE; no-op rejected CHAT_EDIT_NO_OP. Exact-SHA regressions A1 Paint Session, A2 native Stroke/NaturalMedia, A3 Paper, and B2 brightnessContrast all PASS. Formal Live A4 qualification pending. Existing B4 and Paper closures remain preserved. No pointer emulation, second Eraser/Stroke/Renderer authority, UI change, or FORMAT_VERSION change."
 }
