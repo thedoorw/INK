@@ -482,3 +482,22 @@ SOURCE_RECORD = INK-Browser-QA/working/INK_TEST_A_DRAWING_NATURAL_MEDIA_QUALIFIC
 SOURCE_RECORD_COMMIT = 230483602831f7e5bf7fc907ccf49c7517bbcae3
 RERUN_RESULT = PASS
 ```
+
+### R1-A2-NATIVE-STROKE-001 — native Stroke four-mode Live qualified
+
+```text
+FINDING_ID = R1-A2-NATIVE-STROKE-001
+DEPLOYED_SOURCE_SHA = d0248e9661cc242081507e4bf73fc8b73aeb6256
+RESULT = PASS / A2 REPRESENTATIVE QUALIFICATION
+MINIMAL_REPRO = clusterA-A2-native-stroke-live-002
+REQUEST_COMMIT = fce87d4a853d9e209665cb581a33e024cf74bf63
+RESULT_COMMIT = e1967d7342a3b72f9bba72e683d1a4a92d863e9e
+RUN = 37041501266
+ARTIFACT = 11242318263
+OBSERVED = Exact source / apiReady true; Pencil, Brush, Airbrush and DryBrush each created one native Stroke through proposal/approval/execute. Four scoped History entries. Content Preview fingerprint fnv1a32:28606ccc, bounds x=-233.6 y=-182 w=451 h=350.6. Four Undo remove all objects; four Redo restore identical objects and identical Preview fingerprint. Candidate QA independently proved native NaturalMediaController/WebGL path and Canvas delta.
+CLASS = EXPOSURE_GAP → REPAIRED
+POINTER_MOUSE_SIMULATION = NONE
+TRANSPORT_NOTE = First request stopped before readiness while newly pinned modules returned transient HTTP failures. Same exact source warm rerun completed.
+VISUAL_LIMIT = Hosted Live screenshot captures closed-document shell; it is not visible Canvas evidence. Renderer-backed content Preview and candidate Canvas checks are the rendering evidence.
+UPSTREAM_DISPOSITION = A2 closed for four representative modes. Continue A3 Paper; Eraser and Blender/Smudge remain separate.
+```

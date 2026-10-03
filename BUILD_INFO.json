@@ -8,5 +8,5 @@
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to exact merged source SHA d0248e9661cc242081507e4bf73fc8b73aeb6256. PR #127 adds bounded CHAT stroke.create.v1 exposure for the existing native type=stroke / Renderer / NaturalMediaController path. Candidate A2 four-mode QA, A1 Paint Session regression, and B2 brightnessContrast regression passed. Formal Live A2 rerun pending."
+  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to exact merged source SHA d0248e9661cc242081507e4bf73fc8b73aeb6256. PR #127 adds bounded CHAT stroke.create.v1 exposure for the existing native type=stroke / Renderer / NaturalMediaController path. Candidate A2 four-mode QA, A1 Paint Session regression, and B2 brightnessContrast regression passed. Formal Live A2 four-mode qualification PASS: clusterA-A2-native-stroke-live-002, run 37041501266. A3 Paper remains next."
 }
