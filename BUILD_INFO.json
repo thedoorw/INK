@@ -7,6 +7,6 @@
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Advanced mutable raster ingest promotion candidate: PR #144 merged source 8d5a8ee9fdd0b4e2c63d910e75f29d48514ccf3f. Exact candidate 87ee8acc08e83ead4bc581382575f244143651a5 passed PSD/TIFF/EXR native editable import, PSD downstream Paint Bucket edit with exact Undo/Redo, RAW default-unavailable boundary and policy-approved adapter RAW success; B1/B3 Paint Bucket/B3 source-retouch/B2 adjustment regressions PASS. Formal Live qualification pending."
+  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
+  "notes": "Advanced mutable raster ingest CLOSED by PR #144 / merged source 8d5a8ee9fdd0b4e2c63d910e75f29d48514ccf3f. Exact candidate 87ee8acc08e83ead4bc581382575f244143651a5 passed PSD/TIFF/EXR native editable import, PSD downstream Paint Bucket exact Undo/Redo, default RAW decoder-unavailable boundary and policy-approved adapter RAW success; B1/B3 Paint Bucket/B3 source-retouch/B2 adjustment regressions PASS. Formal Live request clusterB-advanced-raster-ingest-live-001 / run 37103384547 / artifact 11266704573 verified exact source, apiReady=true and 23 tools. PSD 8-bit RGB, TIFF 8-bit RGB and EXR 32-bit RGB are editable native image+rasterState objects; EXR Undo/Redo and PSD Paint Bucket Preview Undo/Redo are exact. Default runtime RAW returns INK_AGENT_RASTER_RAW_DECODER_UNAVAILABLE because no approved adapter is installed; conditional approved-adapter RAW success is exact-candidate qualified. PSB not qualified. No second decoder/raster/Renderer/History/Document authority, UI or FORMAT_VERSION change."
 }
