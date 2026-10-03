@@ -897,3 +897,26 @@ SECOND_AUTHORITY = NONE
 POINTER_SIMULATION = NONE
 FORMAT_VERSION_CHANGE = NONE
 ```
+
+
+## Core warm-cache optimization — Formal Live closure 2026-10-03
+
+`CORE_CACHE_OPTIMIZATION = ACCEPTED / CLOSED`.
+
+PR #142; authority revised candidate `0ac6e236a2baff587224398bc6f3e3aff35f5318`; tested/deployed source `e095ee54a51f8562d03af248dca658cf321e6479`; product/source tree `93cafdeb5e448ce322904ceeadc3cf27cc12d90a`.
+
+Original DEV candidate was superseded after PERF-01: rounded matrix request identity reused stale bounds/scale after a legal fractional transform. Same existing cache now identifies exact request geometry/options before preparation. Warm identical calls skip repeated preparation; fresh-render bounds/scale/pixel parity, transient zero-cache behavior and unchanged eviction/clear PASS.
+
+Local24/24 and exact candidate/integrated browser regressions PASS, including A1/A2/A3/A5/B2/B4/Paper singleton/roughness and B3 bucket/mask/localRetouch.
+
+Formal exact-source runs (apiReady=true / 23 tools):
+- cache + A5 + B4: run37099162758 / artifact11265647049 / sha256:1cd23aa1a883852511547e228f872445c71492ead964ab6d7e4137d6fd13d6c5. A5 c182394c→d2f80729→9a547b82 and exact two Undo/two Redo. B4 all three operations/reset/reapplication and distinct distort/perspective PASS.
+- combined Draw: run37099239809 / artifact11265048752 / sha256:8088f985b50d3747be2e83911ca7d5e33fda7e796cf8c145db50008dca129e2f. Paper/Brush/DryBrush/Airbrush correction, Preview71050030→347539c1, exact Undo/Redo, three native Stroke/four History entries, A4 PNG1191×1684 PASS.
+- combined Reference: run37099319014 / artifact11264884329 / sha256:0ea07ce12f1da73f3d5e98dad81791769664b947abd90dee65b2d52796cf9d56. Locked Reference/editable image separation, transform, two linked Revisions, brightness/contrast correction, Previewc3bd4f5f→f279be47 and exact Undo/Redo, four History entries and A4 PNG/output inspection PASS. Full artifact digest and detailed state independently checked against compacted result.
+- Paint Session: run37099492808 / artifact11264869568 / sha256:d2e7548a2a408493cd78eb020ad09cc845c90c511e604cad256bedc1886b9f03. One native paint-session/one scoped History, exact stable-id/bounds/Preview1b8d3443 restoration PASS.
+
+Initial run37098926463 stopped before product operation because authority wrapper publication omitted the existing CSP adaptation. Restored prior accepted wrapper at `1fa828a4c79050e6a3c311133cca9066d6dc5806`; same source passed. Cancelled pending requests are not counted as tests; successful runs were submitted sequentially.
+
+Bounded Live cache workload observed cold27.8ms and warm0.2–0.4ms, one preparation/five skips. No before/after browser speedup, Preview speedup, heap/memory-leak or full-Core completeness claim. No UI/FORMAT_VERSION/new authority change.
+
+Source closure: `working/INK_CORE_PERFORMANCE_STABILITY_AUTHORITY_CLOSURE_20261003.md`; commit `39d0e2e5b3e9c532ef68dc4c3fe154a9f528dd6d`. Evidence: `qa/evidence/ink-core-performance-stability-001/authority-evidence-manifest.json`. Exact deployment reservation released; existing B3 owner continues.
