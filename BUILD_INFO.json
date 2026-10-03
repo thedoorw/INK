@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "2d1c67f398c19cbbec1e935095b5dc991c886213",
+  "source_sha": "c6ae51d96d95e2567b9b7ef6d1e55280cfb2cee0",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "B3.2_RASTER_MASK is CLOSED by PR #139 / merged source 2d1c67f398c19cbbec1e935095b5dc991c886213. Exact candidate e018a08c5c8e352908eee5e066f2e33eee883946 passed raster-mask-b3 plus B3.1 Paint Bucket, B2 brightnessContrast and A5 Blender/Smudge regressions. Formal Live request clusterB-B3-raster-mask-live-001 / run 37096759128 / artifact 11264348327 verified exact source, apiReady=true and 23 named tools. Mask Preview fnv1a32:34d01658 -> fnv1a32:6b03e9c5; Undo restored 34d01658; Redo restored 6b03e9c5. Formal stale proposal after intervening pixel edit rejected CHAT_EDIT_TARGET_STALE. Same-mask repeat rejected CHAT_EDIT_NO_OP. Operation-specific image target fingerprints now cover raster pixels and rasterMask; normal context inspection remains lightweight. Raw alpha arrays and unrendered enabled=false mask state are not exposed. No pointer emulation, second mask/raster/Renderer/History authority, UI or FORMAT_VERSION change. B3 remains partial; structured local retouch families remain separate."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "B3.3 Spot Healing promotion candidate: PR #140 merged source c6ae51d96d95e2567b9b7ef6d1e55280cfb2cee0; exact candidate 0551f4516ea197d60a8cae711abf2db7ab92c2c4 passed raster-spot-heal-b3 plus B3.2 raster mask, B3.1 Paint Bucket and B2 brightnessContrast regressions. image.raster.spotHeal.v1 is a one-shot raster-local retouch using existing spotHealing(), same native 8-bit RGB rasterState, scoped History and raster pixel/mask stale fingerprints. No pointer emulation, inferred source point, raw mask/pixel result, second retouch authority, UI or FORMAT_VERSION change. Formal Live pending."
 }
