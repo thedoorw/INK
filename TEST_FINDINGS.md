@@ -1112,3 +1112,58 @@ Bounded cache workload 64x48: cold 3.7 ms; warm 0.2–0.3 ms. No before/after br
 Separate retained finding: initial full-B2 dropShadow RENDER_UNCHANGED reproduced identically on unchanged baseline (runs 37107512936 and 37107617887). No dropShadow qualification claimed; this is outside the accepted cache repair. Five qualified B2 checks passed independently without weakened assertions.
 
 CORE_PERFORMANCE_STABILITY_002 = CLOSED / ACCEPTED / MERGED / DEPLOYED / FORMAL_LIVE_QUALIFIED. UI/FORMAT_VERSION unchanged; existing owners continue.
+
+
+## Cluster C2 explicit-target align / distribute — closed 2026-10-03
+
+```text
+FINDING = R2-C2-ALIGN-DISTRIBUTE-001
+CLASS = PRODUCT EXISTS / CHAT EXPOSURE GAP → REPAIRED
+PR = #147
+EXACT_CANDIDATE = 6994160cae577f57e858919e261a57aa7f5fea18
+MERGED_SOURCE_SHA = f8035bd862825b913d0157f51c62de15bbb9d29e
+FORMAL_LIVE_SOURCE_SHA = f56e492af4954ae6da3be39cf10d2dbe2859d87e
+CANDIDATE_REQUEST = clusterC-C2-align-distribute-candidate-003-regressions
+CANDIDATE_RUN = 37107502278
+CANDIDATE_ARTIFACT = 11268731192
+CANDIDATE_ARTIFACT_DIGEST = sha256:c3ad4d4bbd9961489cd60066e253d5a7b5890afd31478afe11711227bbd6d268
+FORMAL_LIVE_REQUEST = clusterC-C2-align-distribute-live-001
+REQUEST_COMMIT = 64086b097292433c8af7bba13503d2fe8e6cc4ce
+RESULT_COMMIT = 52482c8e347310f60d54923305867c8777a8c660
+LIVE_RUN = 37108065303
+LIVE_ARTIFACT = 11268926595
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Authority:
+- bounded operation `object.align.v1`;
+- explicit stable object refs only;
+- existing `InkApp.alignSelection()` remains the align/distribute authority and existing `applyWorldTransformBatch()` remains the transform/mutation authority;
+- prior user selection is restored after the temporary explicit-ref routing;
+- no duplicate align/distribute math, pointer simulation, UI change, History redesign, or FORMAT_VERSION change.
+
+Candidate proof:
+- `left`, `centerX`, and `distributeX` PASS;
+- exact Undo/Redo and prior-selection restoration PASS;
+- 2-target `distributeX` rejected `CHAT_EDIT_TARGET_COUNT_INVALID`;
+- C1 / B4 / A2 / B2 exact-SHA regressions PASS.
+
+Formal Live on integrated source `f56e492…`:
+- `apiReady=true`; 23 named tools;
+- three native Paths began at X = 10 / 90 / 260;
+- `left` produced X = 10 / 10 / 10 with one existing scoped `對齊物件` History entry;
+- Undo restored baseline Preview bounds/byte length; Redo reproduced the aligned Preview;
+- reset then `distributeX` produced X = 10 / 130 / 260 for widths 40 / 50 / 60, i.e. exact 80 / 80 horizontal gaps;
+- Undo restored baseline Preview bounds/byte length; Redo reproduced the distributed Preview;
+- final Context retained the three editable native Paths and no transient selection.
+
+Qualification boundary:
+- representative qualification covers the tested align/distribute routes above; it does not silently claim every enum variant was independently Formal-Live exercised.
+
+```text
+C2_ALIGN_DISTRIBUTE = CLOSED / FORMAL LIVE QUALIFIED
+NEXT_CLUSTER_C = C3_SNAP_GUIDES
+SECOND_AUTHORITY = NONE
+POINTER_SIMULATION = NONE
+FORMAT_VERSION_CHANGE = NONE
+```
