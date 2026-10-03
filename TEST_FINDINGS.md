@@ -772,3 +772,49 @@ RASTER_MASK_STALE_PROTECTION = QUALIFIED
 B3_OVERALL = PARTIAL
 NEXT_B3 = STRUCTURED_LOCAL_RETOUCH
 ```
+
+
+## B3.3 raster Spot Healing — closed 2026-10-03
+
+```text
+FINDING = R2-B3-SPOT-HEAL-001
+CLASS = PRODUCT EXISTS / CHAT EXPOSURE GAP → REPAIRED
+PR = #140
+EXACT_CANDIDATE = 0551f4516ea197d60a8cae711abf2db7ab92c2c4
+CANDIDATE_REQUEST = clusterB-B3-spot-heal-candidate-001-regressions
+CANDIDATE_RESULT_COMMIT = 4a8c7d4fb62a71379e5026b651c31da97d2fb79f
+CANDIDATE_RUN = 37097045536
+CANDIDATE_ARTIFACT = 11264846714
+CANDIDATE_ARTIFACT_DIGEST = sha256:b40ebfba84fe1b5ae4752580d4d867f2056704401d9083b9a84508ba70daf1b3
+MERGED_SOURCE_SHA = c6ae51d96d95e2567b9b7ef6d1e55280cfb2cee0
+FORMAL_LIVE_REQUEST = clusterB-B3-spot-heal-live-001
+REQUEST_COMMIT = b3c1b8f77a0d4369508ce811506b423a9ed000ad
+RESULT_COMMIT = 83e1b71384278c78e286d45e05f53c0aef7a2c50
+RUN = 37097210478
+ARTIFACT = 11264389043
+ARTIFACT_DIGEST = sha256:243d43a47ccf4493f18aa00d1b910e55984703050d8b08f2c9557862b001f253
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Evidence:
+- exact runtime source `c6ae51d96d95e2567b9b7ef6d1e55280cfb2cee0`; `apiReady=true`; 23 named tools.
+- `image.raster.spotHeal.v1` targets exactly one editable native 8-bit RGB `image + rasterState.colorRaster`.
+- existing `spotHealing()` remains the sole pixel/retouch algorithm authority; CHAT supplies only bounded raster-local center/radius/opacity/hardness/neighborRadius.
+- candidate raster hash `56c8e8cb → 73c4534b`; candidate Preview `fnv1a32:97b6669b → fnv1a32:afea5d15`; exact Undo/Redo restored both.
+- candidate changed 64 pixels / 192 channels; stale target rejected; opacity=0 no-op rejected.
+- exact candidate regressions B3.2 raster mask, B3.1 Paint Bucket and B2 brightnessContrast all PASS.
+- formal Live used the 1086×1448 editable raster fixture and changed 1789 pixels / 5359 channels.
+- formal Live Preview `fnv1a32:34d01658 → fnv1a32:7fd66f8f`; Undo restored `34d01658`; Redo restored `7fd66f8f`.
+- an intervening Paint Bucket mutation caused stale Spot Heal approval to fail `CHAT_EDIT_TARGET_STALE`.
+- formal Live opacity=0 execution failed `CHAT_EDIT_NO_OP`.
+- final History contains editable-raster import plus scoped `CHAT raster Spot Healing`.
+- existing raster pixel/mask optimistic-concurrency fingerprints are reused.
+- no pointer/mouse simulation, inferred source point, raw mask/pixel result, second retouch/raster/Renderer/History authority, UI change, or FORMAT_VERSION change.
+
+```text
+B3_PAINT_BUCKET = CLOSED / FORMAL LIVE QUALIFIED
+B3_RASTER_MASK = CLOSED / FORMAL LIVE QUALIFIED
+B3_SPOT_HEAL = CLOSED / FORMAL LIVE QUALIFIED
+B3_OVERALL = PARTIAL
+REMAINING_B3 = OTHER LOCAL RETOUCH / SOURCE-DEPENDENT RETOUCH
+```
