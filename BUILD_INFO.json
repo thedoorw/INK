@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "e095ee54a51f8562d03af248dca658cf321e6479",
+  "source_sha": "0794cd5aa0567314ec6c240acdef57de7ef314d6",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "Core cache optimization CLOSED: PR #142 / revised candidate0ac6e236a2baff587224398bc6f3e3aff35f5318 / merged exact sourcee095ee54a51f8562d03af248dca658cf321e6479. Local24/24, exact candidate run37098594186 and integrated run37098763701 PASS including A1/A2/A3/A5/B2/B4/Paper/B3 regressions. Formal Live cache/A5/B4 run37099162758; combined Draw37099239809; Reference37099319014; Paint Session37099492808 PASS with exact Undo/Redo and output. PERF-01 precision invalidation corrected before acceptance; transient Preview/export and existing authority/cache limit preserved. Wrapper omission corrected by restoring prior accepted adaptation; same source qualified. Prior B3.4 sourceca4bf6913efe1564eb572988a306120b3c008539 remains included. Full evidence and limits in TEST_FINDINGS / source closure39d0e2e5b3e9c532ef68dc4c3fe154a9f528dd6d."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "B3.5 source-dependent retouch promotion candidate: PR #143 merged source 0794cd5aa0567314ec6c240acdef57de7ef314d6; integrated exact candidate 628fbcc811bbd8a072dc20be0cc53d057faf3dc8 passed Clone Stamp / Healing Brush / Patch plus B3.4/B3.3/B3.2/B3.1/B2 regressions on top of accepted Core cache optimization. Explicit raster-local source coordinates/regions only; Pattern Stamp remains excluded. Formal Live pending."
 }
