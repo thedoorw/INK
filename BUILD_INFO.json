@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "20b06020bbb6b6142dc1f6952ebf26e14ed268dd",
+  "source_sha": "d64aa172ef6d4f3c100642aec8bcc4195c33b2dd",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "A5_BLENDER_SMUDGE is CLOSED by PR #137 / merged source 20b06020bbb6b6142dc1f6952ebf26e14ed268dd. Exact candidate f351c788e57b7d5ad034f156711d47d431179669 passed A5 plus A1/A2/A3/B2 regressions (candidate run 37093732538, artifact 11263473338, sha256:b4c60f4ac1ca0a94e1c9b7dd380f67815c09521abce2500536d286e370696ef6). Formal Live request clusterA-A5-blender-smudge-live-002 / run 37094249144 / artifact 11262658859 verified exact source, apiReady=true and 23 named tools. Preview baseline fnv1a32:c182394c -> Blender fnv1a32:d2f80729 -> Smudge fnv1a32:9a547b82; two Undo and two Redo restored the exact corresponding fingerprints. Final Context contains native Brush, DryBrush, Blender and Smudge Stroke objects; final History has four scoped CHAT create Stroke entries. Candidate diagnostics prove real existing-pigment transport on the existing Canvas2D multi-channel surface. Ordinary Brush/DryBrush remains WebGL2 multi-channel. GPU mixer transport parity and Paint Session mixers are not qualified. No pointer emulation, second Renderer/Stroke/History authority, UI change, or FORMAT_VERSION change. Initial Live -001 was stopped by source identity gate while Pages still served A4; same merged source passed after deployment propagation."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "B3.1 Paint Bucket promotion candidate: PR #138 merged source d64aa172ef6d4f3c100642aec8bcc4195c33b2dd; exact candidate fedb8f62fa8cf21e3499c8307cfae77cc8714709 passed raster-direct-paint-bucket-b3 plus B1 raster import, B2 brightnessContrast and A5 Blender/Smudge regressions. image.raster.paintBucket.v1 destructively edits the existing 8-bit RGB rasterState.colorRaster through paintBucketFill()/magicWandSelection(), explicit stable image target, proposal/approval stale protection and existing scoped History. Reference remains locked. No pointer emulation, second raster model/Renderer/History authority, UI or FORMAT_VERSION change. Formal Live qualification pending."
 }
