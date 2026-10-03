@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "ca4bf6913efe1564eb572988a306120b3c008539",
+  "source_sha": "e095ee54a51f8562d03af248dca658cf321e6479",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "B3.4 non-source local retouch is CLOSED by PR #141 / merged source ca4bf6913efe1564eb572988a306120b3c008539. Exact candidate 865a1b7ec3f023e25d13814a234e6efe6d793074 passed dodge, burn, sponge, localBlur, localSharpen and colorReplacement plus stale/no-op protection and B3.3/B3.2/B3.1/B2 regressions (run 37097624056, artifact 11264912328, sha256:40be9a176c8adfadc5d87e04d7c45111846550b5a17e668a7e122a0314a48690). Formal Live was split under the 32-step runner bound: A run 37098314665 artifact 11264763385 qualified stale+Dodge+Burn; B run 37098427440 artifact 11265241534 qualified Sponge+Local Blur; C run 37098536114 artifact 11264848600 qualified Local Sharpen+Color Replacement and CHAT_EDIT_NO_OP. All successful runs verified exact source, apiReady=true and 23 tools; Preview Undo/Redo restored exact fingerprints. Source-dependent Clone/Healing/Patch/Pattern Stamp remain excluded. No pointer emulation, source inference, second raster/retouch/Renderer/History authority, UI change, or FORMAT_VERSION change."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "Core warm-cache optimization: PR #142 / exact reviewed revision 0ac6e236a2baff587224398bc6f3e3aff35f5318 / integrated source e095ee54a51f8562d03af248dca658cf321e6479. Original DEV candidate corrected by authority for fractional-transform stale bounds/scale. Local24/24 PASS; candidate browser run37098594186 PASS; exact integrated browser run37098763701 PASS including A5/A1/A2/A3/B2/B4/Paper singleton/roughness and B3 bucket/mask/localRetouch. Same existing cache/renderer and transient Preview/export semantics. Formal Live and combined Draw/Reference qualification pending. Prior B3.4 source ca4bf6913efe1564eb572988a306120b3c008539 remains included."
 }
