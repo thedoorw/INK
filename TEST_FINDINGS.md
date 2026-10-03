@@ -593,3 +593,38 @@ SECOND_AUTHORITY = NONE
 UI_CHANGE = NONE
 FORMAT_VERSION_CHANGE = NONE
 ```
+
+
+## A4 targeted native Stroke Eraser — closed 2026-10-03
+
+```text
+FINDING = R2-A4-TARGETED-ERASER-001
+CLASS = EXPOSURE_GAP → REPAIRED
+PR = #136
+EXACT_CANDIDATE = daff9553dfc8c433eadc6ee2119703c9770b49a6
+MERGED_SOURCE_SHA = 3ab58f771f927f50d4548c40ca153834df08600d
+FORMAL_LIVE_REQUEST = clusterA-A4-targeted-eraser-live-001
+REQUEST_COMMIT = 9d1b2fc843ca884fe8de7a54178ada135ab0b391
+RESULT_COMMIT = 5009f13bcbc95a29910886d399f383229150e1b3
+RUN = 37091594541
+ARTIFACT = 11262089933
+ARTIFACT_DIGEST = sha256:cf8c1f4f0108aee825138531a8f0f03b6630f35b9e49367c2bec6002d3d70da1
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Formal Live evidence:
+- runtime exact source `3ab58f771f927f50d4548c40ca153834df08600d`; `apiReady=true`; 23 named tools.
+- `stroke.erase.circle.v1` is discoverable and explicitly constrained to stable editable native Stroke targets.
+- one native Pencil Stroke (`live-a4-source-stroke`) was erased with a world-space circle `x=0 y=0 radius=32`.
+- the existing native geometry authority produced exactly two native Stroke fragments: `chat-erase-fnv1a32-06181049` and `chat-erase-fnv1a32-24a2dcee`.
+- History added one scoped `CHAT erase Stroke` entry. No pointer/mouse simulation or area-wide `eraseAt()` orchestration was used.
+- Preview render fingerprint changed `fnv1a32:482bfe2b → fnv1a32:786ce305`; Undo restored `fnv1a32:482bfe2b`; Redo restored `fnv1a32:786ce305` and the same two fragment refs.
+- stale proposal protection rejected the outdated target with `CHAT_EDIT_TARGET_STALE`.
+- a circle that did not intersect the explicit target was rejected with `CHAT_EDIT_NO_OP`.
+- exact candidate regression batch passed A1 Paint Session, A2 native Stroke/NaturalMedia, A3 Paper, and B2 brightnessContrast.
+- implementation reuses existing `eraseStrokeWithCircle()`, proposal target fingerprints/revision validation, scoped History, document structure, spatial invalidation, and Renderer refresh. No second Eraser/Stroke/Renderer/History authority, UI change, or FORMAT_VERSION change.
+
+```text
+A4_TARGETED_ERASER = CLOSED
+A5_BLENDER_SMUDGE = OPEN / SEPARATE PRODUCT_RENDER_INTEGRATION_GAP
+```
