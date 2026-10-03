@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "e139682a8c374e275061872ba9f27bc06ca0d492",
+  "source_sha": "701c22beabd873376c71dc2dd15abc8bfe073732",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "Core performance stability003 CLOSED / PR#150 / exactsource e139682a8c374e275061872ba9f27bc06ca0d492. Existing PageSpatialIndex batches above capacity use one existing rebuild; small incremental path preserved.46localchecks, candidate run37109713821 and FormalLive run37109933114/artifact11269336938 PASS. Native16-Pathbatch one-rebuild,query/metadata parity,Preview,exactgeometry/pixelUndoRedo;3000objects/100targets/20cycles cardinality/query parity;cache001/002,B4,C3steps PASS. Candidate affectedA1/A2/A3/A4/A5/B2/B4/C1/C2/C3 PASS. No heap/leak/hour-long endurance or browser-speedup ratio claim; no second authority/UI/FORMAT_VERSION change. Existing CSP/base wrapper preserved."
+  "deployment_status": "PUBLISHED_PENDING_FORMAL_LIVE",
+  "notes": "Cluster C integration deployed from accepted PR #151 merge. C4 Artboard CHAT exposure accepted from exact product candidate 6dca38862352a5ffcd2193b943c017f70eecd4e2; integrated exact source 701c22beabd873376c71dc2dd15abc8bfe073732. Candidate browser QA run 37112623108 / artifact 11270164226 PASS. Formal Live qualification pending. C1/C2 prior closures retained; C3 included as regression/closure check. No UI/PWA/C06/New Document/D/C019/B3/FORMAT_VERSION change."
 }
