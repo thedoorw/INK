@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "dfb197ca31dc1e2e5ca46c6452e998dce44c57c6",
+  "source_sha": "f56e492af4954ae6da3be39cf10d2dbe2859d87e",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "Cluster C1 native page lifecycle is CLOSED by PR #145 / merged source dfb197ca31dc1e2e5ca46c6452e998dce44c57c6. Exact candidate 8eb49051618ed0c12f4da5fc6e2c8a5cf0c6715b passed create/duplicate/delete/rename/activate, duplicate identity rekeying, activate no-History semantics, delete Undo/Redo, no-op guards, stale-page protection and minimum-one-page invariant plus A2/A3/B1/B2 regressions. Formal Live clusterC-C1-page-ops-live-002 / run 37104322420 / artifact 11267145873 verified exact source, apiReady=true and 23 named tools. First Live -001 was a QA reference-path error and is superseded. No New Document redesign, second page/History/navigation authority, UI change or FORMAT_VERSION change. Next Cluster C package: C2 align/distribute."
+  "deployment_status": "PUBLISHED_PENDING_FORMAL_LIVE_QUALIFICATION",
+  "notes": "Core performance stability 002 / PR #146: unchanged external image stacks retain processed Canvas2D cache after unrelated document edits; raster-state document invalidation preserved. Exact product tree matched authority browser-tested candidate; 23 local checks and five representative B2 families plus A1/A2/A3/A5/B4/Mask/source Retouch/advanced ingest browser regressions PASS. Prior capability qualifications retained by unchanged authority implementations. Formal Live cache and B2 review pending. Existing CSP/base wrapper adaptation preserved; no UI or FORMAT_VERSION change. Original dropShadow fixture failure reproduced on unchanged baseline and is not qualified by this package."
 }
