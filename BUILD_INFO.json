@@ -7,6 +7,6 @@
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_PENDING_FORMAL_LIVE_QUALIFICATION",
-  "notes": "Core performance stability 003 / PR #150: use one existing spatial-index rebuild above configured capacity; preserve small incremental updates. 46 local checks, exact browser native 16-object align/Preview/Undo/Redo, 3000-object20-cycle query/cardinality controls and affected regressions PASS. Prior C3 Formal Live clusterC-C3-snap-guides-live-002 COMPLETED before this deployment. Formal Live spatial review pending. No new cache/authority, UI or FORMAT_VERSION change; existing CSP/base wrapper preserved. No heap/leak/endurance claim."
+  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
+  "notes": "Core performance stability003 CLOSED / PR#150 / exactsource e139682a8c374e275061872ba9f27bc06ca0d492. Existing PageSpatialIndex batches above capacity use one existing rebuild; small incremental path preserved.46localchecks, candidate run37109713821 and FormalLive run37109933114/artifact11269336938 PASS. Native16-Pathbatch one-rebuild,query/metadata parity,Preview,exactgeometry/pixelUndoRedo;3000objects/100targets/20cycles cardinality/query parity;cache001/002,B4,C3steps PASS. Candidate affectedA1/A2/A3/A4/A5/B2/B4/C1/C2/C3 PASS. No heap/leak/hour-long endurance or browser-speedup ratio claim; no second authority/UI/FORMAT_VERSION change. Existing CSP/base wrapper preserved."
 }

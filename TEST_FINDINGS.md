@@ -1167,3 +1167,12 @@ SECOND_AUTHORITY = NONE
 POINTER_SIMULATION = NONE
 FORMAT_VERSION_CHANGE = NONE
 ```
+
+
+## Core performance stability003 — CLOSED / 2026-10-03
+
+PR#150; source e139682a8c374e275061872ba9f27bc06ca0d492; product/source tree ee2896ae0272afe4963d85de99b5f878769596dc; source closure d426147bd1b450bc0924f8bbbde959111f9d3314.
+FormalLive core-perf-spatial-batch-formal-live-001 / run37109933114 / artifact11269336938 / digestsha256:0ef52e90d29c8a8bfdfe31c2a61304d922cc07110748809f8e3979ab6fa597b7: PASS; exact source,apiReady=true,23tools.
+Native16-Pathpubliccreate/align performs one existing index rebuild and zero incremental object updates. Fresh metadata/query parity,visible delta,Preview and exact geometry/pixelUndoRedo PASS.3000object/100target/20cycle cardinality and query parity PASS. Existing natural-media/image-stack cache, B4threeoperation/reset/reapplication and C3snap/guide public steps PASS.
+46localchecks and candidate affected A1/A2/A3/A4/A5/B2/B4/C1/C2/C3 PASS. No new cache/authority,UI orFORMAT_VERSION change.20cycles is bounded repeated-operation evidence; no heap/leak/hour-longendurance/browser-speedup-ratio claim. dropShadowfinding remains separate.
+CORE_PERFORMANCE_STABILITY_003 = CLOSED / ACCEPTED / MERGED / DEPLOYED / FORMAL_LIVE_QUALIFIED.
