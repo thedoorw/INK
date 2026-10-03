@@ -1046,3 +1046,50 @@ RAW_DEFAULT_RUNTIME = EXPLICITLY UNAVAILABLE / NOT A PRODUCT GAP
 PSB = NOT QUALIFIED
 NEXT_AUTHORITY_QUEUE = CLUSTER_C_NATIVE_LAYOUT_DOCUMENT_OPERATIONS
 ```
+
+
+## Cluster C1 native page operations — closed 2026-10-03
+
+```text
+FINDING = R2-C1-NATIVE-PAGE-OPS-001
+CLASS = PRODUCT EXISTS / CHAT EXPOSURE GAP → REPAIRED
+PR = #145
+EXACT_CANDIDATE = 8eb49051618ed0c12f4da5fc6e2c8a5cf0c6715b
+MERGED_SOURCE_SHA = dfb197ca31dc1e2e5ca46c6452e998dce44c57c6
+CANDIDATE_REQUEST = clusterC-C1-page-ops-candidate-001-regressions
+CANDIDATE_RUN = 37104014277
+CANDIDATE_ARTIFACT = 11267505782
+CANDIDATE_ARTIFACT_DIGEST = sha256:a3ea9a6eddca135454472e61f0389adbc91134d4eb20cc4c0c1bd326da6ebf9b
+FORMAL_LIVE_REQUEST = clusterC-C1-page-ops-live-002
+REQUEST_COMMIT = 390d523f8c22dfbaf38d5a997c0ba1886e740003
+RESULT_COMMIT = 96d2471385e60f22a3fe86754f6ea11f8123f6c8
+LIVE_RUN = 37104322420
+LIVE_ARTIFACT = 11267145873
+LIVE_ARTIFACT_DIGEST = sha256:f89ecda6dd32025b7c08301da0cae9409a02b842201724be139e1cf225c7cd03
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Formal Live evidence:
+- exact runtime source `dfb197ca31dc1e2e5ca46c6452e998dce44c57c6`; `apiReady=true`; 23 named tools.
+- qualified bounded operations: `page.create.v1`, `page.duplicate.v1`, `page.delete.v1`, `page.rename.v1`, `page.activate.v1`.
+- creation used existing native page authority and added one scoped `新增頁面` History entry.
+- rename used existing page state and added one scoped `重新命名頁面` entry.
+- duplicate created a distinct page identity and distinct duplicated layer/object identities; no page/layer/object id reuse.
+- `page.activate.v1` switched the existing `activePageId` navigation state and explicitly created no History entry.
+- deleting the duplicated page was reversible: Undo restored the page; Redo deleted it again through the existing History authority.
+- final deletion returned the document to one page; deleting the last remaining page was rejected with `CHAT_EDIT_MINIMUM_PAGE_REQUIRED`.
+- candidate no-op guards for rename/activate and stale-page rejection passed.
+- exact-SHA A2 native Stroke, A3 Paper, B1 raster import, and B2 brightnessContrast regressions passed.
+- first Live request had a QA reference-path error and is superseded by corrected `-002`; the corrected run completed against the same merged product source.
+
+Boundary:
+- no New Document/A4 redesign;
+- no new page model, History authority, or navigation authority;
+- no UI change and no FORMAT_VERSION change.
+
+```text
+C1_PAGE_OPERATIONS = CLOSED / FORMAL LIVE QUALIFIED
+NEXT_CLUSTER_C = C2_ALIGN_DISTRIBUTE
+SECOND_AUTHORITY = NONE
+FORMAT_VERSION_CHANGE = NONE
+```
