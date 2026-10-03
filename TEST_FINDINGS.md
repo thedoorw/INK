@@ -1093,3 +1093,22 @@ NEXT_CLUSTER_C = C2_ALIGN_DISTRIBUTE
 SECOND_AUTHORITY = NONE
 FORMAT_VERSION_CHANGE = NONE
 ```
+
+
+## Core performance stability 002 — CLOSED / 2026-10-03
+
+Source PR #146; exact merged/deployed source f56e492af4954ae6da3be39cf10d2dbe2859d87e; product/source tree ed54c54c458859b1f39f785fa4cd45cde07d6d3f. Authority source closure 98691d06ad38f5e5a46bf4c085873ef0acdf0ed3.
+
+Formal Live request core-perf-image-cache-formal-live-001 / request commit d4932758768cf2382c802881cc49e8b10209b0ee / run 37107942149 / artifact 11268014431 / digest sha256:55115c7632bcc7207e98a4acfce44d71b0cecd23d5e80cc061ace250812f5386: PASS. Runtime loaded exact source, apiReady=true, 23 tools.
+
+- Existing image-stack cache reuse on unrelated edits, fresh-pixel parity, adjustment/source/raster invalidation, exact stack-state roundtrip, raster/external transition, clear/rebuild PASS.
+- Five representative B2 families (brightnessContrast, gaussianBlur, multiply, colorOverlay, twirl): visible delta, Preview, exact original Undo and exact changed Redo PASS.
+- Natural-media cache preparation bypass, fractional invalidation, transient semantics, bounded eviction/clear controls PASS.
+- B4 warp/distort/perspective state, native stable ids, Renderer/Preview, exact Undo/Redo/reset/reapply, distinct semantics PASS.
+- C1 page lifecycle including no-History activation, delete Undo/Redo and minimum-page rejection PASS.
+
+Bounded cache workload 64x48: cold 3.7 ms; warm 0.2–0.3 ms. No before/after browser speedup ratio or leak/GPU claim.
+
+Separate retained finding: initial full-B2 dropShadow RENDER_UNCHANGED reproduced identically on unchanged baseline (runs 37107512936 and 37107617887). No dropShadow qualification claimed; this is outside the accepted cache repair. Five qualified B2 checks passed independently without weakened assertions.
+
+CORE_PERFORMANCE_STABILITY_002 = CLOSED / ACCEPTED / MERGED / DEPLOYED / FORMAL_LIVE_QUALIFIED. UI/FORMAT_VERSION unchanged; existing owners continue.
