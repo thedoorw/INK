@@ -680,3 +680,45 @@ PAINT_SESSION_MIXERS = NOT_QUALIFIED / INTENTIONALLY EXCLUDED
 SECOND_AUTHORITY = NONE
 FORMAT_VERSION_CHANGE = NONE
 ```
+
+
+## B3.1 raster Paint Bucket — closed 2026-10-03
+
+```text
+FINDING = R2-B3-PAINT-BUCKET-001
+CLASS = PRODUCT EXISTS / CHAT EXPOSURE GAP → REPAIRED
+PR = #138
+EXACT_CANDIDATE = fedb8f62fa8cf21e3499c8307cfae77cc8714709
+CANDIDATE_REQUEST = clusterB-B3-paint-bucket-candidate-001-regressions
+CANDIDATE_RUN = 37095914689
+CANDIDATE_ARTIFACT = 11264745413
+CANDIDATE_ARTIFACT_DIGEST = sha256:3d53c83795091f6bd30b86288e0f0060e5541036016893f822c5878d945fe4a5
+MERGED_SOURCE_SHA = d64aa172ef6d4f3c100642aec8bcc4195c33b2dd
+FORMAL_LIVE_REQUEST = clusterB-B3-paint-bucket-live-001
+REQUEST_COMMIT = 3136512412e18b75a1fdfa4b4f5b97e33b3b7930
+RESULT_COMMIT = 1be581b462722c2f2f45c46eb9375ed4c60d9409
+RUN = 37096080332
+ARTIFACT = 11264177272
+ARTIFACT_DIGEST = sha256:59cbf99f55fc5dfdc698f4c135592e1dcd0d31923199569b8948352a9bd44c2c
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Evidence:
+- exact runtime source `d64aa172ef6d4f3c100642aec8bcc4195c33b2dd`; `apiReady=true`; 23 named tools.
+- `image.raster.paintBucket.v1` targets exactly one editable native `image + rasterState.colorRaster`.
+- existing `paintBucketFill()/magicWandSelection()` is the pixel algorithm authority; CHAT supplies only explicit target and bounded raster-local parameters.
+- current qualified direct-raster format is 8-bit RGB, matching the existing direct-raster UI authority.
+- candidate native raster hash `376ec6fb → b09ebd5b`; exact Undo/Redo restored those hashes.
+- candidate Preview `fnv1a32:4d9848b1 → fnv1a32:f1a6f9ad`; exact Undo/Redo restored those fingerprints.
+- candidate changed 1296 pixels / 3888 channels; same-color repeat rejected `CHAT_EDIT_NO_OP`; locked Reference target rejected.
+- formal Live Preview `fnv1a32:34d01658 → fnv1a32:bfcf7afe`; Undo restored `34d01658`; Redo restored `bfcf7afe`.
+- formal Live changed 13 pixels / 39 channels at raster-local seed (5,5), selection bounds x=2 y=2 w=5 h=5.
+- formal Live History retained native editable-raster import plus one scoped `CHAT raster Paint Bucket` entry; same-color repeat rejected `CHAT_EDIT_NO_OP`.
+- exact candidate regressions B1 mutable raster import, B2 brightnessContrast and A5 Blender/Smudge passed.
+- no pointer/mouse simulation, automatic target discovery, Reference unlock, second raster model, Renderer, History authority, UI change, or FORMAT_VERSION change.
+
+```text
+B3_PAINT_BUCKET = CLOSED / FORMAL LIVE QUALIFIED
+B3_OVERALL = PARTIAL
+NEXT_B3 = RASTER_MASK / STRUCTURED LOCAL EDITS
+```
