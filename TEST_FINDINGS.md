@@ -818,3 +818,82 @@ B3_SPOT_HEAL = CLOSED / FORMAL LIVE QUALIFIED
 B3_OVERALL = PARTIAL
 REMAINING_B3 = OTHER LOCAL RETOUCH / SOURCE-DEPENDENT RETOUCH
 ```
+
+
+## B3.4 non-source local raster retouch — closed 2026-10-03
+
+```text
+FINDING = R2-B3-LOCAL-RETOUCH-001
+CLASS = PRODUCT EXISTS / CHAT EXPOSURE GAP → REPAIRED
+PR = #141
+EXACT_CANDIDATE = 865a1b7ec3f023e25d13814a234e6efe6d793074
+MERGED_SOURCE_SHA = ca4bf6913efe1564eb572988a306120b3c008539
+CANDIDATE_REQUEST = clusterB-B3-local-retouch-candidate-001-regressions
+CANDIDATE_RESULT_COMMIT = 904ebd4a8f0f73036d10c656a2d94f0f8022e77b
+CANDIDATE_RUN = 37097624056
+CANDIDATE_ARTIFACT = 11264912328
+CANDIDATE_ARTIFACT_DIGEST = sha256:40be9a176c8adfadc5d87e04d7c45111846550b5a17e668a7e122a0314a48690
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Qualified native destructive local-retouch types:
+- Dodge;
+- Burn;
+- Sponge;
+- Local Blur;
+- Local Sharpen;
+- Color Replacement.
+
+Formal Live evidence was intentionally split under the existing 32-step runner bound.
+
+A — stale + Dodge + Burn:
+- request `clusterB-B3-local-retouch-live-002a-rerun2`;
+- request commit `39ae78eb87000a850bd9b19bf5e0a6296a05a3fb`;
+- result commit `3d613aa5c4730a62e7b3c342095b8299a2440aab`;
+- run `37098314665`; artifact `11264763385`; digest `sha256:ea7171ed10917cb4d12d3562aa8eb32f4e0b226b1a0f9052a974350b9a6c7cc2`;
+- baseline `fnv1a32:34d01658`;
+- Dodge `fnv1a32:bc3c479d`; exact Undo/Redo;
+- Burn `fnv1a32:e1e479ef`; exact Undo/Redo;
+- stale approval rejected `CHAT_EDIT_TARGET_STALE`.
+
+B — Sponge + Local Blur:
+- request `clusterB-B3-local-retouch-live-002b`;
+- request commit `1491b05f6b8284c8b982911c69b7a1f55971eeb3`;
+- result commit `65789febcdbe422f050f340f54235b5cc277bb2a`;
+- run `37098427440`; artifact `11265241534`; digest `sha256:618464cd9d419f22da880d865476f124522fee5a1af68a422b525f8e7f86e62a`;
+- Sponge `fnv1a32:f496a2ca`; exact Undo/Redo against baseline;
+- Local Blur `fnv1a32:0aa47f36`; exact Undo/Redo against baseline.
+
+C — Local Sharpen + Color Replacement:
+- request `clusterB-B3-local-retouch-live-002c`;
+- request commit `065048a65374118a0d0e0e19c5a639411d73cf38`;
+- result commit `0921948c60c308d842fadb939145fdb321b230b7`;
+- run `37098536114`; artifact `11264848600`; digest `sha256:64e38d3b961c2fcaa7ac7889f71a7d0e6b603dc8a6bac65f7dadcf8ca85f4065`;
+- Local Sharpen `fnv1a32:57ec08d4`; exact Undo/Redo against baseline;
+- Color Replacement `fnv1a32:5db0211e`; exact Undo/Redo against baseline;
+- zero-strength edit rejected `CHAT_EDIT_NO_OP`.
+
+All successful Live runs verified exact source `ca4bf6913efe1564eb572988a306120b3c008539`, `apiReady=true`, 23 named tools.
+
+Candidate regressions:
+- B3.3 Spot Healing PASS;
+- B3.2 Raster Mask PASS;
+- B3.1 Paint Bucket PASS;
+- B2 brightnessContrast PASS.
+
+Authority boundary:
+- existing raster-retouch functions remain sole pixel algorithm authority;
+- mutation stays on existing native `image + rasterState.colorRaster`;
+- existing raster pixel/mask optimistic-concurrency fingerprints, scoped History and Renderer cache invalidation are reused;
+- no pointer/mouse simulation or source-point inference;
+- Clone Stamp / Healing Brush / Patch / Pattern Stamp are **not** covered by this closure.
+
+QA-only failed attempts before the successful split do not indicate product failure: one exceeded the runner step bound, one used a disallowed attachment path, and one excessive `radius=400` workload timed out inside a fresh ephemeral browser. The same exact deployed source passed once the formal workload was bounded.
+
+```text
+B3_LOCAL_RETOUCH_NON_SOURCE = CLOSED / FORMAL LIVE QUALIFIED
+B3_SOURCE_DEPENDENT_RETOUCH = OPEN
+SECOND_AUTHORITY = NONE
+POINTER_SIMULATION = NONE
+FORMAT_VERSION_CHANGE = NONE
+```
