@@ -501,3 +501,33 @@ TRANSPORT_NOTE = First request stopped before readiness while newly pinned modul
 VISUAL_LIMIT = Hosted Live screenshot captures closed-document shell; it is not visible Canvas evidence. Renderer-backed content Preview and candidate Canvas checks are the rendering evidence.
 UPSTREAM_DISPOSITION = A2 closed for four representative modes. Continue A3 Paper; Eraser and Blender/Smudge remain separate.
 ```
+
+
+## Round 2 combined qualification — Draw + Reference — 2026-10-03
+
+Test-time deployment identity:
+- Live wrapper: `8d2fba408efc205c903efaae24a958440a6a71b1`
+- exact source: `ab84aafc3006f0f14a74d231ca862200bd0b5d94`
+- runtime: Public Creative API ready; 23 named tools.
+
+### INK-QA-C Draw — PASS
+
+Request `ink-qa-c-draw-combined-001`; QA request commit `b6033cc2f8b107844084ce5cfd11b6f4cb3e4a0d`; result commit `f50c885ed80a0056dd9df098879e9473b3e5f071`; run `37086517849`; artifact `11261115603`.
+
+Native Paper + Brush + DryBrush produced two editable Stroke objects. CHAT then made a concrete Airbrush correction as a third native Stroke. Preview fingerprint changed `fnv1a32:287f934e → fnv1a32:eb357f3b`; Undo restored `287f934e`; Redo restored `eb357f3b`. Final History contains the Paper entry plus three native Stroke entries. A4 PNG export completed with fingerprint `fnv1a32:73678494`.
+
+Classification: `PASS`.
+
+Retained separate gaps: `PAPER_SINGLE_STROKE_RENDER_INTEGRATION` and `PAPER_WEBGL_ROUGHNESS_PARITY`. They are not regressions in the already-qualified adjacent Brush/DryBrush combined route and did not stop the exercise.
+
+### INK-QA-B Reference — PASS
+
+Request `ink-qa-b-reference-combined-001`; QA request commit `61cb1278f4f84a79fe58396570b5509ab10a5ee5`; result commit `d889043a6d653ea96946f1643e9ddf6c150e696b`; run `37086642087`; artifact `11261355427`.
+
+Reference intake and mutable raster import from the same fixture remain structurally separate: the Reference is locked/non-editable while the imported 1086×1448 native image is editable. CHAT translated the mutable raster, captured baseline Revision r1, applied one brightness/contrast correction, captured corrected Revision r2, then verified History and Undo/Redo.
+
+Preview fingerprint changed `fnv1a32:c3bd4f5f → fnv1a32:f279be47`; Undo restored `c3bd4f5f`; Redo restored `f279be47`. Final History contains Reference import, editable raster import, transform and brightness/contrast entries. A4 PNG export and output inspection completed with fingerprint `fnv1a32:0e7e514b`.
+
+Classification: `PASS`.
+
+No product code or deployed source was changed by these tests. Full evidence authority remains in `thedoorw/INK-Browser-QA/working/INK_COMBINED_CAPABILITY_QUALIFICATION_20261003.md` and its evidence manifest.
