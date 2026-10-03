@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "d0248e9661cc242081507e4bf73fc8b73aeb6256",
+  "source_sha": "ab84aafc3006f0f14a74d231ca862200bd0b5d94",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "Live wrapper is hosted in thedoorw/INK; product assets/modules are pinned to exact merged source SHA d0248e9661cc242081507e4bf73fc8b73aeb6256. PR #127 adds bounded CHAT stroke.create.v1 exposure for the existing native type=stroke / Renderer / NaturalMediaController path. Candidate A2 four-mode QA, A1 Paint Session regression, and B2 brightnessContrast regression passed. Formal Live A2 four-mode qualification PASS: clusterA-A2-native-stroke-live-002, run 37041501266. A3 Paper remains next."
+  "notes": "PR #128 bounded active-page page.paper.set.v1 exposure over existing InkApp.changePaper / History / Renderer. Exact-candidate A3 paper-coupled two-stroke QA, A2 four-mode, A1 Paint Session, B2 brightnessContrast regressions PASS. Complete product/source tree equals accepted candidate 30d55495650acd365acc2b1e92c7669fa01f1870. Formal Live A3 qualification pending. Single-stroke Paper integration and WebGL roughness parity remain separate open gaps."
 }
