@@ -1223,3 +1223,30 @@ Boundary:
 - New Document/A4 redesign, UI PR #109, PWA, C06, Cluster D and C019 remain separate.
 - B3 and advanced mutable raster ingest stay closed and are not reopened.
 - no new Document, History, Layout, Artboard or Renderer authority was created.
+
+## C019 native curved / path Text — closed 2026-10-03
+
+```text
+C019_CURVED_PATH_TEXT = CLOSED / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+PR = #152
+DEV_EXACT_CANDIDATE = 35872e4f498950c58d47aac64f8e515967b081e9
+DEV_CANDIDATE_RUN = 37113470082
+DEV_CANDIDATE_ARTIFACT = 11270487286
+DEV_CANDIDATE_DIGEST = sha256:26953eb734742959d361cd849e210290f399a77d2f987e5e554cb865054bb245
+MERGED_DEPLOYED_SOURCE = ff6e329e372a0b3c8b756cd74cc881b28fa404f9
+LIVE_DEPLOY_COMMIT = b94d5fb3bb6202ca1e833b28511fbe0fd7628fe2
+LIVE_PAGES_RUN = 37114135019
+FORMAL_LIVE_REQUEST = c019-text-path-formal-live-001
+FORMAL_LIVE_REQUEST_COMMIT = 205bb40fd5156cc1528a10286eb45dd9b07b8044
+FORMAL_LIVE_RUN = 37114248495
+FORMAL_LIVE_ARTIFACT = 11270837984
+FORMAL_LIVE_DIGEST = sha256:1560ade23bd38e5bcf06d14609488c1d2be4fa0647bb0f13b5a4c6f0577f7392
+FORMAT_VERSION = 4 / UNCHANGED
+```
+
+Formal Live loaded exact source `ff6e329e372a0b3c8b756cd74cc881b28fa404f9` with `apiReady=true`, 23 named tools and document format 4. The existing Renderer consumed the existing native `pathText` relation through `layoutTextOnPath()`; the Text remained editable `type:text` and the referenced Path retained stable native identity.
+
+Observed Preview render fingerprints were straight `fnv1a32:3fe352d9`, curved `fnv1a32:bb44ec56`, post-edit `fnv1a32:b3bc290e`, and post-Path-warp `fnv1a32:365fc482`. Undo of the Text/Path relation restored the exact straight fingerprint and Redo restored the exact curved fingerprint. History recorded `CHAT set Text Path`, `CHAT edit Text`, and `CHAT warp Path`. A C4 `page.artboard.set.v1` regression also executed with native History `調整畫板` and successful Undo.
+
+Boundary: this closes the qualified editable curved/path Text mode only. Broad Text envelope deformation or a general `text.warp.v1` is not claimed. No second Text, Path, Renderer or History authority was created. Cluster D remains independent; UI PR #109, PWA, C06, New Document, B3 and advanced mutable raster ingest remain untouched.
+
