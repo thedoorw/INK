@@ -1250,3 +1250,33 @@ Observed Preview render fingerprints were straight `fnv1a32:3fe352d9`, curved `f
 
 Boundary: this closes the qualified editable curved/path Text mode only. Broad Text envelope deformation or a general `text.warp.v1` is not claimed. No second Text, Path, Renderer or History authority was created. Cluster D remains independent; UI PR #109, PWA, C06, New Document, B3 and advanced mutable raster ingest remain untouched.
 
+## Cluster D — Material / Recipe — closed 2026-10-03
+
+```text
+CLUSTER_D = CLOSED / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+PR = #154
+DEV_EXACT_CANDIDATE = da40f868ebdb17c6cacb46d74867f75235ba77e5
+DEV_RETURN_HEAD = b2011e8eb23ab81956e987b5bb6e491042449ba8
+DEV_CANDIDATE_RUN = 37116951905
+DEV_CANDIDATE_ARTIFACT = 11271832120
+DEV_CANDIDATE_DIGEST = sha256:909218129dad5d4645eec625c19ab5f8c84ed68d0c79a303e36a3e11e59da027
+MERGED_DEPLOYED_SOURCE = 4188e9cc7673313726abd7986310d758912f63cf
+INITIAL_LIVE_DEPLOY = 3cf091b1d84bbb56582f9a546465b5d6341ceaf1
+INITIAL_PAGES_RUN = 37117550687 / PASS
+CORRECTED_LIVE_WRAPPER = 270ee9fa0c1d978d2b6e01e4d14341e5b8b24b10
+CORRECTED_PAGES_RUN = 37117864191 / PASS
+FORMAL_LIVE_001 = 37117705461 / TRANSPORT BLOCKED BY LIVE-WRAPPER CSP / NOT PRODUCT FAILURE
+FORMAL_LIVE_002 = 37117900345 / REQUEST FIXTURE REF ERROR / NOT PRODUCT FAILURE
+FORMAL_LIVE_REQUEST = cluster-d-material-recipe-formal-live-003
+FORMAL_LIVE_REQUEST_COMMIT = d180fddf9b707a61311136fe04b17793ddbce3cb
+FORMAL_LIVE_RUN = 37117972309 / PASS
+FORMAL_LIVE_ARTIFACT = 11271817574
+FORMAL_LIVE_DIGEST = sha256:305ebde6eea7e900557aaf5f05e1089988e2b576e632a7e74a020c6a19777620
+FORMAT_VERSION = 4 / UNCHANGED
+```
+
+Formal Live loaded exact source `4188e9cc7673313726abd7986310d758912f63cf` with `apiReady=true` and 24 named tools. D1 created native Material template `material:chat:formal-live-d1@1`, rediscovered it through the read-only Creative Library surface, created native instance `live-d1-material-instance`, and verified scoped History plus Undo/Redo. D2 returned one existing Studio recipe, `ink.flower.common.v1` / `Adaptive Flower Finish` version 1, as read-only inventory with governed execution metadata.
+
+D3 executed that existing Studio RecipeEngine against native Path `live-d3-petal`. History recorded `CHAT Recipe · Adaptive Flower Finish`; the execution receipt retained checkpoint/replay evidence and mapped the explicit `petal` role. Preview render fingerprint changed from `fnv1a32:fee4827f` to `fnv1a32:5d902de5`; Undo restored the exact `fee4827f` render and Redo restored the exact `5d902de5` render. A C4 Artboard regression executed with native History `調整畫板` and successful Undo. Final Context remained document format 4.
+
+Boundary: D1 qualification covers the bounded native Material template/instance/reuse routes exercised here; it does not claim arbitrary rich Material effects. D3 covers already-registered Studio recipes through `recipe.studio.execute.v1`; inline Recipe definitions remain prohibited. Page-stored FLORA recipe state remains inventory/discovery only and its existing runtime authority is not replaced. Workflow IR / External Workflow Translation were not introduced. No second Material, Recipe, Document, History or Renderer authority was created. B3 and advanced mutable raster ingest remain closed; UI PR #109, PWA, C06 and New Document remain untouched.
