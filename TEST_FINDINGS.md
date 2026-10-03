@@ -722,3 +722,53 @@ B3_PAINT_BUCKET = CLOSED / FORMAL LIVE QUALIFIED
 B3_OVERALL = PARTIAL
 NEXT_B3 = RASTER_MASK / STRUCTURED LOCAL EDITS
 ```
+
+
+## B3.2 raster mask + raster stale fingerprints — closed 2026-10-03
+
+```text
+FINDING = R2-B3-RASTER-MASK-001
+CLASS = PRODUCT EXISTS / CHAT EXPOSURE GAP → REPAIRED
+PR = #139
+EXACT_CANDIDATE = e018a08c5c8e352908eee5e066f2e33eee883946
+CANDIDATE_REQUEST = clusterB-B3-raster-mask-candidate-002-regressions
+CANDIDATE_RUN = 37096583395
+CANDIDATE_ARTIFACT = 11263983500
+CANDIDATE_ARTIFACT_DIGEST = sha256:668c97dd98f767ae2603a9395c3cb64ccf74d10f7e1121bf03ef592ff5c0c45d
+MERGED_SOURCE_SHA = 2d1c67f398c19cbbec1e935095b5dc991c886213
+FORMAL_LIVE_REQUEST = clusterB-B3-raster-mask-live-001
+REQUEST_COMMIT = ef47817e08841f052962beb5259ac7aa747c5277
+RESULT_COMMIT = 1a93302dd47ccea63fb90e4e0a96f18409c5128f
+RUN = 37096759128
+ARTIFACT = 11264348327
+ARTIFACT_DIGEST = sha256:349b022f3cc5b351d655869b565b4652db42c5806a063ac220a1cb4704e2bc36
+RESULT = PASS / MERGED / DEPLOYED / FORMAL LIVE QUALIFIED
+```
+
+Evidence:
+- exact runtime source `2d1c67f398c19cbbec1e935095b5dc991c886213`; `apiReady=true`; 23 named tools.
+- `image.mask.raster.set.v1` exposes bounded raster-local rectangle geometry plus invert/feather/expand. Raw alpha arrays are not accepted from CHAT.
+- native authority remains `rasterizePathMask() → rasterMask → modifyRasterMask()/renderImageStack()`.
+- disabled-mask state is intentionally not exposed because the current renderer does not consume `enabled=false`.
+- operation-specific image target fingerprints now include full native raster pixels plus rasterMask state; general context inspection remains lightweight.
+- candidate proved both concurrency directions:
+  - intervening raster-pixel mutation rejects a stale Mask proposal;
+  - intervening rasterMask mutation rejects a stale Paint Bucket proposal.
+- candidate raster pixels remained `376ec6fb` before/after Mask while Preview changed `fnv1a32:4d9848b1 → fnv1a32:88ecac90`; exact Undo/Redo restored both Preview states.
+- candidate native mask bounds x=8 y=6 w=32 h=24, fingerprint `fnv1a32:888bf7ca`; same-mask repeat rejected NO_OP.
+- exact candidate regressions B3.1 Paint Bucket, B2 brightnessContrast, A5 Blender/Smudge all PASS.
+- formal Live stale-mask approval after an intervening Paint Bucket failed `CHAT_EDIT_TARGET_STALE`.
+- formal Live restored baseline Preview exactly after undoing the intervening pixel edit: `fnv1a32:34d01658`.
+- formal Live Mask changed Preview `fnv1a32:34d01658 → fnv1a32:6b03e9c5`; Undo restored `34d01658`; Redo restored `6b03e9c5`.
+- formal Live native mask bounds x=100 y=100 w=500 h=700 on 1086×1448 raster; mask fingerprint `fnv1a32:5ecf69a0`.
+- formal Live same-mask repeat rejected `CHAT_EDIT_NO_OP`.
+- History retained editable-raster import plus one scoped `CHAT set raster mask` entry.
+- no pointer/mouse simulation, second mask/raster/Renderer/History authority, UI change, or FORMAT_VERSION change.
+
+```text
+B3_RASTER_MASK = CLOSED / FORMAL LIVE QUALIFIED
+RASTER_PIXEL_STALE_PROTECTION = QUALIFIED
+RASTER_MASK_STALE_PROTECTION = QUALIFIED
+B3_OVERALL = PARTIAL
+NEXT_B3 = STRUCTURED_LOCAL_RETOUCH
+```
