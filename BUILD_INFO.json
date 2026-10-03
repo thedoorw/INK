@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "ab84aafc3006f0f14a74d231ca862200bd0b5d94",
+  "source_sha": "701c3777dba854df893f61f1d75b97ea694ede62",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
   "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
-  "notes": "PR #128 bounded active-page page.paper.set.v1 exposure over existing InkApp.changePaper / History / Renderer. Exact-candidate A3 paper-coupled two-stroke QA, A2 four-mode, A1 Paint Session, B2 brightnessContrast regressions PASS. Complete product/source tree equals accepted candidate 30d55495650acd365acc2b1e92c7669fa01f1870. Formal Live A3 qualification pending. Single-stroke Paper integration and WebGL roughness parity remain separate open gaps."
+  "notes": "PR #130 closes the single native Brush/DryBrush page.paper render-integration gap by routing eligible singleton native Strokes through the existing NaturalMedia multichannel renderer. Exact candidate 29e23abf609bf57603ecfe5e366355b788ddc2fd and accepted merge source 701c3777dba854df893f61f1d75b97ea694ede62 share the identical product/source tree 5749d904364217df2438550e759b64d2df3d579e. Hosted exact-candidate singleton Brush/DryBrush, A3 two-stroke, A2 Stroke, and A1 Paint Session qualification PASS. Focused Live singleton qualification pending. WebGL roughness parity remains the next separate gap."
 }
