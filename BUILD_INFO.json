@@ -2,11 +2,11 @@
   "product": "INK",
   "role": "live-test-deployment-mirror",
   "source_repo": "thedoorw/INK-Browser-QA",
-  "source_sha": "c6ae51d96d95e2567b9b7ef6d1e55280cfb2cee0",
+  "source_sha": "ca4bf6913efe1564eb572988a306120b3c008539",
   "source_entry": "product/source/index.html",
   "source_entry_blob_sha": "413f5eb4c5f1de8baa04b4eabd699e22f23a5fae",
   "asset_strategy": "immutable-jsdelivr-exact-sha",
   "channel": "live-test",
-  "deployment_status": "PUBLISHED_AND_FORMAL_LIVE_QUALIFIED",
-  "notes": "B3.3 Spot Healing is CLOSED by PR #140 / merged source c6ae51d96d95e2567b9b7ef6d1e55280cfb2cee0. Exact candidate 0551f4516ea197d60a8cae711abf2db7ab92c2c4 passed raster-spot-heal-b3 plus B3.2 raster mask, B3.1 Paint Bucket and B2 brightnessContrast regressions (run 37097045536, artifact 11264846714, sha256:b40ebfba84fe1b5ae4752580d4d867f2056704401d9083b9a84508ba70daf1b3). Formal Live request clusterB-B3-spot-heal-live-001 / run 37097210478 / artifact 11264389043 verified exact source, apiReady=true and 23 named tools. Preview fnv1a32:34d01658 -> fnv1a32:7fd66f8f; Undo restored 34d01658; Redo restored 7fd66f8f. Spot Healing changed 1789 pixels / 5359 channels on the 1086x1448 editable raster. Intervening Paint Bucket caused CHAT_EDIT_TARGET_STALE; opacity=0 caused CHAT_EDIT_NO_OP. Existing spotHealing(), native rasterState, scoped History and raster pixel/mask fingerprints remain authoritative. No pointer emulation, inferred source point, second retouch/raster/Renderer/History authority, UI or FORMAT_VERSION change. B3 overall remains partial; other local/source-dependent retouch families remain separate."
+  "deployment_status": "PUBLISHED_FOR_LIVE_TEST",
+  "notes": "B3.4 non-source local retouch promotion candidate: PR #141 merged source ca4bf6913efe1564eb572988a306120b3c008539; exact candidate 865a1b7ec3f023e25d13814a234e6efe6d793074 passed all six variants (dodge, burn, sponge, localBlur, localSharpen, colorReplacement) with exact Undo/Redo plus stale/no-op protection, and B3.3 Spot Heal / B3.2 Mask / B3.1 Paint Bucket / B2 brightnessContrast regressions. Existing raster-retouch algorithms, native rasterState, scoped History and raster pixel/mask stale fingerprints remain authoritative. Source-dependent Clone/Healing/Patch/Pattern Stamp remain excluded. Formal Live pending."
 }
