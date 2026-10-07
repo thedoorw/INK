@@ -7,10 +7,42 @@ Development fixes belong in `thedoorw/INK-Browser-QA`.
 ## Current deployment
 
 - Live URL: https://thedoorw.github.io/INK/
-- Source SHA: `468873503155f66585564a6ca7b11f7a82586d7a`
-- Status: PUBLISHED / B4 THREE-OPERATION FORMAL LIVE PASS / REQUIRED REGRESSIONS PASS
+- Source SHA: `844fc7e376f9dc003728cf17346c68d30a3893ac`
+- Live target commit: `8e452b65abcc44d1f0d4ff44a61075bcd3b53d55`
+- Status: PUBLISHED / POST-PUBLICATION FORMAL LIVE BLOCKED BY VALIDATION IDENTITY-CONTRACT MISMATCH
 
 ## Findings
+
+### LIVE-PUBLISH-230-FORMAL-LIVE-001 — BLOCKED / no retry
+
+```text
+FINDING_ID = LIVE-PUBLISH-230-FORMAL-LIVE-001
+CASE_ID = #230 POST-PUBLICATION VALIDATION
+DEPLOYED_SOURCE_SHA = 844fc7e376f9dc003728cf17346c68d30a3893ac
+LIVE_TARGET_COMMIT = 8e452b65abcc44d1f0d4ff44a61075bcd3b53d55
+LIVE_TARGET_TREE = 4d9db4002bdc9ce106af7ae50626e4c13577b988
+PUBLICATION_RUN = 37590690118 / SUCCESS
+PAGES_DEPLOYMENT_RUN = 37591009378 / SUCCESS
+PAGES_ARTIFACT = 11468776653
+PAGES_ARTIFACT_DIGEST = sha256:dd5f7b1912c94696079f5334de1d49ffc28bf739b45d72796b5e8c623672343a
+FORMAL_LIVE_REQUEST_COMMIT = b9d0992eb67f0ec586f38c21ef853cbff50846b8
+FORMAL_LIVE_RUN = 37592420158 / FAILURE
+FORMAL_LIVE_JOB = 112696858476
+FORMAL_LIVE_RESULT_COMMIT = 9687bf93058a73cec614d1074ebb372c79167436
+FORMAL_LIVE_ARTIFACT = 11468593727
+FORMAL_LIVE_ARTIFACT_DIGEST = sha256:f4403f9ef90b99a2d692e689ef5412ccf3b0820eab18c55a1c0c22be5ba7f4be
+RESULT = BLOCKED
+CLASS = QA_IDENTITY_CONTRACT_MISMATCH / PUBLICATION_TOPOLOGY_CHANGE
+OBSERVED = Hosted Chromium reached the Live URL, complete document and API-ready state, then the existing waitForInk identity gate read meta[name="ink-live-source-sha"] as null and failed before the new BUILD_INFO/receipt/network/SW probes could execute.
+EXPECTED = Post-publication validation must verify the new immutable-publication identity model without assuming the historical wrapper-only source meta.
+STATIC_IDENTITY = Live BUILD_INFO.json and PUBLISH_RECEIPT.json bind source 844fc7e376f9dc003728cf17346c68d30a3893ac; GitHub Pages run 37591009378 binds deployment to target 8e452b65abcc44d1f0d4ff44a61075bcd3b53d55.
+CONTRACT_DIAGNOSIS = New Live index.html is byte-originated from product/source/index.html and contains no ink-live-source-sha meta. The previous Formal-Live wrapper at 0ee755456882d9c013c7366c9d0f924ea93f1993 did contain that meta. Therefore this run does not establish target drift or product regression.
+UNEXECUTED_BY_FAILURE = browser-fetched BUILD_INFO/receipt projection; actual dependency-response inventory; SW update check; cold/warm identity comparison; read-only Context/History/Preview Formal Live steps.
+RERUN_RESULT = NOT RUN / prohibited by #230 instruction until bounded disposition
+PRODUCT_FIX = NONE ATTEMPTED
+REPUBLISH = NONE
+```
+
 
 Live identity/load and CHAT transport are verified against the deployed exact SHA. Round 1 breadth scan is complete; open findings are now being clustered before repair and Round 2.
 
