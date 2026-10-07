@@ -1,0 +1,35 @@
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#222;background:#f4f4f4}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#f4f4f4}
+button,input,select{font:inherit}
+button{border:1px solid #c8c8c8;background:#fff;color:#222;border-radius:3px;min-height:28px;padding:4px 8px;cursor:pointer}
+button:hover{background:#f0f0f0}button[aria-pressed="true"]{background:#dfe9f5;border-color:#7e9fbe}
+.ink-boot-gate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#f4f4f4;color:#555;font-size:13px}
+html[data-ink-shell-ready="true"] .ink-boot-gate{display:none}
+html[data-ink-shell-ready="false"] #app{visibility:hidden;pointer-events:none}
+.ink-minimal-app{width:100%;height:100%;display:grid;grid-template-columns:minmax(0,1fr) 270px;grid-template-rows:auto minmax(0,1fr) auto;background:#f4f4f4}
+.ink-minimal-host{display:contents}
+.ink-minimal-controls{grid-column:1/3;grid-row:1;display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:6px;border-bottom:1px solid #d0d0d0;background:#fafafa}
+.ink-control-group{display:flex;gap:4px;padding-right:6px;margin-right:2px;border-right:1px solid #ddd}
+.ink-control-group:last-child{border-right:0}.ink-control-spacer{flex:1}
+.stage-wrap{grid-column:1;grid-row:2;position:relative;min-width:0;min-height:0;overflow:hidden;background:#d7d7d7;touch-action:none}
+#stage{position:absolute;inset:0;width:100%;height:100%;display:block;outline:0;touch-action:none}
+.empty-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;color:#666;font-size:13px;text-align:center}
+.ink-minimal-app[data-document-active="true"] .empty-hint{display:none}
+.ink-minimal-state{grid-column:2;grid-row:2;min-width:0;overflow:auto;border-left:1px solid #d0d0d0;background:#fff;padding:8px}
+.ink-state-section{border:1px solid #ddd;border-radius:4px;margin:0 0 8px;overflow:hidden}
+.ink-state-section>h2,.ink-state-section>summary{font-size:12px;font-weight:600;margin:0;padding:6px 8px;background:#f5f5f5;border-bottom:1px solid #ddd}
+.ink-state-body{padding:6px}.ink-state-row{display:flex;gap:6px;align-items:center;justify-content:space-between;min-height:28px}
+.ink-state-row button{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ink-state-row button.active{background:#dfe9f5}.ink-state-meta{font-size:11px;color:#666}
+.ink-block-action{width:100%;margin-top:4px}.ink-block-action-primary{margin-top:6px}
+.ink-history-row{width:100%;display:flex;justify-content:space-between;margin:2px 0}
+.ink-preview{width:100%;height:auto;border:1px solid #ddd;background:#eee;display:block}
+.ink-custom-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.ink-custom-grid label{font-size:11px;color:#555}.ink-custom-grid input,.ink-custom-grid select{width:100%;min-height:28px;border:1px solid #ccc;background:#fff}
+.ink-minimal-status{grid-column:1/3;grid-row:3;display:flex;gap:12px;align-items:center;min-height:26px;padding:4px 8px;border-top:1px solid #d0d0d0;background:#fafafa;color:#555;font-size:11px;white-space:nowrap;overflow:hidden}
+.text-editor{position:absolute;z-index:30;min-width:220px;padding:6px;border:1px solid #888;border-radius:4px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.text-editor textarea{display:block;width:100%;min-height:54px;border:1px solid #ccc;resize:both}.text-editor-actions{display:flex;justify-content:flex-end;gap:4px;margin-top:4px}
+.zoom-hud,.toast,.snap-feedback{position:absolute;z-index:40;padding:5px 8px;border-radius:3px;background:rgba(30,30,30,.88);color:#fff;pointer-events:none;font-size:12px}
+.zoom-hud{right:12px;bottom:12px;opacity:0}.zoom-hud.show{opacity:1}.toast{left:50%;bottom:12px;transform:translateX(-50%);opacity:0}.toast.show{opacity:1}
+.snap-feedback{transform:translate(10px,10px);font-size:10px}
+@media(max-width:820px){.ink-minimal-app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) 180px auto}.ink-minimal-controls{grid-column:1;overflow:auto;flex-wrap:nowrap}.stage-wrap{grid-column:1;grid-row:2}.ink-minimal-state{grid-column:1;grid-row:3;border-left:0;border-top:1px solid #d0d0d0}.ink-minimal-status{grid-column:1;grid-row:4}}

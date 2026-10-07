@@ -1,0 +1,64 @@
+{
+  "format": "INK-FLOWER-VOCABULARY",
+  "version": "1.0",
+  "subjects": {
+    "flower": ["flower", "花", "整朵花", "花朵"],
+    "petal": ["petal", "petals", "花瓣"],
+    "flower-center": ["flower center", "center", "花心", "花蕊"],
+    "leaf": ["leaf", "leaves", "葉", "葉子", "葉片"],
+    "stem": ["stem", "莖", "花莖"],
+    "bud": ["bud", "花苞"],
+    "background": ["background", "背景", "白底"]
+  },
+  "operations": {
+    "create": ["create", "draw", "畫", "建立", "新增"],
+    "recolor": ["recolor", "改色", "換色", "改成"],
+    "resize": ["resize", "scale", "放大", "縮小"],
+    "move": ["move", "移動", "往上", "往下", "往左", "往右"],
+    "rotate": ["rotate", "旋轉"],
+    "duplicate": ["duplicate", "複製"],
+    "delete": ["delete", "刪除"],
+    "replace": ["replace", "替換", "換成"],
+    "adjust-symmetry": ["adjust symmetry", "對稱", "不對稱"],
+    "adjust-count": ["adjust count", "數量", "增加一片", "減少一片"],
+    "adjust-opacity": ["adjust opacity", "透明度", "opacity"],
+    "adjust-stroke": ["adjust stroke", "線條", "線寬", "stroke"],
+    "adjust-fill": ["adjust fill", "填色", "fill"],
+    "rollback": ["rollback", "回滾", "回到上一版本", "回到上一版"]
+  },
+  "composition": {
+    "centered": ["centered", "置中"],
+    "slightly-left": ["slightly left", "稍微偏左"],
+    "slightly-right": ["slightly right", "稍微偏右"],
+    "upper": ["upper", "上方", "往上"],
+    "lower": ["lower", "下方", "往下"],
+    "symmetrical": ["symmetrical", "對稱"],
+    "asymmetrical": ["asymmetrical", "不對稱"],
+    "sparse": ["sparse", "稀疏"],
+    "dense": ["dense", "密集"],
+    "cropped": ["cropped", "裁切", "出框"],
+    "full-subject": ["full subject", "完整主體"]
+  },
+  "constraints": {
+    "preserve-all-others": ["preserve all others", "其他不動", "其餘不動"],
+    "preserve-ids": ["preserve ids", "保留 ID", "保留物件"],
+    "preserve-structure": ["preserve structure", "保留結構", "不要重畫"],
+    "preserve-composition": ["preserve composition", "保留構圖"],
+    "preserve-palette": ["preserve palette", "保留配色"],
+    "preserve-stroke": ["preserve stroke", "保留線條"],
+    "local-edit-only": ["local edit only", "只修改", "只改"]
+  },
+  "colors": {
+    "pink": "#ef9eb2",
+    "粉紅": "#ef9eb2",
+    "深紅": "#9f2338",
+    "red": "#c23a4b",
+    "紅": "#c23a4b",
+    "yellow": "#f3c623",
+    "黃": "#f3c623",
+    "green": "#72a95f",
+    "綠": "#72a95f",
+    "white": "#ffffff",
+    "白": "#ffffff"
+  }
+}
