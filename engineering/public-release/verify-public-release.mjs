@@ -49,6 +49,11 @@ export function validateChangedPaths(paths,rows,policy,priorManaged=[]){
     }
   }
 }
+export function classifyPublicPRChange(paths){
+  // Documentation-only PRs should not need a product release signing key.
+  // Every other diff (including trusted policy/workflow edits) is fail closed.
+  return paths.length===1 && paths[0]==='README.md' ? 'README_ONLY' : 'SIGNED_RELEASE_REQUIRED';
+}
 export function verifyPRIdentity(event,actualHead,actualBase){
   const pr=event?.pull_request;
   assert.ok(pr && event.repository?.full_name==='thedoorw/INK','NOT_AN_INK_PR');
@@ -182,6 +187,11 @@ export async function main(argv=process.argv.slice(2),env=process.env){
   const candidateHead=execFileSync('git',['rev-parse','HEAD'],{cwd:candidate,encoding:'utf8'}).trim();
   verifyPRIdentity(event,candidateHead,baseHead);
   const changedPaths=gitChangedPaths(candidate,baseHead,candidateHead);
+  if(classifyPublicPRChange(changedPaths)==='README_ONLY'){
+    console.log(JSON.stringify({status:'PASS',classification:'README_ONLY',candidateHead,
+      noRuntimePublication:true,noSignerNeeded:true,reason:'exact README.md diff only'},null,2));
+    return;
+  }
   assert.ok(changedPaths.includes('release/CANDIDATE.json')&&changedPaths.includes('release/CANDIDATE.sig'),'NO_RELEASE_MANIFEST_CHANGE');
   const manifest=JSON.parse(await readFile(resolve(candidate,'release/CANDIDATE.json'),'utf8'));
   const signature=await readFile(resolve(candidate,'release/CANDIDATE.sig'),'utf8');
