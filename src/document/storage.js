@@ -1,202 +1,97 @@
 import { deepClone } from '../core/index.js';
 import { documentFingerprint, stableStringify } from './integrity.js';
 
-const byteLengthOf = value => new TextEncoder().encode(stableStringify(value)).byteLength;
+const TOMBSTONE_SCHEMA='INK_STORAGE_TOMBSTONE_V1',SUFFIXES=['',':previous',':checkpoints'];
+const byteLengthOf=value=>new TextEncoder().encode(stableStringify(value)).byteLength;
+const generationOf=record=>Number.isSafeInteger(+record?.storageGeneration)&&+record.storageGeneration>=0?+record.storageGeneration:0;
+const timeOf=value=>{const n=Date.parse(value||'');return Number.isFinite(n)?n:0;};
+const identityOf=record=>record?.fingerprint||`${record?.savedAt||''}:${record?.modifiedAt||''}:${record?.byteLength||''}`;
+const isTombstone=record=>record?.schema===TOMBSTONE_SCHEMA;
+const envelope=(value,storageGeneration=0)=>({schema:'INK_STORAGE_V3',savedAt:new Date().toISOString(),modifiedAt:value?.modifiedAt||null,storageGeneration,byteLength:byteLengthOf(value),fingerprint:documentFingerprint(value),value:deepClone(value)});
+const tombstone=storageGeneration=>({schema:TOMBSTONE_SCHEMA,storageGeneration,invalidatedAt:new Date().toISOString()});
+const isEnvelope=record=>record?.schema==='INK_STORAGE_V3'||record?.schema==='INK_STORAGE_V2';
+const unwrap=record=>isEnvelope(record)?record.value:record;
 
-const envelope = value => ({
-  schema: 'INK_STORAGE_V3',
-  savedAt: new Date().toISOString(),
-  modifiedAt: value?.modifiedAt || null,
-  byteLength: byteLengthOf(value),
-  fingerprint: documentFingerprint(value),
-  value: deepClone(value)
-});
-
-const isEnvelope = record => record?.schema === 'INK_STORAGE_V3' || record?.schema === 'INK_STORAGE_V2';
-const unwrap = record => isEnvelope(record) ? record.value : record;
-
-export function verifyStorageRecord(record) {
-  if (!record) return { valid: false, reason: 'missing-record', value: null };
-  const value = unwrap(record);
-  if (!value) return { valid: false, reason: 'missing-value', value: null };
-  if (record.schema === 'INK_STORAGE_V3') {
-    try {
-      const fingerprint = documentFingerprint(value);
-      const byteLength = byteLengthOf(value);
-      if (fingerprint !== record.fingerprint) return { valid: false, reason: 'fingerprint-mismatch', value, fingerprint, expected: record.fingerprint };
-      if (byteLength !== record.byteLength) return { valid: false, reason: 'length-mismatch', value, byteLength, expected: record.byteLength };
-      return { valid: true, reason: null, value, fingerprint, byteLength, verified: true };
-    } catch (error) {
-      return { valid: false, reason: 'verification-error', value, error: String(error) };
-    }
+export function verifyStorageRecord(record){
+  if(!record)return{valid:false,reason:'missing-record',value:null};
+  if(isTombstone(record))return{valid:false,reason:'tombstone',value:null};
+  const value=unwrap(record);if(!value)return{valid:false,reason:'missing-value',value:null};
+  if(record.schema==='INK_STORAGE_V3'){
+    try{const fingerprint=documentFingerprint(value),byteLength=byteLengthOf(value);if(fingerprint!==record.fingerprint)return{valid:false,reason:'fingerprint-mismatch',value,fingerprint,expected:record.fingerprint};if(byteLength!==record.byteLength)return{valid:false,reason:'length-mismatch',value,byteLength,expected:record.byteLength};return{valid:true,reason:null,value,fingerprint,byteLength,verified:true};}
+    catch(error){return{valid:false,reason:'verification-error',value,error:String(error)};}
   }
-  return { valid: true, reason: null, value, verified: false, legacy: true };
+  return{valid:true,reason:null,value,verified:false,legacy:true};
 }
 
-export class InkStore {
-  constructor({ databaseName = 'INK_STORE', storeName = 'documents', checkpointLimit = 3 } = {}) {
-    this.databaseName = databaseName;
-    this.storeName = storeName;
-    this.checkpointLimit = Math.max(1, Math.min(10, Math.trunc(checkpointLimit) || 3));
-    this.dbPromise = null;
-    this.memory = new Map();
-    this.lastBackend = 'memory';
-    this.lastRecovery = null;
-  }
-
-  open() {
-    if (!('indexedDB' in globalThis)) return Promise.reject(new Error('IndexedDB unavailable'));
-    if (this.dbPromise) return this.dbPromise;
-    this.dbPromise = new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.databaseName, 3);
-      request.onupgradeneeded = () => {
-        if (!request.result.objectStoreNames.contains(this.storeName)) request.result.createObjectStore(this.storeName);
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-    return this.dbPromise;
-  }
-
-  async idbGet(database, key) {
-    return await new Promise((resolve, reject) => {
-      const transaction = database.transaction(this.storeName, 'readonly');
-      const request = transaction.objectStore(this.storeName).get(key);
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  checkpointRecords(previous, existing = []) {
-    const values = [previous, ...(Array.isArray(existing) ? existing : [])].filter(Boolean);
-    const seen = new Set();
-    return values.filter(record => {
-      const key = record?.fingerprint || `${record?.savedAt || ''}:${record?.modifiedAt || ''}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, this.checkpointLimit).map(record => deepClone(record));
-  }
-
-  async save(key, value) {
-    const current = envelope(value);
-    const memoryPrevious = this.memory.get(key) || null;
-    const memoryCheckpoints = this.memory.get(`${key}:checkpoints`) || [];
-    this.memory.set(`${key}:previous`, memoryPrevious);
-    this.memory.set(`${key}:checkpoints`, this.checkpointRecords(memoryPrevious, memoryCheckpoints));
-    this.memory.set(key, current);
-    try {
-      const database = await this.open();
-      const previous = await this.idbGet(database, key);
-      const checkpoints = await this.idbGet(database, `${key}:checkpoints`);
-      const nextCheckpoints = this.checkpointRecords(previous, checkpoints);
-      await new Promise((resolve, reject) => {
-        const transaction = database.transaction(this.storeName, 'readwrite');
-        const store = transaction.objectStore(this.storeName);
-        if (previous) store.put(previous, `${key}:previous`);
-        store.put(nextCheckpoints, `${key}:checkpoints`);
-        store.put(current, key);
-        transaction.oncomplete = resolve;
-        transaction.onerror = () => reject(transaction.error);
-      });
-      this.lastBackend = 'indexeddb';
-      return true;
-    } catch (error) {
-      try {
-        const previousText = globalThis.localStorage?.getItem(`INK:${key}`);
-        const previous = previousText ? JSON.parse(previousText) : null;
-        const checkpoints = JSON.parse(globalThis.localStorage?.getItem(`INK:${key}:checkpoints`) || '[]');
-        if (previousText) globalThis.localStorage?.setItem(`INK:${key}:previous`, previousText);
-        globalThis.localStorage?.setItem(`INK:${key}:checkpoints`, JSON.stringify(this.checkpointRecords(previous, checkpoints)));
-        globalThis.localStorage?.setItem(`INK:${key}`, JSON.stringify(current));
-        this.lastBackend = 'localstorage';
-        return true;
-      } catch (_) {
-        this.lastBackend = 'memory';
-        return true;
-      }
-    }
-  }
-
-  async loadRecord(key) {
-    try {
-      const database = await this.open();
-      const value = await this.idbGet(database, key);
-      this.lastBackend = 'indexeddb';
-      return value;
-    } catch (error) {
-      try {
-        const value = JSON.parse(globalThis.localStorage?.getItem(`INK:${key}`) || 'null');
-        if (value) {
-          this.lastBackend = 'localstorage';
-          return value;
+export class InkStore{
+  constructor({databaseName='INK_STORE',storeName='documents',checkpointLimit=3}={}){this.databaseName=databaseName;this.storeName=storeName;this.checkpointLimit=Math.max(1,Math.min(10,Math.trunc(checkpointLimit)||3));this.dbPromise=null;this.memory=new Map();this.lastBackend='memory';this.lastRecovery=null;this.lastWriteReceipt=null;this.lastReadReceipt=null;this.lanes=new Map();this.epochs=new Map();this.activeTransactions=new Map();}
+  open(){if(!globalThis.indexedDB)return Promise.reject(new Error('IndexedDB unavailable'));if(this.dbPromise)return this.dbPromise;this.dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open(this.databaseName,3);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(this.storeName))request.result.createObjectStore(this.storeName);};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('IndexedDB open failed'));request.onblocked=()=>reject(new Error('IndexedDB open blocked'));});this.dbPromise.catch(()=>{this.dbPromise=null;});return this.dbPromise;}
+  epoch(key){return this.epochs.get(key)||0;}
+  invalidate(key){const next=this.epoch(key)+1;this.epochs.set(key,next);try{this.activeTransactions.get(key)?.abort?.();}catch{}return next;}
+  lane(key,task){const previous=this.lanes.get(key)||Promise.resolve(),run=previous.catch(()=>{}).then(task),settled=run.finally(()=>{if(this.lanes.get(key)===settled)this.lanes.delete(key);});this.lanes.set(key,settled);return run;}
+  async whenIdle(key){await(this.lanes.get(key)||Promise.resolve()).catch(()=>{});}
+  local(){try{const storage=globalThis.localStorage;return storage&&['getItem','setItem','removeItem'].every(name=>typeof storage[name]==='function')?storage:null;}catch{return null;}}
+  async idbGet(database,key){return await new Promise((resolve,reject)=>{let transaction;try{transaction=database.transaction(this.storeName,'readonly');}catch(error){reject(error);return;}const request=transaction.objectStore(this.storeName).get(key);request.onsuccess=()=>resolve(request.result??null);request.onerror=()=>reject(request.error||transaction.error||new Error('IndexedDB read failed'));transaction.onabort=()=>reject(transaction.error||new Error('IndexedDB read aborted'));});}
+  async idbBundle(key){try{const database=await this.open(),records={};for(const suffix of [...SUFFIXES,':tombstone',':authority'])records[suffix]=await this.idbGet(database,`${key}${suffix}`);return{backend:'indexeddb',status:'ok',records,database};}catch(error){return{backend:'indexeddb',status:'error',records:{},error:String(error),database:null};}}
+  localBundle(key){const storage=this.local();if(!storage)return{backend:'localstorage',status:'unavailable',records:{}};const records={},errors=[];for(const suffix of [...SUFFIXES,':tombstone',':authority'])try{const text=storage.getItem(`INK:${key}${suffix}`);records[suffix]=text?JSON.parse(text):null;}catch(error){records[suffix]=null;errors.push({suffix,error:String(error)});}return{backend:'localstorage',status:errors.length?'partial':'ok',records,errors,storage};}
+  memoryBundle(key){const records={};for(const suffix of [...SUFFIXES,':tombstone'])records[suffix]=this.memory.get(`${key}${suffix}`)??null;return{backend:'memory',status:'ok',records};}
+  async bundles(key){const[idb,local]=await Promise.all([this.idbBundle(key),Promise.resolve(this.localBundle(key))]);return[idb,local,this.memoryBundle(key)];}
+  checkpointRecords(previous,existing=[]){const seen=new Set();return[previous,...(Array.isArray(existing)?existing:[])].filter(Boolean).filter(record=>!isTombstone(record)&&!seen.has(identityOf(record))&&seen.add(identityOf(record))).slice(0,this.checkpointLimit).map(deepClone);}
+  parseCandidates(bundles){const candidates=[],rejected=[];let tombstoneGeneration=-1;const local=bundles.find(bundle=>bundle.backend==='localstorage');const authority=local?.records?.[':authority'];const fenced=authority?.schema==='INK_STORAGE_AUTHORITY_V1'&&['save','remove'].includes(authority.operation);const authoritativeRecord=authority?.operation==='save'?local?.records?.['']:local?.records?.[':tombstone'];const fenceValid=fenced&&((authority.operation==='remove'&&isTombstone(authoritativeRecord))||(authority.operation==='save'&&verifyStorageRecord(authoritativeRecord).valid&&identityOf(authoritativeRecord)===authority.fingerprint));for(const bundle of bundles){if(fenced&&bundle.backend!=='localstorage')continue;const marker=bundle.records?.[':tombstone'];if(isTombstone(marker))tombstoneGeneration=Math.max(tombstoneGeneration,generationOf(marker));if(bundle.status==='error')rejected.push({source:'backend',backend:bundle.backend,reason:'backend-error',error:bundle.error});for(const item of bundle.errors||[])rejected.push({source:'backend',backend:bundle.backend,reason:'record-read-error',...item});}
+    const add=(bundle,source,record)=>{if(!record)return;const verification=verifyStorageRecord(record);if(!verification.valid){rejected.push({source,backend:bundle.backend,reason:verification.reason});return;}const generation=generationOf(record);if(generation<=tombstoneGeneration){rejected.push({source,backend:bundle.backend,reason:'invalidated-generation',generation,tombstoneGeneration});return;}candidates.push({source,sourceKind:source.startsWith('checkpoint-')?'checkpoint':source,backend:bundle.backend,record,verification,generation,modifiedAt:timeOf(verification.value?.modifiedAt),savedAt:timeOf(record.savedAt)});};
+    for(const bundle of bundles){if(fenced&&bundle.backend!=='localstorage')continue;if(fenced&&!fenceValid)continue;add(bundle,'current',bundle.records?.['']);add(bundle,'previous',bundle.records?.[':previous']);for(const[index,record]of(Array.isArray(bundle.records?.[':checkpoints'])?bundle.records[':checkpoints']:[]).entries())add(bundle,`checkpoint-${index+1}`,record);}if(fenced&&authority.operation==='remove'&&fenceValid)tombstoneGeneration=Math.max(tombstoneGeneration,generationOf(authoritativeRecord));if(fenced&&!fenceValid)rejected.push({source:'authority',backend:'localstorage',reason:'authority-fence-mismatch'});return{candidates,rejected,tombstoneGeneration,authority:fenced?authority:null};}
+  compareSemantic(a,b){const source={current:3,previous:2,checkpoint:1};return(b.generation-a.generation)||(b.modifiedAt-a.modifiedAt)||(b.savedAt-a.savedAt)||(Number(!!b.verification.verified)-Number(!!a.verification.verified))||((source[b.sourceKind]||0)-(source[a.sourceKind]||0));}
+  compare(a,b){const backend={indexeddb:3,localstorage:2,memory:1};return this.compareSemantic(a,b)||((backend[b.backend]||0)-(backend[a.backend]||0));}
+  choose(candidates,validate=value=>Boolean(value),currentOnly=false){const rejected=[],eligible=[];for(const candidate of candidates){if(currentOnly&&candidate.source!=='current')continue;if(!validate(candidate.verification.value)){rejected.push({source:candidate.source,backend:candidate.backend,reason:'validation-failed'});continue;}eligible.push(candidate);}eligible.sort((a,b)=>this.compare(a,b));if(!eligible.length)return{selected:null,rejected,ambiguous:false};const tied=eligible.filter(candidate=>this.compareSemantic(eligible[0],candidate)===0);if(new Set(tied.map(candidate=>identityOf(candidate.record))).size>1){rejected.push(...tied.map(candidate=>({source:candidate.source,backend:candidate.backend,reason:'ambiguous-top-candidate'})));return{selected:null,rejected,ambiguous:true};}return{selected:eligible[0],rejected,ambiguous:false};}
+  maxGeneration(bundles){let max=0;for(const bundle of bundles)for(const suffix of [...SUFFIXES,':tombstone']){const record=bundle.records?.[suffix];if(Array.isArray(record))for(const item of record)max=Math.max(max,generationOf(item));else max=Math.max(max,generationOf(record));}return max;}
+  previousState(bundles){const{candidates}=this.parseCandidates(bundles),choice=this.choose(candidates,()=>true,true),current=choice.selected?.record||null,prior=(current?candidates.filter(candidate=>candidate.source!=='current'):candidates).sort((a,b)=>this.compare(a,b)).map(candidate=>candidate.record);return{previous:current,checkpoints:this.checkpointRecords(current,prior)};}
+  setMemory(key,current,previous,checkpoints){if(previous)this.memory.set(`${key}:previous`,deepClone(previous));else this.memory.delete(`${key}:previous`);this.memory.set(`${key}:checkpoints`,deepClone(checkpoints));this.memory.set(key,deepClone(current));}
+  async writeIdb(key,database,current,previous,checkpoints,epoch){if(this.epoch(key)!==epoch)throw new Error('STALE_STORAGE_OPERATION');await new Promise((resolve,reject)=>{let transaction;try{transaction=database.transaction(this.storeName,'readwrite');}catch(error){reject(error);return;}this.activeTransactions.set(key,transaction);const store=transaction.objectStore(this.storeName);if(previous)store.put(previous,`${key}:previous`);else store.delete(`${key}:previous`);store.put(checkpoints,`${key}:checkpoints`);store.put(current,key);const done=()=>{if(this.activeTransactions.get(key)===transaction)this.activeTransactions.delete(key);};transaction.oncomplete=()=>{done();resolve();};transaction.onerror=()=>{done();reject(transaction.error||new Error('IndexedDB write failed'));};transaction.onabort=()=>{done();reject(transaction.error||new Error('IndexedDB write aborted'));};});if(this.epoch(key)!==epoch)throw new Error('STALE_STORAGE_OPERATION');const persisted=await this.idbGet(database,key),verification=verifyStorageRecord(persisted);if(!verification.valid||identityOf(persisted)!==identityOf(current)||generationOf(persisted)!==generationOf(current))throw new Error('IndexedDB readback verification failed');}
+  writeLocal(key,current,previous,checkpoints,epoch){if(this.epoch(key)!==epoch)throw new Error('STALE_STORAGE_OPERATION');const storage=this.local();if(!storage)throw new Error('localStorage unavailable');if(previous)storage.setItem(`INK:${key}:previous`,JSON.stringify(previous));else storage.removeItem(`INK:${key}:previous`);storage.setItem(`INK:${key}:checkpoints`,JSON.stringify(checkpoints));storage.setItem(`INK:${key}`,JSON.stringify(current));storage.setItem(`INK:${key}:authority`,JSON.stringify({schema:'INK_STORAGE_AUTHORITY_V1',operation:'save',fingerprint:identityOf(current),issuedAt:new Date().toISOString()}));const fence=JSON.parse(storage.getItem(`INK:${key}:authority`)||'null');if(fence?.fingerprint!==identityOf(current))throw new Error('localStorage authority fence failed');const persisted=JSON.parse(storage.getItem(`INK:${key}`)||'null'),verification=verifyStorageRecord(persisted);if(!verification.valid||identityOf(persisted)!==identityOf(current)||generationOf(persisted)!==generationOf(current))throw new Error('localStorage readback verification failed');}
+  async saveWithReceipt(key,value){const captured=deepClone(value),epoch=this.epoch(key);return await this.lane(key,async()=>{if(this.epoch(key)!==epoch)return this.lastWriteReceipt={ok:false,durability:'failed',backend:'none',committed:false,verified:false,stale:true,key};const bundles=await this.bundles(key);if(this.epoch(key)!==epoch)return this.lastWriteReceipt={ok:false,durability:'failed',backend:'none',committed:false,verified:false,stale:true,key};const storageGeneration=this.maxGeneration(bundles)+1,current=envelope(captured,storageGeneration),{previous,checkpoints}=this.previousState(bundles);this.setMemory(key,current,previous,checkpoints);let idbError=null;const idb=bundles.find(bundle=>bundle.backend==='indexeddb');if(idb?.status==='ok'&&idb.database)try{await this.writeIdb(key,idb.database,current,previous,checkpoints,epoch);const local=this.local();if(local?.getItem(`INK:${key}:authority`)){local.removeItem(`INK:${key}:authority`);if(local.getItem(`INK:${key}:authority`))throw new Error('Cannot retire localStorage authority fence');}this.lastBackend='indexeddb';return this.lastWriteReceipt={ok:true,durability:'durable',backend:'indexeddb',committed:true,verified:true,key,storageGeneration,documentId:captured?.id||null,fingerprint:current.fingerprint};}catch(error){idbError=String(error);}else idbError=idb?.error||'IndexedDB unavailable';if(this.epoch(key)!==epoch)return this.lastWriteReceipt={ok:false,durability:'failed',backend:'none',committed:false,verified:false,stale:true,key,error:idbError};try{this.writeLocal(key,current,previous,checkpoints,epoch);this.lastBackend='localstorage';return this.lastWriteReceipt={ok:true,durability:'durable',backend:'localstorage',committed:true,verified:true,key,storageGeneration,documentId:captured?.id||null,fingerprint:current.fingerprint,fallbackFrom:idbError};}catch(error){this.lastBackend='memory';return this.lastWriteReceipt={ok:false,durability:'volatile',backend:'memory',committed:false,verified:false,key,storageGeneration,documentId:captured?.id||null,fingerprint:current.fingerprint,error:String(error),fallbackFrom:idbError};}});}
+  async save(key,value){return(await this.saveWithReceipt(key,value)).ok===true;}
+  derivedParent(key){for(const suffix of [':previous',':checkpoints'])if(key.endsWith(suffix)&&key.length>suffix.length)return{parent:key.slice(0,-suffix.length),suffix};return null;}
+  async derivedRead(key,validate=value=>Boolean(value),recovery=false){
+    const derived=this.derivedParent(key);
+    return this.lane(derived.parent,async()=>{
+      const bundles=await this.bundles(derived.parent);
+      const parentExists=bundles.some(bundle=>['',':previous',':checkpoints',':tombstone',':authority'].some(suffix=>bundle.records?.[suffix]!=null));
+      if(!parentExists)return recovery?this.loadWithRecoveryRoot(key,validate):this.loadRecordRoot(key);
+      const parsed=this.parseCandidates(bundles);
+      const matches=parsed.candidates.filter(candidate=>derived.suffix===':previous'?candidate.source==='previous':candidate.sourceKind==='checkpoint');
+      const accepted=matches.filter(candidate=>{try{return validate(candidate.verification.value);}catch{return false;}}).sort((a,b)=>this.compare(a,b));
+      const grouped=derived.suffix===':checkpoints';
+      const rejected=[...parsed.rejected],unique=[],identities=new Set();let ambiguous=false;
+      for(let index=0;index<accepted.length;){
+        const leader=accepted[index],ties=[];let next=index;
+        while(next<accepted.length&&this.compareSemantic(leader,accepted[next])===0)ties.push(accepted[next++]);
+        if(new Set(ties.map(candidate=>identityOf(candidate.record))).size>1){
+          ambiguous=true;
+          rejected.push(...ties.map(candidate=>({source:candidate.source,backend:candidate.backend,reason:'ambiguous-derived-candidate'})));
+          break;
         }
-      } catch (_) {}
-      this.lastBackend = 'memory';
-      return this.memory.get(key) || null;
-    }
+        const identity=identityOf(leader.record);
+        if(!identities.has(identity)){identities.add(identity);unique.push(leader);}
+        index=next;
+      }
+      const selected=ambiguous?null:unique[0]||null;
+      const records=ambiguous?null:grouped?unique.slice(0,this.checkpointLimit).map(candidate=>deepClone(candidate.record)):selected?deepClone(selected.record):null;
+      const absent=ambiguous||(grouped?records.length===0:!selected);
+      this.lastBackend=selected?.backend||'memory';
+      this.lastReadReceipt={ok:!absent,backend:selected?.backend||'none',key,parent:derived.parent,source:derived.suffix,derived:true,rejected,ambiguous};
+      if(!recovery)return absent?null:records;
+      const result={value:absent?null:grouped?records.map(unwrap):deepClone(selected.verification.value),recovered:false,source:absent?null:derived.suffix.slice(1),verified:!!selected?.verification.verified,backend:selected?.backend||'none',durability:selected?.backend==='memory'?'volatile':absent?'failed':'durable',rejected,ambiguous,derivedParent:derived.parent};
+      this.lastRecovery=result;return result;
+    });
   }
-
-  async load(key) {
-    return unwrap(await this.loadRecord(key));
-  }
-
-  async loadWithRecovery(key, validate = value => Boolean(value)) {
-    const sources = [
-      { name: 'current', record: await this.loadRecord(key) },
-      { name: 'previous', record: await this.loadRecord(`${key}:previous`) }
-    ];
-    const checkpointRecords = await this.loadRecord(`${key}:checkpoints`);
-    for (const [index, record] of (Array.isArray(checkpointRecords) ? checkpointRecords : []).entries()) sources.push({ name: `checkpoint-${index + 1}`, record });
-    const rejected = [];
-    for (const source of sources) {
-      const verification = verifyStorageRecord(source.record);
-      if (!verification.valid) { rejected.push({ source: source.name, reason: verification.reason }); continue; }
-      if (!validate(verification.value)) { rejected.push({ source: source.name, reason: 'validation-failed' }); continue; }
-      const result = {
-        value: verification.value,
-        recovered: source.name !== 'current',
-        source: source.name,
-        verified: Boolean(verification.verified),
-        backend: this.lastBackend,
-        rejected
-      };
-      this.lastRecovery = result;
-      return result;
-    }
-    const result = { value: null, recovered: false, source: null, verified: false, backend: this.lastBackend, rejected };
-    this.lastRecovery = result;
-    return result;
-  }
-
-  async remove(key) {
-    for (const suffix of ['', ':previous', ':checkpoints']) this.memory.delete(`${key}${suffix}`);
-    try {
-      const database = await this.open();
-      await new Promise((resolve, reject) => {
-        const transaction = database.transaction(this.storeName, 'readwrite');
-        const store = transaction.objectStore(this.storeName);
-        for (const suffix of ['', ':previous', ':checkpoints']) store.delete(`${key}${suffix}`);
-        transaction.oncomplete = resolve;
-        transaction.onerror = () => reject(transaction.error);
-      });
-    } catch (error) {
-      try {
-        for (const suffix of ['', ':previous', ':checkpoints']) globalThis.localStorage?.removeItem(`INK:${key}${suffix}`);
-      } catch (_) {}
-    }
-  }
-
-  async probe() {
-    const key = `__probe__:${Date.now()}`;
-    const value = { format: 'INK', formatVersion: 4, id: key, modifiedAt: new Date().toISOString(), activePageId: 'page', pages: [{ id: 'page', activeLayerId: 'layer', layers: [{ id: 'layer', objects: [] }] }] };
-    const saved = await this.save(key, value);
-    const result = await this.loadWithRecovery(key, candidate => candidate?.id === key);
-    await this.remove(key);
-    return { ok: saved && result.value?.id === key, verified: result.verified, backend: this.lastBackend, checkpointLimit: this.checkpointLimit };
-  }
-
-  diagnostics() {
-    return { backend: this.lastBackend, checkpointLimit: this.checkpointLimit, lastRecovery: this.lastRecovery };
-  }
+  async loadRecord(key){if(this.derivedParent(key))return this.derivedRead(key,()=>true,false);return this.loadRecordRoot(key);}
+  async loadRecordRoot(key){return await this.lane(key,async()=>{const bundles=await this.bundles(key),parsed=this.parseCandidates(bundles),choice=this.choose(parsed.candidates,()=>true,true),selected=choice.selected;if(!selected){this.lastBackend='memory';this.lastReadReceipt={ok:false,backend:'none',key,rejected:[...parsed.rejected,...choice.rejected],ambiguous:choice.ambiguous,tombstoneGeneration:parsed.tombstoneGeneration};return null;}this.lastBackend=selected.backend;this.lastReadReceipt={ok:true,backend:selected.backend,key,source:selected.source,verified:!!selected.verification.verified,storageGeneration:selected.generation,fingerprint:selected.record?.fingerprint||null};return deepClone(selected.record);});}
+  async load(key){return unwrap(await this.loadRecord(key));}
+  async loadWithRecovery(key,validate=value=>Boolean(value)){if(this.derivedParent(key))return this.derivedRead(key,validate,true);return this.loadWithRecoveryRoot(key,validate);}
+  async loadWithRecoveryRoot(key,validate=value=>Boolean(value)){return await this.lane(key,async()=>{const bundles=await this.bundles(key),parsed=this.parseCandidates(bundles),choice=this.choose(parsed.candidates,validate),rejected=[...parsed.rejected,...choice.rejected],selected=choice.selected;if(!selected){const result={value:null,recovered:false,source:null,verified:false,backend:'none',durability:'failed',rejected,ambiguous:choice.ambiguous,tombstoneGeneration:parsed.tombstoneGeneration};this.lastBackend='memory';this.lastRecovery=result;this.lastReadReceipt={ok:false,backend:'none',key,rejected,ambiguous:choice.ambiguous};return result;}const result={value:deepClone(selected.verification.value),recovered:selected.source!=='current',source:selected.source,verified:!!selected.verification.verified,backend:selected.backend,durability:selected.backend==='memory'?'volatile':'durable',storageGeneration:selected.generation,fingerprint:selected.record?.fingerprint||null,rejected,ambiguous:false,tombstoneGeneration:parsed.tombstoneGeneration};this.lastBackend=selected.backend;this.lastRecovery=result;this.lastReadReceipt={ok:true,backend:selected.backend,key,source:selected.source,verified:result.verified,storageGeneration:selected.generation,fingerprint:result.fingerprint};return result;});}
+  async removeIdb(key,database,marker,epoch){if(this.epoch(key)!==epoch)throw new Error('STALE_STORAGE_OPERATION');await new Promise((resolve,reject)=>{let transaction;try{transaction=database.transaction(this.storeName,'readwrite');}catch(error){reject(error);return;}this.activeTransactions.set(key,transaction);const store=transaction.objectStore(this.storeName);store.put(marker,`${key}:tombstone`);for(const suffix of SUFFIXES)store.delete(`${key}${suffix}`);const done=()=>{if(this.activeTransactions.get(key)===transaction)this.activeTransactions.delete(key);};transaction.oncomplete=()=>{done();resolve();};transaction.onerror=()=>{done();reject(transaction.error||new Error('IndexedDB remove failed'));};transaction.onabort=()=>{done();reject(transaction.error||new Error('IndexedDB remove aborted'));};});const persisted=await this.idbGet(database,`${key}:tombstone`);if(!isTombstone(persisted)||generationOf(persisted)!==generationOf(marker))throw new Error('IndexedDB tombstone readback failed');return true;}
+  removeLocal(key,marker,epoch){if(this.epoch(key)!==epoch)throw new Error('STALE_STORAGE_OPERATION');const storage=this.local();if(!storage)throw new Error('localStorage unavailable');storage.setItem(`INK:${key}:tombstone`,JSON.stringify(marker));storage.setItem(`INK:${key}:authority`,JSON.stringify({schema:'INK_STORAGE_AUTHORITY_V1',operation:'remove',issuedAt:new Date().toISOString()}));if(JSON.parse(storage.getItem(`INK:${key}:authority`)||'null')?.operation!=='remove')throw new Error('localStorage deletion fence failed');for(const suffix of SUFFIXES)storage.removeItem(`INK:${key}${suffix}`);const persisted=JSON.parse(storage.getItem(`INK:${key}:tombstone`)||'null');if(!isTombstone(persisted)||generationOf(persisted)!==generationOf(marker))throw new Error('localStorage tombstone readback failed');return true;}
+  async remove(key){const epoch=this.invalidate(key);return await this.lane(key,async()=>{const bundles=await this.bundles(key),storageGeneration=this.maxGeneration(bundles)+1,marker=tombstone(storageGeneration);this.memory.set(`${key}:tombstone`,deepClone(marker));for(const suffix of SUFFIXES)this.memory.delete(`${key}${suffix}`);let idbOk=false,localOk=false,idbError=null,localError=null;const idb=bundles.find(bundle=>bundle.backend==='indexeddb');if(idb?.status==='ok'&&idb.database)try{idbOk=await this.removeIdb(key,idb.database,marker,epoch);}catch(error){idbError=String(error);}else idbError=idb?.error||'IndexedDB unavailable';try{localOk=this.removeLocal(key,marker,epoch);}catch(error){localError=String(error);}const ok=localOk,backend=idbOk&&localOk?'indexeddb+localstorage':idbOk?'indexeddb':localOk?'localstorage':'memory';this.lastBackend=idbOk?'indexeddb':localOk?'localstorage':'memory';this.lastWriteReceipt={ok,operation:'remove',durability:ok?'durable':'volatile',backend,committed:ok,verified:ok,key,storageGeneration,idbError,localError};return ok;});}
+  async probe(){const key=`__probe__:${Date.now()}:${Math.random().toString(16).slice(2)}`,value={format:'INK',formatVersion:4,id:key,modifiedAt:new Date().toISOString(),activePageId:'page',pages:[{id:'page',activeLayerId:'layer',layers:[{id:'layer',objects:[]}]}]},saved=await this.save(key,value),fresh=new InkStore({databaseName:this.databaseName,storeName:this.storeName,checkpointLimit:this.checkpointLimit}),result=await fresh.loadWithRecovery(key,candidate=>candidate?.id===key),backend=result.backend,verified=result.verified===true&&backend!=='memory'&&backend!=='none';await this.remove(key);return{ok:saved===true&&result.value?.id===key&&verified,verified,backend,checkpointLimit:this.checkpointLimit};}
+  diagnostics(){return{backend:this.lastBackend,checkpointLimit:this.checkpointLimit,lastRecovery:this.lastRecovery,lastWriteReceipt:this.lastWriteReceipt,lastReadReceipt:this.lastReadReceipt};}
 }
