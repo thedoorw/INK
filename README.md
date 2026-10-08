@@ -19,3 +19,5 @@ Rules:
 - `BUILD_INFO.json` records the deployed source identity.
 
 Current state: deployment mirror initialized; first INK build pending.
+
+<!-- INK QA-ONLY README gate proof; this PR MUST be closed unmerged. -->
