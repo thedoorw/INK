@@ -4,7 +4,7 @@ import { generateKeyPairSync, sign } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, writeFile, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { canonical, sha256, gitBlobSha, validateChangedPaths, verifyPRIdentity, verifyReleaseCandidate, allowedRuntime } from './verify-public-release.mjs';
+import { canonical, sha256, gitBlobSha, validateChangedPaths, verifyPRIdentity, verifyReleaseCandidate, allowedRuntime, classifyPublicPRChange } from './verify-public-release.mjs';
 
 const hex=(x,n)=>x.repeat(n);
 const source={repo:'thedoorw/INK-Browser-QA',sha:hex('a',40),tree:hex('e',40)};
@@ -147,4 +147,15 @@ test('N11: mismatching BUILD_INFO runtime record rejects even a newly signed env
  for(const r of f.manifest.files) rows.push(row(r.path,await readFile(join(f.candidateRoot,r.path))));
  const altered={...f.manifest,files:rows};
  await assert.rejects(()=>verifyReleaseCandidate({...f.args,manifest:altered,signature:signManifest(altered)}),/BUILD_RUNTIME_COUNT_MISMATCH/);
+});
+
+test('N12: README-only PR passes metadata classification without Runtime release grant',()=>{
+  assert.equal(classifyPublicPRChange(['README.md']),'README_ONLY');
+  assert.equal(classifyPublicPRChange([]),'SIGNED_RELEASE_REQUIRED');
+  for(const paths of [
+    ['index.html'],['src/ink.js'],['README.md','index.html'],
+    ['.github/workflows/ink-public-release-gate-001.yml'],
+    ['engineering/public-release/verify-public-release.mjs'],['README.md','engineering/public-release/policy.json'],
+    ['release/CANDIDATE.json','release/CANDIDATE.sig']
+  ])assert.equal(classifyPublicPRChange(paths),'SIGNED_RELEASE_REQUIRED',paths.join(','));
 });
