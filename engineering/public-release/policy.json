@@ -1,0 +1,49 @@
+{
+  "schema": "INK_PUBLIC_RELEASE_POLICY_V1",
+  "repository": "thedoorw/INK",
+  "min_runtime_files": 200,
+  "signers": [],
+  "allowed_exact": [
+    "build-identity.js",
+    "dist/ink.compat.js",
+    "index-standalone.html",
+    "index.html",
+    "manifest-portable.webmanifest",
+    "manifest.webmanifest",
+    "qa/runtime-test-bridge.js",
+    "service-worker-runtime.js",
+    "service-worker.js",
+    "stage-runtime.css"
+  ],
+  "allowed_prefixes": [
+    "assets/",
+    "schemas/",
+    "src/",
+    "ui/",
+    "vendor/"
+  ],
+  "forbidden_exact": [
+    "ASSET_MANIFEST.json",
+    "device-validation.html",
+    "generate-build-identity.mjs",
+    "generate-shell.mjs",
+    "legacy-workstation.compat.html",
+    "shell.template.html",
+    "src/ui/legacy-ui-adapter.js",
+    "web-shell.js"
+  ],
+  "forbidden_prefixes": [
+    ".git/",
+    ".github/",
+    "ACTIVE/",
+    "ARCHIVE/",
+    "engineering/",
+    "governance/",
+    "qa/",
+    "research/",
+    "reference/",
+    "working/",
+    "release/"
+  ],
+  "notes": "FAIL-CLOSED until an authorized public Ed25519 signer is pinned here by reviewed control-plane PR; no real credentials, secret keys or publication authority in this file."
+}
