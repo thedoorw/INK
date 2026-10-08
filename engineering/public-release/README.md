@@ -23,6 +23,12 @@ One-time future USER GitHub account tasks, coordinated in CHAT:
 - Set the public `main` required status check **after this workflow exists on main**, verify direct-push and invalid-PR rejection with the actual future cross-repo credential (or use CHAT's GitHub connector to submit branches without creating a separate cross-repo PAT).
 - Test a real allowed candidate, refusal of changed/missing files, protected PR merge, Pages Live, exact receipt, and bounded rollback.
 
+## Documentation-only and future control-plane updates
+
+When `public-release-candidate-verify` becomes a required `main` check, a PR whose **entire exact diff is only root `README.md`** may PASS as `README_ONLY`, with `noRuntimePublication=true`. No signer, Runtime metadata, or publish authority is implied. Any other diff—including Browser Runtime, a Recipe/QA folder, release manifests, public policy, or this verifier's code—still requires the strict signed candidate route and cannot borrow the docs-only exception.
+
+**Changing public control files is intentionally fail-closed.** A future trusted verifier/policy modification must follow a separately approved control-plane update with an owner-controlled status rule migration, never by pretending a code change is a normal Runtime candidate. Owner/CHAT cannot silently waive a failing required check.
+
 ## Current engineering limits / not-yet-proven
 
 - Candidate verifier is a **read-only gate**; it does not itself create packages, issue GitHub tokens, grant public commit rights, deploy, or run real browser QA.
