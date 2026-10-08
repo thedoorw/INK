@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash, createPublicKey, verify as ed25519Verify } from 'node:crypto';
-import { readFile, lstat } from 'node:fs/promises';
+import { readFile, lstat, realpath } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
@@ -35,16 +35,17 @@ export function allowedRuntime(p,policy){
   if(p.startsWith('qa/')||p.startsWith('release/')||p.startsWith('engineering/')||p.startsWith('.github/'))return false;
   return (policy.allowed_exact||[]).includes(p)||(policy.allowed_prefixes||[]).some(s=>p.startsWith(s));
 }
-export function validateChangedPaths(paths,rows,policy){
+export function validateChangedPaths(paths,rows,policy,priorManaged=[]){
+  const prior=new Set(priorManaged);
   const known=new Set(rows.map(r=>r.path));
   for(const p of paths){
     assert.ok(goodPath(p),'CHANGED_PATH_INVALID:'+p);
     assert.ok(metaPaths.has(p)||coreMeta.has(p)||allowedRuntime(p,policy),'UNTRUSTED_PATH_CHANGE:'+p);
     if(!metaPaths.has(p))assert.ok(known.has(p)||allowedRuntime(p,policy),'UNLISTED_CHANGED_PATH:'+p);
     if(allowedRuntime(p,policy)&&!known.has(p)){
-      // Deletion is permitted only when absent from the new candidate checkout.
-      // The on-disk file set and prior managed file list are checked separately.
-      continue;
+      assert.ok(prior.has(p),'UNLISTED_CHANGED_RUNTIME_PATH:'+p);
+      // A trusted prior-managed file may be removed in a new release.
+      // verifyReleaseCandidate independently checks that it no longer exists.
     }
   }
 }
@@ -110,14 +111,20 @@ export async function verifyReleaseCandidate({baseRoot,candidateRoot,manifest,si
   const base={head:baseHead,tree:baseTree,priorReceiptHash:sha256(priorBytes)};
   const rows=validateEnvelope(manifest,policy,base);
   verifySignature(manifest,signature,policy);
-  validateChangedPaths(changedPaths,rows,policy);
+  validateChangedPaths(changedPaths,rows,policy,(prior.managed_files||[]).map(r=>r.path));
   const rowMap=new Map(rows.map(r=>[r.path,r]));
+  const rootPath=await realpath(candidateRoot);
   for(const row of rows){
     const abs=resolve(candidateRoot,row.path);
     assert.ok(abs.startsWith(resolve(candidateRoot)+sep),'PATH_ESCAPE');
-    const stat=await lstat(abs);
-    assert.ok(stat.isFile()&&!stat.isSymbolicLink(),'NOT_ORDINARY_FILE:'+row.path);
-    const bytes=await readFile(abs);
+    const parts=row.path.split('/');
+    for(let k=1;k<=parts.length;k++){
+      const stat=await lstat(resolve(candidateRoot,...parts.slice(0,k)));
+      assert.ok(!stat.isSymbolicLink()&&(k<parts.length?stat.isDirectory():stat.isFile()),'SYMLINK_OR_SPECIAL_PATH:'+row.path);
+    }
+    const actual=await realpath(abs);
+    assert.ok(actual.startsWith(rootPath+sep),'REALPATH_ESCAPE:'+row.path);
+    const bytes=await readFile(actual);
     assert.equal(bytes.length,row.bytes,'SIZE_MISMATCH:'+row.path);
     assert.equal(sha256(bytes),row.sha256,'BYTE_HASH_MISMATCH:'+row.path);
   }
@@ -149,6 +156,7 @@ export async function verifyReleaseCandidate({baseRoot,candidateRoot,manifest,si
   assert.equal(receipt.package_manifest_sha256,manifest.package.manifest_sha256,'RECEIPT_PACKAGE_MISMATCH');
   assert.equal(receipt.allowlist_digest_sha256,manifest.package.allowlist_digest_sha256,'RECEIPT_ALLOWLIST_MISMATCH');
   const managed=new Map((receipt.managed_files||[]).map(r=>[r.path,r]));
+  assert.equal((receipt.managed_files||[]).length,rows.length-1,'RECEIPT_MANAGED_LENGTH_INVALID');
   assert.equal(managed.size,rows.length-1,'RECEIPT_MANAGED_ROWS_INVALID');
   for(const row of rows.filter(r=>r.path!=='PUBLISH_RECEIPT.json')){
     const r=managed.get(row.path);
