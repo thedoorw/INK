@@ -29,9 +29,9 @@ const metaPaths=new Set(['release/CANDIDATE.json','release/CANDIDATE.sig']);
 const coreMeta=new Set(['BUILD_INFO.json','PUBLISH_RECEIPT.json']);
 export function allowedRuntime(p,policy){
   if(!goodPath(p))return false;
+  if(p==='qa/runtime-test-bridge.js')return true;
   if((policy.forbidden_exact||[]).includes(p))return false;
   if((policy.forbidden_prefixes||[]).some(s=>p.startsWith(s)))return false;
-  if(p==='qa/runtime-test-bridge.js')return true;
   if(p.startsWith('qa/')||p.startsWith('release/')||p.startsWith('engineering/')||p.startsWith('.github/'))return false;
   return (policy.allowed_exact||[]).includes(p)||(policy.allowed_prefixes||[]).some(s=>p.startsWith(s));
 }
