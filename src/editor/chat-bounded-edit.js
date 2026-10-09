@@ -1926,6 +1926,9 @@ export class ChatBoundedEditController {
       expected,
       stateFingerprint: chatStateFingerprint(summary)
     });
+    // An approval is bound to its native session, not merely a possibly duplicated
+    // serialized document/page ID. A different session invalidates it pre-mutation.
+    proposal.sessionTarget = this.app?.sessions?.current() || null;
     if (this.proposals.has(proposal.proposalId)) editFail('PROPOSAL_EXISTS', { proposalId: proposal.proposalId });
     this.proposals.set(proposal.proposalId, proposal);
     return clone(proposal);
@@ -1936,6 +1939,10 @@ export class ChatBoundedEditController {
     const proposal = this.proposals.get(key);
     if (!proposal) editFail('PROPOSAL_NOT_FOUND');
     if (proposal.state !== 'PROPOSED') editFail('PROPOSAL_STATE_INVALID', { actual: proposal.state });
+    if (proposal.sessionTarget) {
+      try { this.app.sessions.assertTarget(proposal.sessionTarget, { active: true }); }
+      catch (_) { editFail('STALE_SESSION_TARGET'); }
+    }
     validateChatEditTaskAgainstState(this.app, proposal.task, { expected: proposal.expected });
     const approvalToken = `INK-LOCAL-APPROVAL:${proposal.proposalId}:${++this.approvalSequence}`;
     proposal.state = 'APPROVED';
@@ -1962,6 +1969,10 @@ export class ChatBoundedEditController {
     if (!proposal) editFail('PROPOSAL_NOT_FOUND');
     if (proposal.state !== 'APPROVED' || !proposal.approved) editFail('APPROVAL_REQUIRED', { actual: proposal.state });
     if (!approvalToken || approvalToken !== proposal.approvalToken) editFail('APPROVAL_TOKEN_INVALID');
+    if (proposal.sessionTarget) {
+      try { this.app.sessions.assertTarget(proposal.sessionTarget, { active: true }); }
+      catch (_) { editFail('STALE_SESSION_TARGET'); }
+    }
     validateChatEditTaskAgainstState(this.app, proposal.task, {
       expected: proposal.expected,
       requireHistoryIdle: true
