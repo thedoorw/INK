@@ -1,22 +1,22 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "bdbfd6f2f58045e9eda77cc11da82c6c8a1fdbb4",
-  "package_publisher_sha": "a4d0e1fd78f0c08be8bbea09df057ffd9e594a60",
-  "authority_record_sha256": "3b9f0e760eab0a384648942610d0b957f2e8a715c77af303e81900ecb8376b76",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/238#issuecomment-6055795942",
-  "source_sha": "a4d0e1fd78f0c08be8bbea09df057ffd9e594a60",
-  "source_tree": "8d1d605eda376225b394d6feb2654c96f6c056a9",
-  "runtime_digest_sha256": "7d5ce5dfc39d7a6f207c23a3d386c50f176f07d0e699fc224668b59f86539dfa",
-  "package_manifest_sha256": "108253063364ff2900282d9edbdb214bdb914204866357967efa85f081fdb894",
-  "allowlist_digest_sha256": "a18e19426c600424cf3d53ed164a53295bd1db9beb7c6c275c70af5b1e26e553",
-  "previous_target_commit": "39d94668ab261d07bb53cfd7b3d775b67df486ac",
+  "publisher_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
+  "package_publisher_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
+  "authority_record_sha256": "92f5181f994930b2472f45e3b9863a3d9845cdb5ed7189d18bd87b172a329ebf",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/263#issuecomment-6063316778",
+  "source_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
+  "source_tree": "62b5aa122a9f8367c40cbf361873a92a3c5fda56",
+  "runtime_digest_sha256": "070bab64f4f3b8fa4061c7406f5b3b3219dd31196f4a1deaf109df18d92a1fbd",
+  "package_manifest_sha256": "d5633eaa0709b28f9088514ab38d99f67d4c34eb6b27efdbea128c00006db657",
+  "allowlist_digest_sha256": "d150e618bf276860501f3d6465f6d4a5db06b5623d086ffc721ed2138b93c40d",
+  "previous_target_commit": "4b7a5fb782c2bbb7ea3ae22fbec2930b4df880d8",
   "managed_files": [
     {
-      "path": "assets/favicon.svg",
-      "git_blob_sha": "418a162bb5a907e1224776d12480672ac9a6a25f",
-      "sha256": "ba5c237f1c0f61d07bc06da99d44b83b3a85ab992feae425230e80f0a8289746",
-      "bytes": 204
+      "path": "BUILD_INFO.json",
+      "git_blob_sha": "3cf8b9f8955f1243196d25ec3dfec1601ed9922b",
+      "sha256": "5bc53b6c888cb10068b98d59f01f4c9e02109fe4ca1c7b6ba985bd73ebf4c50c",
+      "bytes": 48592
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -25,16 +25,16 @@
       "bytes": 19801
     },
     {
+      "path": "assets/favicon.svg",
+      "git_blob_sha": "418a162bb5a907e1224776d12480672ac9a6a25f",
+      "sha256": "ba5c237f1c0f61d07bc06da99d44b83b3a85ab992feae425230e80f0a8289746",
+      "bytes": 204
+    },
+    {
       "path": "assets/ink-mark.svg",
       "git_blob_sha": "9818daa8d07d13bbae4cbe22108de8b7b6feb28d",
       "sha256": "af20f98fbdb17631bbc3915f8df25416f44437b290aed53c350850d2688cfd4e",
       "bytes": 9811
-    },
-    {
-      "path": "BUILD_INFO.json",
-      "git_blob_sha": "d98b9ad4f6d2e44df0b28276b311c532815bd3dc",
-      "sha256": "821e729df16a1a1b3bb63f0c529be3c51e0e7f7e106c977f0a25df590edc68d2",
-      "bytes": 48413
     },
     {
       "path": "build-identity.js",
@@ -98,9 +98,9 @@
     },
     {
       "path": "src/agent/capability-registry.js",
-      "git_blob_sha": "d4b80ae30572cd326e41fba4a15f25cc1cabdf6b",
-      "sha256": "9386cacc715f24029eac1dc3a021f1224aaaacbf539041062032e3b23c079a9b",
-      "bytes": 111877
+      "git_blob_sha": "884bb7b3878bbf18a58fb661e7a698f7bf1db413",
+      "sha256": "9525730cb18621f0478d9a1789203ae66f540898a323167e20fc5644327e9b0b",
+      "bytes": 115196
     },
     {
       "path": "src/agent/creative-library-search.js",
@@ -128,9 +128,15 @@
     },
     {
       "path": "src/agent/public-creative-api.js",
-      "git_blob_sha": "5f8ddbf8e39c9b66d8077386f751d901f12e5e36",
-      "sha256": "ddcb6741d414c72357a49c998ed8c38ffb721dc32dbaf359494eeced01b31129",
-      "bytes": 44675
+      "git_blob_sha": "db2d2fd2c0846ca0a70284037dcb38c6c56f6d4e",
+      "sha256": "fa0ef02d4f0a051acfebf742a19d9c1bf191602cf5d0213eaeb5efb2d08b6953",
+      "bytes": 46065
+    },
+    {
+      "path": "src/agent/recipe-creative-loop.js",
+      "git_blob_sha": "6a07673e8e32bfefe6af76643da2a2a220c4a1f4",
+      "sha256": "f5c51e36ed402f60aae057010c5d8067343d916d9a4192dc784ceb0df9cea071",
+      "bytes": 11504
     },
     {
       "path": "src/agent/runtime-bridge-protocol.js",
