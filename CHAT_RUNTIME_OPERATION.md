@@ -4,7 +4,7 @@ This repository is the deployed `/INK/` Runtime surface. CHAT does not depend on
 
 ## Canonical control path
 
-1. Read `thedoorw/INK/BUILD_INFO.json` and bind the test to the deployed source identity.
+1. Read `thedoorw/INK/BUILD_INFO.json` and `PUBLISH_RECEIPT.json` and bind the test to the deployed immutable publication identity. Do not depend on the legacy `ink-live-source-sha` meta tag.
 2. Use the GitHub connector against the authoritative source repository `thedoorw/INK-Browser-QA`.
 3. Write a structured request to `ACTIVE/INK_LIVE_CHAT_REQUEST.json`.
 4. The `INK Live CHAT Request` GitHub Actions workflow launches hosted Chromium and loads `https://thedoorw.github.io/INK/`.
