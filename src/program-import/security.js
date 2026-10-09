@@ -5,7 +5,7 @@ export const SECURITY_RULES = Object.freeze([
   { id: 'NETWORK', severity: 'BLOCK', pattern: /\b(fetch\s*\(|XMLHttpRequest|WebSocket\s*\(|requests\.|urllib\.|socket\.|curl\b|wget\b|importScripts\s*\(|(?:script|img|image)\.src\s*=)/i, message: '未申報網路連線' },
   { id: 'SHELL', severity: 'BLOCK', pattern: /\b(child_process|execSync|spawnSync|subprocess\.|os\.system|powershell|cmd\.exe|command\.com|WScript\.Shell|ShellExecute)\b/i, message: 'Shell／PowerShell／Command Prompt 呼叫' },
   { id: 'SYSTEM_SETTINGS', severity: 'BLOCK', pattern: /\b(regedit|registry|defaults\s+write|sysctl|SystemParametersInfo|HKCU|HKLM)\b/i, message: '修改系統設定' },
-  { id: 'DYNAMIC_DOWNLOAD', severity: 'BLOCK', pattern: /\b(download|eval\s*\(|new\s+Function\s*\(|execfile\s*\(|importlib\.import_module)\b/i, message: '下載、動態載入或執行其他程式' },
+  { id: 'DYNAMIC_DOWNLOAD', severity: 'BLOCK', pattern: /\b(?:download\b|eval\s*\(|new\s+Function\s*\(|execfile\s*\(|importlib\.import_module\b)/i, message: '下載、動態載入或執行其他程式' },
   { id: 'OBFUSCATION', severity: 'BLOCK', pattern: /\b(fromCharCode|atob\s*\(|base64\.b64decode|unescape\s*\(|charCodeAt).*\b(eval|Function)\b/i, message: '隱藏或混淆程式碼' },
   { id: 'BINARY_LOAD', severity: 'BLOCK', pattern: /\b(LoadLibrary|dlopen|ctypes\.|\.dll\b|\.dylib\b|\.so\b)\b/i, message: '可疑外掛或二進位載入' },
   { id: 'FILE_READ', severity: 'REVIEW', pattern: /\b(readFile|File\.openDialog|open\s*\(|os\.listdir|Path\s*\()\b/i, message: '檔案系統讀取需限定於使用者選取資產' },

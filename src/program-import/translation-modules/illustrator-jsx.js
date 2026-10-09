@@ -6,6 +6,8 @@ import {
   extensionOf
 } from '../source-adapters.js';
 import { DeterministicRandom, evaluateDeterministicExpression } from '../expression-ir.js';
+import { parseBoundedProgram } from '../program-ir.js';
+import { evaluateBoundedProgram, PROGRAM_LIMITS } from '../program-evaluator.js';
 
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const SOURCE_SOFTWARE = 'Adobe Illustrator';
@@ -67,7 +69,7 @@ function maskLexicalNonCode(text) {
     const char=chars[index], next=chars[index+1];
     if(state==='line-comment'){
       blank(index);
-      if(char==='\n'){
+      if(char==='\n'||char==='\r'){
         const raw=text.slice(start,index);
         const directive=raw.match(/^\/\/\s*(@ink-[^\r\n]*)/i);
         if(directive) directives.push({start,end:index,raw,body:directive[1].trim()});
@@ -543,12 +545,63 @@ function parseBoundedDrawingSource({name,text,metadata}) {
   });
 }
 
-export function parseIllustratorJsxSubset({name='illustrator.jsx',text='',metadata={}}={}){
+
+function parseWholeProgram({name,text,metadata={},staticIncludes=[],programEntrypoint=null,hostInputs={},diagnosticFunctions=[]}){
+  const graph=parseBoundedProgram({name,text,dependencies:staticIncludes});
+  const seed=metadata?.replayParameters?.seed??null;
+  const result=evaluateBoundedProgram(graph,{
+    seed,entrypoint:programEntrypoint,hostInputs:hostInputs||{},
+    diagnosticFunctions,limits:PROGRAM_LIMITS
+  });
+  if(!result.operations.length)throw Object.assign(new Error('INK_PROGRAM_NO_DRAWING_INTENTS'),{code:'INK_PROGRAM_NO_DRAWING_INTENTS'});
+  const operations=result.operations.map((item,index)=>({
+    ...item,sourceCommand:item.sourceCommand,
+    evidence:[{label:'bounded Program IR',line:1,excerpt:graph.sourceName+': operation '+(index+1)}]
+  }));
+  const diagnostics=result.diagnostics.map(x=>({
+    kind:x.kind,name:x.name||null,source:x.source||null,executed:x.executed??true,
+    ...(x.certification?{certification:x.certification}:{}),
+    ...(x.sourceBodySkipped!==undefined?{sourceBodySkipped:x.sourceBodySkipped}:{}),
+    ...(x.certifiedSourceFunctions!==undefined?{certifiedSourceFunctions:x.certifiedSourceFunctions}:{}),
+    ...(x.sinkCount!==undefined?{sinkCount:x.sinkCount}:{}),
+    ...(x.immediateEffectProof?{immediateEffectProof:x.immediateEffectProof}:{}),
+    ...(x.provenIdempotentWrites!==undefined?{provenIdempotentWrites:x.provenIdempotentWrites}:{}),
+    ...(x.isolatedUiBindings!==undefined?{isolatedUiBindings:x.isolatedUiBindings}:{}),
+    ...(x.registeredUninvokedCallbacks!==undefined?{registeredUninvokedCallbacks:x.registeredUninvokedCallbacks}:{}),
+    ...(x.windowConstructions!==undefined?{windowConstructions:x.windowConstructions}:{}),
+    ...(x.uiShowCalls!==undefined?{uiShowCalls:x.uiShowCalls}:{}),
+    artworkEffect:false
+  }));
+  return createWorkflowIR({
+    source:metadata.source||{name,format:'ILLUSTRATOR_JSX_READABLE_SUBSET',sourceSoftware:SOURCE_SOFTWARE},
+    metadata:{
+      ...clone(metadata),name,sourceSoftware:SOURCE_SOFTWARE,
+      sourceFormat:'ILLUSTRATOR_JSX_READABLE_SUBSET',readOnly:true,
+      adapterSubset:'r1-bounded-whole-program-ir',
+      seed,programEntrypoint,
+      boundedProgram:{format:graph.format,version:graph.version,totalNodes:graph.totalNodes,
+        units:graph.programs.map(p=>({name:p.name,nodes:p.nodes,directives:p.directives}))},
+      budget:{policy:clone(PROGRAM_LIMITS),used:result.budget},
+      sourceCoverage:{mode:'AST-bounded-pure-evaluation',classifiedExecutable:result.budget.work,
+        unclassifiedExecutable:0,loweredRecipeOperationCount:operations.length,
+        diagnostics,wholeSourceRejected:false,failClosed:false},
+      targetSemantics:{createdVariables:'typed-local-producing-paths',container:'existing-current-container'},
+      replaySeedRequired:/\bMath\.random\s*\(/.test(text)
+    },
+    operations,dependencies:['Adobe Illustrator DOM (source-only)',...graph.programs.filter(p=>!p.primary).map(p=>p.name)],
+    warnings:diagnostics.length?[JSON.stringify({nonArtworkDiagnostics:diagnostics.length})]:[],
+    adapter:{id:ILLUSTRATOR_JSX_MODULE.id,contract:ILLUSTRATOR_JSX_MODULE.contract,
+      version:ILLUSTRATOR_JSX_MODULE.version,boundary:'AST bounded evaluation to WorkflowIR; no source/host JS execution'}
+  });
+}
+
+export function parseIllustratorJsxSubset({name='illustrator.jsx',text='',metadata={},staticIncludes=[],programEntrypoint=null,hostInputs=null,diagnosticFunctions=[]}={}){
   text=String(text||'');
   const lexical=maskLexicalNonCode(text), masked=lexical.masked;
   const hasIllustrator=/#target\s+["']?illustrator\b/i.test(masked)||/\bpathItems\b|\bpathPoints\b|\bgroupItems\b|\blayers\.(?:add|getByName)\b|\bartboards\b|PathPointSelection|ExportType\./i.test(masked);
   const hasPhotoshop=/#target\s+["']?photoshop\b/i.test(masked)||/\bActionDescriptor\b|\bexecuteAction\s*\(|\bartLayers\b|\bLayerKind\b|\bcharIDToTypeID\b|\bstringIDToTypeID\b/i.test(masked);
   if(hasIllustrator&&hasPhotoshop)throw Object.assign(new Error('INK_ILLUSTRATOR_JSX_AMBIGUOUS_HOST'),{code:'AMBIGUOUS_HOST'});
+  if(programEntrypoint||staticIncludes.length)return parseWholeProgram({name,text,metadata,staticIncludes,programEntrypoint,hostInputs,diagnosticFunctions});
   if(/\bapp\.documents\.add\s*\(/.test(masked)) return parseBoundedDrawingSource({name,text,metadata});
 
   const fleurify=fleurifyOperation(text,masked);
@@ -795,7 +848,7 @@ export const ILLUSTRATOR_JSX_MODULE = Object.freeze({
   version:SOURCE_ADAPTER_CONTRACT_VERSION,
   sourceTypes:['ILLUSTRATOR_JSX_READABLE_SUBSET'],
   sourceSoftware:SOURCE_SOFTWARE,
-  detect({name='',text='',bytes=null}={}){
+  detect({name='',text='',bytes=null,programEntrypoint=null,staticIncludes=[]}={}){
     if(bytes)return{accepted:false,confidence:0};
     const source=String(text||''),extension=extensionOf(name),lexical=maskLexicalNonCode(source),masked=lexical.masked;
     const illustrator=/#target\s+["']?illustrator\b/i.test(masked)||/\bpathItems\b|\bpathPoints\b|\bgroupItems\b|\blayers\.(?:add|getByName)\b|\bartboards\b|PathPointSelection|ExportType\./i.test(masked);
@@ -804,8 +857,8 @@ export const ILLUSTRATOR_JSX_MODULE = Object.freeze({
     const fleurify=stableSourceHash(source)===FLEURIFY_SNAPSHOT_FNV1A&&FLEURIFY_SIGNATURE.test(masked)&&/leftDirection\s*=/.test(masked)&&/rightDirection\s*=/.test(masked);
     const marker=lexical.directives.some(item=>SUBSET_MARKER.test(item.body));
     const simplePrimitive=illustrator&&(!/\b(?:function|if|for|while|switch|try|catch|do|with)\b/.test(masked)&&/\.pathItems\.(?:ellipse|rectangle)\s*\(/.test(masked)||/\bapp\.documents\.add\s*\(/.test(masked));
-    const accepted=ambiguous||fleurify||marker||simplePrimitive;
-    const confidence=ambiguous ? 1 : fleurify ? 0.99 : marker ? 0.98 : simplePrimitive ? 0.94 : 0;
+    const accepted=ambiguous||fleurify||marker||simplePrimitive||(illustrator&&(Boolean(programEntrypoint)||(Array.isArray(staticIncludes)&&staticIncludes.length>0)));
+    const confidence=ambiguous ? 1 : fleurify ? 0.99 : marker ? 0.98 : simplePrimitive ? 0.94 : accepted ? 0.94 : 0;
     return{accepted,confidence,detection:createAdapterDetection({format:ambiguous?'ILLUSTRATOR_JSX_AMBIGUOUS':'ILLUSTRATOR_JSX_READABLE_SUBSET',sourceSoftware:ambiguous?'Adobe JSX (ambiguous host)':SOURCE_SOFTWARE,confidence,extension,binary:false,evidence:[ambiguous?'mixed Illustrator + Photoshop executable host markers':fleurify?'Fleurify Illustrator executable signature':marker?'@ink-illustrator-subset 1 directive':'simple Illustrator primitive subset']})};
   },
   parse(input={}){return parseIllustratorJsxSubset(input);}

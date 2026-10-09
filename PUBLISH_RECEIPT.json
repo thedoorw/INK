@@ -1,22 +1,22 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "2eef6f60009f10a5fa9831dfe3766c20b9a52fc7",
-  "package_publisher_sha": "2eef6f60009f10a5fa9831dfe3766c20b9a52fc7",
-  "authority_record_sha256": "cbbe4be9bde82afc6b9e2e85d49f84c998475ca81ec85cab2e1f9c18c4e3f224",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/282#issuecomment-6079343910",
-  "source_sha": "92b370b71d3264d20a000d4360ae8afde91bc36c",
-  "source_tree": "3388cbc68427b25615b8b35c334f6157a2a4c359",
-  "runtime_digest_sha256": "3473e5f7319123cb8420392af9def426547d9e5add9d8644536c44b96389f045",
-  "package_manifest_sha256": "c4c8136dbda5712a5e419f2571f661eb924e7014f08103b93518a0d043c70b6a",
+  "publisher_sha": "c541db19fc7a6ef43a4164f62748e9fbb094c904",
+  "package_publisher_sha": "c541db19fc7a6ef43a4164f62748e9fbb094c904",
+  "authority_record_sha256": "18e101441dd6f0b947a7077addd156a1e52a1caad07752968874208440f688ad",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/288#issuecomment-6081692417",
+  "source_sha": "68164661774b08914dc75851f2c9d3185df8dee7",
+  "source_tree": "abb1637aa0ffe3a65079f2302f3c55ac0647aa01",
+  "runtime_digest_sha256": "9faf671a0158812990f42657c7c5f491ad92a0f959d5ca6b0bfcad0c43158cdf",
+  "package_manifest_sha256": "7edfe2d3e2493c0081ffe9946286b89deef8e27060a4f5e8005dcd67e8ec879b",
   "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
-  "previous_target_commit": "66c94454b446076b27e6b1cc524e0f72e0ce4db5",
+  "previous_target_commit": "a4a645b3053b3e43b5153766d7e87ebe8c05d6b0",
   "managed_files": [
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "db6cd5febf3646bfbbe0b465570d8a6170b336df",
-      "sha256": "90ba62c19f36a54cd73e645d1166182b834f7ffec3369caf606b2feca290fbc7",
-      "bytes": 49330
+      "git_blob_sha": "9d1b92e404884e0ad98bf935d621ad8df088518d",
+      "sha256": "2dda89aadf5efcd30610169ea7af309409a7e79b55d8ef4c873f059b2327658b",
+      "bytes": 50639
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -134,9 +134,9 @@
     },
     {
       "path": "src/agent/recipe-creative-loop.js",
-      "git_blob_sha": "0b382367e7cb60282a94a2507975f3565a6c5429",
-      "sha256": "e54fc4e43af8fb9c6a2fcccd97c899019369feb9fb89ee1a125ff95f527050d9",
-      "bytes": 12323
+      "git_blob_sha": "c63f583301fbe525d4571ae84971051c5cea7fed",
+      "sha256": "6c0be272ed6dbf38f29f02ad425a614b39b905e0ea5ad6c89c22ccc85c86ba53",
+      "bytes": 14537
     },
     {
       "path": "src/agent/runtime-bridge-protocol.js",
@@ -1136,9 +1136,9 @@
     },
     {
       "path": "src/program-import/importer.js",
-      "git_blob_sha": "13ad17e87d43675ffa8432edbd4dc577e2abe225",
-      "sha256": "9476f509324edede59da0d285dfa715c93bec64abf22f4007ae3d120905d92d3",
-      "bytes": 11558
+      "git_blob_sha": "062b68e0c71d9c9c1982d4614b7e9b02a20d3b4f",
+      "sha256": "9f66da22e9c5366876ed1b145f15ee6de178c6a4ec2cc018d65b631805707d2a",
+      "bytes": 14996
     },
     {
       "path": "src/program-import/index.js",
@@ -1151,6 +1151,30 @@
       "git_blob_sha": "ccd997989d4eea2a56c2e9018587c8bb01a934bc",
       "sha256": "9f1ffc7611fa8c6ae03b4c658c07f1f2e66be2f8438a68af24f6ea55ba51f22b",
       "bytes": 27904
+    },
+    {
+      "path": "src/program-import/program-diagnostic-certifier.js",
+      "git_blob_sha": "ec9f62137cdca9f97a66855f6b5397a81531a3a0",
+      "sha256": "a0be938afdf86756f5d08cc671288e141d278e0108c0b69650f35c28842a7861",
+      "bytes": 9036
+    },
+    {
+      "path": "src/program-import/program-evaluator.js",
+      "git_blob_sha": "8c08d6b4c37064b985abf9e3f58e5abb63f2f31c",
+      "sha256": "f49f9bfc22b3293fa63648651c0b0f80d1308c41f84c4efa211691ef9d210466",
+      "bytes": 38786
+    },
+    {
+      "path": "src/program-import/program-ir.js",
+      "git_blob_sha": "cc6f879fa15b4b1bff41cfb0d6b38c7b3ac43cbb",
+      "sha256": "98cae8069605937eace102ecad88fc441997216a754a297cb758f16420b3ee13",
+      "bytes": 4418
+    },
+    {
+      "path": "src/program-import/program-scriptui-boot-certifier.js",
+      "git_blob_sha": "ac0a808733ac8746d2643943eb6bac81e906552f",
+      "sha256": "e79676f80d41dccfa75e94617b84d2ad9f5e1e794e162248b28d3a035c18d943",
+      "bytes": 11853
     },
     {
       "path": "src/program-import/reference-package.js",
@@ -1172,15 +1196,27 @@
     },
     {
       "path": "src/program-import/security.js",
-      "git_blob_sha": "b885265ed691237434f7eb9a4c23c8da873b7c90",
-      "sha256": "e232ce2e05b0046a28c7ca28aa93f2b1247172070cda10eb26bec758a3966215",
-      "bytes": 3750
+      "git_blob_sha": "0ddecac956be560e61a6f5d2d46dc009c5311b53",
+      "sha256": "9eedcdf928f70e53301662b7518b07129dc0c2ac5e33064a63983dc5cafe91ec",
+      "bytes": 3754
     },
     {
       "path": "src/program-import/source-adapters.js",
       "git_blob_sha": "5a5493fbdd77d9648f57f7230f297d1c2ce1c88e",
       "sha256": "30ba289ce36ae3d83d746728a62a9112606457c01c7a48c4631ccd678654b93d",
       "bytes": 2958
+    },
+    {
+      "path": "src/program-import/source-host-input.js",
+      "git_blob_sha": "2deeb7f9355ecd3ff6587c815acf1f4a17d9955a",
+      "sha256": "ba4e7046b49e2ed7e11fa309851c1a0036599022c057d8c475379fcf21d843e3",
+      "bytes": 3947
+    },
+    {
+      "path": "src/program-import/static-include-guard.js",
+      "git_blob_sha": "cc69801456ed20d279662ae9065f7e06e1c5069b",
+      "sha256": "5a59676f124ebfae480179ad9af450b95593b89714ff37643e8c028bc6d27ce2",
+      "bytes": 4598
     },
     {
       "path": "src/program-import/translation-modules/canva-autofill-dataset.js",
@@ -1196,9 +1232,9 @@
     },
     {
       "path": "src/program-import/translation-modules/illustrator-jsx.js",
-      "git_blob_sha": "61601cc51087a184bebe28cbfbc0b9d6a144b241",
-      "sha256": "86b132dd8459e4d8cf53cae9373bed0cdb6e2e3486e46ddc554347d0abb7c4e8",
-      "bytes": 60983
+      "git_blob_sha": "5771f548a596d4da6482ea0fa331e26307c6888f",
+      "sha256": "84f4f3ab7427ca4e6e2ecdb8b8dac2176638f35bf41a116c5fc1f383f0bb67c8",
+      "bytes": 64797
     },
     {
       "path": "src/program-import/translation-modules/index.js",
@@ -1211,6 +1247,12 @@
       "git_blob_sha": "ce3eda33a02bd4381a92706953e1a718f770c20b",
       "sha256": "a0d0339edac106976160cdc7eee3715fe9b1498fd71693c05dd9ffacbb96b976",
       "bytes": 7290
+    },
+    {
+      "path": "src/program-import/vendor/acorn.mjs",
+      "git_blob_sha": "43e58efe7f03e158acded6c18a9d788bb96c1e5c",
+      "sha256": "402f6759c744ea2ca501c1dc4ded8b1c54c9066cc7a741837057dcb68bc64c93",
+      "bytes": 226605
     },
     {
       "path": "src/program-import/workflow-ir.js",
