@@ -1,0 +1,12 @@
+{
+  "schema": "INK_PRIVATE_TO_PUBLIC_SYNTHETIC_TRANSFER_QA_007",
+  "public_safe_fixture": true,
+  "test_only": true,
+  "release_authorized": false,
+  "artifact_kind": "publicly_shareable_synthetic_metadata_only",
+  "content": "INK private source repository read by private GitHub Actions, shared to public draft PR for connector transport validation.",
+  "source_scope": "thedoorw/INK-Private-Release-QA",
+  "authorized_public_target": "thedoorw/INK",
+  "authorized_public_path": "qa/ink-private-public-connector-transfer-007.json",
+  "mutation_limits": "draft pull request only; public main untouched; no runtime modified"
+}
