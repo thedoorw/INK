@@ -1,3 +1,4 @@
+import { createInkRecipeCreativeLoop } from './recipe-creative-loop.js';
 import { buildAIDocumentBridge } from '../ai/document-bridge.js';
 import { installInkOutputRegistry } from './output-handle-registry.js';
 import { exportInkAsset } from './export-asset.js';
@@ -345,6 +346,8 @@ export function createInkPublicCreativeApi(app) {
   const outputRegistry = installInkOutputRegistry(app);
   const creativeLibrarySearch = createCreativeLibrarySearch(app);
   const namedToolDefinitions = getInkNamedToolDefinitions();
+  let recipeCreativeLoop = null;
+  const getRecipeCreativeLoop = () => (recipeCreativeLoop ||= createInkRecipeCreativeLoop(app));
 
   const capabilities = () => {
     try {
@@ -990,6 +993,30 @@ export function createInkPublicCreativeApi(app) {
     }
   });
 
+  const workflow = Object.freeze({
+    async invoke(input = {}) {
+      const action = 'recipe.workflow';
+      try {
+        const request = isRecord(input) ? input : {};
+        const allowed = ['analyze', 'translate', 'inspect', 'propose', 'approve', 'execute'];
+        if (!allowed.includes(request.action)) throw Object.assign(new Error('INK_RECIPE_ACTION_UNSUPPORTED'), { code: 'INK_RECIPE_ACTION_UNSUPPORTED' });
+        const result = await getRecipeCreativeLoop()[request.action](request);
+        return createInkAgentResult(app, action, {
+          status: result.state || 'COMPLETED',
+          provenanceReceipt: {
+            sessionId: result.sessionId || request.sessionId || null,
+            sourceSha256: result.sourceSha256 || null,
+            bindingSha256: result.bindingSha256 || null,
+            translatedSourceExecuted: false
+          },
+          historyReceipt: result.nativeExecution?.history || null,
+          revisionReceipt: result.nativeExecution?.revision || null,
+          result
+        });
+      } catch (error) { return failedResult(app, action, error); }
+    }
+  });
+
   const capability = Object.freeze({
     describe(idOrToolName) {
       const action = 'capability.describe';
@@ -1010,7 +1037,7 @@ export function createInkPublicCreativeApi(app) {
     }
   });
 
-  const publicMethods = Object.freeze({ capabilities, context, selection, inspect, reference, raster, edit, composition, history, revision, preview, asset, library, recipe, capability });
+  const publicMethods = Object.freeze({ capabilities, context, selection, inspect, reference, raster, edit, composition, history, revision, preview, asset, library, recipe, workflow, capability });
   const toolHandlers = Object.freeze({
     get_ink_capabilities: () => capabilities(),
     get_ink_context: input => context(input?.options ?? input ?? {}),
@@ -1035,6 +1062,7 @@ export function createInkPublicCreativeApi(app) {
     export_ink_asset: input => asset.export(input ?? {}),
     search_ink_library: input => library.query(input ?? {}),
     get_ink_recipe_inventory: input => recipe.inventory(input ?? {}),
+    import_ink_workflow: input => workflow.invoke(input ?? {}),
     use_ink: input => {
       const request = isRecord(input) ? input : {};
       const action = String(request.action || '').trim();
