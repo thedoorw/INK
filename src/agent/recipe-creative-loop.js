@@ -1,5 +1,6 @@
 import { chatStateFingerprint } from '../editor/chat-bounded-edit.js';
 import { documentFingerprint } from '../document/integrity.js';
+import { snapshotBoundedProgramHost } from '../program-import/source-host-input.js';
 
 // Bounded CHAT entry into the existing first-party UniversalProgramImporter and Studio RecipeEngine.
 // No second parser, compiler, executor, History, or approval authority is created here.
@@ -7,6 +8,7 @@ const fail = (code, details = {}) => { throw Object.assign(new Error(code), { co
 const clone = value => JSON.parse(JSON.stringify(value));
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const MAX_SOURCE_BYTES = 32768;
+const MAX_STATIC_BUNDLE_BYTES = 131072;
 const MAX_SESSIONS = 8;
 const MAX_PARAMETERS_BYTES = 16384;
 const MAX_TARGETS = 64;
@@ -81,14 +83,18 @@ export function createInkRecipeCreativeLoop(app) {
       importId: session.importId,
       sourceSha256: session.sourceSha256,
       replayParameters: clone(session.replayParameters || {}),
+      programEntrypoint: session.programEntrypoint || null,
+      readOnlyHostFingerprint: session.programHostFingerprint || null,
       adapter: report.sourceAdapter?.id || null,
       status: report.status,
+      ...(report.error ? { error: clone(report.error) } : {}),
       detection: report.detection,
       security: report.security,
       sourceCoverage: report.workflowIR?.metadata?.sourceCoverage || null,
       workflowIrId: report.workflowIR?.id || null,
       conversion: report.conversionReport || null,
       recipe: report.recipe || null,
+      staticIncludes: report.metadata?.staticIncludes || null,
       unsupportedOperations: report.unsupportedOperations || [],
       documentMutation: false
     };
@@ -106,21 +112,41 @@ export function createInkRecipeCreativeLoop(app) {
       if (!license.spdx || /^(?:NOASSERTION|NONE|UNKNOWN)$/i.test(String(license.spdx)) ||
           (!provenance.sourceUrl && provenance.localUserProvided !== true)) fail('INK_RECIPE_PROVENANCE_REQUIRED');
       const sourceSha256 = await sha256(source.text);
+      // Import dependencies are explicit read-only input assets, never loaded
+      // from disk or network by JSX source or an alternative program runtime.
+      const staticIncludes = input.staticIncludes == null ? [] : input.staticIncludes;
+      if(!Array.isArray(staticIncludes) || staticIncludes.length > 12 ||
+          staticIncludes.some(x=>!isObject(x)||typeof x.name!=='string'||
+            typeof x.text!=='string'||typeof x.blobSha1!=='string'||!isObject(x.provenance)) ||
+          new TextEncoder().encode(JSON.stringify(staticIncludes)).byteLength > MAX_STATIC_BUNDLE_BYTES)
+        fail('INK_RECIPE_STATIC_BUNDLE_INVALID');
+      const programEntrypoint=input.entrypoint??null;
+      if(programEntrypoint!==null&&(typeof programEntrypoint!=='string'||!/^[A-Za-z_$][\w$]*$/.test(programEntrypoint)))
+        fail('INK_RECIPE_ENTRYPOINT_INVALID');
+      const diagnosticFunctions=input.diagnosticFunctions??[];
+      if(!Array.isArray(diagnosticFunctions)||diagnosticFunctions.length>32||
+         diagnosticFunctions.some(x=>typeof x!=='string'||!/^[A-Za-z_$][\w$]*$/.test(x)))
+        fail('INK_RECIPE_DIAGNOSTIC_DECLARATION_INVALID');
+      const programHost=(programEntrypoint||staticIncludes.length)?
+        snapshotBoundedProgramHost(app):null;
+      const programHostFingerprint=programHost?chatStateFingerprint(programHost):null;
       const replayParameters = safeObject(input.replayParameters, 'replayParameters');
       if (Object.keys(replayParameters).some(key=>key!=='seed') || (replayParameters.seed !== undefined && (typeof replayParameters.seed !== 'number'||!Number.isFinite(replayParameters.seed)))) fail('INK_RECIPE_REPLAY_CONTEXT_INVALID');
       const report = importer.importAsset({
         name: source.name, mimeType: String(source.mimeType || ''), text: source.text,
-        license, provenance, replayParameters: Object.keys(replayParameters).length?replayParameters:null, declaredPermissions: [], safetyMode: 'STATIC_PARSE', compile: false
+        license, provenance, replayParameters: Object.keys(replayParameters).length?replayParameters:null, staticIncludes, programEntrypoint, hostInputs:programHost, diagnosticFunctions, declaredPermissions: [], safetyMode: 'STATIC_PARSE', compile: false
       });
       const id = 'ink-recipe-session:' + sourceSha256.slice(0,20) + ':' + String(sessions.size + 1);
       if (sessions.size >= MAX_SESSIONS) fail('INK_RECIPE_SESSION_LIMIT');
-      const session = { id, importId: report.id, sourceSha256, report, replayParameters:Object.freeze(clone(replayParameters)), phase: 'ANALYZED' };
+      const session = { id, importId: report.id, sourceSha256, report, replayParameters:Object.freeze(clone(replayParameters)), programEntrypoint, programHostFingerprint, phase: 'ANALYZED' };
       sessions.set(id, session);
       return describe(session);
     },
     translate(input = {}) {
       const session = get(input.sessionId);
       if (session.phase !== 'ANALYZED') fail('INK_RECIPE_SESSION_PHASE_INVALID');
+      if (!session.report?.workflowIR && !session.report?.program)
+        fail('INK_RECIPE_SOURCE_PARSE_REJECTED', { sourceError: session.report?.error || null });
       const report = importer.translate(session.importId);
       session.report = report;
       session.phase = 'TRANSLATED';
@@ -133,6 +159,9 @@ export function createInkRecipeCreativeLoop(app) {
       const session = get(input.sessionId);
       if (session.phase !== 'TRANSLATED') fail('INK_RECIPE_SESSION_PHASE_INVALID');
       assertCompilable(session.report);
+      if(session.programHostFingerprint &&
+         chatStateFingerprint(snapshotBoundedProgramHost(app))!==session.programHostFingerprint)
+        fail('INK_RECIPE_HOST_SNAPSHOT_STALE');
       const parameters = safeObject(input.parameters, 'parameters');
       if (session.replayParameters?.seed != null) {
         if (parameters.seed != null && parameters.seed !== session.replayParameters.seed) fail('INK_RECIPE_REPLAY_SEED_MISMATCH');

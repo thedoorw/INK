@@ -5,6 +5,7 @@ import { scanSecurity } from './security.js';
 import { ActionRecipeCompiler } from './compiler.js';
 import { capabilityCoverage } from './coverage-engine.js';
 import { TranslationAdapterRegistry } from './source-adapters.js';
+import { verifyStaticIncludeBundle, codeOnlyForSecurity } from './static-include-guard.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const textDecoder = new TextDecoder('utf-8', { fatal: false });
@@ -65,25 +66,77 @@ export class UniversalProgramImporter {
     this.externalRunners.set(software, runner);
   }
 
-  importAsset({ name = 'unnamed.asset', mimeType = '', text = null, bytes = null, license = {}, provenance = {}, declaredPermissions = [], safetyMode = 'STATIC_PARSE', compile = true, replayParameters = null } = {}) {
+  importAsset({ name = 'unnamed.asset', mimeType = '', text = null, bytes = null, license = {}, provenance = {}, declaredPermissions = [], safetyMode = 'STATIC_PARSE', compile = true, replayParameters = null, staticIncludes = [], programEntrypoint = null, hostInputs = null, diagnosticFunctions = [] } = {}) {
     if (!SAFETY_MODES.includes(safetyMode)) throw new Error(`INK_IMPORT_SAFETY_MODE_INVALID:${safetyMode}`);
     const binary = bytes instanceof Uint8Array ? bytes : bytes ? new Uint8Array(bytes) : null;
     const sourceText = text === null && binary ? textDecoder.decode(binary) : String(text || '');
-    const adapterMatch = this.sourceAdapters?.detect?.({ name, mimeType, text: sourceText, bytes: binary }) || null;
+    const adapterMatch = this.sourceAdapters?.detect?.({ name, mimeType, text: sourceText, bytes: binary, programEntrypoint, staticIncludes }) || null;
     const detection = adapterMatch?.detection || detectFormat({ name, mimeType, text: sourceText, bytes: binary });
     if (detection.status === 'UNKNOWN') throw Object.assign(new Error('INK_IMPORT_FORMAT_UNKNOWN'), { code: 'UNKNOWN_FORMAT', detection });
     if (replayParameters != null && (typeof replayParameters !== 'object' || Array.isArray(replayParameters) || Object.keys(replayParameters).some(key=>key!=='seed') || typeof replayParameters.seed !== 'number' || !Number.isFinite(replayParameters.seed))) throw Object.assign(new Error('INK_IMPORT_REPLAY_CONTEXT_INVALID'),{code:'INK_IMPORT_REPLAY_CONTEXT_INVALID'});
-    const metadata = {...readMetadata({ name, text: sourceText, bytes: binary, detection, license, provenance }), ...(replayParameters?{replayParameters:clone(replayParameters)}:{})};
-    const security = scanSecurity({ text: detection.binary ? '' : sourceText, bytes: detection.binary ? binary : null, declaredPermissions, license, provenance });
+    // Fail closed on #include unless supplied literal source bytes match exact Git-blob
+    // identity and pinned provenance; this does not execute or inline any dependency.
+    const bundle = verifyStaticIncludeBundle({
+      text: detection.binary ? '' : sourceText, bundle: staticIncludes,
+      sourceRevision: provenance?.revision || null
+    });
+    if(programEntrypoint!==null&&(typeof programEntrypoint!=='string'||!/^[A-Za-z_$][\w$]*$/.test(programEntrypoint)))
+      throw Object.assign(new Error('INK_PROGRAM_ENTRYPOINT_INVALID'),{code:'INK_PROGRAM_ENTRYPOINT_INVALID'});
+    if(!Array.isArray(diagnosticFunctions)||diagnosticFunctions.length>32||
+      diagnosticFunctions.some(x=>typeof x!=='string'||!/^[A-Za-z_$][\w$]*$/.test(x)))
+      throw Object.assign(new Error('INK_PROGRAM_DIAGNOSTIC_BINDING_INVALID'),{code:'INK_PROGRAM_DIAGNOSTIC_BINDING_INVALID'});
+    const metadata = {
+      ...readMetadata({ name, text: sourceText, bytes: binary, detection, license, provenance }),
+      ...(replayParameters ? { replayParameters:clone(replayParameters) } : {}),
+      ...(programEntrypoint ? { programEntrypoint } : {}),
+      ...(bundle.includes.length || (Array.isArray(staticIncludes) && staticIncludes.length) ?
+        { staticIncludes:{status:bundle.ok?'VERIFIED':'REJECTED',manifest:bundle.manifest,reason:bundle.reason} } : {})
+    };
+    const security = scanSecurity({
+      text: detection.binary ? '' : sourceText, bytes: detection.binary ? binary : null,
+      declaredPermissions, license, provenance
+    });
+    if(bundle.ok && bundle.includes.length){
+      // The legacy DYNAMIC_DOWNLOAD rule also matches documentation comments
+      // ("direct download" in W023). Only after exact bundle verification may
+      // we distinguish lexical code from such nonexecutable prose.
+      const codeScan = scanSecurity({text:codeOnlyForSecurity(sourceText),declaredPermissions,license,provenance});
+      if(!codeScan.findings.some(item=>item.ruleId==='DYNAMIC_DOWNLOAD')){
+        security.findings = security.findings.filter(item=>item.ruleId!=='DYNAMIC_DOWNLOAD');
+        security.blockedBy = security.blockedBy.filter(item=>item!=='DYNAMIC_DOWNLOAD');
+      }
+      for(const dependency of staticIncludes){
+        const depSecurity=scanSecurity({
+          text:codeOnlyForSecurity(dependency.text),declaredPermissions:[],
+          license,provenance:dependency.provenance
+        });
+        for(const finding of depSecurity.findings.filter(item=>item.severity==='BLOCK' || item.severity==='REVIEW')){
+          const enriched={...finding,evidence:'include:'+dependency.name+':'+finding.evidence};
+          security.findings.push(enriched);
+          if(finding.severity==='BLOCK' && !security.blockedBy.includes(finding.ruleId))security.blockedBy.push(finding.ruleId);
+        }
+      }
+      security.status = security.blockedBy.length ? 'REJECTED' :
+        security.findings.some(item=>item.severity==='REVIEW') ? 'REVIEW_REQUIRED' : 'PASS';
+    }
+    if(!bundle.ok){
+      security.findings.push({
+        ruleId:'DYNAMIC_DOWNLOAD',severity:'BLOCK',
+        message:'Literal include requires verified, pinned dependency bytes',
+        evidence:bundle.reason,offset:0
+      });
+      if(!security.blockedBy.includes('DYNAMIC_DOWNLOAD'))security.blockedBy.push('DYNAMIC_DOWNLOAD');
+      security.status='REJECTED';
+    }
     let program, workflowIR = null;
     try {
       if (adapterMatch) {
-        workflowIR = this.sourceAdapters.parse(adapterMatch.adapterId, { name, mimeType, text: sourceText, bytes: binary, detection, metadata });
+        workflowIR = this.sourceAdapters.parse(adapterMatch.adapterId, { name, mimeType, text: sourceText, bytes: binary, detection, metadata, programEntrypoint, hostInputs, diagnosticFunctions, staticIncludes: bundle.ok ? staticIncludes : [] });
         program = workflowIR.canonicalProgram;
       } else program = parseDetectedAsset({ text: sourceText, bytes: binary, detection, metadata });
     }
     catch (error) {
-      const rejection = { format: 'INK-IMPORT-REPORT', schemaVersion: 2, id: `import_${deterministicHash({ name, error: error.message })}`, status: 'REJECTED', safetyMode, detection, metadata, security, error: { code: error.code || 'PARSE_FAILED', message: error.message }, documentPolluted: false, rollback: { required: false, succeeded: true } };
+      const rejection = { format: 'INK-IMPORT-REPORT', schemaVersion: 2, id: `import_${deterministicHash({ name, error: error.message })}`, status: 'REJECTED', safetyMode, detection, metadata, security, error: { code: error.code || 'PARSE_FAILED', message: error.message }, originalSourceExecuted: false, executionAllowed: false, documentPolluted: false, rollback: { required: false, succeeded: true } };
       this.imports.set(rejection.id, rejection);
       return rejection;
     }
@@ -96,7 +149,7 @@ export class UniversalProgramImporter {
     const unsupported = unsupportedReport(program, security);
     const report = {
       format: 'INK-IMPORT-REPORT', schemaVersion: 2,
-      id: `import_${deterministicHash({ source: metadata.source, program: program.id, security: security.status, safetyMode })}`,
+      id: `import_${deterministicHash({ source: metadata.source, staticIncludes: metadata.staticIncludes || null, program: program.id, security: security.status, safetyMode })}`,
       importedAt: new Date().toISOString(), inkVersion: this.inkVersion,
       status: provenanceBlocked ? 'REJECTED' : compilation ? (security.status === 'REJECTED' ? 'PARTIAL_SECURITY_REJECTED' : compilation.report.compileStatus === 'COMPLETE' ? 'COMPILED' : 'PARTIAL') : security.status === 'REJECTED' ? 'ANALYZED_WITH_REJECTIONS' : 'ANALYZED',
       safetyMode, detection, metadata, security, versions, dependencies,
