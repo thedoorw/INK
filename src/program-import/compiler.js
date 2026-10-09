@@ -113,7 +113,9 @@ export class ActionRecipeCompiler {
         id: `import-${String(index + 1).padStart(3, '0')}-${operation.canonicalOperation.replace(/[^a-z0-9]+/gi, '-')}`,
         enabled: true,
         op: result.recipeOp,
-        role: requiresTarget ? 'target' : undefined,
+        role: requiresTarget && !operation.target?.sourceBinding ? 'target' : undefined,
+        ...(operation.outputState?.sourceVariable && result.recipeOp === 'path' ? { produces: { key: operation.outputState.bindingKey || operation.outputState.sourceVariable, type: 'path' } } : {}),
+        ...(operation.target?.sourceBinding ? { targetFrom: { key: operation.target.sourceBinding, type: operation.target?.kind === 'path' ? 'path' : operation.target?.kind } } : {}),
         optional: false,
         repeatOver: false,
         params: clone(result.params),
@@ -144,13 +146,13 @@ export class ActionRecipeCompiler {
       id: `ink.import.${program.id}`, name: name || `Imported ${program.metadata?.name || program.source?.name || 'Program'}`, version: 1,
       roleSchema: 'ink.import.target.v1', input: { types: ['document', 'layer', 'path', 'region', 'mask', 'object', 'selection', 'image', 'raster-layer'] },
       documentState: {}, targets: [{ role: 'target', required: steps.some(step => step.role === 'target') }],
-      parameters: Object.fromEntries(program.operations.filter(operation => operation.canonicalOperation === 'illustrator.pathpoint.fleurify').flatMap(operation => [['percentage', operation.parameters.percentage]])), dependencies: clone(program.dependencies), intermediateStates: [],
+      parameters: { ...(workflowIR?.metadata?.replaySeedRequired ? { seed: {type:'number',default:workflowIR.metadata.seed,validation:'finite-number'} } : {}), ...Object.fromEntries(program.operations.filter(operation => operation.canonicalOperation === 'illustrator.pathpoint.fleurify').flatMap(operation => [['percentage', operation.parameters.percentage]])) }, dependencies: clone(program.dependencies), intermediateStates: [],
       expectedOutput: { sourceProgramId: program.id, compiledStepCount: steps.length },
       qaRules: [{ type: 'document-integrity' }, { type: 'rollback-on-failure' }], failureConditions: ['unsupported-required-operation', 'security-rejection', 'missing-target'],
       versionRequirements: { inkMin: this.inkVersion }, license: clone(license || program.metadata?.license || { spdx: 'NOASSERTION' }),
       sourceProgram: { id: program.id, format: program.source?.format, hash: program.deterministicHash, workflowIrId: workflowIR?.id || null }, steps
     };
-    const unsupported = mappings.filter(mapping => !mapping.step || !['DIRECT', 'EQUIVALENT'].includes(mapping.status)).map(mapping => ({ operationId: mapping.operation.operationId, canonicalOperation: mapping.operation.canonicalOperation, status: mapping.status, translationStatus: mapping.translationStatus, reason: mapping.operation.unsupportedReason || mapping.gapCategory, gapCategory: mapping.gapCategory }));
+    const unsupported = mappings.filter(mapping => !mapping.step || (!['DIRECT', 'EQUIVALENT'].includes(mapping.status) && !(mapping.status === 'APPROXIMATED' && mapping.operation.approvedApproximation === true))).map(mapping => ({ operationId: mapping.operation.operationId, canonicalOperation: mapping.operation.canonicalOperation, status: mapping.status, translationStatus: mapping.translationStatus, reason: mapping.operation.unsupportedReason || mapping.gapCategory, gapCategory: mapping.gapCategory }));
     const report = {
       format: 'INK-CONVERSION-REPORT', schemaVersion: 2, id: `conversion_${deterministicHash({ program: program.id, recipe })}`,
       sourceSummary: { id: program.id, name: program.metadata?.name || program.source?.name, format: program.source?.format, software: program.metadata?.sourceSoftware, operationCount: program.operations.length },
@@ -159,7 +161,7 @@ export class ActionRecipeCompiler {
       unsupportedOperations: unsupported, alternativeOperations: mappings.filter(mapping => ['EQUIVALENT', 'APPROXIMATED'].includes(mapping.status)).map(mapping => ({ operationId: mapping.operation.operationId, status: mapping.status, recipeOp: mapping.step?.op })),
       risks: mappings.filter(mapping => !mapping.operation.deterministic).map(mapping => ({ operationId: mapping.operation.operationId, risk: 'NON_DETERMINISTIC' })),
       compatibleVersions: { inkMin: this.inkVersion, sourceVersion: program.metadata?.version || 'unknown' },
-      expectedInput: clone(recipe.input), expectedOutput: clone(recipe.expectedOutput), replayConditions: { fixedSeed: mappings.some(mapping => !mapping.operation.deterministic), declaredDependencies: true },
+      expectedInput: clone(recipe.input), expectedOutput: clone(recipe.expectedOutput), replayConditions: { fixedSeed: Boolean(workflowIR?.metadata?.replaySeedRequired) || mappings.some(mapping => !mapping.operation.deterministic), declaredDependencies: true },
       statusCounts: statuses, translationStatusCounts: translationStatuses, workflowIrId: workflowIR?.id || null, compileStatus: unsupported.some(item => item.status === 'REJECTED') ? 'PARTIAL' : unsupported.length ? 'PARTIAL' : 'COMPLETE',
       deterministicHash: deterministicHash({ recipe, mappings: mappings.map(mapping => mapping.status) })
     };

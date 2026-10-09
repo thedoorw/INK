@@ -65,14 +65,15 @@ export class UniversalProgramImporter {
     this.externalRunners.set(software, runner);
   }
 
-  importAsset({ name = 'unnamed.asset', mimeType = '', text = null, bytes = null, license = {}, provenance = {}, declaredPermissions = [], safetyMode = 'STATIC_PARSE', compile = true } = {}) {
+  importAsset({ name = 'unnamed.asset', mimeType = '', text = null, bytes = null, license = {}, provenance = {}, declaredPermissions = [], safetyMode = 'STATIC_PARSE', compile = true, replayParameters = null } = {}) {
     if (!SAFETY_MODES.includes(safetyMode)) throw new Error(`INK_IMPORT_SAFETY_MODE_INVALID:${safetyMode}`);
     const binary = bytes instanceof Uint8Array ? bytes : bytes ? new Uint8Array(bytes) : null;
     const sourceText = text === null && binary ? textDecoder.decode(binary) : String(text || '');
     const adapterMatch = this.sourceAdapters?.detect?.({ name, mimeType, text: sourceText, bytes: binary }) || null;
     const detection = adapterMatch?.detection || detectFormat({ name, mimeType, text: sourceText, bytes: binary });
     if (detection.status === 'UNKNOWN') throw Object.assign(new Error('INK_IMPORT_FORMAT_UNKNOWN'), { code: 'UNKNOWN_FORMAT', detection });
-    const metadata = readMetadata({ name, text: sourceText, bytes: binary, detection, license, provenance });
+    if (replayParameters != null && (typeof replayParameters !== 'object' || Array.isArray(replayParameters) || Object.keys(replayParameters).some(key=>key!=='seed') || typeof replayParameters.seed !== 'number' || !Number.isFinite(replayParameters.seed))) throw Object.assign(new Error('INK_IMPORT_REPLAY_CONTEXT_INVALID'),{code:'INK_IMPORT_REPLAY_CONTEXT_INVALID'});
+    const metadata = {...readMetadata({ name, text: sourceText, bytes: binary, detection, license, provenance }), ...(replayParameters?{replayParameters:clone(replayParameters)}:{})};
     const security = scanSecurity({ text: detection.binary ? '' : sourceText, bytes: detection.binary ? binary : null, declaredPermissions, license, provenance });
     let program, workflowIR = null;
     try {

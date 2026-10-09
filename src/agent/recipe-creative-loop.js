@@ -80,6 +80,7 @@ export function createInkRecipeCreativeLoop(app) {
       sessionId: session.id,
       importId: session.importId,
       sourceSha256: session.sourceSha256,
+      replayParameters: clone(session.replayParameters || {}),
       adapter: report.sourceAdapter?.id || null,
       status: report.status,
       detection: report.detection,
@@ -105,13 +106,15 @@ export function createInkRecipeCreativeLoop(app) {
       if (!license.spdx || /^(?:NOASSERTION|NONE|UNKNOWN)$/i.test(String(license.spdx)) ||
           (!provenance.sourceUrl && provenance.localUserProvided !== true)) fail('INK_RECIPE_PROVENANCE_REQUIRED');
       const sourceSha256 = await sha256(source.text);
+      const replayParameters = safeObject(input.replayParameters, 'replayParameters');
+      if (Object.keys(replayParameters).some(key=>key!=='seed') || (replayParameters.seed !== undefined && (typeof replayParameters.seed !== 'number'||!Number.isFinite(replayParameters.seed)))) fail('INK_RECIPE_REPLAY_CONTEXT_INVALID');
       const report = importer.importAsset({
         name: source.name, mimeType: String(source.mimeType || ''), text: source.text,
-        license, provenance, declaredPermissions: [], safetyMode: 'STATIC_PARSE', compile: false
+        license, provenance, replayParameters: Object.keys(replayParameters).length?replayParameters:null, declaredPermissions: [], safetyMode: 'STATIC_PARSE', compile: false
       });
       const id = 'ink-recipe-session:' + sourceSha256.slice(0,20) + ':' + String(sessions.size + 1);
       if (sessions.size >= MAX_SESSIONS) fail('INK_RECIPE_SESSION_LIMIT');
-      const session = { id, importId: report.id, sourceSha256, report, phase: 'ANALYZED' };
+      const session = { id, importId: report.id, sourceSha256, report, replayParameters:Object.freeze(clone(replayParameters)), phase: 'ANALYZED' };
       sessions.set(id, session);
       return describe(session);
     },
@@ -131,16 +134,21 @@ export function createInkRecipeCreativeLoop(app) {
       if (session.phase !== 'TRANSLATED') fail('INK_RECIPE_SESSION_PHASE_INVALID');
       assertCompilable(session.report);
       const parameters = safeObject(input.parameters, 'parameters');
+      if (session.replayParameters?.seed != null) {
+        if (parameters.seed != null && parameters.seed !== session.replayParameters.seed) fail('INK_RECIPE_REPLAY_SEED_MISMATCH');
+        parameters.seed = session.replayParameters.seed;
+      }
       const inputHashes = safeObject(input.inputHashes, 'inputHashes');
       if (session.report.conversionReport?.replayConditions?.fixedSeed && parameters.seed == null) fail('INK_RECIPE_SEED_REQUIRED');
       const targets = Array.isArray(input.targetRefs) ? clone(input.targetRefs) : [];
-      if (!targets.length || targets.length > MAX_TARGETS ||
+      if (targets.length > MAX_TARGETS ||
           targets.some(ref => !isObject(ref) || !ref.pageId || !ref.layerId || !ref.objectId)) {
-        fail('INK_RECIPE_NATIVE_TARGET_REQUIRED'); // Existing governed Recipe edit requires 1..64 Path refs.
+        fail('INK_RECIPE_NATIVE_TARGET_REQUIRED');
       }
       const before = snapshot(app);
       if (before.historyPending) fail('INK_RECIPE_HISTORY_BUSY');
       const recipe = session.report.recipe;
+      if (!targets.length && recipe?.targets?.some(target=>target.required===true)) fail('INK_RECIPE_NATIVE_TARGET_REQUIRED');
       const importedRecipeFingerprint = chatStateFingerprint(recipe);
       // Registration is explicit at proposal stage, never a side effect of source analysis/translation.
       // A rejected native proposal must not leave an imported Recipe in the shared inventory.

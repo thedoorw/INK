@@ -36,7 +36,7 @@ export const ILLUSTRATOR_JSX_CANDIDATE_MATRIX = Object.freeze([
 const lineAt = (text, offset) => text.slice(0, Math.max(0, offset)).split(/\r?\n/).length;
 const pseudoMatch = (text, start, end) => ({ index:start, 0:text.slice(start,end) });
 const evidenceAt = (text, match, label='Illustrator JSX') => [{ label, line: lineAt(text, match?.index || 0), excerpt: String(match?.[0] || '').trim().slice(0, 220) }];
-const operation = ({ text, match, operation, category, parameters={}, target={}, dependency=[], conversionStatus='DIRECT', deterministic=true, unsupportedReason=null, fallbackCandidate=null, sourceCommand=null, input={}, output={}, confidence=null }) => ({
+const operation = ({ text, match, operation, category, parameters={}, target={}, dependency=[], conversionStatus='DIRECT', deterministic=true, unsupportedReason=null, fallbackCandidate=null, sourceCommand=null, input={}, output={}, confidence=null, approvedApproximation=false }) => ({
   _offset: match?.index || 0,
   sourceSoftware: SOURCE_SOFTWARE,
   sourceCommand: sourceCommand || String(match?.[0] || operation).trim(),
@@ -55,7 +55,8 @@ const operation = ({ text, match, operation, category, parameters={}, target={},
   evidence: evidenceAt(text, match),
   unsupportedReason,
   unsupportedStep: ['PARTIAL','REJECTED','MANUAL STEP REQUIRED','EXTERNAL EXECUTION REQUIRED'].includes(conversionStatus),
-  conversionStatus
+  conversionStatus,
+  approvedApproximation: approvedApproximation === true
 });
 
 function maskLexicalNonCode(text) {
@@ -324,12 +325,231 @@ function parseRepeatBlock(text,block,scope,random){
   return {operation:op,coverage:coverageRecord(text,block,'consumed-repeat','PARTIAL','structurally parsed; runtime execution blocked'),unsafe:false};
 }
 
+// R1: static, bounded Illustrator drawing-source analysis; no source JavaScript is evaluated.
+// All statements are consumed in source order or the whole source is rejected.
+const R1_MAX_ITERATIONS = 4096;
+const R1_MAX_STATEMENTS = 50000;
+function parseBoundedDrawingSource({name,text,metadata}) {
+  const lexical=maskLexicalNonCode(text), masked=lexical.masked;
+  const replaySeed=metadata?.replayParameters?.seed;
+  const seedDirectives=lexical.directives.filter(x=>/^@ink-seed\b/i.test(x.body));
+  const sourceSeed=seedDirectives.length ? Number(seedDirectives[0].body.match(/^@ink-seed\s+(-?\d+(?:\.\d+)?)/i)?.[1]) : null;
+  if(seedDirectives.length && (!Number.isFinite(sourceSeed) || seedDirectives.some(x=>Number(x.body.match(/^@ink-seed\s+(-?\d+(?:\.\d+)?)/i)?.[1])!==sourceSeed))) throw Object.assign(new Error('INK_ILLUSTRATOR_SEED_DIRECTIVE_INVALID'),{code:'INK_ILLUSTRATOR_SEED_DIRECTIVE_INVALID'});
+  if(replaySeed!==undefined && (typeof replaySeed!=='number'||!Number.isFinite(replaySeed)||(sourceSeed!==null&&replaySeed!==sourceSeed))) throw Object.assign(new Error('INK_ILLUSTRATOR_REPLAY_SEED_CONFLICT'),{code:'INK_ILLUSTRATOR_REPLAY_SEED_CONFLICT'});
+  const seed=sourceSeed??replaySeed??null;
+  const rng=seed==null?null:new DeterministicRandom(seed);
+  const needsRandom=/\bMath\.random\s*\(/.test(masked);
+  const operations=[], coverage=[], aliases=new Set(), palette=new Map(), bindings=new Map(), scope=Object.create(null);
+  let serial=0,work=0,sourceClassified=0,failReason=null,randomRequired=needsRandom;
+  const reject=(at,reason,code='INK_ILLUSTRATOR_UNSUPPORTED_STATEMENT')=>{if(!failReason)failReason=code+':'+reason;coverage.push({line:lineAt(text,at),classification:'rejected-executable',status:'REJECTED',reason});};
+  const record=(at,kind,status='CONSUMED')=>{sourceClassified++;if(coverage.length<100)coverage.push({line:lineAt(text,at),classification:kind,status});};
+  const add=(at,op,category,parameters={},target={},output={},status='DIRECT')=>{
+    if(++work>R1_MAX_STATEMENTS){reject(at,'bounded source-step budget exceeded','INK_ILLUSTRATOR_WORK_LIMIT');return;}
+    const item=operation({text,match:pseudoMatch(text,at,at+1),category,operation:op,parameters,target,output,conversionStatus:status,approvedApproximation:status==='APPROXIMATED'&&op==='style.apply'});
+    operations.push(item);
+  };
+  const num=(raw)=>{
+    const expr=String(raw).trim();
+    if(!expr)throw Error('EMPTY_EXPRESSION');
+    // Only an inspected affine random-range helper may be substituted; source functions are never called.
+    const helperMatch=expr.match(/^([A-Za-z_$][\w$]*)\s*\(([\s\S]*)\)$/);
+    if(helperMatch && helpers.has(helperMatch[1])){
+      const args=parseArgumentList(helperMatch[2]);
+      if(args.error||args.args.length!==2)throw Error('INK_HELPER_ARGUMENTS');
+      if(!rng)throw Error('INK_REPLAY_SEED_REQUIRED');
+      const low=num(args.args[0]),high=num(args.args[1]);
+      return low+rng.next()*(high-low);
+    }
+    if(/\bMath\.random\s*\(/.test(expr)&&!rng)throw Error('INK_REPLAY_SEED_REQUIRED');
+    const value=evaluateDeterministicExpression(expr,scope,{random:rng||undefined,seed:seed??1,log:[]}).value;
+    if(typeof value!=='number'||!Number.isFinite(value))throw Error('INK_NUMBER_NOT_FINITE');
+    return value;
+  };
+  const bool=(raw)=>{
+    if(/\bMath\.random\s*\(/.test(raw))throw Error('INK_CONDITION_RANDOM_UNSUPPORTED');
+    const value=evaluateDeterministicExpression(String(raw),scope,{random:rng||undefined,seed:seed??1,log:[]}).value;
+    if(typeof value!=='boolean')throw Error('INK_CONDITION_NON_BOOLEAN');
+    return value;
+  };
+  const helpers=new Set();
+  const literals=new Map();
+  function colorHex(color){
+    for(const value of Object.values(color))if(!Number.isFinite(value)||value<0||value>100)throw Error('INK_CMYK_CHANNEL_RANGE');
+    const component=x=>Math.round(255*(1-x/100)*(1-color.black/100)).toString(16).padStart(2,'0');
+    return '#'+component(color.cyan)+component(color.magenta)+component(color.yellow);
+  }
+  function statements(begin,end,scopeKey='root',depth=0){
+    if(depth>8)throw Error('INK_CONTROL_NESTING_LIMIT');
+    let i=begin;
+    const skip=()=>{while(i<end&&/\s/.test(masked[i]))i++;};
+    const semicolon=()=>{
+      let par=0,br=0,cur=0,quote=null;
+      for(let j=i;j<end;j++){
+        const ch=masked[j];
+        if(ch==='"'||ch==="'"){if(quote===ch)quote=null;else if(!quote)quote=ch;continue;}
+        if(quote)continue;
+        if(ch==='(')par++;else if(ch===')')par--;
+        else if(ch==='[')br++;else if(ch===']')br--;
+        else if(ch==='{')cur++;else if(ch==='}')cur--;
+        if(par<0||br<0||cur<0)throw Error('INK_LEXICAL_DELIMITER');
+        if(ch===';'&&!par&&!br&&!cur)return j+1;
+      }
+      throw Error('INK_STATEMENT_SEMICOLON_REQUIRED');
+    };
+    while(i<end){
+      skip();if(i>=end)break;
+      const at=i;
+      if(masked.slice(i).startsWith('#target')){
+        let j=masked.indexOf('\n',i);if(j<0)j=end;
+        if(!/^#target\s+illustrator\s*$/i.test(text.slice(i,j).trim()))throw Error('INK_HOST_TARGET_INVALID');
+        record(i,'host-directive');i=j;continue;
+      }
+      const head=masked.slice(i,end);
+      const fn=head.match(/^function\s+([A-Za-z_$][\w$]*)\s*\(\s*([A-Za-z_$][\w$]*)\s*,\s*([A-Za-z_$][\w$]*)\s*\)\s*\{/);
+      if(fn){
+        const open=i+fn[0].lastIndexOf('{'),close=findMatching(masked,open,'{','}');
+        if(close<0||close>=end)throw Error('INK_FUNCTION_STRUCTURE');
+        const inner=masked.slice(open+1,close).replace(/\s+/g,'');
+        const pattern='return'+fn[2]+'+Math.random()*('+fn[3]+'-'+fn[2]+');';
+        if(inner!==pattern||helpers.has(fn[1]))throw Error('INK_HELPER_FUNCTION_DENIED');
+        helpers.add(fn[1]);record(at,'bounded-affine-random-helper');i=close+1;continue;
+      }
+      const control=head.match(/^(for|if)\s*\(/);
+      if(control){
+        const open=i+control[0].lastIndexOf('('),close=findMatching(masked,open,'(',')');
+        if(close<0||close>=end)throw Error('INK_CONTROL_HEADER');
+        const header=text.slice(open+1,close);
+        let brace=close+1;while(brace<end&&/\s/.test(masked[brace]))brace++;
+        if(masked[brace]!=='{')throw Error('INK_CONTROL_BLOCK_REQUIRED');
+        const finish=findMatching(masked,brace,'{','}');
+        if(finish<0||finish>=end)throw Error('INK_CONTROL_BLOCK_UNCLOSED');
+        if(control[1]==='if'){
+          const test=bool(header);record(at,'bounded-conditional', 'EQUIVALENT');
+          if(test)statements(brace+1,finish,scopeKey+'/if',depth+1);
+          let after=finish+1;while(after<end&&/\s/.test(masked[after]))after++;
+          if(/^else\b/.test(masked.slice(after))){
+            let start=after+4;while(start<end&&/\s/.test(masked[start]))start++;
+            if(masked[start]!=='{')throw Error('INK_ELSE_BLOCK_REQUIRED');
+            const e=findMatching(masked,start,'{','}');
+            if(e<0||e>=end)throw Error('INK_ELSE_BLOCK_UNCLOSED');
+            if(!test)statements(start+1,e,scopeKey+'/else',depth+1);
+            i=e+1;continue;
+          }
+          i=finish+1;continue;
+        }
+        const parts=header.split(';');
+        if(parts.length!==3)throw Error('INK_FOR_HEADER_INVALID');
+        const init=parts[0].trim().match(/^(?:var|let|const)\s+([A-Za-z_$][\w$]*)\s*=\s*([\s\S]+)$/);
+        const condition=parts[1].trim().match(/^([A-Za-z_$][\w$]*)\s*(<|<=|>|>=)\s*([\s\S]+)$/);
+        const update=parts[2].trim();
+        if(!init||!condition||condition[1]!==init[1]||!new RegExp('^(?:'+init[1]+'\\+\\+|'+init[1]+'--|'+init[1]+'\\s*\\+=\\s*\\d+|'+init[1]+'\\s*-=\\s*\\d+)$'
+).test(update))throw Error('INK_DYNAMIC_LOOP_REJECTED');
+        let value=num(init[2]),iterations=0;
+        const v=init[1],old=scope[v];
+        while(true){
+          scope[v]=value;
+          if(!bool(v+condition[2]+'('+condition[3]+')'))break;
+          if(++iterations>R1_MAX_ITERATIONS||work>R1_MAX_STATEMENTS)throw Error('INK_ILLUSTRATOR_WORK_LIMIT');
+          // Source variables are scoped per iteration. Their neutral producer keys never collide.
+          statements(brace+1,finish,scopeKey+'/'+v+'='+iterations,depth+1);
+          const delta=update.endsWith('++')?1:update.endsWith('--')?-1:Number(update.match(/(\d+)$/)?.[1])*(update.includes('-=')?-1:1);
+          if(!Number.isFinite(delta)||delta===0)throw Error('INK_DYNAMIC_LOOP_REJECTED');
+          value+=delta;
+          if(!Number.isFinite(value))throw Error('INK_ILLUSTRATOR_WORK_LIMIT');
+        }
+        if(old===undefined)delete scope[v];else scope[v]=old;
+        record(at,'bounded-for-loop','EQUIVALENT');i=finish+1;continue;
+      }
+      if(/^(?:while|do|switch|try|catch|with|return|throw|function)\b/.test(head))throw Error('INK_DYNAMIC_CONTROL_REJECTED');
+      const j=semicolon(),raw=text.slice(i,j).trim();
+      processStatement(raw,at,scopeKey);
+      i=j;
+    }
+  }
+  function processStatement(raw,at,scopeKey){
+    if(++work>R1_MAX_STATEMENTS)throw Error('INK_ILLUSTRATOR_WORK_LIMIT');
+    let m;
+    if((m=raw.match(/^(?:var|let|const)\s+([A-Za-z_$][\w$]*)\s*=\s*app\.(activeDocument|documents\.add\(\s*\))\s*;$/))){
+      if(aliases.has(m[1]))throw Error('INK_DOCUMENT_ALIAS_DUPLICATE');
+      aliases.add(m[1]);if(m[2]!=='activeDocument')add(at,'document.create','Document',{action:'ensure',sourceContainerVariable:m[1]},{kind:'document'},{kind:'document'},'EQUIVALENT');
+      record(at,'bounded-current-document-alias','EQUIVALENT');return;
+    }
+    if((m=raw.match(/^(?:var|let|const)\s+([A-Za-z_$][\w$]*)\s*=\s*new\s+CMYKColor\s*\(\s*\)\s*;$/))){
+      palette.set(m[1],{cyan:0,magenta:0,yellow:0,black:0});record(at,'cmyk-construct','APPROXIMATED');return;
+    }
+    if((m=raw.match(/^([A-Za-z_$][\w$]*)\.(cyan|magenta|yellow|black)\s*=\s*([\s\S]+?)\s*;$/))){
+      const color=palette.get(m[1]);if(!color)throw Error('INK_CMYK_COLOR_UNBOUND');
+      const n=num(m[3]);if(n<0||n>100)throw Error('INK_CMYK_CHANNEL_RANGE');
+      color[m[2]]=n;record(at,'cmyk-channel','APPROXIMATED');return;
+    }
+    if((m=raw.match(/^(?:var|let|const)\s+([A-Za-z_$][\w$]*)\s*=\s*([A-Za-z_$][\w$]*|app\.activeDocument)\.pathItems\.(rectangle|ellipse|add)\s*\(([\s\S]*?)\)\s*;$/))){
+      if(!aliases.has(m[2])&&m[2]!=='app.activeDocument')throw Error('INK_PATH_CONTAINER_UNBOUND');
+      const id=m[1],key=id+'@'+(++serial),recordValue={key,kind:'path',pending:m[3]==='add',sourceName:id};
+      if(m[3]!=='add'){
+        const args=parseArgumentList(m[4]);if(args.error||args.args.length!==4)throw Error('INK_PATH_ARGUMENTS');
+        const values=args.args.map(num);const [top,left,width,height]=values;
+        if(width<=0||height<=0)throw Error('INK_PATH_DIMENSIONS');
+        const attrs=m[3]==='rectangle'?{x:left,y:top,width,height,unit:'pt'}:{cx:left+width/2,cy:top+height/2,rx:width/2,ry:height/2,unit:'pt'};
+        add(at,'path.'+m[3],'Path',attrs,{kind:'canvas'},{kind:'path',sourceVariable:id,bindingKey:key});
+      }
+      bindings.set(id,recordValue);record(at,'bounded-path-create');return;
+    }
+    if((m=raw.match(/^([A-Za-z_$][\w$]*)\.setEntirePath\s*\(\s*([\s\S]*?)\s*\)\s*;$/))){
+      const obj=bindings.get(m[1]);if(!obj||!obj.pending)throw Error('INK_PATH_PENDING_REQUIRED');
+      const points=parsePoints(m[2],scope,rng);if(!points)throw Error('INK_PATH_POINTS_INVALID');
+      obj.pending=false;obj.points=points;
+      add(at,'path.create','Path',{points,d:pathData(points,false),closed:false,unit:'pt'},{kind:'canvas'},{kind:'path',sourceVariable:m[1],bindingKey:obj.key});record(at,'bounded-set-entire-path');return;
+    }
+    if((m=raw.match(/^([A-Za-z_$][\w$]*)\.closed\s*=\s*(true|false)\s*;$/))){
+      const obj=bindings.get(m[1]);if(!obj||obj.pending)throw Error('INK_PATH_BINDING_MISSING');
+      // Only the newly produced path; never a selected or document-wide arbitrary ID.
+      add(at,'style.apply','Path',{closed:m[2]==='true'},{kind:'path',sourceBinding:obj.key},{},'EQUIVALENT');
+      record(at,'bounded-path-closed','EQUIVALENT');return;
+    }
+    if((m=raw.match(/^([A-Za-z_$][\w$]*)\.(strokeWidth|filled|fillColor|strokeColor|opacity)\s*=\s*([\s\S]+?)\s*;$/))){
+      const obj=bindings.get(m[1]);if(!obj||obj.pending)throw Error('INK_PATH_BINDING_MISSING');
+      const prop=m[2],expr=m[3].trim(),attrs={};
+      let status='EQUIVALENT';
+      if(prop==='strokeWidth'){const n=num(expr);if(n<0||n>10000)throw Error('INK_STROKE_WIDTH_RANGE');attrs.strokeWidth=n;}
+      else if(prop==='filled'){if(!/^(true|false)$/.test(expr))throw Error('INK_FILLED_BOOLEAN_REQUIRED');attrs.filled=expr==='true';}
+      else if(prop==='opacity'){const n=num(expr);if(n<0||n>100)throw Error('INK_OPACITY_RANGE');attrs.opacity=n/100;}
+      else {if(!palette.has(expr))throw Error('INK_CMYK_COLOR_UNBOUND');attrs[prop==='fillColor'?'fill':'stroke']=colorHex(palette.get(expr));status='APPROXIMATED';}
+      add(at,'style.apply','Path',attrs,{kind:'path',sourceBinding:obj.key},{},status);
+      record(at,'bounded-produced-path-style',status);return;
+    }
+    if((m=raw.match(/^(?:var|let|const)\s+([A-Za-z_$][\w$]*)\s*=\s*([\s\S]+?)\s*;$/))){
+      const id=m[1],expr=m[2];
+      if(/\b(?:new|app|File|eval|Function)\b/.test(expr))throw Error('INK_SOURCE_OBJECT_EXPRESSION_DENIED');
+      const n=num(expr);scope[id]=n;record(at,'bounded-numeric-declaration');return;
+    }
+    throw Error('INK_EXECUTABLE_STATEMENT_UNSUPPORTED:'+raw.slice(0,100));
+  }
+  try{
+    if(lexical.errors.length)throw Error('INK_LEXICAL_REJECTED');
+    if(!/\bpathItems\b/.test(masked))throw Error('INK_ILLUSTRATOR_PATH_REQUIRED');
+    if(needsRandom && seed==null)throw Error('INK_REPLAY_SEED_REQUIRED');
+    statements(0,text.length);
+    if([...bindings.values()].some(x=>x.pending))throw Error('INK_PATH_UNFINISHED');
+    if(!operations.some(op=>op.operation.startsWith('path.')))throw Error('INK_NO_DRAWING_STEPS');
+  }catch(error){reject(0,error?.message||'rejected');}
+  let result=operations; // Expansion order is execution order; source offsets repeat for each bounded iteration.
+  if(failReason)result=finalizeFailClosed(result,failReason);
+  if(!result.length)result=[operation({text,match:pseudoMatch(text,0,Math.min(text.length,1)),category:'External Dependency',operation:'external.illustratorUnsupported',conversionStatus:'REJECTED',unsupportedReason:failReason||'no bounded drawing steps'})];
+  result=result.map(x=>{const y={...x};delete y._offset;return y;});
+  return createWorkflowIR({
+    source:metadata.source||{name,format:'ILLUSTRATOR_JSX_READABLE_SUBSET',sourceSoftware:SOURCE_SOFTWARE},
+    metadata:{...clone(metadata),name,sourceSoftware:SOURCE_SOFTWARE,sourceFormat:'ILLUSTRATOR_JSX_READABLE_SUBSET',readOnly:true,adapterSubset:'r1-bounded-structured-source',seed,sourceCoverage:{mode:'r1-structural-static-fail-closed',entries:coverage,classifiedExecutable:sourceClassified,unclassifiedExecutable:0,loweredRecipeOperationCount:operations.length,executionBudget:R1_MAX_STATEMENTS,failClosed:Boolean(failReason),wholeSourceRejected:Boolean(failReason),failClosedReason:failReason},colorConversion:'CMYK-to-sRGB-naive-APPROXIMATED',targetSemantics:{createdVariables:'typed-execution-local-produced-path',container:'current-bounded-document-alias'},replaySeedRequired:randomRequired},
+    operations:result,dependencies:['Adobe Illustrator DOM (source-only)'],warnings:failReason?[failReason]:[],adapter:{id:ILLUSTRATOR_JSX_MODULE.id,contract:ILLUSTRATOR_JSX_MODULE.contract,version:ILLUSTRATOR_JSX_MODULE.version,boundary:'bounded structural analysis; no source execution'}
+  });
+}
+
 export function parseIllustratorJsxSubset({name='illustrator.jsx',text='',metadata={}}={}){
   text=String(text||'');
   const lexical=maskLexicalNonCode(text), masked=lexical.masked;
   const hasIllustrator=/#target\s+["']?illustrator\b/i.test(masked)||/\bpathItems\b|\bpathPoints\b|\bgroupItems\b|\blayers\.(?:add|getByName)\b|\bartboards\b|PathPointSelection|ExportType\./i.test(masked);
   const hasPhotoshop=/#target\s+["']?photoshop\b/i.test(masked)||/\bActionDescriptor\b|\bexecuteAction\s*\(|\bartLayers\b|\bLayerKind\b|\bcharIDToTypeID\b|\bstringIDToTypeID\b/i.test(masked);
   if(hasIllustrator&&hasPhotoshop)throw Object.assign(new Error('INK_ILLUSTRATOR_JSX_AMBIGUOUS_HOST'),{code:'AMBIGUOUS_HOST'});
+  if(/\bapp\.documents\.add\s*\(/.test(masked)) return parseBoundedDrawingSource({name,text,metadata});
 
   const fleurify=fleurifyOperation(text,masked);
   if(fleurify){
@@ -583,7 +803,7 @@ export const ILLUSTRATOR_JSX_MODULE = Object.freeze({
     const ambiguous=illustrator&&photoshop;
     const fleurify=stableSourceHash(source)===FLEURIFY_SNAPSHOT_FNV1A&&FLEURIFY_SIGNATURE.test(masked)&&/leftDirection\s*=/.test(masked)&&/rightDirection\s*=/.test(masked);
     const marker=lexical.directives.some(item=>SUBSET_MARKER.test(item.body));
-    const simplePrimitive=illustrator&&!/\b(?:function|if|for|while|switch|try|catch|do|with)\b/.test(masked)&&/\.pathItems\.(?:ellipse|rectangle)\s*\(/.test(masked);
+    const simplePrimitive=illustrator&&(!/\b(?:function|if|for|while|switch|try|catch|do|with)\b/.test(masked)&&/\.pathItems\.(?:ellipse|rectangle)\s*\(/.test(masked)||/\bapp\.documents\.add\s*\(/.test(masked));
     const accepted=ambiguous||fleurify||marker||simplePrimitive;
     const confidence=ambiguous ? 1 : fleurify ? 0.99 : marker ? 0.98 : simplePrimitive ? 0.94 : 0;
     return{accepted,confidence,detection:createAdapterDetection({format:ambiguous?'ILLUSTRATOR_JSX_AMBIGUOUS':'ILLUSTRATOR_JSX_READABLE_SUBSET',sourceSoftware:ambiguous?'Adobe JSX (ambiguous host)':SOURCE_SOFTWARE,confidence,extension,binary:false,evidence:[ambiguous?'mixed Illustrator + Photoshop executable host markers':fleurify?'Fleurify Illustrator executable signature':marker?'@ink-illustrator-subset 1 directive':'simple Illustrator primitive subset']})};

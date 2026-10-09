@@ -68,7 +68,8 @@ export function canonicalOperation(input = {}) {
     confidence: Math.max(0, Math.min(1, Number(input.confidence ?? 0.5))),
     evidence: clone(input.evidence || []),
     unsupportedReason: input.unsupportedReason || null,
-    conversionStatus: CONVERSION_STATUSES.includes(input.conversionStatus) ? input.conversionStatus : 'PARTIAL'
+    conversionStatus: CONVERSION_STATUSES.includes(input.conversionStatus) ? input.conversionStatus : 'PARTIAL',
+    approvedApproximation: input.approvedApproximation === true
   };
   return Object.freeze(operation);
 }
