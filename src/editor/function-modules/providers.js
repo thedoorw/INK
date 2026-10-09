@@ -41,7 +41,7 @@ export function createHistoryControlModule(version='1.0.0'){
 export function createDocumentIOModule(version='1.0.0'){
   return moduleBase('document-io',version,'documentIO',FUNCTION_MODULE_COMMANDS['document-io'],['document.current'],['native.document','native.persistence','native.export'],['Document','InkStore','Renderer'],ctx=>{
     const p=ctx.services;
-    ctx.command('document.new.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER',{documentPolicy:'MAY_REPLACE_DOCUMENT'}),run:args=>p.newDocument(args)});
+    ctx.command('document.new.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER',{documentPolicy:'MAY_REPLACE_DOCUMENT'}),run:(args,envelope,execution)=>p.newDocument(args,execution)});
     ctx.command('document.open.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER',{async:true,documentPolicy:'MAY_REPLACE_DOCUMENT'}),validate:args=>{if(!args.file)throw Object.assign(new Error('File required'),{code:'ARGUMENTS_INVALID'});},run:(args,envelope,execution)=>p.open(args.file,execution)});
     ctx.command('document.save.v1',{...meta('NONE','OUTPUT_ONLY',{async:true}),run:(args,envelope,execution)=>p.save(execution)});
     ctx.command('export.png.v1',{...meta('NONE','OUTPUT_ONLY',{async:true}),run:(args,envelope,execution)=>p.exportPNG(args,execution)});

@@ -1096,9 +1096,33 @@ export function createInkPublicCreativeApi(app) {
   });
 }
 
+function fencePublicAsyncEntryPoints(app,api) {
+  // Existing public methods remain the only creative authority; a lease blocks document
+  // switching from the first await through completion, including named-tool delegation.
+  const routes={reference:['import','decompose'],raster:['import'],composition:['execute'],
+    revision:['capture','restore'],preview:['capture'],asset:['export'],workflow:['invoke'],tools:['invoke']};
+  const result={...api};
+  for(const [group,names] of Object.entries(routes)){
+    if(!api[group])continue;
+    const inner={...api[group]};
+    for(const name of names){
+      if(typeof api[group][name]!=='function')continue;
+      const method=api[group][name];
+      inner[name]=function(...args){
+        const lease=app.sessions?.admit('public:'+group+'.'+name)||null;
+        try{const output=method.apply(api[group],args);
+          if(output&&typeof output.then==='function')return output.finally(()=>lease?.release());
+          lease?.release();return output;
+        }catch(error){lease?.release();throw error;}
+      };
+    }
+    result[group]=Object.freeze(inner);
+  }
+  return Object.freeze(result);
+}
 export function installInkPublicCreativeApi(app) {
   if (app?.inkPublicApi?.schema === INK_PUBLIC_CREATIVE_API_SCHEMA) return app.inkPublicApi;
-  const api = createInkPublicCreativeApi(app);
+  const api = fencePublicAsyncEntryPoints(app,createInkPublicCreativeApi(app));
   Object.defineProperty(app, 'inkPublicApi', {
     value: api,
     writable: false,

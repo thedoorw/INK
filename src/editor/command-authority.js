@@ -204,8 +204,10 @@ export function installCommandAuthority(app) {
     envelope.origin = ORIGINS.has(envelope.origin) ? envelope.origin : 'system';
     const beforeHistory = historySummary(app);
     const documentAtStart=app?.doc || null, documentIdAtStart=documentAtStart?.id || null;
+    let sessionOperation=null;
     const execution=Object.freeze({
       commandId, ownerId:definition.ownerId, documentAtStart, documentIdAtStart,
+      get sessionOperation(){return sessionOperation;},
       assertDocumentCurrent(){
         if (app?.doc !== documentAtStart || (documentIdAtStart != null && app?.doc?.id !== documentIdAtStart)) {
           throw Object.assign(new Error('Document changed during asynchronous command'),{code:'STALE_DOCUMENT'});
@@ -213,6 +215,8 @@ export function installCommandAuthority(app) {
         return true;
       }
     });
+    try {app.multiView?.assertCommandAllowed?.(commandId);sessionOperation=app.sessions?.admit(commandId)||null;}
+    catch(error){return commandFailure(commandId,error);}
     owner.inFlight++;
     try {
       definition.validate?.(envelope.arguments || {}, envelope);
@@ -221,13 +225,15 @@ export function installCommandAuthority(app) {
         return raw.then(value=>{
           if (definition.documentPolicy === 'SAME_DOCUMENT') execution.assertDocumentCurrent();
           return finalize(definition,envelope,value,beforeHistory);
-        }).catch(error=>commandFailure(commandId,error)).finally(()=>{ owner.inFlight=Math.max(0,owner.inFlight-1); });
+        }).catch(error=>commandFailure(commandId,error)).finally(()=>{ owner.inFlight=Math.max(0,owner.inFlight-1); sessionOperation?.release(); });
       }
       const response=finalize(definition,envelope,raw,beforeHistory);
       owner.inFlight=Math.max(0,owner.inFlight-1);
+      sessionOperation?.release();
       return response;
     } catch (error) {
       owner.inFlight=Math.max(0,owner.inFlight-1);
+      sessionOperation?.release();
       return commandFailure(commandId,error);
     }
   };

@@ -13,8 +13,14 @@ export function createMinimalControlsModule(){
   return Object.freeze({id:'minimal.controls.v1',slot:'controls',mount(ctx){
     const render=()=>{
       const tool=ctx.selectors.get('tool.current'),history=ctx.selectors.get('history.summary')||{},doc=ctx.selectors.get('document.current')||{};
+      const sessions=ctx.selectors.get('session.list')||[],comparison=ctx.selectors.get('session.compare')||{},clip=ctx.selectors.get('session.transfer')||{},views=ctx.selectors.get('session.views')||{layout:1};
+      const sessionButtons=sessions.map(item=>'<button type="button" data-action="session-select" data-session-id="'+escapeText(item.sessionId)+'" aria-pressed="'+Boolean(item.active)+'" title="'+escapeText(item.title)+'">'+escapeText(item.title||'Untitled')+(item.dirty?' *':'')+'</button>').join('');
+      const compareCandidate=sessions.find(item=>!item.active&&item.sessionId!==comparison.secondary);
+      const compareToggle=comparison.secondary?'Compare off':compareCandidate?'Compare '+escapeText(compareCandidate.title||'B'):'Compare (open B)';
+
       ctx.root.innerHTML=
         '<div class="ink-control-group">'+button('new-a4','New A4')+button('open','Open')+button('save','Save')+'</div>'+
+        '<div class="ink-control-group ink-session-buttons">'+sessionButtons+button('session-close','Close')+(views.enabled?'':button('session-compare',compareToggle))+button('view-1','1 view',views.enabled&&views.layout===1)+button('view-2','2 views',views.enabled&&views.layout===2)+button('view-4','4 views',views.enabled&&views.layout===4)+button('session-copy','Copy selected')+button('session-paste','Paste'+(clip.ready?' ('+clip.count+')':''))+'</div>'+
         '<div class="ink-control-group">'+button('tool-select','Select',tool==='select')+button('tool-pen','Pen',tool==='pen')+button('tool-brush','Brush',tool==='brush')+button('tool-pan','Pan',tool==='pan')+'</div>'+
         '<div class="ink-control-group">'+button('undo','Undo',false)+(button('redo','Redo',false))+button('fit','Fit')+button('zoom100','100%')+'</div>'+
         '<div class="ink-control-group">'+button('preview','Preview',ctx.services.isPreviewVisible())+button('export-png','PNG')+button('export-svg','SVG')+button('export-pdf','PDF')+'</div>'+
@@ -24,6 +30,25 @@ export function createMinimalControlsModule(){
     render();
     ctx.listen(ctx.root,'click',event=>{
       const action=event.target.closest('[data-action]')?.dataset.action;if(!action)return;
+      if(action==='session-select'){run(ctx,'session.activate.v1',{sessionId:event.target.closest('[data-session-id]')?.dataset.sessionId});return;}
+      if(/^view-[124]$/.test(action)){run(ctx,'session.view.layout.v1',{layout:Number(action.slice(5))});return;}
+      if(action==='session-copy'){run(ctx,'session.copy.v1');return;}
+      if(action==='session-paste'){run(ctx,'session.paste.v1');return;}
+      if(action==='session-compare'){
+        const comparison=ctx.selectors.get('session.compare')||{},sessions=ctx.selectors.get('session.list')||[];
+        const candidate=sessions.find(item=>!item.active&&item.sessionId!==comparison.secondary);
+        run(ctx,'session.compare.v1',{sessionId:comparison.secondary?null:candidate?.sessionId||null});return;
+      }
+      if(action==='session-close'){
+        const sessions=ctx.selectors.get('session.list')||[],active=sessions.find(item=>item.active);
+        if(!active)return;
+        let decision='discard';
+        if(active.dirty){
+          decision=window.prompt('Close dirty document: enter save / discard / cancel','cancel');
+          if(!['save','discard'].includes(decision))return;
+        }
+        run(ctx,'session.close.v1',{sessionId:active.sessionId,decision});return;
+      }
       if(action==='new-a4')run(ctx,'document.new.v1',{preset:'A4',units:'mm',width:210,height:297,ppi:300,orientation:'portrait'});
       else if(action==='open')ctx.services.openProject();
       else if(action==='save')run(ctx,'document.save.v1');

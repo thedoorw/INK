@@ -43,7 +43,7 @@ export function createNativeFunctionServicePorts(app){
     }),
     documentIO:Object.freeze({
       current:()=>({id:app?.doc?.id||null,title:app?.doc?.title||'未命名作品',modifiedAt:app?.doc?.modifiedAt||null,open:Boolean(app?.documentOpen),dirty:Boolean(app?.dirty)}),
-      newDocument:args=>uiB002Document.newDocument(args),
+      newDocument:(args,execution)=>uiB002Document.newDocument(args,execution),
       open:async(file,execution)=>{
         execution?.assertDocumentCurrent?.();
         const opened=await app.openProjectFile?.(file,execution);
