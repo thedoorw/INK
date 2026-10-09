@@ -28,10 +28,15 @@ function executeStudioRecipeTask(app,task){
     const committed=app.history.commit();
     if(!committed||report?.replayDiff?.changed!==true)editFail('NO_OP');
     app.spatialDirty=true;app.refreshAll?.();app.renderer?.render?.();
-    const resultRefs=task.targets.map(ref=>{
+    const sourceRefs=task.targets.map(ref=>{
       const found=walkPageObjects(app.page()).find(item=>item.object?.id===ref.objectId);
       return found?chatObjectRef(app.page().id,found):null;
     }).filter(Boolean);
+    const producedRefs=(report?.result?.producedRefs||[]).map(ref=>{
+      const found=walkPageObjects(app.page()).find(item=>item.object?.id===ref.objectId && item.object?.type===ref.type);
+      return found?chatObjectRef(app.page().id,found):null;
+    }).filter(Boolean);
+    const resultRefs=[...sourceRefs,...producedRefs];
     return {
       changed:true,recipeId:recipe.id,recipeVersion:String(recipe.version),
       executionReceipt:compactRecipeReceipt(report),replayReceipt:compactRecipeReceipt(engine.replayReport(report.id)),resultRefs

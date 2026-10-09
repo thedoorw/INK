@@ -51,7 +51,8 @@ export function createWorkflowIR({ source = {}, metadata = {}, operations = [], 
       confidence: Math.max(0, Math.min(1, Number(input.confidence ?? 0.5))),
       evidence: clone(input.evidence || []),
       unsupportedReason: input.unsupportedReason || null,
-      conversionStatus: input.conversionStatus || 'PARTIAL'
+      conversionStatus: input.conversionStatus || 'PARTIAL',
+      approvedApproximation: input.approvedApproximation === true
     };
   }).sort((a, b) => a.order - b.order || a.operationId.localeCompare(b.operationId));
 
@@ -74,7 +75,8 @@ export function createWorkflowIR({ source = {}, metadata = {}, operations = [], 
     confidence: item.confidence,
     evidence: item.evidence,
     unsupportedReason: item.unsupportedReason,
-    conversionStatus: item.conversionStatus
+    conversionStatus: item.conversionStatus,
+    approvedApproximation: item.approvedApproximation === true
   }));
   const canonical = canonicalProgram({ source, metadata, operations: canonicalInputs, dependencies, warnings });
   const canonicalById = new Map(canonical.operations.map(operation => [operation.operationId, operation]));

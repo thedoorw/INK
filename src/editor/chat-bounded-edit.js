@@ -1304,7 +1304,7 @@ function normalizeStudioRecipeExecuteArguments(raw = {}) {
     ? {}
     : normalizeBoundedJson(raw.parameters, 'arguments.parameters', { maxBytes: 8192, maxDepth: 5, maxKeys: 128, maxArray: 128, maxString: 512 });
   if (!parameters || typeof parameters !== 'object' || Array.isArray(parameters)) editFail('ARGUMENTS_INVALID');
-  if (!Array.isArray(raw.roles) || !raw.roles.length || raw.roles.length > 64) editFail('ARGUMENT_INVALID', { field: 'arguments.roles' });
+  if (!Array.isArray(raw.roles) || raw.roles.length > 64) editFail('ARGUMENT_INVALID', { field: 'arguments.roles' });
   const roles = raw.roles.map((role, index) => boundedText(role, `arguments.roles[${index}]`, { max: 80 }));
   return { recipeId, recipeVersion, parameters, roles };
 }
@@ -1503,7 +1503,7 @@ function normalizeOperationArguments(operation, raw) {
 
 function operationTargetRules(operation) {
   if (CHAT_PAGE_OPERATION_SET.has(operation) || operation === 'page.paper.set.v1' || operation === 'page.artboard.set.v1' || CHAT_PRECISION_LAYOUT_OPERATION_SET.has(operation) || CHAT_MATERIAL_OPERATION_SET.has(operation)) return { exact: 0, min: 0, max: 0 };
-  if (operation === 'recipe.studio.execute.v1') return { min: 1, max: 64 };
+  if (operation === 'recipe.studio.execute.v1') return { min: 0, max: 64 };
   if (operation === 'path.create.v1' || operation === 'stroke.create.v1' || operation === 'paint.session.create.v1' || operation === 'frame.create.v1' || operation === 'text.create.v1' || operation === 'svg.import.v1' || operation === 'component.instance.create.v1' || operation === 'component.definition.duplicate.v1') return { exact: 0, min: 0, max: 0 };
   if (operation === 'image.adjustment.add.v1'
     || operation === 'image.filter.add.v1'
@@ -1762,6 +1762,9 @@ export function validateChatEditTaskAgainstState(app, rawTask, { expected = null
     if (!recipe.capabilities?.supported) editFail('RECIPE_CAPABILITY_UNSUPPORTED', { actual: recipe.capabilities?.unsupported || [] });
     validateStudioRecipeParameters(recipe, task.arguments.parameters);
     if (task.arguments.roles.length !== task.targets.length) editFail('RECIPE_ROLE_BINDING_COUNT_MISMATCH', { expected: task.targets.length, actual: task.arguments.roles.length });
+    const registered = engine.recipes?.get?.(task.arguments.recipeId);
+    if (!task.targets.length && (!registered || registered.targets?.some(target=>target?.required === true) || registered.steps?.some(step=>step.enabled !== false && step.role && !step.optional))) editFail('RECIPE_EXTERNAL_TARGET_REQUIRED');
+    if (!(registered?.steps||[]).some(step=>step.enabled!==false && step.op!=='checkpoint')) editFail('RECIPE_NO_OP');
   }
   if (CHAT_PAGE_OPERATION_SET.has(task.operation)) {
     if (!app?.commands?.has?.(task.operation)) editFail('CAPABILITY_UNAVAILABLE', { operation: task.operation });

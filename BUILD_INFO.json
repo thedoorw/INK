@@ -4,15 +4,15 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
-    "product_tree": "62b5aa122a9f8367c40cbf361873a92a3c5fda56"
+    "exact_sha": "e3cd397e0ce1b2045f0da254343bbe86eb01ccc1",
+    "product_tree": "6bb2d65758a714b3e00911733a89da188e2ef56e"
   },
   "package": {
-    "manifest_sha256": "d5633eaa0709b28f9088514ab38d99f67d4c34eb6b27efdbea128c00006db657"
+    "manifest_sha256": "3df756725846df52a0e1bf5db07d053194a0c60c0cc2a1fe28b987f89c56394e"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "070bab64f4f3b8fa4061c7406f5b3b3219dd31196f4a1deaf109df18d92a1fbd",
+    "package_digest_sha256": "bc07697d84e5a010c72ee1ef16637ec43b8328aaba22ee148b5c5fdbe7f47549",
     "file_count": 266,
     "files": [
       {
@@ -112,8 +112,8 @@
       },
       {
         "path": "src/agent/recipe-creative-loop.js",
-        "bytes": 11504,
-        "sha256": "f5c51e36ed402f60aae057010c5d8067343d916d9a4192dc784ceb0df9cea071"
+        "bytes": 12323,
+        "sha256": "e54fc4e43af8fb9c6a2fcccd97c899019369feb9fb89ee1a125ff95f527050d9"
       },
       {
         "path": "src/agent/runtime-bridge-protocol.js",
@@ -337,8 +337,8 @@
       },
       {
         "path": "src/editor/chat-bounded-edit.js",
-        "bytes": 113036,
-        "sha256": "5abd2b707af9ca7433c70194614d827a45497829d67fe1bdb92cd0be3ec4b590"
+        "bytes": 113447,
+        "sha256": "bb6731cf29e78367096bb8f341253cdfda386bd315302b9fb3ed6cb0be6fd0d7"
       },
       {
         "path": "src/editor/chat-creative-plan.js",
@@ -372,8 +372,8 @@
       },
       {
         "path": "src/editor/creative-family-recipe-invocation.js",
-        "bytes": 2478,
-        "sha256": "1155d36cbdbf2dce4f16d896d25902b0638b67ef54ef816efdf53c2779b7587d"
+        "bytes": 2807,
+        "sha256": "9791735cd5f51945f93863f242f21dda05e36559785d45d04b1c9d80c2ef4134"
       },
       {
         "path": "src/editor/creative-family-structure-repeat-layout-components.js",
@@ -897,8 +897,8 @@
       },
       {
         "path": "src/program-import/canonical-operation.js",
-        "bytes": 4934,
-        "sha256": "eb31b583b5967822339171e95d1a1a2ae572b496919dd3a534f1cc7e4dce23c6"
+        "bytes": 4999,
+        "sha256": "5164d82837e60660201bd8299aa11d2396083027dcc44132a648f2b1ef32121c"
       },
       {
         "path": "src/program-import/comparison-engine.js",
@@ -907,8 +907,8 @@
       },
       {
         "path": "src/program-import/compiler.js",
-        "bytes": 18501,
-        "sha256": "7f83c98317a0cfcc1c9a79aa86ff7cffa19a471fac3094cdabb4c86f8efe8df4"
+        "bytes": 19214,
+        "sha256": "9c0bc51b02b3b58d4b6b98b3ff35337f42fc7c620ae1d215308ec78a324cdeb9"
       },
       {
         "path": "src/program-import/coverage-engine.js",
@@ -927,8 +927,8 @@
       },
       {
         "path": "src/program-import/importer.js",
-        "bytes": 11091,
-        "sha256": "60148a0223a0df9744ba45f8f380c8bda4c75b9a02681d4c65920f6ca81bbaff"
+        "bytes": 11558,
+        "sha256": "9476f509324edede59da0d285dfa715c93bec64abf22f4007ae3d120905d92d3"
       },
       {
         "path": "src/program-import/index.js",
@@ -977,8 +977,8 @@
       },
       {
         "path": "src/program-import/translation-modules/illustrator-jsx.js",
-        "bytes": 45244,
-        "sha256": "e01df6111f611384d2e483cc0ceee96e2875def51ae29dc4fed2ad3d9b109e19"
+        "bytes": 60983,
+        "sha256": "86b132dd8459e4d8cf53cae9373bed0cdb6e2e3486e46ddc554347d0abb7c4e8"
       },
       {
         "path": "src/program-import/translation-modules/index.js",
@@ -992,8 +992,8 @@
       },
       {
         "path": "src/program-import/workflow-ir.js",
-        "bytes": 5259,
-        "sha256": "b7e4e5842b289d4fdc3a07acba5ea3245927db208e96596b11b13a975ab3678f"
+        "bytes": 5390,
+        "sha256": "236b0a89623eced50a4b71c24c20495cf7c6a16254697163c31cd2feda2d729c"
       },
       {
         "path": "src/provenance/provenance-graph.js",
@@ -1017,8 +1017,8 @@
       },
       {
         "path": "src/recipe/recipe-engine.js",
-        "bytes": 44167,
-        "sha256": "ac07faca249eb69c8549faad6d8faf02f17288b47cedb7dbb0f18c25f54af2df"
+        "bytes": 45870,
+        "sha256": "58c69cb46ee127efc51388e4002a55dcbf318387d9bbc2b5e299c4e4f48bc161"
       },
       {
         "path": "src/recipe/recipe-io.js",
@@ -1349,20 +1349,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/263#issuecomment-6063316778"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/276#issuecomment-6076817659"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
-    "allowlist_digest_sha256": "d150e618bf276860501f3d6465f6d4a5db06b5623d086ffc721ed2138b93c40d",
+    "exact_sha": "f31e354eca2e6ad1ac6ed2155c8b964b2a5f75fa",
+    "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "4b7a5fb782c2bbb7ea3ae22fbec2930b4df880d8",
-    "authority_record_sha256": "92f5181f994930b2472f45e3b9863a3d9845cdb5ed7189d18bd87b172a329ebf",
-    "publisher_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
-    "package_publisher_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
+    "previous_target_commit": "4a84789c68279f88852f80037d3acd7bd3efc114",
+    "authority_record_sha256": "7524d33a84194b2da061838914f2a49d94a461e60c9778f679176562cce3cd13",
+    "publisher_sha": "f31e354eca2e6ad1ac6ed2155c8b964b2a5f75fa",
+    "package_publisher_sha": "f31e354eca2e6ad1ac6ed2155c8b964b2a5f75fa",
     "runtime_bytes_unchanged_from_package": true
   }
 }
