@@ -1218,6 +1218,48 @@ primary.push(descriptor({
   toolPrimary: true
 }));
 
+// External source -> first-party adapter -> Workflow IR/compiler -> registered Studio Recipe
+// -> existing bounded edit proposal/approval/native History. Analyzed source never executes.
+primary.push(descriptor({
+  id: 'recipe.workflow',
+  title: 'Import, translate and execute a bounded external workflow',
+  description: 'Analyze actual source text using installed first-party adapters; translate and inspect diagnostics; propose, approve and execute only a fully supported compiled Recipe through existing native authorities.',
+  availability: true,
+  routingClass: 'PROPOSAL_REQUIRED',
+  namedTool: 'import_ink_workflow',
+  publicMethod: 'workflow.invoke',
+  role: 'PROPOSAL',
+  authoritativeRoute: 'app.studio.programImporter → first-party Workflow IR/compiler → app.studio.engine.registerRecipe → app.chatBoundedEditAdapter → native History',
+  inputSchema: obj({
+    action: { type: 'string', enum: ['analyze', 'translate', 'inspect', 'propose', 'approve', 'execute'], description: 'Fixed workflow stage; no arbitrary method dispatch.' },
+    source: obj({
+      name: str('Actual source filename (max 120 safe chars).'),
+      text: str('Source text, up to 32768 UTF-8 bytes. No arbitrary code execution.'),
+      mimeType: str('Optional source MIME.'),
+      license: obj({spdx: str('Verified source SPDX identifier.')}, ['spdx']),
+      provenance: obj({ sourceUrl: str('Original upstream source URL.'), localUserProvided: bool('Original source supplied by user.') })
+    }, [], 'Required for analyze; source and license/provenance must be explicit.'),
+    sessionId: str('Returned analyze session id.'),
+    targetRefs: arr(objectRefSchema, 'Existing editable path refs; native route currently requires 1..64.', { minItems: 1, maxItems: 64 }),
+    parameters: { type: 'object', properties: {}, additionalProperties: true },
+    inputHashes: { type: 'object', properties: {}, additionalProperties: true },
+    proposalId: str('Existing bounded-edit proposal id.'),
+    approvalToken: str('Existing bounded-edit approval token.')
+  }, ['action'], 'Fixed six-stage external Recipe entry; action-specific arguments are required.'),
+  targetTypes: ['Recipe', 'Path'],
+  constraints: [
+    'Only installed adapters; no eval, external software execution, dynamic dispatch or inline native-command substitution.',
+    'Analyzing and translating do not mutate Document/History; registration occurs at proposal.',
+    'Fully supported source, explicit license/provenance, a nonempty compiled Recipe and existing Path target are required before a governed proposal.',
+    'Imported Recipe is pinned to source/compiled fingerprint, parameters, target refs and document fingerprint; stale approval fails closed.',
+    'Native RecipeEngine and existing bounded edit approval/History own execution and rollback; no partial or approximate execution is reported as complete.'
+  ],
+  ...policy(true, 'BOUNDED_STAGE_PROPOSE_APPROVE_EXECUTE', 'EXISTING_NATIVE_RECIPE_HISTORY', 'NO_AUTO_CAPTURE', true, false, 'Call get_ink_preview after the completed execution and preserve its handle as a runner artifact.'),
+  resultContract: resultContract({ statuses: ['COMPLETED', 'PROPOSED', 'APPROVED', 'EXECUTED', 'FAILED'] }),
+  examples: [{ action: 'inspect', sessionId: 'ink-recipe-session:...' }],
+  toolPrimary: true
+}));
+
 const operationDescriptors = CHAT_EDIT_OPERATIONS.map(operation => {
   const paperOnly = operation === 'page.paper.set.v1';
   const pageOperation = CHAT_PAGE_OPERATIONS.includes(operation);
