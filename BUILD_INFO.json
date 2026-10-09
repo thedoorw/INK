@@ -4,11 +4,11 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
+    "exact_sha": "c93fc4b926d161601cc97d84c36acfe1ad8aeccf",
     "product_tree": "62b5aa122a9f8367c40cbf361873a92a3c5fda56"
   },
   "package": {
-    "manifest_sha256": "d5633eaa0709b28f9088514ab38d99f67d4c34eb6b27efdbea128c00006db657"
+    "manifest_sha256": "600e70f55d9402422dea60b3b956f8430b784736db7042e477d279d86b17c7bf"
   },
   "runtime": {
     "root": "/INK/",
@@ -1353,16 +1353,16 @@
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
-    "allowlist_digest_sha256": "d150e618bf276860501f3d6465f6d4a5db06b5623d086ffc721ed2138b93c40d",
+    "exact_sha": "074d4069856f72175d587f9e74712ca3fbfe37b8",
+    "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "4b7a5fb782c2bbb7ea3ae22fbec2930b4df880d8",
-    "authority_record_sha256": "92f5181f994930b2472f45e3b9863a3d9845cdb5ed7189d18bd87b172a329ebf",
-    "publisher_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
-    "package_publisher_sha": "9ffaf87f0d6ce68e0e858d7394c073713377a183",
+    "previous_target_commit": "4a84789c68279f88852f80037d3acd7bd3efc114",
+    "authority_record_sha256": "dfd3937c805d0d811fa5e8cf436665986dfa8ddca11ae96a2661d52d76b5f3df",
+    "publisher_sha": "074d4069856f72175d587f9e74712ca3fbfe37b8",
+    "package_publisher_sha": "074d4069856f72175d587f9e74712ca3fbfe37b8",
     "runtime_bytes_unchanged_from_package": true
   }
 }
