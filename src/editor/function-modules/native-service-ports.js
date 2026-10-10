@@ -8,6 +8,7 @@ import { executeRecipeInvocationOperation } from '../creative-family-recipe-invo
 import { createUiB002DocumentAdapter } from './ui-b-002-document-adapter.js';
 import { VIEW_ZOOM_CONTRACT } from '../../document/workspace.js';
 import { thumbnailPreviewGeometry } from '../../document/artboard.js';
+import { applyArtworkResize, applyCanvasSize, applyOutputPpi } from '../../document/size.js';
 
 const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
 const finite=value=>Number.isFinite(Number(value));
@@ -111,7 +112,10 @@ export function createNativeFunctionServicePorts(app){
       guideVisibility:(id,visible)=>{app.setGuideVisible?.(id,visible);return{changed:true,result:{pageId:activePage(app)?.id,guideId:id,guides:clone(activePage(app)?.guides||[])}};},
       snap:(key,value)=>{const snap=key==='enabled'?app.setSnapEnabledState?.(value):app.setSnapCategoryState?.(key,value);return{changed:true,result:{pageId:activePage(app)?.id,snap:clone(snap)}};},
       paper:(key,value)=>executePageSurfaceOperation(app,{operation:'page.paper.set.v1',arguments:{key,value},targets:[]}),
-      artboard:(key,value)=>executePageSurfaceOperation(app,{operation:'page.artboard.set.v1',arguments:{key,value},targets:[]})
+      artboard:(key,value)=>executePageSurfaceOperation(app,{operation:'page.artboard.set.v1',arguments:{key,value},targets:[]}),
+      canvasResize:(args,execution)=>applyCanvasSize(app,args,execution),
+      outputPpi:(args,execution)=>applyOutputPpi(app,args,execution),
+      artworkResize:(args,execution)=>applyArtworkResize(app,args,execution)
     }),
     layerManagement:Object.freeze({
       active:()=>{const layer=activeLayer(app);return layer?{id:layer.id,name:layer.name,opacity:layer.opacity,visible:layer.visible!==false,locked:Boolean(layer.locked),objectCount:layer.objects?.length||0}:null;},
