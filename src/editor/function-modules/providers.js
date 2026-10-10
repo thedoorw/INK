@@ -23,7 +23,7 @@ const moduleBase=(id,version,servicePort,providedCommands,providedSelectors,requ
 export const FUNCTION_MODULE_COMMANDS=Object.freeze({
   'history-control':['history.undo.v1','history.redo.v1','history.jump.v1'],
   'document-io':['document.new.v1','document.open.v1','document.save.v1','export.png.v1'],
-  'page-layout':['page.create.v1','page.duplicate.v1','page.delete.v1','page.activate.v1','page.rename.v1','guide.add.v1','guide.move.v1','guide.remove.v1','guide.lock.set.v1','guide.visibility.set.v1','page.snap.set.v1','page.paper.set.v1','page.artboard.set.v1'],
+  'page-layout':['page.create.v1','page.duplicate.v1','page.delete.v1','page.activate.v1','page.rename.v1','guide.add.v1','guide.move.v1','guide.remove.v1','guide.lock.set.v1','guide.visibility.set.v1','page.snap.set.v1','page.paper.set.v1','page.artboard.set.v1','page.canvas.resize.v1','page.output-ppi.set.v1','page.artwork.resize.v1'],
   'layer-management':['layer.activate.v1','layer.create.v1','layer.duplicate.v1','layer.delete.v1','layer.reorder.v1','layer.opacity.set.v1','layer.visibility.set.v1','layer.lock.set.v1'],
   'selection-transform':['selection.clear.v1','selection.delete.v1','selection.duplicate.v1','object.translate.v1','object.align.v1','object.resize.v1','object.rotate.v1'],
   'tools-view':['tool.activate.v1','tool.setting.set.v1','tool.color.set.v1','tool.shape.set.v1','tool.shape.fill.set.v1','tool.text.setting.set.v1','view.zoom.by.v1','view.zoom.set.v1','view.pan.v1','view.reset.v1','view.fit.content.v1','view.fit.artboard.v1','workspace.activate.v1']
@@ -64,6 +64,9 @@ export function createPageLayoutModule(version='1.0.0'){
     ctx.command('page.snap.set.v1',{...meta('PRESERVE_EXISTING_ROUTE','OVERLAY'),run:args=>p.snap(args.key,args.value)});
     ctx.command('page.paper.set.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:args=>p.paper(args.key,args.value)});
     ctx.command('page.artboard.set.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:args=>p.artboard(args.key,args.value)});
+    ctx.command('page.canvas.resize.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:(args,envelope,execution)=>p.canvasResize(args,execution)});
+    ctx.command('page.output-ppi.set.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:(args,envelope,execution)=>p.outputPpi(args,execution)});
+    ctx.command('page.artwork.resize.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:(args,envelope,execution)=>p.artworkResize(args,execution)});
     ctx.selector('page.active',()=>p.active());
     ctx.selector('page.preview',args=>p.preview(args.width,args.height));
     ctx.selector('page.byId',args=>p.byId(args.pageId));

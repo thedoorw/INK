@@ -2,6 +2,13 @@ import { clamp } from '../core/index.js';
 
 export const CSS_PPI = 96;
 export const MM_PER_INCH = 25.4;
+export const ARTBOARD_MIN_MM = 10;
+export const ARTBOARD_MAX_MM = 5000;
+export const ARTBOARD_PPI_MIN = 36;
+export const ARTBOARD_PPI_MAX = 2400;
+export const EXPORT_MAX_DIMENSION = 16384;
+export const EXPORT_MAX_PIXELS = 36000000;
+export const ARTBOARD_UNITS = Object.freeze(['px','mm','cm','in']);
 export const ARTBOARD_PRESETS = Object.freeze({
   A4: Object.freeze({ id: 'A4', name: 'A4', widthMm: 210, heightMm: 297 })
 });
@@ -27,25 +34,48 @@ export const worldToMm = world => Number(world || 0) * MM_PER_INCH / CSS_PPI;
 export const mmToPixels = (mm, ppi = 300) => Number(mm || 0) * Number(ppi || 300) / MM_PER_INCH;
 export const pixelsToMm = (pixels, ppi = 300) => Number(pixels || 0) * MM_PER_INCH / Number(ppi || 300);
 
+const near = (a,b,epsilon=.0001) => Math.abs(Number(a)-Number(b)) <= epsilon;
+export const deriveArtboardOrientation = (widthMm,heightMm,fallback='portrait') => {
+  if (Number(widthMm) > Number(heightMm)) return 'landscape';
+  if (Number(heightMm) > Number(widthMm)) return 'portrait';
+  return fallback === 'landscape' ? 'landscape' : 'portrait';
+};
+export const isA4Dimensions = (widthMm,heightMm) =>
+  (near(widthMm,210)&&near(heightMm,297)) || (near(widthMm,297)&&near(heightMm,210));
+export function validateArtboardOutputSize(widthMm,heightMm,ppi){
+  const resolvedPpi=Number(ppi);
+  if(!Number.isFinite(resolvedPpi)||resolvedPpi<ARTBOARD_PPI_MIN||resolvedPpi>ARTBOARD_PPI_MAX)
+    throw Object.assign(new Error(`Output PPI must be between ${ARTBOARD_PPI_MIN} and ${ARTBOARD_PPI_MAX}`),{code:'ARGUMENTS_INVALID'});
+  const width=Math.max(1,Math.round(mmToPixels(widthMm,resolvedPpi)));
+  const height=Math.max(1,Math.round(mmToPixels(heightMm,resolvedPpi)));
+  if(width>EXPORT_MAX_DIMENSION||height>EXPORT_MAX_DIMENSION||width*height>EXPORT_MAX_PIXELS)
+    throw Object.assign(new Error('Output size exceeds the existing 36M pixel / 16,384 side export budget'),{
+      code:'RESOURCE_LIMIT',details:{width,height,ppi:resolvedPpi,maxDimension:EXPORT_MAX_DIMENSION,maxPixels:EXPORT_MAX_PIXELS}
+    });
+  return {width,height,ppi:resolvedPpi};
+}
+
 export function normalizeArtboard(raw = {}, { legacyInfinite = false } = {}) {
-  const preset = ARTBOARD_PRESETS[raw?.preset] || ARTBOARD_PRESETS.A4;
+  const fallbackPreset = ARTBOARD_PRESETS[raw?.preset] || ARTBOARD_PRESETS.A4;
   const mode = 'fixed';
-  const orientation = raw?.orientation === 'landscape' ? 'landscape' : 'portrait';
-  let widthMm = Number.isFinite(+raw?.widthMm) ? clamp(+raw.widthMm, 10, 5000) : preset.widthMm;
-  let heightMm = Number.isFinite(+raw?.heightMm) ? clamp(+raw.heightMm, 10, 5000) : preset.heightMm;
-  if ((orientation === 'portrait' && widthMm > heightMm) || (orientation === 'landscape' && widthMm < heightMm)) {
-    [widthMm, heightMm] = [heightMm, widthMm];
-  }
+  const widthMm = Number.isFinite(+raw?.widthMm) ? clamp(+raw.widthMm, ARTBOARD_MIN_MM, ARTBOARD_MAX_MM) : fallbackPreset.widthMm;
+  const heightMm = Number.isFinite(+raw?.heightMm) ? clamp(+raw.heightMm, ARTBOARD_MIN_MM, ARTBOARD_MAX_MM) : fallbackPreset.heightMm;
+  const orientation = deriveArtboardOrientation(widthMm,heightMm,raw?.orientation);
+  const customRequested = raw?.preset === 'custom';
+  const preset = !customRequested && isA4Dimensions(widthMm,heightMm) ? 'A4' : 'custom';
+  const rawPpi=Number(raw?.ppi);
+  const ppi=Number.isFinite(rawPpi)&&rawPpi>=ARTBOARD_PPI_MIN&&rawPpi<=ARTBOARD_PPI_MAX?rawPpi:DEFAULT_ARTBOARD.ppi;
+  const unit=ARTBOARD_UNITS.includes(raw?.unit)?raw.unit:'mm';
   return {
     mode,
-    preset: preset.id,
+    preset,
     orientation,
     widthMm,
     heightMm,
-    ppi: [72, 96, 150, 300, 600].includes(+raw?.ppi) ? +raw.ppi : DEFAULT_ARTBOARD.ppi,
+    ppi,
     bleedMm: clamp(Number.isFinite(+raw?.bleedMm) ? +raw.bleedMm : DEFAULT_ARTBOARD.bleedMm, 0, 25),
     safeMarginMm: clamp(Number.isFinite(+raw?.safeMarginMm) ? +raw.safeMarginMm : DEFAULT_ARTBOARD.safeMarginMm, 0, Math.min(widthMm, heightMm) / 2),
-    unit: raw?.unit === 'px' ? 'px' : 'mm',
+    unit,
     showBleed: raw?.showBleed !== false,
     showSafeArea: raw?.showSafeArea !== false,
     showCenter: raw?.showCenter !== false,
@@ -147,5 +177,6 @@ export function artboardExportGeometry(pageOrArtboard, {
 
 export function describeArtboard(pageOrArtboard) {
   const artboard = normalizeArtboard(pageOrArtboard?.artboard || pageOrArtboard || {});
-  return `${artboard.preset} ${artboard.orientation === 'portrait' ? '直式' : '橫式'} · ${artboard.widthMm} × ${artboard.heightMm} mm · ${artboard.ppi} PPI`;
+  const label=artboard.preset==='A4'?'A4':'Custom';
+  return `${label} ${artboard.orientation === 'portrait' ? '直式' : '橫式'} · ${artboard.widthMm} × ${artboard.heightMm} mm · ${artboard.ppi} PPI`;
 }

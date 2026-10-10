@@ -2,7 +2,7 @@ import { clamp } from '../core/index.js';
 
 export const WORKSPACE_SPACES = Object.freeze(['creation', 'layout']);
 export const VIEW_ZOOM_MIN = 0.03;
-export const VIEW_ZOOM_MAX = 24;
+export const VIEW_ZOOM_MAX = 128;
 export const VIEW_ZOOM_CONTRACT = Object.freeze({ minScale: VIEW_ZOOM_MIN, maxScale: VIEW_ZOOM_MAX });
 export const clampViewScale = value => clamp(Number(value), VIEW_ZOOM_MIN, VIEW_ZOOM_MAX);
 export const DEFAULT_CREATION_CAMERA = Object.freeze({ x: 0, y: 0, scale: 1, rotation: 0 });

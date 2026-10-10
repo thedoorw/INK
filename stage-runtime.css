@@ -62,3 +62,23 @@ html[data-ink-shell-ready="false"] #app{visibility:hidden;pointer-events:none}
 .ink-fixed-view-canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none}
 .ink-session-buttons [data-view-layout]{min-width:34px}
 @media(max-width:820px){.ink-view-grid{grid-column:1;grid-row:2}.ink-view-header{gap:2px;padding:2px}.ink-view-mode{font-size:9px}}
+
+.ink-size-actions{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:7px}
+.ink-size-dialog{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;border:1px solid #9b9b9b;border-radius:5px;padding:12px;background:#fff;color:#222}
+.ink-size-dialog::backdrop{background:rgba(0,0,0,.3)}
+.ink-size-dialog h2{font-size:14px;margin:0 0 10px}
+.ink-size-dialog label,.ink-size-dialog legend{font-size:11px;color:#555}
+.ink-size-dialog input,.ink-size-dialog select{width:100%;min-height:28px;border:1px solid #bbb;background:#fff}
+.ink-size-dialog label>input[type="checkbox"]{width:auto;min-height:auto;margin-right:5px}
+.ink-size-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.ink-size-row{display:flex;gap:5px;align-items:center;margin-top:8px}.ink-size-row select{min-width:0}
+.ink-size-preview{min-height:34px;margin-top:8px;padding:6px;border:1px solid #ddd;background:#f7f7f7;font-size:11px;color:#555}
+.ink-size-dialog-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
+.ink-anchor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin:8px 0;padding:6px;border:1px solid #ddd}
+.ink-anchor-cell{position:relative;display:block}.ink-anchor-cell input{position:absolute;opacity:0;pointer-events:none}
+.ink-anchor-cell span{display:block;border:1px solid #ccc;border-radius:2px;padding:4px;text-align:center;font-size:9px;background:#fff}
+.ink-anchor-cell input:checked+span{background:#dfe9f5;border-color:#7e9fbe}
+.ink-anchor-cell input:focus-visible+span{outline:2px solid currentColor;outline-offset:1px}
+.ink-canvas-preview{position:relative;height:92px;margin-top:7px;border:1px solid #ddd;background:#fafafa}
+.ink-canvas-before,.ink-canvas-after{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;max-width:88%;max-height:82%}
+.ink-canvas-before{border:1px dashed #777}.ink-canvas-after{border:2px solid #333}

@@ -750,11 +750,12 @@ class InkApp{
   }
   drawCropMarksWorld(ctx,trim){const length=mmToWorld(4),offset=mmToWorld(.7);ctx.save();ctx.strokeStyle='#111';ctx.lineWidth=mmToWorld(.2);ctx.beginPath();const x1=trim.x,x2=trim.x+trim.w,y1=trim.y,y2=trim.y+trim.h;ctx.moveTo(x1-offset-length,y1);ctx.lineTo(x1-offset,y1);ctx.moveTo(x1,y1-offset-length);ctx.lineTo(x1,y1-offset);ctx.moveTo(x2+offset,y1);ctx.lineTo(x2+offset+length,y1);ctx.moveTo(x2,y1-offset-length);ctx.lineTo(x2,y1-offset);ctx.moveTo(x1-offset-length,y2);ctx.lineTo(x1-offset,y2);ctx.moveTo(x1,y2+offset);ctx.lineTo(x1,y2+offset+length);ctx.moveTo(x2+offset,y2);ctx.lineTo(x2+offset+length,y2);ctx.moveTo(x2,y2+offset);ctx.lineTo(x2,y2+offset+length);ctx.stroke();ctx.restore();}
   renderExportWorld(ctx,page,{bounds,clipBounds=null,background=true,cropMarks=false,trimBounds=null,renderScale=1,useLayoutViewport=false}={}){ctx.save();if(clipBounds){ctx.beginPath();ctx.rect(clipBounds.x,clipBounds.y,clipBounds.w,clipBounds.h);ctx.clip();}if(background)this.renderer.drawPaperWorld(ctx,page,clipBounds||bounds);ctx.save();if(useLayoutViewport)this.renderer.applyLayoutViewport(ctx,page);for(const layer of page.layers){if(!layer.visible)continue;ctx.save();ctx.globalAlpha=layer.opacity;this.renderer.drawLayerObjects(ctx,layer,page,{preferredScale:renderScale*(useLayoutViewport?normalizeLayoutViewport(page.workspace?.layoutViewport).scale:1),maxDimension:8192,maxPixels:6000000,transient:true});ctx.restore();}ctx.restore();ctx.restore();if(cropMarks&&trimBounds)this.drawCropMarksWorld(ctx,trimBounds);}
-  async renderExportCanvas({scope='artboard',scale=2,ppi=300,includeBleed=false,cropMarks=false,background=true}={},lifecycle={}){
+  async renderExportCanvas({scope='artboard',scale=2,ppi=null,includeBleed=false,cropMarks=false,background=true}={},lifecycle={}){
     if(lifecycle.isCancelled?.())throw new TiledExportCancelledError('Export cancelled',null);
     const page=this.page();let bounds,width,height,resolvedScale,clipBounds=null,trimBounds=null,physical=null;
     if(scope==='artboard'){
-      const geometry=artboardExportGeometry(page,{ppi,includeBleed,cropMarks});bounds=geometry.outputBounds;width=geometry.width;height=geometry.height;resolvedScale=geometry.scale;clipBounds=geometry.bleedBounds;trimBounds=geometry.trimBounds;physical={widthMm:geometry.widthMm,heightMm:geometry.heightMm,ppi:geometry.ppi};
+      const resolvedPpi=Number(ppi)||(page.artboard?.ppi||300);
+      const geometry=artboardExportGeometry(page,{ppi:resolvedPpi,includeBleed,cropMarks});bounds=geometry.outputBounds;width=geometry.width;height=geometry.height;resolvedScale=geometry.scale;clipBounds=geometry.bleedBounds;trimBounds=geometry.trimBounds;physical={widthMm:geometry.widthMm,heightMm:geometry.heightMm,ppi:geometry.ppi};
     }else if(scope==='viewport'){bounds=this.renderer.viewportWorldBounds();width=Math.round(this.renderer.width*scale);height=Math.round(this.renderer.height*scale);resolvedScale=width/bounds.w;}
     else{const content=this.renderer.contentBounds()||{x:-200,y:-150,w:400,h:300},pad=24;bounds={x:content.x-pad,y:content.y-pad,w:content.w+pad*2,h:content.h+pad*2};width=Math.max(1,Math.ceil(bounds.w*scale));height=Math.max(1,Math.ceil(bounds.h*scale));resolvedScale=scale;}
     if(width>16384||height>16384||width*height>36000000)throw new Error('輸出尺寸超過 36M pixels／16,384 單邊限制');
@@ -783,7 +784,7 @@ class InkApp{
     const printWindow=window.open('','INK_PRINT');if(!printWindow)throw new Error('瀏覽器阻擋列印視窗');
     let canvas=null,url=null,handedOff=false;
     try{
-      canvas=await this.renderExportCanvas({...options,scope:'artboard',ppi:Math.min(300,+options.ppi||300),includeBleed:false,cropMarks:false,background:true},lifecycle);
+      canvas=await this.renderExportCanvas({...options,scope:'artboard',ppi:Number(options.ppi)||(this.page().artboard?.ppi||300),includeBleed:false,cropMarks:false,background:true},lifecycle);
       if(lifecycle.isCancelled?.())throw new TiledExportCancelledError('Export cancelled',null);
       const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error('列印影像建立失敗')),'image/png'));
       if(lifecycle.isCancelled?.())throw new TiledExportCancelledError('Export cancelled',null);
