@@ -4,21 +4,26 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "c7acde520541c3f511b1acd05ec86f742b7b5bca",
-    "product_tree": "ef05089e1fc2447cf3bbb69774bd781a9ce78e53"
+    "exact_sha": "3cb341d8ecc0478db42971812242d578f46c2f9f",
+    "product_tree": "7de9c41110339b9a9c167cbba560013287cb4e01"
   },
   "package": {
-    "manifest_sha256": "6ff06128c5d1f8f7a47216bbb3e19e04f29a0cd6c201aea8deb688706c803152"
+    "manifest_sha256": "5589e37beed42bd8fc60a0c35278c922a87dda072f8a79f2e3de27109e251664"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "c5553f1c09a24a7beeb86cf925349adc15718d325e4e5a87eef2af0d3636b1fa",
-    "file_count": 278,
+    "package_digest_sha256": "6dae7e9522754cefbb907df3c955eb79e2dc8e9be883dbf853b5f1f67f5782a9",
+    "file_count": 280,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
         "bytes": 19801,
         "sha256": "08fdfd29832ffc06779eae8da9be6d14e9564ed292ba5548483def016338fed8"
+      },
+      {
+        "path": "assets/favicon.png",
+        "bytes": 3578,
+        "sha256": "4abe5098ea23067329cac46e7598ab658d6a9cb9cde3d513e1d8cf86d690dd56"
       },
       {
         "path": "assets/favicon.svg",
@@ -42,13 +47,13 @@
       },
       {
         "path": "index-standalone.html",
-        "bytes": 2307,
-        "sha256": "25a8959a6a6a23d2dfa2147d7cedbf89d7cf4ab5d72e1ba4ac6a8dd463460ea2"
+        "bytes": 2374,
+        "sha256": "2fefdc970cc8abdef6cb1f08df0231df22438fd66337fa02fc162d5ab92aef34"
       },
       {
         "path": "index.html",
-        "bytes": 2294,
-        "sha256": "5467224a834b2baa61f821a7a627a1f9d003ff7df3c1749ef879c5df86b6a79d"
+        "bytes": 2361,
+        "sha256": "7d1e6e21f2a8f7770ad7b92bb985ef88108a3045d4633e92c674a365067479fe"
       },
       {
         "path": "manifest-portable.webmanifest",
@@ -1296,6 +1301,11 @@
         "sha256": "6387404bbb940ad4bda6fc3f56e0e87c5ee8d91e26d9a87fc40853cc4cd1e272"
       },
       {
+        "path": "src/ui/branding-settings.js",
+        "bytes": 5530,
+        "sha256": "f8711ddf9c789e1682f9819e43c7adb9dfca79152f6b04041f88485062ddb83e"
+      },
+      {
         "path": "src/ui/minimal-composition.js",
         "bytes": 1638,
         "sha256": "532cf599896dc654ecab31d5b2d8bbd6115e42b80e667dbf398079b6c28314e2"
@@ -1307,8 +1317,8 @@
       },
       {
         "path": "src/ui/minimal-test-shell/modules.js",
-        "bytes": 25076,
-        "sha256": "8a92ba6322a40c6df8ae172c124aa875f2e98647a38af72d9ea1ddce81aa5a11"
+        "bytes": 25534,
+        "sha256": "e82f85e0e01596956458e88f6b2b2ab339ebabf2ae728b248b15d9a5b8f8bdf0"
       },
       {
         "path": "src/ui/modular-ui/module-host.js",
@@ -1397,8 +1407,8 @@
       },
       {
         "path": "stage-runtime.css",
-        "bytes": 9068,
-        "sha256": "13da5829560eea1186055ec3bf3d4e3a08a209681708031499056433a15501ec"
+        "bytes": 10353,
+        "sha256": "3969d9bab31d05b8fb15574a7ccc54ec677dfe065648a2507aab0b05eeb41f86"
       },
       {
         "path": "ui/capability-raster-tools.js",
@@ -1409,20 +1419,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/298#issuecomment-6098243002"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/317#issuecomment-6146421375"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "1cc57c9d0579d4a054922f60e0d048af6b3ac396",
+    "exact_sha": "11a1788087f1d45430932676a1565261581ae393",
     "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "33dcea5197ea8faef86de30167fa3d4dfd425357",
-    "authority_record_sha256": "ff110852999e67f614b8909f3c4c2f0a9cd7723baf666924224f8bc79a9d507e",
-    "publisher_sha": "1cc57c9d0579d4a054922f60e0d048af6b3ac396",
-    "package_publisher_sha": "1cc57c9d0579d4a054922f60e0d048af6b3ac396",
+    "previous_target_commit": "b4788a7cfa90c4273fac83af0bc2182b71b119dd",
+    "authority_record_sha256": "855ffa1b1023abc19afee00957441c0b9b561dbee63e47fa50ed0784dbfd5b31",
+    "publisher_sha": "11a1788087f1d45430932676a1565261581ae393",
+    "package_publisher_sha": "11a1788087f1d45430932676a1565261581ae393",
     "runtime_bytes_unchanged_from_package": true
   }
 }

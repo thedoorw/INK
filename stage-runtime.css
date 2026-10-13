@@ -82,3 +82,20 @@ html[data-ink-shell-ready="false"] #app{visibility:hidden;pointer-events:none}
 .ink-canvas-preview{position:relative;height:92px;margin-top:7px;border:1px solid #ddd;background:#fafafa}
 .ink-canvas-before,.ink-canvas-after{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;max-width:88%;max-height:82%}
 .ink-canvas-before{border:1px dashed #777}.ink-canvas-after{border:2px solid #333}
+
+/* #317 — local, reversible LOGO/Favicon preferences; no document data mutation. */
+.ink-branding-launch{flex:0 0 auto}
+.ink-branding-logo{max-width:100%;max-height:48px;object-fit:contain;display:block;margin:3px 0 8px}
+.ink-branding-backdrop{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.36);display:grid;place-items:center;padding:16px}
+.ink-branding-backdrop[hidden]{display:none}
+.ink-branding-panel{background:#fff;color:#222;width:min(440px,100%);max-height:90vh;overflow:auto;padding:16px;border:1px solid #888;border-radius:5px;box-shadow:0 8px 30px #0003}
+.ink-branding-panel h2{margin:0 0 10px;font-size:17px}
+.ink-branding-panel label{display:block;font-size:13px;margin:10px 0 4px}
+.ink-branding-panel input[type=file]{width:100%;font-size:12px}
+.ink-branding-panel .ink-branding-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.ink-branding-panel .ink-branding-status{font-size:12px;min-height:1.5em;margin-top:8px}
+.ink-branding-panel .ink-branding-preview{display:flex;align-items:center;gap:12px}
+.ink-branding-panel .ink-branding-preview img{width:48px;height:48px;object-fit:contain}
+
+.ink-branding-logo-toolbar{width:28px;height:28px;display:block;object-fit:contain;align-self:center}
+.ink-branding-launch{align-items:center;gap:6px}

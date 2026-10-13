@@ -21,7 +21,9 @@ export function createMinimalControlsModule(){
       const compareCandidate=sessions.find(item=>!item.active&&item.sessionId!==comparison.secondary);
       const compareToggle=comparison.secondary?'Compare off':compareCandidate?'Compare '+escapeText(compareCandidate.title||'B'):'Compare (open B)';
 
+      const brandLogo=globalThis.INK_BRANDING?.getLogo?.() || 'assets/ink-mark.svg';
       ctx.root.innerHTML=
+        '<div class="ink-control-group ink-branding-launch"><img data-ink-brand-logo class="ink-branding-logo-toolbar" alt="INK LOGO" src="'+escapeText(brandLogo)+'">'+button('branding-open','品牌')+'</div>'+ 
         '<div class="ink-control-group">'+button('new-a4','New A4')+button('open','Open')+button('save','Save')+'</div>'+
         '<div class="ink-control-group ink-session-buttons">'+sessionButtons+button('session-close','Close')+(views.enabled?'':button('session-compare',compareToggle))+button('view-1','1 view',views.enabled&&views.layout===1)+button('view-2','2 views',views.enabled&&views.layout===2)+button('view-4','4 views',views.enabled&&views.layout===4)+button('session-copy','Copy selected')+button('session-paste','Paste'+(clip.ready?' ('+clip.count+')':''))+'</div>'+
         '<div class="ink-control-group">'+button('tool-select','Select',tool==='select')+button('tool-pen','Pen',tool==='pen')+button('tool-brush','Brush',tool==='brush')+button('tool-pan','Pan',tool==='pan')+'</div>'+
@@ -33,6 +35,7 @@ export function createMinimalControlsModule(){
     render();
     ctx.listen(ctx.root,'click',event=>{
       const action=event.target.closest('[data-action]')?.dataset.action;if(!action)return;
+      if(action==='branding-open'){globalThis.dispatchEvent(new Event('ink:branding-open'));return;}
       if(action==='session-select'){run(ctx,'session.activate.v1',{sessionId:event.target.closest('[data-session-id]')?.dataset.sessionId});return;}
       if(/^view-[124]$/.test(action)){run(ctx,'session.view.layout.v1',{layout:Number(action.slice(5))});return;}
       if(action==='session-copy'){run(ctx,'session.copy.v1');return;}
@@ -63,6 +66,7 @@ export function createMinimalControlsModule(){
       else if(action==='preview')ctx.services.togglePreview();
       else if(action.startsWith('export-'))ctx.services.exportDocument({format:action.slice(7),scope:'artboard',background:true}).catch(error=>ctx.services.report(error?.message||String(error)));
     });
+    ctx.listen(globalThis,'ink:branding-changed',schedule);
     ctx.selectors.subscribe(schedule);ctx.cleanup(()=>{if(frame)cancelAnimationFrame(frame);});ctx.cleanup(ctx.services.bindPreview(schedule));
   }});
 }
