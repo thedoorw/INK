@@ -1,3 +1,4 @@
+import { nativePresetMetadata } from './paint/native-preset-identity.js';
 import { INK_VERSION, BUILD_ID, FORMAT_VERSION } from './config.js';
 import { installFloraActionLayer } from './flora/index.js';
 import { normalizedPointToWorld, traceVectorMaskWorld, traceVectorPathWorld } from './flora/mask/vector-mask.js';
@@ -26,6 +27,7 @@ import { installInkPublicCreativeApi } from './agent/index.js';
 import { installConfiguredRuntimeBridge } from './agent/runtime-bridge-startup.js';
 import { createTextObject, updateTextObject } from './editor/text-object.js';
 import { layoutTextOnPath } from './editor/text-layout.js';
+import { resolveConfiguredParagraphPlacement } from './editor/text-placement-consumer.js';
 import { ServiceWorkerUpdateManager } from './pwa/index.js';
 import { installStudioCore } from './studio-core.js';
 import { installExtraction } from './extraction/install.js';
@@ -112,7 +114,7 @@ function localBounds(o,measureCtx){
     const x=Math.min(0,o.w),y=Math.min(0,o.h);return{x,y,w:Math.abs(o.w),h:Math.abs(o.h)};
   }
   if(o.type==='image')return{x:0,y:0,w:o.w||1,h:o.h||1};
-  if(o.type==='text'){const size=o.fontSize||32;measureCtx.save();measureCtx.font=`${o.fontWeight||400} ${size}px ${o.fontFamily||'system-ui'}`;const lines=String(o.text||'').split('\n');const w=Math.max(1,...lines.map(s=>measureCtx.measureText(s||' ').width));measureCtx.restore();return{x:0,y:-size*.84,w,h:Math.max(size,lines.length*size*(o.lineHeight||1.25))};}
+  if(o.type==='text'){const configured=resolveConfiguredParagraphPlacement(o,measureCtx);if(configured)return configured.bounds;const size=o.fontSize||32;measureCtx.save();measureCtx.font=`${o.fontWeight||400} ${size}px ${o.fontFamily||'system-ui'}`;const lines=String(o.text||'').split('\n');const w=Math.max(1,...lines.map(s=>measureCtx.measureText(s||' ').width));measureCtx.restore();return{x:0,y:-size*.84,w,h:Math.max(size,lines.length*size*(o.lineHeight||1.25))};}
   if(o.type==='frame')return{x:0,y:0,w:Math.max(1,o.width||1),h:Math.max(1,o.height||1)};
   if(o.type==='path'){const b=pathBounds(o,M.identity()),pad=pathStrokeRenderWidth(o)/2;return{x:b.x-pad,y:b.y-pad,w:b.w+pad*2,h:b.h+pad*2};}
   return{x:0,y:0,w:1,h:1};
@@ -183,19 +185,22 @@ class Renderer{
     if(o?.visible===false)return;
     if(isComponentInstance(o)){const resolved=resolveComponentInstance(this.app.doc,o);if(resolved.geometry)this.drawObject(ctx,resolved.geometry,options);return;}
     ctx.save();
-    const page=options.page||this.app.page(),mask=this.floraMaskForObject(o,page);
-    if(o.floraPaint&&!mask){ctx.restore();return;}
-    if(mask){ctx.beginPath();traceVectorMaskWorld(ctx,mask,page);ctx.clip(mask.excludePaths?.length?'evenodd':'nonzero');}
-    if(o.blendMode&&['source-over','multiply','screen','overlay','soft-light','hard-light','darken','lighten','color-dodge','color-burn','difference','exclusion','hue','saturation','color','luminosity'].includes(o.blendMode))ctx.globalCompositeOperation=o.blendMode;
-    const m=o.matrix||M.identity();ctx.transform(...m);ctx.globalAlpha*=o.opacity??1;
-    if(o.type==='stroke')this.drawStroke(ctx,o);
-    else if(o.type==='shape')this.drawShape(ctx,o);
-    else if(o.type==='image')this.drawImage(ctx,o);
-    else if(o.type==='text')this.drawText(ctx,o);
-    else if(o.type==='path')this.drawVectorPath(ctx,o);
-    else if(o.type==='repeat'){for(const transform of repeatTransforms(o)){ctx.save();ctx.transform(...transform);this.drawObject(ctx,o.source,{...options,page});ctx.restore();}}
-    else if(o.type==='group'||o.type==='frame'){for(const child of o.children||[])this.drawObject(ctx,child,{...options,page});}
-    ctx.restore();
+    try {
+      const page=options.page||this.app.page(),mask=this.floraMaskForObject(o,page);
+      if(o.floraPaint&&!mask)return;
+      if(mask){ctx.beginPath();traceVectorMaskWorld(ctx,mask,page);ctx.clip(mask.excludePaths?.length?'evenodd':'nonzero');}
+      if(o.blendMode&&['source-over','multiply','screen','overlay','soft-light','hard-light','darken','lighten','color-dodge','color-burn','difference','exclusion','hue','saturation','color','luminosity'].includes(o.blendMode))ctx.globalCompositeOperation=o.blendMode;
+      const m=o.matrix||M.identity();ctx.transform(...m);ctx.globalAlpha*=o.opacity??1;
+      if(o.type==='stroke')this.drawStroke(ctx,o);
+      else if(o.type==='shape')this.drawShape(ctx,o);
+      else if(o.type==='image')this.drawImage(ctx,o);
+      else if(o.type==='text')this.drawText(ctx,o);
+      else if(o.type==='path')this.drawVectorPath(ctx,o);
+      else if(o.type==='repeat'){for(const transform of repeatTransforms(o)){ctx.save();try{ctx.transform(...transform);this.drawObject(ctx,o.source,{...options,page});}finally{ctx.restore();}}}
+      else if(o.type==='group'||o.type==='frame'){for(const child of o.children||[])this.drawObject(ctx,child,{...options,page});}
+    } finally {
+      ctx.restore();
+    }
   }
   drawVectorPath(ctx,o){
     const appearance=resolvePathPaintAppearance(o,this.app.doc);
@@ -249,6 +254,8 @@ class Renderer{
   drawImage(ctx,o){const img=this.getImage(o.src);if(img?.complete&&img.naturalWidth)ctx.drawImage(img,0,0,o.w,o.h);else{ctx.fillStyle='#ddd';ctx.fillRect(0,0,o.w,o.h);ctx.strokeStyle='#aaa';ctx.strokeRect(0,0,o.w,o.h);}}
   drawText(ctx,o){
     ctx.fillStyle=o.color;ctx.font=`${o.fontWeight||400} ${o.fontSize||32}px ${o.fontFamily||'system-ui'}`;ctx.textBaseline='alphabetic';
+    const configured=resolveConfiguredParagraphPlacement(o,ctx);
+    if(configured){for(const span of configured.spans)ctx.fillText(span.text,span.x,span.y);for(const rect of configured.decorations)ctx.fillRect(rect.x,rect.y,rect.width,rect.thickness);return;}
     if(o.pathText?.pathId){
       const textFound=this.app.findObject({objectId:o.id}),pathFound=this.app.findObject({objectId:o.pathText.pathId});
       const textParentId=textFound?.parentObject?.id||null,pathParentId=pathFound?.parentObject?.id||null;
@@ -302,6 +309,35 @@ class Renderer{
   }
   drawBrushCursor(ctx){const hover=this.app.hover;if(!hover||hover.pointerType==='touch'||this.app.interaction)return;const tool=this.app.tool;if(!DRAW_TOOLS.has(tool)&&tool!=='eraser')return;const settings=this.app.toolSettings[DRAW_TOOLS.has(tool)?tool:this.app.lastDrawTool];const radius=tool==='eraser'?this.app.eraserRadiusWorld()*this.worldScreenScale():Math.max(2,settings.size*this.worldScreenScale()/2);ctx.save();ctx.setTransform(this.dpr,0,0,this.dpr,0,0);ctx.beginPath();ctx.arc(hover.sx,hover.sy,Math.max(2,radius),0,Math.PI*2);ctx.strokeStyle=tool==='eraser'?'rgba(190,82,66,.82)':'rgba(35,107,99,.82)';ctx.fillStyle=tool==='eraser'?'rgba(190,82,66,.06)':'rgba(35,107,99,.05)';ctx.lineWidth=1;ctx.fill();ctx.stroke();ctx.restore();}
   contentBounds(page=activePage(this.app.doc),visibleOnly=true){let b=null;for(const layer of page.layers){if(visibleOnly&&!layer.visible)continue;for(const o of layer.objects)b=unionBounds(b,this.objectWorldBounds(o));}return b;}
+  /**
+   * L01 source-only: renders exactly one native layer through the real Renderer
+   * object painter with transparent background and stable page-fit coordinates.
+   * Always computed from current objects (no cache or forged document state).
+   */
+  renderLayerThumbnail(page,layerId,width=128,height=96){
+    const layer=page?.layers?.find(item=>item.id===layerId);
+    if(!layer)throw Object.assign(new Error('Native layer missing'),{code:'LAYER_THUMBNAIL_NOT_FOUND'});
+    const w=Math.max(1,Math.min(512,Math.round(Number(width)||128)));
+    const h=Math.max(1,Math.min(384,Math.round(Number(height)||96)));
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    const ctx=c.getContext('2d');
+    if(!ctx)throw Object.assign(new Error('Canvas 2D unavailable'),{code:'LAYER_THUMBNAIL_CONTEXT_UNAVAILABLE'});
+    const geometry=thumbnailPreviewGeometry(page,w,h,7),b=geometry.fitBounds,scale=geometry.scale;
+    ctx.clearRect(0,0,w,h);
+    ctx.save();
+    try{
+      ctx.translate(w/2,h/2);ctx.scale(scale,scale);ctx.translate(-(b.x+b.w/2),-(b.y+b.h/2));
+      ctx.beginPath();ctx.rect(b.x,b.y,b.w,b.h);ctx.clip();
+      ctx.save();
+      try{
+        this.applyLayoutViewport(ctx,page);
+        ctx.globalAlpha*=layer.opacity??1;
+        // Hidden layers retain their content thumbnail; visibility is separate.
+        for(const object of layer.objects||[])this.drawObject(ctx,object,{page});
+      }finally{ctx.restore();}
+    }finally{ctx.restore();}
+    return c.toDataURL('image/png');
+  }
   renderThumbnail(page,width=128,height=96){const c=document.createElement('canvas');c.width=width;c.height=height;const ctx=c.getContext('2d');ctx.fillStyle='#2b2c2e';ctx.fillRect(0,0,width,height);const fixed=true,geometry=thumbnailPreviewGeometry(page,width,height,7),b=geometry.fitBounds,pad=geometry.padding,scale=geometry.scale;ctx.save();ctx.translate(width/2,height/2);ctx.scale(scale,scale);ctx.translate(-(b.x+b.w/2),-(b.y+b.h/2));if(fixed){ctx.fillStyle=page.paper.color;ctx.fillRect(b.x,b.y,b.w,b.h);ctx.beginPath();ctx.rect(b.x,b.y,b.w,b.h);ctx.clip();}else{ctx.fillStyle=page.paper.color;ctx.fillRect(b.x,b.y,b.w,b.h);}ctx.save();this.applyLayoutViewport(ctx,page);for(const l of page.layers){if(!l.visible)continue;ctx.save();ctx.globalAlpha=l.opacity;for(const o of l.objects)this.drawObject(ctx,o);ctx.restore();}ctx.restore();ctx.restore();return c.toDataURL('image/png');}
 }
 
@@ -553,7 +589,7 @@ class InkApp{
   refreshAll(){this.spatialDirty=true;this.spatialPending.clear();this.refreshToolUI();this.refreshLayers();this.refreshPages();this.refreshSelectionUI();this.refreshWorkspaceUI();this.refreshArtboardUI();this.refreshPaperUI();this.refreshPenCalibrationUI();this.updateHistoryUI();this.creativeWorkspace?.refresh?.();this.renderer.render();}
   refreshToolUI(){this.updateCursor();this.commands?.notify?.('native-tool-state');this.creativeWorkspace?.refresh?.();}
   renderPresets(){return false;}
-  applyPreset(tool,preset){const oldColor=this.toolSettings[tool]?.color||'#202020';this.toolSettings[tool]={...deepClone(preset),color:oldColor};this.renderer.naturalMedia.clearCaches();this.refreshToolUI();this.toast(`筆刷：${preset.name}`);}
+  applyPreset(tool,preset){if(!preset?.id||!BRUSH_PRESETS[tool]?.some(item=>item.id===preset.id))return {status:'UNAVAILABLE',code:'NATIVE_PRESET_UNKNOWN'};const oldColor=this.toolSettings[tool]?.color||'#202020';this.toolSettings[tool]={...deepClone(preset),color:oldColor};this.renderer.naturalMedia.clearCaches();this.refreshToolUI();this.toast(`筆刷：${preset.name}`);}
   setTool(tool){if(tool!=='select'&&this.strokeEdit)this.exitStrokeEdit();if(tool!=='select'&&this.pathEditing?.active)this.exitPathEdit();this.tool=tool;if(DRAW_TOOLS.has(tool))this.lastDrawTool=tool;this.closeTextEditor();this.updateCursor();this.commands?.notify?.('native-tool-state');this.renderer.render();}
   updateCursor(){const cursors={pan:'grab',select:'default',lasso:'crosshair',eraser:'cell',text:'text',shape:'crosshair'};this.el.canvas.style.cursor=cursors[this.tool]||'crosshair';}
   setInspectorTab(){return false;}
@@ -802,7 +838,7 @@ class InkApp{
   }
   objectToSVG(o,defs=[]){if(o.visible===false)return'';if(isComponentInstance(o)){const resolved=resolveComponentInstance(this.doc,o);return resolved.geometry?this.objectToSVG(resolved.geometry,defs):'';}const tr=` transform="${M.svg(o.matrix||M.identity())}" opacity="${o.opacity??1}"`;if(o.type==='repeat')return vectorObjectToSVG(o,defs);if(o.type==='frame')return `<g${tr} data-ink-type="frame" data-frame-width="${o.width||1}" data-frame-height="${o.height||1}">${(o.children||[]).map(x=>this.objectToSVG(x,defs)).join('')}</g>`;if(o.type==='group')return `<g${tr}>${(o.children||[]).map(x=>this.objectToSVG(x,defs)).join('')}</g>`;if(o.type==='path')return vectorObjectToSVG(o,defs);if(o.type==='stroke'){if((o.segmentStyles||[]).some(style=>style&&Object.keys(style).length)){return (o.points||[]).slice(0,-1).map((_,index)=>{const style=segmentStyleAt(o,index),points=sampleStrokeSegment(o,index,Math.max(.8,(style.size||o.size||2)*.25));return this.objectToSVG({...o,...style,points,segmentStyles:undefined,taper:0});}).join('');}if(o.kind==='pencil'||o.kind==='drybrush'){const d=sampleStrokePath(o,Math.max(1,(o.size||2)*.3)).map((p,i)=>`${i?'L':'M'}${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ');return `<path${tr} d="${d}" fill="none" stroke="${o.color}" stroke-width="${o.size}" stroke-linecap="round" stroke-linejoin="round" opacity="${(o.opacity??1)*.7}"/>`;}const pts=strokeOutline(o).map(p=>`${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');return `<polygon${tr} points="${pts}" fill="${o.color}"/>`;}
     if(o.type==='shape'){const common=`${tr} fill="${o.fill?o.fillColor||o.color:'none'}" stroke="${o.color}" stroke-width="${o.size}" stroke-linecap="round" stroke-linejoin="round"`;if(o.shape==='line')return `<line${common} x1="0" y1="0" x2="${o.x2}" y2="${o.y2}"/>`;if(o.shape==='arrow'){const a=Math.atan2(o.y2,o.x2),len=Math.min(24,Math.max(8,(o.size||2)*5)),p1={x:o.x2-Math.cos(a-rad(28))*len,y:o.y2-Math.sin(a-rad(28))*len},p2={x:o.x2-Math.cos(a+rad(28))*len,y:o.y2-Math.sin(a+rad(28))*len};return `<path${common} d="M0 0 L${o.x2} ${o.y2} M${o.x2} ${o.y2} L${p1.x} ${p1.y} M${o.x2} ${o.y2} L${p2.x} ${p2.y}"/>`;}if(o.shape==='rect')return `<rect${common} x="${Math.min(0,o.w)}" y="${Math.min(0,o.h)}" width="${Math.abs(o.w)}" height="${Math.abs(o.h)}"/>`;if(o.shape==='ellipse')return `<ellipse${common} cx="${o.w/2}" cy="${o.h/2}" rx="${Math.abs(o.w/2)}" ry="${Math.abs(o.h/2)}"/>`;if(o.shape==='triangle')return `<polygon${common} points="${o.w/2},0 ${o.w},${o.h} 0,${o.h}"/>`;}
-    if(o.type==='image')return `<image${tr} width="${o.w}" height="${o.h}" href="${o.src}"/>`;if(o.type==='text'){const lines=String(o.text||'').split('\n'),spans=lines.map((s,i)=>`<tspan x="0" dy="${i?o.fontSize*(o.lineHeight||1.25):0}">${escapeXML(s)}</tspan>`).join('');return `<text${tr} fill="${o.color}" font-family="${escapeXML(o.fontFamily||'system-ui')}" font-size="${o.fontSize}">${spans}</text>`;}return'';
+    if(o.type==='image')return `<image${tr} width="${o.w}" height="${o.h}" href="${o.src}"/>`;if(o.type==='text'&&o.textBox){const placed=resolveConfiguredParagraphPlacement(o,this.renderer.measureCtx);if(placed){const spans=placed.spans.map(span=>`<tspan x="${span.x}" y="${span.y}">${escapeXML(span.text)}</tspan>`).join('');const rectangles=placed.decorations.map(d=>`<rect${tr} x="${d.x}" y="${d.y}" width="${d.width}" height="${d.thickness}" fill="${o.color}"/>`).join('');return `<text${tr} fill="${o.color}" font-family="${escapeXML(o.fontFamily||'system-ui')}" font-size="${o.fontSize}" font-weight="${o.fontWeight||400}">${spans}</text>${rectangles}`;}}if(o.type==='text'){const lines=String(o.text||'').split('\n'),spans=lines.map((s,i)=>`<tspan x="0" dy="${i?o.fontSize*(o.lineHeight||1.25):0}">${escapeXML(s)}</tspan>`).join('');return `<text${tr} fill="${o.color}" font-family="${escapeXML(o.fontFamily||'system-ui')}" font-size="${o.fontSize}">${spans}</text>`;}return'';
   }
 
   bindInput(){
@@ -860,7 +896,7 @@ class InkApp{
   }
   updateGesture(){const pts=this.input.firstTwo();if(pts.length<2)return;const a=pts[0],b=pts[1],it=this.interaction,mid={x:(a.sx+b.sx)/2,y:(a.sy+b.sy)/2},cam=this.page().camera;cam.scale=clampViewScale(it.scale*Math.hypot(a.sx-b.sx,a.sy-b.sy)/it.dist);cam.rotation=it.rotation+(Math.atan2(b.sy-a.sy,b.sx-a.sx)-it.angle);const mapped=this.renderer.worldToScreen(it.worldMid,cam);cam.x+=mid.x-mapped.x;cam.y+=mid.y-mapped.y;this.renderer.render();this.showZoomHud();}
 
-  beginStroke(d,pointerId){const layer=this.layer();if(layer.locked){this.toast('目前圖層已鎖定');return;}const s=deepClone(this.toolSettings[this.tool]);s.color=s.color||'#202020';const o={id:uid(),type:'stroke',name:TOOL_NAMES[this.tool],matrix:M.translate(d.world.x,d.world.y),opacity:s.opacity,color:s.color,size:s.size,kind:s.kind,smoothing:s.smoothing,pressure:s.pressure,taper:s.taper||0,grain:s.grain||0,softness:s.softness||.7,flow:s.flow??1,wetness:s.wetness??0,bristle:s.bristle??0,mediaModel:(s.kind==='brush'||s.kind==='drybrush'||s.kind==='airbrush')?'natural-v2':undefined,points:[{x:0,y:0,p:d.p,tiltX:d.tiltX,tiltY:d.tiltY,altitude:d.altitude,azimuth:d.azimuth,twist:d.twist,t:0}]};this.history.begin(`繪製${TOOL_NAMES[this.tool]}`,{targets:[this.layerObjectsPath(layer)]});this.draft={object:o};this.interaction={type:'stroke',pointerId,object:o,origin:d.world,startTime:d.time};this.setColor(s.color);}
+  beginStroke(d,pointerId){const layer=this.layer();if(layer.locked){this.toast('目前圖層已鎖定');return;}const s=deepClone(this.toolSettings[this.tool]);s.color=s.color||'#202020';const o={id:uid(),type:'stroke',metadata:nativePresetMetadata(s),name:TOOL_NAMES[this.tool],matrix:M.translate(d.world.x,d.world.y),opacity:s.opacity,color:s.color,size:s.size,kind:s.kind,smoothing:s.smoothing,pressure:s.pressure,taper:s.taper||0,grain:s.grain||0,softness:s.softness||.7,flow:s.flow??1,wetness:s.wetness??0,bristle:s.bristle??0,mediaModel:(s.kind==='brush'||s.kind==='drybrush'||s.kind==='airbrush')?'natural-v2':undefined,points:[{x:0,y:0,p:d.p,tiltX:d.tiltX,tiltY:d.tiltY,altitude:d.altitude,azimuth:d.azimuth,twist:d.twist,t:0}]};this.history.begin(`繪製${TOOL_NAMES[this.tool]}`,{targets:[this.layerObjectsPath(layer)]});this.draft={object:o};this.interaction={type:'stroke',pointerId,object:o,origin:d.world,startTime:d.time};this.setColor(s.color);}
   beginShape(d,pointerId,e){if(this.layer().locked){this.toast('目前圖層已鎖定');return;}const s=this.toolSettings[this.lastDrawTool],o={id:uid(),type:'shape',name:'幾何',matrix:M.translate(d.world.x,d.world.y),opacity:s.opacity,shape:this.shapeType,color:s.color||'#202020',fillColor:s.color||'#202020',size:Math.max(1,s.size*.55),fill:this.shapeFill,x2:0,y2:0,w:0,h:0};this.history.begin('繪製幾何',{targets:[this.layerObjectsPath(this.layer())]});this.draft={object:o};this.interaction={type:'shape',pointerId,object:o,start:d.world};this.updateShape(d,e);}
   updateShape(d,e){const it=this.interaction,o=it.object;let dx=d.world.x-it.start.x,dy=d.world.y-it.start.y;if((o.shape==='line'||o.shape==='arrow')&&(this.snapAngles||e.shiftKey)){const len=Math.hypot(dx,dy),a=Math.round(Math.atan2(dy,dx)/rad(15))*rad(15);dx=Math.cos(a)*len;dy=Math.sin(a)*len;}if(['rect','ellipse','triangle'].includes(o.shape)&&e.shiftKey){const s=Math.max(Math.abs(dx),Math.abs(dy));dx=Math.sign(dx||1)*s;dy=Math.sign(dy||1)*s;}o.x2=dx;o.y2=dy;o.w=dx;o.h=dy;this.renderer.render();}
   shapeTooSmall(o){return o.shape==='line'||o.shape==='arrow'?Math.hypot(o.x2,o.y2)<1:Math.abs(o.w)<1||Math.abs(o.h)<1;}
@@ -1014,3 +1050,4 @@ function bootInk(){
 
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',bootInk,{once:true});
 else bootInk();
+

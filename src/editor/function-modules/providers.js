@@ -25,8 +25,8 @@ export const FUNCTION_MODULE_COMMANDS=Object.freeze({
   'document-io':['document.new.v1','document.open.v1','document.save.v1','export.png.v1'],
   'page-layout':['page.create.v1','page.duplicate.v1','page.delete.v1','page.activate.v1','page.rename.v1','guide.add.v1','guide.move.v1','guide.remove.v1','guide.lock.set.v1','guide.visibility.set.v1','page.snap.set.v1','page.paper.set.v1','page.artboard.set.v1','page.canvas.resize.v1','page.output-ppi.set.v1','page.artwork.resize.v1'],
   'layer-management':['layer.activate.v1','layer.create.v1','layer.duplicate.v1','layer.delete.v1','layer.reorder.v1','layer.opacity.set.v1','layer.visibility.set.v1','layer.lock.set.v1'],
-  'selection-transform':['selection.clear.v1','selection.delete.v1','selection.duplicate.v1','object.translate.v1','object.align.v1','object.resize.v1','object.rotate.v1'],
-  'tools-view':['tool.activate.v1','tool.setting.set.v1','tool.color.set.v1','tool.shape.set.v1','tool.shape.fill.set.v1','tool.text.setting.set.v1','view.zoom.by.v1','view.zoom.set.v1','view.pan.v1','view.reset.v1','view.fit.content.v1','view.fit.artboard.v1','workspace.activate.v1']
+  'selection-transform':['path.select.v1','path.edit.enter.v1','path.edit.exit.v1','path.anchor.move.v1','path.handle.select.v1','path.handle.move.v1','path.closed.set.v1','path.edit.simplify.v1','path.edit.refine.v1','selection.clear.v1','selection.delete.v1','selection.duplicate.v1','object.translate.v1','object.align.v1','object.resize.v1','object.rotate.v1'],
+  'tools-view':['tool.preset.apply.v1','tool.activate.v1','tool.setting.set.v1','tool.color.set.v1','tool.shape.set.v1','tool.shape.fill.set.v1','tool.text.setting.set.v1','view.zoom.by.v1','view.zoom.set.v1','view.pan.v1','view.reset.v1','view.fit.content.v1','view.fit.artboard.v1','workspace.activate.v1']
 });
 
 export function createHistoryControlModule(version='1.0.0'){
@@ -74,7 +74,7 @@ export function createPageLayoutModule(version='1.0.0'){
   });
 }
 export function createLayerManagementModule(version='1.0.0'){
-  return moduleBase('layer-management',version,'layerManagement',FUNCTION_MODULE_COMMANDS['layer-management'],['layer.active','layer.list'],['native.document','native.history','native.renderer'],['Document','HistoryManager','Renderer'],ctx=>{
+  return moduleBase('layer-management',version,'layerManagement',FUNCTION_MODULE_COMMANDS['layer-management'],['layer.active','layer.list','layer.preview','layer.preview.state'],['native.document','native.history','native.renderer'],['Document','HistoryManager','Renderer'],ctx=>{
     const p=ctx.services;
     ctx.command('layer.activate.v1',{...meta('NONE','UI_REFRESH'),validate:args=>p.requireLayer(args.layerId),run:args=>p.activate(args.layerId)});
     ctx.command('layer.create.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:()=>p.create()});
@@ -86,11 +86,25 @@ export function createLayerManagementModule(version='1.0.0'){
     ctx.command('layer.lock.set.v1',{...meta('JOIN_ACTIVE_TRANSACTION','UI_REFRESH'),validate:args=>p.requireLayer(args.layerId),run:args=>p.lock(args.layerId,args.locked)});
     ctx.selector('layer.active',()=>p.active());
     ctx.selector('layer.list',()=>p.list());
+    ctx.selector('layer.preview',args=>p.preview(args?.layerId,args?.width,args?.height,{documentId:args?.documentId,pageId:args?.pageId}));
+    ctx.selector('layer.preview.state',args=>p.previewState(args?.layerId,args?.width,args?.height,{documentId:args?.documentId,pageId:args?.pageId}));
   });
 }
 export function createSelectionTransformModule(version='1.0.0'){
-  return moduleBase('selection-transform',version,'selectionTransform',FUNCTION_MODULE_COMMANDS['selection-transform'],['selection.current'],['native.selection','native.history'],['Document.selection','HistoryManager'],ctx=>{
+  return moduleBase('selection-transform',version,'selectionTransform',FUNCTION_MODULE_COMMANDS['selection-transform'],['selection.current','path.list','path.current'],['native.selection','native.history'],['Document.selection','PathEditController','HistoryManager'],ctx=>{
     const p=ctx.services;
+    const pathIdentity=args=>{for(const key of ['documentId','pageId','layerId','objectId'])if(typeof args[key]!=='string'||!args[key])throw Object.assign(new Error('Path identity required: '+key),{code:'ARGUMENTS_INVALID'});};
+    ctx.command('path.select.v1',{...meta('NONE','OVERLAY'),validate:pathIdentity,run:args=>p.pathSelect(args)});
+    ctx.command('path.edit.enter.v1',{...meta('NONE','OVERLAY'),validate:pathIdentity,run:args=>p.pathEnter(args)});
+    ctx.command('path.edit.exit.v1',{...meta('NONE','OVERLAY'),run:()=>p.pathExit()});
+    ctx.command('path.anchor.move.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),validate:pathIdentity,run:args=>p.pathMoveAnchor(args)});
+    ctx.command('path.handle.select.v1',{...meta('NONE','OVERLAY'),validate:pathIdentity,run:args=>p.pathSelectHandle(args)});
+    ctx.command('path.handle.move.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),validate:pathIdentity,run:args=>p.pathMoveHandle(args)});
+    ctx.command('path.closed.set.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),validate:pathIdentity,run:args=>p.pathClosed(args)});
+    ctx.command('path.edit.simplify.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),validate:pathIdentity,run:args=>p.pathSimplify(args)});
+    ctx.command('path.edit.refine.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),validate:pathIdentity,run:args=>p.pathRefine(args)});
+    ctx.selector('path.list',()=>p.pathList());
+    ctx.selector('path.current',()=>p.pathState());
     ctx.command('selection.clear.v1',{...meta('NONE','OVERLAY'),run:()=>p.clear()});
     ctx.command('selection.delete.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:()=>p.delete()});
     ctx.command('selection.duplicate.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER'),run:args=>p.duplicate(args.offset)});
@@ -102,8 +116,9 @@ export function createSelectionTransformModule(version='1.0.0'){
   });
 }
 export function createToolsViewModule(version='1.0.0'){
-  return moduleBase('tools-view',version,'toolsView',FUNCTION_MODULE_COMMANDS['tools-view'],['tool.current','tool.settings','tool.options','view.current','view.contract','workspace.current'],['native.tools','native.view','native.renderer'],['ToolState','Page.camera','Page.workspace','Renderer'],ctx=>{
+  return moduleBase('tools-view',version,'toolsView',FUNCTION_MODULE_COMMANDS['tools-view'],['tool.presets','tool.color','tool.current','tool.settings','tool.options','view.current','view.contract','workspace.current'],['native.tools','native.view','native.renderer'],['ToolState','Page.camera','Page.workspace','Renderer'],ctx=>{
     const p=ctx.services;
+    ctx.command('tool.preset.apply.v1',{...meta('NONE','UI_REFRESH'),validate:args=>{if(typeof args.toolPresetId!=='string'||!args.toolPresetId)throw Object.assign(new Error('Native preset ID required'),{code:'ARGUMENTS_INVALID'});},run:args=>p.applyNativePreset(args.toolPresetId)});
     ctx.command('tool.activate.v1',{...meta('NONE','UI_REFRESH'),validate:args=>{if(!args.tool)throw Object.assign(new Error('Tool required'),{code:'ARGUMENTS_INVALID'});},run:args=>p.activateTool(args.tool)});
     ctx.command('tool.setting.set.v1',{...meta('NONE','UI_REFRESH'),validate:args=>{if(!args.key)throw Object.assign(new Error('Setting key required'),{code:'ARGUMENTS_INVALID'});},run:args=>p.setToolSetting(args.tool,args.key,args.value)});
     ctx.command('tool.color.set.v1',{...meta('NONE','FULL_RENDER'),validate:args=>{if(!/^#[0-9a-f]{6}$/i.test(String(args.color||'')))throw Object.assign(new Error('Hex color required'),{code:'ARGUMENTS_INVALID'});},run:args=>p.setColor(args.color)});
@@ -117,6 +132,8 @@ export function createToolsViewModule(version='1.0.0'){
     ctx.command('view.fit.content.v1',{...meta('NONE','FULL_RENDER'),run:()=>p.fitContent()});
     ctx.command('view.fit.artboard.v1',{...meta('NONE','FULL_RENDER'),run:()=>p.fitArtboard()});
     ctx.command('workspace.activate.v1',{...meta('NONE','FULL_RENDER'),validate:args=>{if(!['creation','layout'].includes(args.space))throw Object.assign(new Error('Workspace invalid'),{code:'ARGUMENTS_INVALID'});},run:args=>p.activateWorkspace(args.space)});
+    ctx.selector('tool.presets',()=>p.nativePresetState());
+    ctx.selector('tool.color',()=>p.colorState());
     ctx.selector('tool.current',()=>p.currentTool());
     ctx.selector('tool.settings',args=>p.toolSettings(args.tool));
     ctx.selector('tool.options',()=>p.toolOptions());
@@ -190,3 +207,6 @@ export function createFirstPartyFunctionModules(){
     createCreativeFamilyModule('recipe-invocation')
   ];
 }
+
+
+

@@ -1,4 +1,5 @@
 import { Matrix, uid } from '../core/index.js';
+import { TYPOGRAPHY_FIELDS, hasTextTypography, normalizeTextTypography, strictTextBox, typographyFail } from './text-typography.js';
 
 const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
 const WRITING_MODES = new Set(['horizontal-tb', 'vertical-rl', 'vertical-lr']);
@@ -76,8 +77,13 @@ export function createTextObject({
   textBox: objectTextBox = null,
   paragraphAlign: objectParagraphAlign = 'left',
   writingMode: objectWritingMode = 'horizontal-tb',
-  pathText: objectPathText = null
+  pathText: objectPathText = null,
+  paragraph = null, textPresentation = null, tracking = null,
+  kerningPairs = null, textRuns = null
 } = {}) {
+  const typography = { paragraph, textPresentation, tracking, kerningPairs, textRuns };
+  if (hasTextTypography(typography)) strictTextBox(objectTextBox);
+  if (hasTextTypography(typography) && objectWritingMode !== 'horizontal-tb') typographyFail('TYPOGRAPHY_MODE_UNSUPPORTED');
   const object = {
     id,
     type: 'text',
@@ -97,12 +103,32 @@ export function createTextObject({
   if (objectWritingMode !== 'horizontal-tb') object.writingMode = writingMode(objectWritingMode);
   const path = pathText(objectPathText);
   if (path) object.pathText = path;
+  for (const key of TYPOGRAPHY_FIELDS) if (typography[key] != null) object[key] = typography[key];
+  normalizeTextTypography(object);
   return object;
 }
 
 export function updateTextObject(object, patch = {}) {
   if (object?.type !== 'text') return false;
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return false;
+  const candidate = { ...object };
+  for (const key of ['textRuns', 'kerningPairs']) {
+    if (hasOwn(patch, 'text') && String(patch.text ?? '') !== object.text && object[key]?.length && !hasOwn(patch, key)) typographyFail('RANGES_TEXT_EDIT_REQUIRES_REBASE');
+  }
+  applyTextPatch(candidate, patch);
+  for (const key of TYPOGRAPHY_FIELDS) if (hasOwn(patch, key)) {
+    if (patch[key] == null) delete candidate[key];
+    else candidate[key] = patch[key];
+  }
+  if (hasTextTypography(candidate) && hasOwn(patch, 'textBox')) strictTextBox(patch.textBox);
+  if (hasTextTypography(candidate) && hasOwn(patch, 'writingMode') && patch.writingMode !== 'horizontal-tb') typographyFail('TYPOGRAPHY_MODE_UNSUPPORTED');
+  normalizeTextTypography(candidate);
+  for (const key of Object.keys(object)) if (!hasOwn(candidate, key)) delete object[key];
+  Object.assign(object, candidate);
+  return true;
+}
+
+function applyTextPatch(object, patch) {
 
   if (hasOwn(patch, 'text')) object.text = String(patch.text ?? '');
   if (hasOwn(patch, 'opacity')) object.opacity = opacity(patch.opacity, object.opacity ?? 1);
@@ -142,3 +168,15 @@ export function updateTextObject(object, patch = {}) {
   }
   return true;
 }
+
+/** Pure matrix result; caller submits it through the existing text.edit owner. */
+export function scaleTextObjectMatrix(object, { horizontal = 1, vertical = 1, pivot = { x: 0, y: 0 } } = {}) {
+  if (object?.type !== 'text') typographyFail('TEXT_OBJECT_REQUIRED');
+  if (![horizontal, vertical].every(n => typeof n === 'number' && Number.isFinite(n) && n > 0) ||
+      !pivot || ![pivot.x, pivot.y].every(n => typeof n === 'number' && Number.isFinite(n))) typographyFail('SCALE_INVALID');
+  if (!Matrix.isFinite(object.matrix) || !Matrix.isInvertible(object.matrix)) typographyFail('SCALE_SINGULAR');
+  const matrix = Matrix.multiply(object.matrix, Matrix.around(pivot.x, pivot.y, Matrix.scale(horizontal, vertical)));
+  if (!Matrix.isFinite(matrix) || !Matrix.isInvertible(matrix)) typographyFail('SCALE_SINGULAR');
+  return matrix;
+}
+

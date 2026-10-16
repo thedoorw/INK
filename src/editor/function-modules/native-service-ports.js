@@ -1,3 +1,7 @@
+import { Matrix } from '../../core/index.js';
+import { findPageObject, walkPageObjects } from '../../document/hierarchy.js';
+import { assertFinitePathGeometry } from '../path-edit.js';
+import { resolveNativePreset } from '../../paint/native-preset-identity.js';
 import { executeSelectionTransformTargetOperation, executePageSurfaceOperation } from '../creative-existing-owner-execution.js';
 import { executeVectorPathStrokeOperation } from '../creative-family-vector-path-stroke.js';
 import { executeStructureRepeatLayoutComponentsOperation } from '../creative-family-structure-repeat-layout-components.js';
@@ -13,6 +17,129 @@ import { applyArtworkResize, applyCanvasSize, applyOutputPpi } from '../../docum
 const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
 const finite=value=>Number.isFinite(Number(value));
 const safeName=value=>String(value||'INK').replace(/[\\/:*?"<>|]+/g,'_').trim()||'INK';
+
+// Resolve only native drawing tools; selection tools use the existing last-draw owner.
+function paintTool(app) { return app?.toolSettings?.[app.tool] ? app.tool : app?.lastDrawTool; }
+function presetTool(preset) { return preset?.kind === 'drybrush' ? 'brush' : preset?.kind; }
+function paintFailure(code) { throw Object.assign(new Error(code), {code}); }
+function requirePaint(app) {
+  if (!app?.documentOpen || !app?.doc) paintFailure('DOCUMENT_UNAVAILABLE');
+  const tool = paintTool(app);
+  if (!app.toolSettings?.[tool]) paintFailure('PAINT_TOOL_UNAVAILABLE');
+  return tool;
+}
+function nativePresetState(app) {
+  const tool = paintTool(app), settings = app?.toolSettings?.[tool];
+  if (!app?.documentOpen || !settings) return {status:'UNAVAILABLE', tool:tool || null, presets:[], selected:null};
+  const presets = Object.values(app.brushPresetCatalog || {}).filter(preset => presetTool(preset) === tool).map(preset => ({toolPresetId:preset.id, name:preset.name, kind:preset.kind}));
+  const selected = resolveNativePreset({metadata:{toolPresetId:settings.id || null,nativeParameters:clone(settings)}},app.studio?.brushes);
+  return {status:'AVAILABLE', tool, presets, selected};
+}
+
+function pathError(code) { throw Object.assign(new Error(code), {code}); }
+function pathPage(app) {
+  if (!app?.documentOpen || !app.doc || !activePage(app)) pathError('DOCUMENT_UNAVAILABLE');
+  return activePage(app);
+}
+function pathEligibility(found) {
+  if (found.effectiveLocked || !found.effectiveVisible || found.interactionExposed === false) return 'PATH_EDIT_TARGET_UNAVAILABLE';
+  if (!Matrix.isInvertible(found.worldMatrix || found.object.matrix || Matrix.identity())) return 'PATH_EDIT_SINGULAR_TARGET';
+  try { assertFinitePathGeometry(found.object); } catch(error) { return error.code || 'PATH_EDIT_PATH_INVALID'; }
+  return null;
+}
+function pathTarget(app, args, {editing = false} = {}) {
+  const page=pathPage(app);
+  if (app.history?.pending) pathError('PATH_EDIT_HISTORY_BUSY');
+  if (app.interaction) pathError('INTERACTION_BUSY');
+  if (args.documentId!==app.doc.id || args.pageId!==page.id) pathError('PATH_EDIT_STALE_TARGET');
+  const found=findPageObject(page,{layerId:args.layerId,objectId:args.objectId});
+  if (!found || found.object.type!=='path') pathError('PATH_EDIT_PATH_NOT_FOUND');
+  const unavailable=pathEligibility(found);if(unavailable)pathError(unavailable);
+  if (!app.pathEditing) pathError('CAPABILITY_UNAVAILABLE');
+  if (editing) {
+    const state=app.pathEditing.state;
+    if (!state) pathError('PATH_EDIT_MODE_INACTIVE');
+    app.pathEditing.resolve({requireHistoryIdle:true});
+    if(state.ref.layerId!==args.layerId || state.ref.objectId!==args.objectId)pathError('PATH_EDIT_STALE_TARGET');
+  }
+  return found;
+}
+function pathState(app) {
+  if (!app?.documentOpen || !activePage(app)) return {status:'UNAVAILABLE',active:false,documentId:app?.doc?.id||null,pageId:null};
+  const identity={documentId:app.doc.id,pageId:activePage(app).id};
+  if (!app.pathEditing) return {...identity,status:'UNAVAILABLE',active:false};
+  if (app.pathEditing.active) {
+    try { const found=app.pathEditing.resolve();const reason=pathEligibility(found);if(reason)pathError(reason); }
+    catch(error){return {...identity,status:'STALE_OR_UNAVAILABLE',active:false,reason:error.code||'PATH_EDIT_STALE_TARGET'};}
+  }
+  return {...identity,status:'AVAILABLE',...clone(app.pathEditing.snapshot()),canMutate:Boolean(app.pathEditing.active&&!app.history?.pending&&!app.interaction),unavailableReason:app.history?.pending?'PATH_EDIT_HISTORY_BUSY':app.interaction?'INTERACTION_BUSY':null};
+}
+function refreshPath(app) { app.refreshSelectionUI?.();app.renderer?.render?.();app.commands?.notify?.('native-path-state'); }
+function pathOperation(app, method, args, parameters) {
+  const found=pathTarget(app,args,{editing:true}),before=JSON.stringify(found.object);
+  if (typeof app.pathEditing[method]!=='function')pathError('CAPABILITY_UNAVAILABLE');
+  const result=app.pathEditing[method](...parameters);refreshPath(app);
+  return {changed:before!==JSON.stringify(found.object),result:{documentId:app.doc.id,pageId:activePage(app).id,layerId:found.layer.id,objectId:found.object.id,operation:clone(result),state:pathState(app)}};
+}
+
+// Derived layer previews are disposable and recomputed, never a document image store.
+function layerPreviewUnsupported(layer, doc) {
+  const color=doc?.colorState;
+  if ((color?.colorMode && color.colorMode!=='RGB') || (color?.bitDepth!=null && color.bitDepth!==8) || color?.icc?.bytes?.length || (color?.icc?.status && color.icc.status!=='none') || color?.softProof || doc?.softProof) return 'LAYER_PREVIEW_COLOR_PIPELINE_UNVERIFIED';
+  const visited=new Set();
+  const inspect=node=>{
+    if (!node || typeof node!=='object' || visited.has(node)) return 'LAYER_PREVIEW_STRUCTURE_UNVERIFIED';
+    visited.add(node);
+    if(node.mask || node.rasterMask || node.vectorMask || node.groupMask || node.clippingMask || node.clipPath || node.floraPaint) return 'LAYER_PREVIEW_MASK_UNVERIFIED';
+    if(node.blendMode && node.blendMode!=='source-over') return 'LAYER_PREVIEW_BLEND_UNVERIFIED';
+    if(node.adjustments?.length || node.filterStack?.length || node.effects?.length) return 'LAYER_PREVIEW_EFFECTS_UNVERIFIED';
+    if(node.type==='image')return 'LAYER_PREVIEW_ASYNC_IMAGE_UNVERIFIED';
+    if(node.type==='stroke' && (node.kind!=='pen' || node.mediaModel || node.floraPaint))return 'LAYER_PREVIEW_PAPER_MEDIA_UNVERIFIED';
+    if(node.type==='path' && (node.expressiveStroke || node.materialAppearance))return 'LAYER_PREVIEW_PATH_APPEARANCE_UNVERIFIED';
+    if(node!==layer && !['shape','path','text','stroke','group','frame'].includes(node.type))return 'LAYER_PREVIEW_OBJECT_TYPE_UNVERIFIED';
+    const children=node===layer?node.objects:node.children;
+    if(children!=null && !Array.isArray(children))return 'LAYER_PREVIEW_STRUCTURE_UNVERIFIED';
+    for(const child of children||[]){const reason=inspect(child);if(reason)return reason;}
+    return null;
+  };
+  return inspect(layer);
+}
+function readLayerPreview(app, layerId, width=128, height=96, expected={}) {
+  const base={status:'UNAVAILABLE',reason:null,documentId:null,pageId:null,layerId:null,requestedLayerId:typeof layerId==='string'?layerId:null,width:null,height:null,visible:null,opacity:null,dataUrl:null,cachePolicy:'RECOMPUTED_PER_REQUEST',revisionId:null,revisionVerified:false,revisionScope:'DOCUMENT_CHECKPOINT_ONLY',revisionCoversCurrentPreview:false,pixelVerified:false};
+  const fail=(code,reason=code,error=null)=>{const failure=error instanceof Error?error:Object.assign(new Error(code),{code});if(!failure.code)failure.code=code;failure.previewState={...base,status:'UNAVAILABLE',reason,errorCode:failure.code};throw failure;};
+  if(typeof layerId!=='string'||!layerId.trim())fail('ARGUMENTS_INVALID','LAYER_PREVIEW_LAYER_ID_INVALID');
+  if(typeof width!=='number'||!Number.isInteger(width)||width<48||width>512 || typeof height!=='number'||!Number.isInteger(height)||height<36||height>384)fail('ARGUMENTS_INVALID','LAYER_PREVIEW_DIMENSIONS_INVALID');
+  base.width=width;base.height=height;
+  if(!app?.documentOpen||!app.doc)return {...base,reason:'LAYER_PREVIEW_NO_DOCUMENT'};
+  base.documentId=typeof app.doc.id==='string'?app.doc.id:null;
+  if(expected.documentId!=null && expected.documentId!==base.documentId)return {...base,reason:'LAYER_PREVIEW_STALE_DOCUMENT'};
+  const page=activePage(app);
+  if(!page)return {...base,reason:'LAYER_PREVIEW_NO_PAGE'};
+  base.pageId=page.id||null;
+  if((expected.pageId!=null&&expected.pageId!==page.id)||(app.doc.activePageId!=null&&app.doc.activePageId!==page.id))return {...base,reason:'LAYER_PREVIEW_STALE_PAGE'};
+  const layer=page.layers?.find(item=>item.id===layerId);
+  if(!layer)fail('TARGET_NOT_FOUND','LAYER_PREVIEW_LAYER_NOT_FOUND');
+  base.layerId=layer.id;base.visible=layer.visible!==false;base.opacity=layer.opacity??1;
+  // revisionIdFor is the existing read-only document checkpoint lookup, not a layer revision.
+  if(base.documentId && app.revisions?.currentDocumentId===base.documentId && typeof app.revisions.revisionIdFor==='function'){
+    try{const revisionId=app.revisions.revisionIdFor(base.documentId);if(typeof revisionId==='string'&&revisionId){base.revisionId=revisionId;base.revisionVerified=true;}}
+    catch{base.revisionReason='LAYER_PREVIEW_REVISION_LOOKUP_UNAVAILABLE';}
+  }
+  if(!Array.isArray(layer.objects))return {...base,status:'UNSUPPORTED',reason:'LAYER_PREVIEW_STRUCTURE_UNVERIFIED'};
+  if(!layer.objects.length)return {...base,status:'EMPTY',reason:'LAYER_PREVIEW_EMPTY_LAYER'};
+  const unsupported=layerPreviewUnsupported(layer,app.doc);
+  if(unsupported)return {...base,status:'UNSUPPORTED',reason:unsupported};
+  if(typeof app.renderer?.renderLayerThumbnail!=='function')fail('LAYER_THUMBNAIL_RENDERER_UNAVAILABLE','LAYER_PREVIEW_RENDERER_UNAVAILABLE');
+  let dataUrl;
+  try{dataUrl=app.renderer.renderLayerThumbnail(page,layer.id,width,height);}
+  catch(error){fail(error?.code||'LAYER_THUMBNAIL_RENDER_FAILED','LAYER_PREVIEW_RENDER_ERROR',error);}
+  if(typeof dataUrl!=='string'||!/^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/.test(dataUrl))fail('LAYER_THUMBNAIL_RENDER_FAILED','LAYER_PREVIEW_INVALID_IMAGE_RESULT');
+  return {...base,status:'AVAILABLE',reason:null,dataUrl};
+}
+function readLayerPreviewState(app,...args) {
+  try{return readLayerPreview(app,...args);}
+  catch(error){if(error.previewState)return error.previewState;throw error;}
+}
 
 function activePage(app){return app?.page?.()||app?.doc?.pages?.find(page=>page.id===app?.doc?.activePageId)||null;}
 function layerById(app,id){return activePage(app)?.layers?.find(layer=>layer.id===id)||null;}
@@ -118,6 +245,8 @@ export function createNativeFunctionServicePorts(app){
       artworkResize:(args,execution)=>applyArtworkResize(app,args,execution)
     }),
     layerManagement:Object.freeze({
+      preview:(layerId,width=128,height=96,expected={})=>readLayerPreview(app,layerId,width,height,expected),
+      previewState:(layerId,width=128,height=96,expected={})=>readLayerPreviewState(app,layerId,width,height,expected),
       active:()=>{const layer=activeLayer(app);return layer?{id:layer.id,name:layer.name,opacity:layer.opacity,visible:layer.visible!==false,locked:Boolean(layer.locked),objectCount:layer.objects?.length||0}:null;},
       list:()=>{const page=activePage(app);return clone((page?.layers||[]).map(item=>({id:item.id,name:item.name,opacity:item.opacity,visible:item.visible!==false,locked:Boolean(item.locked),active:item.id===page?.activeLayerId,objectCount:item.objects?.length||0})));},
       requireLayer:id=>requireLayer(app,id),
@@ -131,6 +260,33 @@ export function createNativeFunctionServicePorts(app){
       lock:(id,locked)=>{const layer=requireLayer(app,id),value=Boolean(locked);if(Boolean(layer.locked)===value)return{changed:false,result:{layerId:layer.id,locked:value}};mutateScoped(app,value?'鎖定圖層':'解除圖層鎖定',[app.layerPath(layer)],()=>{layer.locked=value;});app.spatialDirty=true;app.refreshLayers?.();return{changed:true,result:{layerId:layer.id,locked:value}};}
     }),
     selectionTransform:Object.freeze({
+      pathList:()=>{
+        if(!app?.documentOpen || !activePage(app))return {status:'UNAVAILABLE',documentId:app?.doc?.id||null,pageId:null,paths:[]};
+        const page=activePage(app),busy=!app.pathEditing?'CAPABILITY_UNAVAILABLE':app.history?.pending?'PATH_EDIT_HISTORY_BUSY':app.interaction?'INTERACTION_BUSY':null;
+        return {status:'AVAILABLE',documentId:app.doc.id,pageId:page.id,paths:walkPageObjects(page).filter(entry=>entry.object.type==='path').map(entry=>{const reason=busy||pathEligibility(entry);return {documentId:app.doc.id,pageId:page.id,layerId:entry.layer.id,objectId:entry.object.id,name:entry.object.name||null,selected:(app.selection||[]).some(ref=>ref.layerId===entry.layer.id&&ref.objectId===entry.object.id),unavailableReason:reason,canEdit:!reason};})};
+      },
+      pathState:()=>pathState(app),
+      pathSelect:args=>{
+        const found=pathTarget(app,args);
+        if(typeof app.selectOnly!=='function')pathError('CAPABILITY_UNAVAILABLE');
+        const before=JSON.stringify(app.selection||[]),wasEditing=app.pathEditing.active;
+        app.pathEditing.exit();app.exitStrokeEdit?.();app.selectOnly(found.layer.id,found.object.id);refreshPath(app);
+        return {changed:wasEditing||before!==JSON.stringify(app.selection),result:{documentId:app.doc.id,pageId:activePage(app).id,selection:clone(app.selection)}};
+      },
+      pathEnter:args=>{
+        pathTarget(app,args);
+        if(typeof app.pathEditing.enter!=='function'||typeof app.setTool!=='function')pathError('CAPABILITY_UNAVAILABLE');
+        app.pathEditing.enter({layerId:args.layerId,objectId:args.objectId});app.exitStrokeEdit?.();app.setTool('select');refreshPath(app);
+        return {changed:true,result:pathState(app)};
+      },
+      pathExit:()=>{pathPage(app);if(app.history?.pending)pathError('PATH_EDIT_HISTORY_BUSY');if(app.interaction)pathError('INTERACTION_BUSY');if(!app.pathEditing)pathError('CAPABILITY_UNAVAILABLE');const changed=app.pathEditing.exit();refreshPath(app);return {changed,result:pathState(app)};},
+      pathMoveAnchor:args=>pathOperation(app,'moveAnchorTo',args,[args.subpathIndex,args.anchorIndex,args.x,args.y]),
+      pathSelectHandle:args=>{pathTarget(app,args,{editing:true});const before=JSON.stringify(app.pathEditing.snapshot());app.pathEditing.selectHandle(args.subpathIndex,args.anchorIndex,args.side);refreshPath(app);return {changed:before!==JSON.stringify(app.pathEditing.snapshot()),result:pathState(app)};},
+      pathMoveHandle:args=>pathOperation(app,'moveSelectedHandle',args,[args.x,args.y]),
+      pathClosed:args=>pathOperation(app,'setSubpathClosed',args,[args.subpathIndex,args.closed]),
+      pathSimplify:args=>pathOperation(app,'simplify',args,[args.options||{}]),
+      pathRefine:args=>pathOperation(app,'refine',args,[args.options||{}]),
+
       current:()=>clone(app?.selection||[]),
       clear:()=>{const changed=Boolean(app.selection?.length);app.clearSelection?.();return{changed,result:{selection:clone(app.selection||[])}};},
       delete:()=>{const changed=Boolean(app.selection?.length);app.deleteSelection?.();return{changed,result:{selection:clone(app.selection||[])}};},
@@ -147,12 +303,28 @@ export function createNativeFunctionServicePorts(app){
     materialsAppearance:Object.freeze({execute:(operation,args={},targetRefs=[])=>executeMaterialsAppearanceOperation(app,{operation,arguments:args||{},targets:Array.isArray(targetRefs)?clone(targetRefs):[]})}),
     recipeInvocation:Object.freeze({execute:(operation,args={},targetRefs=[])=>executeRecipeInvocationOperation(app,{operation,arguments:args||{},targets:Array.isArray(targetRefs)?clone(targetRefs):[]})}),
     toolsView:Object.freeze({
+      nativePresetState:()=>nativePresetState(app),
+      colorState:()=>{const tool=paintTool(app);return {status:app?.documentOpen&&app.toolSettings?.[tool]?'AVAILABLE':'UNAVAILABLE',tool:tool||null,color:app?.toolSettings?.[tool]?.color||null,recentColors:clone(app?.doc?.recentColors||[]),role:'FOREGROUND'};},
+      applyNativePreset:(toolPresetId)=>{
+        const tool=requirePaint(app);
+        if(app.history?.pending || app.interaction)paintFailure('INTERACTION_BUSY');
+        const preset=app.brushPresetCatalog?.[toolPresetId];
+        if(!preset || presetTool(preset)!==tool)paintFailure('NATIVE_PRESET_UNKNOWN');
+        if(typeof app.applyPreset!=='function')paintFailure('CAPABILITY_UNAVAILABLE');
+        const identity=resolveNativePreset({metadata:{toolPresetId:preset.id,nativeParameters:clone(preset)}},app.studio?.brushes);
+        if(identity.status!=='AVAILABLE')paintFailure(identity.code);
+        const before=JSON.stringify(app.toolSettings[tool]);
+        const result=app.applyPreset(tool,clone(preset));
+        if(result?.status==='UNAVAILABLE')paintFailure(result.code);
+        if(app.toolSettings[tool]?.id!==toolPresetId)paintFailure('NATIVE_PRESET_NOT_APPLIED');
+        return {changed:before!==JSON.stringify(app.toolSettings[tool]),result:nativePresetState(app)};
+      },
       currentTool:()=>app?.tool||null,
       toolSettings:tool=>clone(app?.toolSettings?.[tool||app?.tool||app?.lastDrawTool]||null),
       toolOptions:()=>clone({shapeType:app?.shapeType||'line',shapeFill:Boolean(app?.shapeFill),font:app?.font||{family:'system-ui',size:32},selectionMode:app?.selectionMode||'contain'}),
       activateTool:tool=>{const before=app.tool;app.setTool?.(tool);return{changed:before!==app.tool,result:{tool:app.tool}};},
       setToolSetting:(tool,key,value)=>{const resolved=tool||app.tool||app.lastDrawTool,before=app.toolSettings?.[resolved]?.[key];app.updateBrushSetting?.(key,value);return{changed:before!==app.toolSettings?.[resolved]?.[key],result:{tool:resolved,key,value:app.toolSettings?.[resolved]?.[key]}};},
-      setColor:color=>{const value=String(color).toLowerCase(),before=app.toolSettings?.[app.tool]?.color;app.setColor?.(value,true);return{changed:before!==value,result:{color:value}};},
+      setColor:color=>{const tool=requirePaint(app),value=String(color).toLowerCase();if(!/^#[0-9a-f]{6}$/.test(value))paintFailure('ARGUMENTS_INVALID');if(typeof app.setColor!=='function')paintFailure('CAPABILITY_UNAVAILABLE');const before=app.toolSettings[tool].color,recent=JSON.stringify(app.doc.recentColors||[]);app.setColor(value,true);if(app.toolSettings[tool].color!==value)paintFailure('COLOR_NOT_APPLIED');const recentChanged=recent!==JSON.stringify(app.doc.recentColors||[]);if(recentChanged)app.markDirty?.();return{changed:before!==value||recentChanged,result:{tool,color:app.toolSettings[tool].color,recentColors:clone(app.doc.recentColors||[]),role:'FOREGROUND'}};},
       setShape:shape=>{const before=app.shapeType;app.shapeType=shape;app.refreshToolUI?.();return{changed:before!==app.shapeType,result:{shapeType:app.shapeType}};},
       setShapeFill:fill=>{const before=Boolean(app.shapeFill);app.shapeFill=Boolean(fill);app.refreshToolUI?.();return{changed:before!==app.shapeFill,result:{shapeFill:app.shapeFill}};},
       setTextSetting:(key,value)=>{const before=app.font?.[key];if(!app.font)app.font={family:'system-ui',size:32};app.font[key]=key==='size'?Number(value):String(value||'system-ui');app.refreshToolUI?.();return{changed:before!==app.font[key],result:{font:clone(app.font)}};},
@@ -169,3 +341,6 @@ export function createNativeFunctionServicePorts(app){
     })
   });
 }
+
+
+
