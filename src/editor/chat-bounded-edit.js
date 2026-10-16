@@ -972,6 +972,65 @@ function normalizeFrameCreateArguments(raw = {}) {
   };
 }
 
+function normalizeTextBoxArguments(raw) {
+  if (raw == null) return null;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || Object.getPrototypeOf(raw) !== Object.prototype) {
+    editFail('ARGUMENT_INVALID', { field: 'arguments.textBox' });
+  }
+  if (Object.keys(raw).some(key => !['width','height'].includes(key))) editFail('ARGUMENT_INVALID', { field:'arguments.textBox' });
+  return {
+    width: boundedNumber(raw.width, 'arguments.textBox.width', { min: Number.EPSILON, max: 1e6 }),
+    height: boundedNumber(raw.height, 'arguments.textBox.height', { min: Number.EPSILON, max: 1e6 })
+  };
+}
+
+function normalizeTextParagraphArguments(raw) {
+  if (raw == null) return null;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) || Object.getPrototypeOf(raw) !== Object.prototype) {
+    editFail('ARGUMENT_INVALID', { field: 'arguments.paragraph' });
+  }
+  const keys = new Set(['align', 'lastLineAlign', 'indentLeft', 'indentRight', 'indentFirstLine']);
+  if (Object.keys(raw).some(key => !keys.has(key))) editFail('ARGUMENT_INVALID', { field: 'arguments.paragraph' });
+  const paragraph = {};
+  for (const key of ['align', 'lastLineAlign']) {
+    if (hasOwn(raw, key)) paragraph[key] = boundedEnum(raw[key], `arguments.paragraph.${key}`, ['left','center','right','justify']);
+  }
+  for (const key of ['indentLeft', 'indentRight', 'indentFirstLine']) {
+    if (!hasOwn(raw, key)) continue;
+    if (typeof raw[key] !== 'number') editFail('ARGUMENT_INVALID', { field: `arguments.paragraph.${key}` });
+    paragraph[key] = boundedNumber(raw[key], `arguments.paragraph.${key}`, {
+      min: key === 'indentFirstLine' ? -1e6 : 0, max: 1e6
+    });
+  }
+  return paragraph;
+}
+
+function normalizeTextAdvancedFields(raw) {
+  const result = {};
+  for (const key of ['textPresentation','tracking','kerningPairs','textRuns']) {
+    if (!hasOwn(raw, key)) continue;
+    const value = raw[key], field = `arguments.${key}`;
+    if (value == null) { result[key] = null; continue; }
+    if (key === 'tracking') {
+      if (typeof value !== 'number') editFail('ARGUMENT_INVALID', {field});
+      result[key] = boundedNumber(value, field, {min:-1e5,max:1e5});
+      continue;
+    }
+    const arrayField = key === 'textRuns' || key === 'kerningPairs';
+    if (arrayField ? !Array.isArray(value) || value.length > 128
+      : !value || typeof value !== 'object' || Array.isArray(value)) editFail('ARGUMENT_INVALID', {field});
+    result[key] = normalizeBoundedJson(value, field, {maxBytes:8192,maxDepth:3,maxKeys:512,maxArray:128,maxString:160});
+  }
+  return result;
+}
+function normalizeTextMatrix(raw) {
+  if (!Array.isArray(raw) || raw.length !== 6 || raw.some(value => typeof value !== 'number' || !Number.isFinite(value))) {
+    editFail('ARGUMENT_INVALID', {field:'arguments.matrix'});
+  }
+  if (!Matrix.isInvertible(raw)) editFail('ARGUMENT_INVALID', {field:'arguments.matrix'});
+  return [...raw];
+}
+
 function normalizeTextCreateArguments(raw = {}) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) editFail('ARGUMENTS_INVALID');
   return {
@@ -983,7 +1042,10 @@ function normalizeTextCreateArguments(raw = {}) {
     fontFamily: raw.fontFamily == null ? 'system-ui' : boundedText(raw.fontFamily, 'arguments.fontFamily', { max: 160 }),
     fontSize: boundedNumber(raw.fontSize ?? 32, 'arguments.fontSize', { min: Number.EPSILON, max: 1e4 }),
     lineHeight: boundedNumber(raw.lineHeight ?? 1.25, 'arguments.lineHeight', { min: Number.EPSILON, max: 20 }),
-    fontWeight: raw.fontWeight == null ? null : boundedNumber(raw.fontWeight, 'arguments.fontWeight', { min: 1, max: 1000 })
+    fontWeight: raw.fontWeight == null ? null : boundedNumber(raw.fontWeight, 'arguments.fontWeight', { min: 1, max: 1000 }),
+    ...(hasOwn(raw, 'textBox') ? { textBox: normalizeTextBoxArguments(raw.textBox) } : {}),
+    ...(hasOwn(raw, 'paragraph') ? { paragraph: normalizeTextParagraphArguments(raw.paragraph) } : {}),
+    ...normalizeTextAdvancedFields(raw)
   };
 }
 
@@ -999,6 +1061,10 @@ function normalizeTextEditArguments(raw = {}) {
   if (hasOwn(raw, 'fontSize')) patch.fontSize = boundedNumber(raw.fontSize, 'arguments.fontSize', { min: Number.EPSILON, max: 1e4 });
   if (hasOwn(raw, 'lineHeight')) patch.lineHeight = boundedNumber(raw.lineHeight, 'arguments.lineHeight', { min: Number.EPSILON, max: 20 });
   if (hasOwn(raw, 'fontWeight')) patch.fontWeight = boundedNumber(raw.fontWeight, 'arguments.fontWeight', { min: 1, max: 1000 });
+  if (hasOwn(raw, 'textBox')) patch.textBox = normalizeTextBoxArguments(raw.textBox);
+  if (hasOwn(raw, 'paragraph')) patch.paragraph = normalizeTextParagraphArguments(raw.paragraph);
+  if (hasOwn(raw, 'matrix')) patch.matrix = normalizeTextMatrix(raw.matrix);
+  Object.assign(patch, normalizeTextAdvancedFields(raw));
   if (!Object.keys(patch).length) editFail('ARGUMENTS_EMPTY');
   return patch;
 }
