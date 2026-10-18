@@ -1,6 +1,7 @@
 import { compareRevisionDocuments, inspectRevisionRecord } from '../document/revision.js';
 import { documentFingerprint, fnv1a32, inspectDocument, stableStringify } from '../document/integrity.js';
 import { walkPageObjects } from '../document/hierarchy.js';
+export { renderPixelPreview } from './pixel-preview.js';
 
 export const VISUAL_COMPARE_SCHEMA = 'INK-VISUAL-COMPARISON';
 export const VISUAL_COMPARE_SUBJECT_SCHEMA = 'INK-VISUAL-COMPARE-SUBJECT';

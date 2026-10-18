@@ -32,6 +32,8 @@ const SOURCE_SHELL = Object.freeze([
   './src/assets/asset-manifest.js',
   './src/assets/asset-migration.js',
   './src/assets/index.js',
+  './src/compare/artwork-review.js',
+  './src/compare/pixel-preview.js',
   './src/compare/visual-compare.js',
   './src/composition/composition-constraints.js',
   './src/config.js',

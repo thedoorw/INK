@@ -1,4 +1,5 @@
 import { clamp, lerp } from '../core/index.js';
+import { PressureCurveEditor } from '../paint/stroke-quality-tools.js';
 
 export const DEFAULT_PEN_PROFILE = Object.freeze({
   pressureMin: 0.02,
@@ -20,6 +21,11 @@ export function normalizePenProfile(input = {}) {
   profile.pressureMin = clamp(Number(profile.pressureMin) || 0, 0, .95);
   profile.pressureMax = clamp(Number(profile.pressureMax) || 1, profile.pressureMin + .01, 1);
   profile.pressureGamma = clamp(Number(profile.pressureGamma) || 1, .25, 4);
+  if (profile.pressureCurve != null) {
+    const points = profile.pressureCurve;
+    if (!Array.isArray(points) || points.length < 2 || points.length > 256 || points.some((point, index) => !Array.isArray(point) || point.length !== 2 || point.some(value => !Number.isFinite(value) || value < 0 || value > 1) || (index > 0 && point[0] <= points[index - 1][0])) || points[0][0] !== 0 || points.at(-1)[0] !== 1) throw new Error('INK_PRESSURE_CURVE_INVALID');
+    profile.pressureCurve = points.map(point => [...point]);
+  }
   profile.pressureSmoothing = clamp(Number(profile.pressureSmoothing) || 0, 0, .95);
   profile.tiltSensitivity = clamp(Number(profile.tiltSensitivity) || 1, 0, 2);
   profile.tiltDeadzone = clamp(Number(profile.tiltDeadzone) || 0, 0, 20);
@@ -36,7 +42,7 @@ export function applyPressureCurve(rawPressure, profile = DEFAULT_PEN_PROFILE) {
   const p = normalizePenProfile(profile);
   const raw = clamp(Number(rawPressure) || 0, 0, 1);
   const normalized = clamp((raw - p.pressureMin) / Math.max(.0001, p.pressureMax - p.pressureMin), 0, 1);
-  return clamp(Math.pow(normalized, p.pressureGamma), 0, 1);
+  return p.pressureCurve ? new PressureCurveEditor(p.pressureCurve).evaluate(normalized) : clamp(Math.pow(normalized, p.pressureGamma), 0, 1);
 }
 
 export function tiltToOrientation(tiltX = 0, tiltY = 0, profile = DEFAULT_PEN_PROFILE, twist = 0) {
@@ -135,7 +141,7 @@ export class PenInputCalibrator {
     const pointerType = event?.pointerType || 'mouse';
     if (pointerType === 'pen') this.lastPenActivity = now;
     const id = Number(event?.pointerId) || 0;
-    const rawPressure = pointerType === 'pen' && Number(event?.pressure) > 0
+    const rawPressure = pointerType === 'pen' && event?.pressure != null && Number.isFinite(Number(event.pressure)) && Number(event.pressure) >= 0
       ? Number(event.pressure)
       : pointerType === 'mouse' ? .55 : .5;
     let pressure = applyPressureCurve(rawPressure, this.profile);

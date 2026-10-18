@@ -58,12 +58,14 @@ export function normalizeSemantic(object) {
   return object;
 }
 
-export function walkSemanticObjects(document) {
+export function walkSemanticObjects(document, { normalize = true } = {}) {
   const output = [];
   const walk = (objects, layer, parentObject = null) => {
     for (const object of objects || []) {
-      normalizeSemantic(object);
-      if (parentObject && !object.semantic.parent) object.semantic.parent = parentObject.id;
+      if (normalize) {
+        normalizeSemantic(object);
+        if (parentObject && !object.semantic.parent) object.semantic.parent = parentObject.id;
+      }
       output.push({ object, layer, parentObject });
       if (object.type === 'group' || object.type === 'frame') walk(object.children, layer, object);
     }

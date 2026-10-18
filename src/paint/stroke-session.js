@@ -77,7 +77,7 @@ export class StrokeSessionRecorder {
     this.record('stroke-begin', { strokeId: id, brushId, layerId: this.active.layerId, color: this.active.color, timestamp: options.timestamp });
     return id;
   }
-  addSample(sample) { if (!this.active) throw new Error('INK_STROKE_NOT_ACTIVE'); this.active.samples.push(clone(sample)); this.session.timing.elapsedMs = Math.max(this.session.timing.elapsedMs, Number(sample.timestamp ?? sample.time ?? sample.t ?? 0)); return sample; }
+  addSample(sample) { if (this.session.status !== 'recording') throw new Error('INK_SESSION_NOT_RECORDING'); if (!this.active) throw new Error('INK_STROKE_NOT_ACTIVE'); this.active.samples.push(clone(sample)); this.session.timing.elapsedMs = Math.max(this.session.timing.elapsedMs, Number(sample.timestamp ?? sample.time ?? sample.t ?? 0)); return sample; }
   endStroke(options = {}) {
     if (!this.active) throw new Error('INK_STROKE_NOT_ACTIVE');
     if (this.active.samples.length < 2) throw new Error('INK_STROKE_REQUIRES_TWO_SAMPLES');

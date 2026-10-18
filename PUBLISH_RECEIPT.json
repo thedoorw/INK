@@ -1,16 +1,16 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "34c8a390cab15cadf347cf31168b739a0b6c8229",
-  "package_publisher_sha": "34c8a390cab15cadf347cf31168b739a0b6c8229",
-  "authority_record_sha256": "3c9d34dbe3961131f849fa53ad91c0d2e0436d5d2f7dfa2f5bef019915b835d7",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/318#issuecomment-6219582841",
-  "source_sha": "6e786206247d699d465763310b26de3a4e05c5a4",
-  "source_tree": "99211a1efc22f8c883edfd90157c8770509875f0",
-  "runtime_digest_sha256": "23e9a816c2a3872c001441bc48631e441d429e5d8560fedda93c338917720916",
-  "package_manifest_sha256": "b211de49d6608086486a11cc694ad4efa6f736729ea4a4a645b39e67b1f4cf1a",
+  "publisher_sha": "e60b7fb1c36e4d12d68e73c757db5e4555062ef1",
+  "package_publisher_sha": "e60b7fb1c36e4d12d68e73c757db5e4555062ef1",
+  "authority_record_sha256": "a603c838215f6f825225acce3aeb784c12d0689437fa9b2e079a70cbeb359374",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/347#issuecomment-6247557160",
+  "source_sha": "db213010ba9a3b3846c727f1cd00fe43931c4ae6",
+  "source_tree": "213877ceebdb635381ba742d401aae1d4e0ebdc1",
+  "runtime_digest_sha256": "0510016813cfc7a5d1c400bcfc308b9cb1eae70c02dd0ca0d38f07bbd46a4422",
+  "package_manifest_sha256": "9972abdbf9900c584eb7ab02966bb2df3b4fd3fb59c039434a02cc7cc75f7684",
   "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
-  "previous_target_commit": "85bcb373e21796f91f8f51c4e53cb187c270c5ce",
+  "previous_target_commit": "6910358482043cd445c63b75091057943b6d3164",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,9 +38,9 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "19176273964986a98779ba7679c944a0564c5794",
-      "sha256": "3bfbe687df569522b86fbe762ce32cfaf34d2ab0783bc71f9c00feb8edb79ce9",
-      "bytes": 51679
+      "git_blob_sha": "610f93ca2d4b86d9c9ed48964467919bf0cb7de8",
+      "sha256": "67b4a1cf9cc7cd1e1df3d663323c65d619649e471089b8ddee635048628bfe1d",
+      "bytes": 52026
     },
     {
       "path": "build-identity.js",
@@ -92,9 +92,9 @@
     },
     {
       "path": "service-worker-runtime.js",
-      "git_blob_sha": "844e383b4448787c52a65aa9c06ac0b45942a07f",
-      "sha256": "a1665cd94f22115142554d76b0ecee7624cd347b001de6d70acee9a01cc6e01d",
-      "bytes": 11939
+      "git_blob_sha": "4d929aafd9e14202fdb0a4a6f8ca546cb47a129d",
+      "sha256": "1047c35229e404fad9138668311553556aca649b8289eff60a3d0076e3218371",
+      "bytes": 12012
     },
     {
       "path": "service-worker.js",
@@ -283,10 +283,22 @@
       "bytes": 109
     },
     {
+      "path": "src/compare/artwork-review.js",
+      "git_blob_sha": "af67d8577542300b4112a68d082e1fceee4d82de",
+      "sha256": "c0025dfe3b9c3782481e37896e7f94c0f2a022ed1d18735826e83ae0cbb51696",
+      "bytes": 7001
+    },
+    {
+      "path": "src/compare/pixel-preview.js",
+      "git_blob_sha": "42b8f45182594224287d77e7f4dd2ee57658ce93",
+      "sha256": "16269cf2b99b001e8a790afd91e72f51e598fc85960ff54e867177bd22211c45",
+      "bytes": 4085
+    },
+    {
       "path": "src/compare/visual-compare.js",
-      "git_blob_sha": "75456429f67a6227c411c68db3c6244175863089",
-      "sha256": "1ea4686c8240cefe91fdef5a33ad6186eb60c63bcafd5c382a4eb6168249e9e6",
-      "bytes": 16196
+      "git_blob_sha": "e03171b05a6af04eac42a92c9b7d9c5ba6ef2b6c",
+      "sha256": "647a916d31dbb1fafe9313c47745f4d370c2ee0b97656c2fb08e84a1d97a88b5",
+      "bytes": 16253
     },
     {
       "path": "src/composition/composition-constraints.js",
@@ -1010,15 +1022,15 @@
     },
     {
       "path": "src/ink.js",
-      "git_blob_sha": "cd12cf51bc369720b52c403d799d4cba4e7d1cd1",
-      "sha256": "e87650100f8f91cf172965ed7c89b1c783eb6d8e439968635e9e4a112e320d2b",
-      "bytes": 177906
+      "git_blob_sha": "3163f82f675b93f09fafba6d0d3825550cb305ec",
+      "sha256": "632d7321326165476a1adca6e43290d9c7aece9bae633b8d413cc6d2b290bf5c",
+      "bytes": 178005
     },
     {
       "path": "src/input/device-validation.js",
-      "git_blob_sha": "5c5b9c06f7dda2d7045430b3b81ba7f0e1c95c8d",
-      "sha256": "d172ed87d0ab8ed6b72ca463eec5eadae29131c504e43d77c63f6fc755fa5614",
-      "bytes": 5118
+      "git_blob_sha": "263c195484ca9b5460f40b100c22fdbd91cd3918",
+      "sha256": "318e913b44ef0ac95c3053ea6e56c6949e53d7f47d96fb645d7288ea8bdf9f80",
+      "bytes": 5150
     },
     {
       "path": "src/input/input-arbiter.js",
@@ -1028,9 +1040,9 @@
     },
     {
       "path": "src/input/pen-calibration.js",
-      "git_blob_sha": "dcea849cfef8da018d4ebc453b3a7a8a544e9d75",
-      "sha256": "f7ff9cedd7f9701e5b25b840af44fb5b46aff713def74373320cb9f2b30036e8",
-      "bytes": 7677
+      "git_blob_sha": "bed35f82b1cb023fadf4eec63e498d186702047f",
+      "sha256": "66b73b6d437438678ddfd74bbeabaeda8658516571238e0af3abac5b9f413ddf",
+      "bytes": 8421
     },
     {
       "path": "src/input/stylus-test.js",
@@ -1118,9 +1130,9 @@
     },
     {
       "path": "src/paint/stroke-session.js",
-      "git_blob_sha": "31086399da9d616e025c60c134836f1ad3707777",
-      "sha256": "ffbf749e16c00602eed1f72cf1a1bdfb9272f51e6a7f9a5cea5858ba92981747",
-      "bytes": 14183
+      "git_blob_sha": "ac1fda83e133950692542c947e314afc99b16be7",
+      "sha256": "37cb9b8cb72e96a8d258c631d06a5cd41a48bcfb9f5ad542b9372b5bdf1c1cab",
+      "bytes": 14270
     },
     {
       "path": "src/paint/vector-watercolor.js",
@@ -1418,9 +1430,9 @@
     },
     {
       "path": "src/render/interactive-benchmark.js",
-      "git_blob_sha": "1d7702a78454bef33b9f7a8351179d5fc24192cc",
-      "sha256": "1a195eb7aeb601dd4938063c3c5ffcb75e6bbc23d705d731ffddf0e6e38e1926",
-      "bytes": 7967
+      "git_blob_sha": "fef1d4f74751ac810b193a642bf3871d949093b0",
+      "sha256": "1dc595e28ee7658bb6b89a52292a1c100eddc8984371ea97e2b6204ba4deec7c",
+      "bytes": 8105
     },
     {
       "path": "src/render/live-canvas-tile-renderer.js",
@@ -1514,9 +1526,9 @@
     },
     {
       "path": "src/semantic/semantic-model.js",
-      "git_blob_sha": "2e988c98dace7275345a170193d25261f039b9e7",
-      "sha256": "e867aede4cb40732fca72f40988c7f03483ce9567819beea82676a817a7c44d6",
-      "bytes": 3951
+      "git_blob_sha": "ccc0951ff16b8878f09c9da5ee715b5194675404",
+      "sha256": "7b04a55fff782c601e330eeb8dc9b36a3c1768e72d9d8220b3481316f4edf4f3",
+      "bytes": 4013
     },
     {
       "path": "src/semantic/semantic-region-grounding.js",
@@ -1532,9 +1544,9 @@
     },
     {
       "path": "src/semantic/semantic-validator.js",
-      "git_blob_sha": "f1f99ac558561a935aec074e2f372082eebb5086",
-      "sha256": "8657a0d5df3db905d2a798cd28bbee26e1b07f36379e5c19f83f11f31d8c914a",
-      "bytes": 1363
+      "git_blob_sha": "3b4702410b254bcbdffbca07317b8318b5586494",
+      "sha256": "933537fd330b11df1f512dd390163f8d1745d7f9b31179233f25958fab3fb80f",
+      "bytes": 1410
     },
     {
       "path": "src/spatial/index.js",
