@@ -1,8 +1,10 @@
+import { runArtworkQA } from '../compare/artwork-review.js';
 const percentile = (values, ratio) => { if (!values.length) return null; const sorted = [...values].sort((a,b)=>a-b), index = Math.min(sorted.length - 1, Math.floor(sorted.length * ratio)); return sorted[index]; };
 const clock = () => Number(globalThis.performance?.now?.() ?? Date.now());
 const nextFrame = () => new Promise(resolve => (globalThis.requestAnimationFrame || (callback => setTimeout(() => callback(clock()), 0)))(resolve));
 
 export class BrowserInteractiveBenchmark {
+  async runArtwork(app, options = {}) { return runArtworkQA(app, options); }
   constructor(canvas, { chunkSize = 360, tileSize = 128, pngEncoder } = {}) { if (!canvas?.getContext) throw new Error('INK_INTERACTIVE_BENCHMARK_CANVAS_REQUIRED'); this.canvas = canvas; this.context = canvas.getContext('2d',{alpha:true,desynchronized:true}); this.chunkSize = Math.min(400,Math.max(120,chunkSize)); this.tileSize = tileSize; this.bitmapCache=new Map(); this.resourcePool=[]; this.pngEncoder=pngEncoder||new PNGWorkerEncoder(); }
   async renderStrokes(count, { viewportOnly = false, layers = 8, masks = 4, textures = 3, media = 'ink' } = {}) {
     const started = clock(), frameTimes = [], context = this.context, width = this.canvas.width, height = this.canvas.height; let previousFrame = started, rendered = 0, droppedInputSamples = 0;

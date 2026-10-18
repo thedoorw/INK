@@ -12,7 +12,7 @@ export function normalizeCalibrationProfile(input = {}) {
   return value;
 }
 
-export function calibrationToPenProfile(profile) { const p = normalizeCalibrationProfile(profile); return normalizePenProfile({ pressureMin: p.minimumPressureThreshold, pressureMax: p.maximumPressureClamp, pressureSmoothing: p.smoothing, tiltSensitivity: p.tiltSensitivity, useCoalescedEvents: p.samplingFilter === 'COALESCED', usePredictedEvents: p.prediction, palmRejection: p.palmRejectionPreference }); }
+export function calibrationToPenProfile(profile) { const p = normalizeCalibrationProfile(profile); return normalizePenProfile({ pressureCurve: p.pressureCurve, pressureMin: p.minimumPressureThreshold, pressureMax: p.maximumPressureClamp, pressureSmoothing: p.smoothing, tiltSensitivity: p.tiltSensitivity, useCoalescedEvents: p.samplingFilter === 'COALESCED', usePredictedEvents: p.prediction, palmRejection: p.palmRejectionPreference }); }
 export function applyCalibration(sample, profile) { const p = normalizeCalibrationProfile(profile), pen = calibrationToPenProfile(p); return { ...clone(sample), pressure: applyPressureCurve(sample.pressure, pen), tiltX: (Number(sample.tiltX) || 0) * p.tiltSensitivity, tiltY: (Number(sample.tiltY) || 0) * p.tiltSensitivity, rotation: (Number(sample.rotation) || 0) * p.rotationSensitivity, size: (Number(sample.size) || 1) * p.brushSizeCompensation, calibrationProfileId: p.id }; }
 
 export class CalibrationProfileStore {

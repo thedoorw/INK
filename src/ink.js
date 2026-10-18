@@ -1,4 +1,5 @@
 import { nativePresetMetadata } from './paint/native-preset-identity.js';
+import { installArtworkReview } from './compare/artwork-review.js';
 import { INK_VERSION, BUILD_ID, FORMAT_VERSION } from './config.js';
 import { installFloraActionLayer } from './flora/index.js';
 import { normalizedPointToWorld, traceVectorMaskWorld, traceVectorPathWorld } from './flora/mask/vector-mask.js';
@@ -1015,6 +1016,8 @@ class InkApp{
 }
 
 window.INK_ARCHITECTURE={version:INK_VERSION,buildId:BUILD_ID,formatVersion:FORMAT_VERSION,moduleMode:'ESM',inventory:'partial-runtime-capability-tags',complete:false,note:'Partial active runtime capability tags; not an exhaustive source-module inventory.',modules:['core','document','storage-v3-checkpointed','history-target-scoped-id-aware','history-panel-step-navigation','input','stroke-bezier','spatial-incremental','selection','frame-hierarchy','transform','path-editing-core','expressive-stroke-core','multi-contour-composition','repaint-material-core','chat-bounded-edit-loop','render-contract','paper-profile','multi-channel-ink','natural-media-webgl2','natural-media-mrt','gpu-resource-budget','dirty-region','persistent-tile-atlas-core','live-canvas-tile-renderer','dual-workspace','layout-model-viewport','fullscreen-shell','layer-drag-reorder','a4-artboard','pdf-output','resumable-tiled-export','pen-calibration','canvas2d-fallback','canvas2d-multichannel','document-integrity','runtime-health','external-diagnostics','service-worker-update','flora-action-layer','flora-hero-structure-mask','flora-region-painting','shared-command-authority','modular-ui-host','minimal-test-shell']};
+
+installArtworkReview(InkApp);
 
 function qaBridgeRequested(){
   if(globalThis.__INK_ENABLE_TEST_BRIDGE__===true)return true;
