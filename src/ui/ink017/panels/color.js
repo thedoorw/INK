@@ -1,0 +1,21 @@
+import {lifecycle,range,wireRange,drag,iconButton} from '../shared-controls.js';
+const clamp=n=>Math.max(0,Math.min(1,n));
+export function hsv(h,s,v){h=((h%360)+360)%360;s=clamp(s);v=clamp(v);const c=v*s,x=c*(1-Math.abs(h/60%2-1)),m=v-c;const a=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];return '#'+a.map(n=>Math.round((n+m)*255).toString(16).padStart(2,'0')).join('')}
+export function hexToHsv(hex,fallbackHue=0){const m=/^#([0-9a-f]{6})$/i.exec(hex||'');if(!m)return {h:fallbackHue,s:0,v:0};const n=parseInt(m[1],16),rr=((n>>16)&255)/255,g=((n>>8)&255)/255,b=(n&255)/255,max=Math.max(rr,g,b),min=Math.min(rr,g,b),d=max-min;let h=fallbackHue;if(d){h=max===rr?60*(((g-b)/d+6)%6):max===g?60*((b-rr)/d+2):60*((rr-g)/d+4)}return {h,s:max===0?0:d/max,v:max}}
+function marker(s){const c=hexToHsv(s.paint.foreground,s.paint.hue);return {s:c.s,v:c.v}}
+export default lifecycle('color',s=>{const p=marker(s),visibleHue=hexToHsv(s.paint.foreground,s.paint.hue).h;return `<div class="color-picker"><div class="color-plane" tabindex="0" role="group" aria-label="Color spectrum saturation and value" aria-description="Left or right changes saturation; up or down changes brightness"><span class="color-plane-marker" aria-hidden="true"></span></div><div class="hue-control">${range('Hue',Math.round(visibleHue),0,360)}</div></div><div class="color-values"><div class="panel-color-chips"><input type="color" aria-label="Background unavailable" title="Background unavailable" disabled value="${s.paint.background}"><input type="color" aria-label="Foreground" title="Foreground" value="${s.paint.foreground}"></div><label class="field-row"><span>HEX</span><input aria-label="Foreground HEX" value="${s.paint.foreground}" maxlength="7"></label></div><div class="color-actions"></div>`},(r,h,signal)=>{
+const patch=p=>h.dispatch({type:'paint.patch',patch:{foreground:p.foreground},source:'color'});
+wireRange(r,'Paint opacity',v=>patch({alpha:v}),signal);
+const plane=r.querySelector('.color-plane'),point=plane.querySelector('.color-plane-marker'),hue=r.querySelector('[aria-label="Hue"]');
+const initial=hexToHsv(h.getSnapshot().paint.foreground,h.getSnapshot().paint.hue);
+plane.style.setProperty('--hue',`hsl(${initial.h} 100% 50%)`);point.style.left=(initial.s*100)+'%';point.style.top=((1-initial.v)*100)+'%';
+let pending=null;
+function preview(s,v,color){pending=color;point.style.left=(s*100)+'%';point.style.top=((1-v)*100)+'%';point.style.background=color;const foreground=r.querySelector('[aria-label="Foreground"]');if(foreground)foreground.value=color;const hex=r.querySelector('[aria-label="Foreground HEX"]');if(hex&&document.activeElement!==hex)hex.value=color}
+function current(){return hexToHsv(h.getSnapshot().paint.foreground,h.getSnapshot().paint.hue)}
+hue.addEventListener('input',()=>{const n=Number(hue.value),c=current();plane.style.setProperty('--hue','hsl('+n+' 100% 50%)');preview(c.s,c.v,hsv(n,c.s,c.v));const out=hue.closest('.range-row')?.querySelector('output');if(out)out.value=n},{signal});
+hue.addEventListener('change',()=>{const n=Number(hue.value),c=current();patch({hue:n,foreground:hsv(n,c.s,c.v)})},{signal});
+r.addEventListener('change',e=>{const a=e.target.getAttribute('aria-label');if(a==='Foreground'||a==='Foreground HEX'){const v=e.target.value,next=hexToHsv(v,h.getSnapshot().paint.hue),result=patch({foreground:v,hue:next.h});if(!result.ok)e.target.value=h.getSnapshot().paint.foreground}if(a==='Background')patch({background:e.target.value})},{signal});
+r.addEventListener('click',e=>{const b=e.target.closest('[data-paint]');if(b)h.dispatch({type:'paint.'+b.dataset.paint,source:'color'})},{signal});
+drag(plane,(e,b)=>{const s=clamp((e.clientX-b.left)/b.width),v=1-clamp((e.clientY-b.top)/b.height);preview(s,v,hsv(current().h,s,v))},()=>{if(pending){const color=pending;pending=null;patch({foreground:color})}},signal);
+plane.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const p=current(),step=e.shiftKey?0.1:0.01,s=clamp(p.s+(e.key==='ArrowRight'?step:e.key==='ArrowLeft'?-step:0)),v=clamp(p.v+(e.key==='ArrowUp'?step:e.key==='ArrowDown'?-step:0));patch({foreground:hsv(p.h,s,v)})},{signal});
+});

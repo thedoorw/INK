@@ -3,7 +3,7 @@ import { createMinimalControlsModule, createMinimalStateModule, createMinimalSta
 
 export function installMinimalTestShell(app,services){
   if(!app?.commands||!services)throw new TypeError('INK_MINIMAL_SHELL_DEPENDENCIES_REQUIRED');
-  const root=document.getElementById('minimalHost');
+  const root=document.getElementById('nativeFunctionHost')||document.getElementById('minimalHost');
   if(!root)throw new Error('INK_MINIMAL_SHELL_ROOT_REQUIRED');
   const slots={};
   root.querySelectorAll('[data-slot]').forEach(node=>{slots[node.dataset.slot]=node;});
@@ -13,8 +13,10 @@ export function installMinimalTestShell(app,services){
     host.mount(createMinimalControlsModule());
     host.mount(createMinimalStateModule());
     host.mount(createMinimalStatusModule());
-    document.documentElement.dataset.inkShellReady='true';
-    document.getElementById('inkBootGate')?.remove();
+    if(document.documentElement.dataset.ui!=='ink017'){
+      document.documentElement.dataset.inkShellReady='true';
+      document.getElementById('inkBootGate')?.remove();
+    }
     app.commands.notify('minimal-shell-ready');
   }catch(error){
     document.documentElement.dataset.inkShellReady='error';
