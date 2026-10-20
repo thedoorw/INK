@@ -4,15 +4,15 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "cb02f28baf123ced9887fd493cd7594682ab9b30",
-    "product_tree": "8776adb58d9c8a09e70e6db644fa8e069d4f4751"
+    "exact_sha": "f55b508ebf42d35e3182fc38bfcc7a25a7f8e7e9",
+    "product_tree": "3e5be460b8574d82370adc5f29b166a32435102a"
   },
   "package": {
-    "manifest_sha256": "911872f22951dd397a7d4b5aed70652f5b59aa451ecc589db7cfb66654655063"
+    "manifest_sha256": "64c729464ae298a6c33c218ba20232a62094110de517e3a38fcc88f9126610bb"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "942b3ae1368a0c4c7e1758743357a0dde8c6a11eee10561f107720c770b21428",
+    "package_digest_sha256": "32f5bef824b405bfebd1e9b43d302af3e1653288595469374da92a45a9ee0acb",
     "file_count": 307,
     "files": [
       {
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "b4628836a464173994ea25abc5dc564968ed3c546b78d143d4ebaa9ed41efc47"
+        "sha256": "9bf9cefe927c374ea4401e0fff7d7ca85aac33e1e941aa76f0f5bbd3ce5ea8cd"
       },
       {
         "path": "dist/ink.compat.js",
@@ -47,13 +47,13 @@
       },
       {
         "path": "index-standalone.html",
-        "bytes": 2535,
-        "sha256": "e0c3e3479c638a7a7aa967dfd019d3b1076bb0ae8efc8dcda339b21141cb8fcd"
+        "bytes": 3175,
+        "sha256": "ed83dc436073fa3152402eb96d0ad072b02f74c018614f279b2340119aafb213"
       },
       {
         "path": "index.html",
-        "bytes": 2522,
-        "sha256": "b55da8b6bbe76e43900c32ad5ef89999acc19246d067d6720b9129c3be55c4e6"
+        "bytes": 3162,
+        "sha256": "989e4fefc0aba1fa8e6175c45b082e92a00c1be6abc557fc27534cec77e212d7"
       },
       {
         "path": "manifest-portable.webmanifest",
@@ -1422,8 +1422,8 @@
       },
       {
         "path": "src/ui/ink017/right-dock.js",
-        "bytes": 4240,
-        "sha256": "4fd4477eecc0c955815747eb4994453f41a5090aa2e1a1946db6f49e19e92070"
+        "bytes": 4354,
+        "sha256": "664cfe42e0621d498334b4acd53b5b222f530eed375697b09f3ba3394ec17dfe"
       },
       {
         "path": "src/ui/ink017/shared-controls.js",
@@ -1437,8 +1437,8 @@
       },
       {
         "path": "src/ui/ink017/tokens.css",
-        "bytes": 25335,
-        "sha256": "5be88f9e85429f6b0db295d474f84276c13386043da6cb3731e9c30273a7149c"
+        "bytes": 26116,
+        "sha256": "f12e1c7a999cabc38f3a1dc3ac4e70543b3abaffc43368e39ec7064ca6e5d36f"
       },
       {
         "path": "src/ui/minimal-composition.js",
@@ -1542,8 +1542,8 @@
       },
       {
         "path": "stage-runtime.css",
-        "bytes": 10341,
-        "sha256": "fcab2120e4b9850a5337492a6d3cd7e22c632fba8d9b909277e8f28f6c9df476"
+        "bytes": 12206,
+        "sha256": "b06d4dfb11172f57e1b6dd832e2f49e00b5521aa3225e4552e43280a83b74a92"
       },
       {
         "path": "ui/capability-raster-tools.js",
@@ -1554,20 +1554,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/367#issuecomment-6269966964"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/370#issuecomment-6283803037"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "66f2913e110cbbcf4bb5b864166ae291984cf15c",
+    "exact_sha": "7db191af8326cfc8df537153cc6c8559933425e4",
     "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "679fb15d78cdf3fec8803ae805c83587223e6dd1",
-    "authority_record_sha256": "694681255c42786152a23e94f751a9d08e67e0b5abcf2172490b337867022bd0",
-    "publisher_sha": "66f2913e110cbbcf4bb5b864166ae291984cf15c",
-    "package_publisher_sha": "66f2913e110cbbcf4bb5b864166ae291984cf15c",
+    "previous_target_commit": "2d833945470e480cbb6fa47e2d73858b6c326fe8",
+    "authority_record_sha256": "158125a5466544951056e09fbc066b86de055c1d72d69bec9d1b9bb427d73a34",
+    "publisher_sha": "7db191af8326cfc8df537153cc6c8559933425e4",
+    "package_publisher_sha": "7db191af8326cfc8df537153cc6c8559933425e4",
     "runtime_bytes_unchanged_from_package": true
   }
 }
