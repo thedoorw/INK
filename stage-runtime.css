@@ -67,6 +67,24 @@ html[data-ink-shell-ready="false"] #app{visibility:hidden;pointer-events:none}
 .ink-view-pane[data-active="true"]{border-color:#3c77b0}
 .ink-view-pane[data-read-only="true"]{background:#d1d4d6}
 .ink-view-header{height:27px;min-height:27px;display:flex;align-items:center;gap:4px;background:#ededed;padding:2px 5px;border-bottom:1px solid #bdbdbd;font-size:11px}
+@media(min-width:821px){
+  /* Single editable view: document title is workspace metadata, not a full-width toolbar. */
+  .ink-view-grid[data-layout="1"]>.ink-view-pane{position:relative}
+  .ink-view-grid[data-layout="1"]>.ink-view-pane>.ink-view-header{position:absolute;z-index:8;top:7px;left:9px;width:max-content;max-width:calc(100% - 18px);height:24px;min-height:24px;padding:0 3px;gap:4px;background:transparent;border:0;overflow:visible}
+  .ink-view-grid[data-layout="1"] .ink-view-title{flex:0 1 auto;max-width:210px;min-width:0;padding:1px 4px;background:transparent;border:0;color:#6b6b6b;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ink-view-grid[data-layout="1"] .ink-view-header .ink-view-mode,
+  .ink-view-grid[data-layout="1"] .ink-view-header [data-view-readonly],
+  .ink-view-grid[data-layout="1"] .ink-view-header [data-view-hide]{opacity:0;pointer-events:none}
+  .ink-view-grid[data-layout="1"] .ink-view-header:hover,
+  .ink-view-grid[data-layout="1"] .ink-view-header:focus-within{background:rgba(255,255,255,.94);border-radius:4px;box-shadow:0 1px 5px #0001}
+  .ink-view-grid[data-layout="1"] .ink-view-header:hover .ink-view-mode,
+  .ink-view-grid[data-layout="1"] .ink-view-header:hover [data-view-readonly],
+  .ink-view-grid[data-layout="1"] .ink-view-header:hover [data-view-hide],
+  .ink-view-grid[data-layout="1"] .ink-view-header:focus-within .ink-view-mode,
+  .ink-view-grid[data-layout="1"] .ink-view-header:focus-within [data-view-readonly],
+  .ink-view-grid[data-layout="1"] .ink-view-header:focus-within [data-view-hide]{opacity:1;pointer-events:auto}
+  .ink-view-grid[data-layout="1"] .ink-view-pane[data-read-only="true"] .ink-view-mode{opacity:1}
+}
 .ink-view-header button{font-size:11px;min-height:21px;padding:2px 5px}
 .ink-view-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
 .ink-view-mode{font-size:10px;color:#656565;white-space:nowrap}
