@@ -1,13 +1,12 @@
 import {lifecycle,esc,range,wireRange,nativeToolEmptyState,wireNativeToolEmptyState} from '../shared-controls.js';
-const parameters=[['opacity','不透明度','Brush opacity'],['flow','流量','Brush flow'],['smoothing','平滑','Brush smoothing'],['pressure','壓力','Brush pressure'],['taper','收筆','Brush taper'],['wetness','濕度','Brush wetness'],['grain','顆粒','Brush grain'],['bristle','鬃毛','Brush bristle']];
+const parameters=[['opacity','Opacity','Brush opacity'],['flow','Flow','Brush flow'],['smoothing','Smoothing','Brush smoothing'],['pressure','Pressure','Brush pressure'],['taper','Taper','Brush taper'],['wetness','Wetness','Brush wetness'],['grain','Grain','Brush grain'],['bristle','Bristle','Brush bristle']];
 export default lifecycle('brushes',(s,h)=>{
- if(!s.docs.length)return nativeToolEmptyState('開啟文件後使用筆刷。', 'brush', 'Use Brush tool', s);
- if(s.tool!=='brush')return nativeToolEmptyState('啟用筆刷以調整參數。', 'brush', 'Use Brush tool', s);
  const state=h.select('tool.presets'),settings=h.select('tool.settings',{tool:'brush'});
- if(state.status!=='AVAILABLE'||state.tool!=='brush'||!settings)return '<p class="capability-empty">筆刷目前無法使用</p>';
- const presets=state.presets||[],active=state.selected?.toolPresetId||null,size=Number(settings.size)||24;
- const rows=parameters.filter(([key])=>Number.isFinite(settings[key])).map(([key,label,name])=>range(name,Math.round(settings[key]*100),0,100).replace('<span>'+name+'</span>','<span>'+label+'</span>'));
- return `<div class="brush-settings">${range('Brush size',size,1,300).replace('<span>Brush size</span>','<span>尺寸 px</span>')}${rows.slice(0,2).join('')}<details data-disclosure="brush-more"><summary>進階筆刷參數</summary>${rows.slice(2).join('')}</details></div><div class="brush-presets">${presets.map(p=>`<button type="button" data-preset="${esc(p.toolPresetId)}" aria-pressed="${p.toolPresetId===active}">${esc(p.name||p.toolPresetId)}</button>`).join('')||'<p class="capability-empty">沒有可用預設集</p>'}</div>`;
+ const available=!!s.docs.length&&s.tool==='brush'&&state.status==='AVAILABLE'&&state.tool==='brush'&&!!settings;
+ const actual=settings||{};
+ const presets=state.tool==='brush'?(state.presets||[]):[],active=state.selected?.toolPresetId||null,size=Number(actual.size)||24;
+ const rows=parameters.filter(([key])=>Number.isFinite(actual[key])).map(([key,label,name])=>range(name,Math.round(actual[key]*100),0,100).replace('<span>'+name+'</span>','<span>'+label+'</span>'));
+ return `${available?'':nativeToolEmptyState(s.docs.length?'Activate Brush to edit.':'Open a document to use Brush.','brush','Use Brush tool',s)}<fieldset ${available?'':'disabled'}><div class="brush-settings">${range('Brush size',size,1,300).replace('<span>Brush size</span>','<span>Size px</span>')}${rows.slice(0,2).join('')}<details data-disclosure="brush-more"><summary>Advanced settings</summary>${rows.slice(2).join('')}</details></div><div class="brush-presets">${presets.map(p=>`<button type="button" data-preset="${esc(p.toolPresetId)}" aria-pressed="${p.toolPresetId===active}">${esc(p.name||p.toolPresetId)}</button>`).join('')||'<p class="capability-empty">Activate Brush to show presets.</p>'}</div></fieldset>`;
 },(r,h,signal)=>{
  wireNativeToolEmptyState(r,h,signal);
  wireRange(r,'Brush size',value=>{if(h.getSnapshot().tool==='brush')h.dispatch({type:'tool.option',key:'brush.size',value,source:'brushes'})},signal);
