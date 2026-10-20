@@ -1,0 +1,62 @@
+import transform from './panels/properties.js';
+import {mountDock} from './right-dock.js';
+import {createNativeHost} from './native-host.js';
+import {esc,selected,field,iconButton,drag} from './shared-controls.js';
+export function mountNativeShell(app,root){
+ const host=createNativeHost(app),$=s=>root.querySelector(s),dock=mountDock($('#rightDock'),host),abort=new AbortController(),{signal}=abort;
+ const menu=$('#mainMenu'),overlay=$('#overlay'),context=$('#contextControls');let category='file',contextMounted=false,dialogAbort,importTarget;
+ const feedback=message=>{const toast=$('#ui017Toast');toast.textContent=message;clearTimeout(feedback.timer);feedback.timer=setTimeout(()=>toast.textContent='',4000)};
+ const run=async(id,args={})=>{const r=await host.execute(id,args);if(!r.ok)feedback(r.error.message);return r};
+ host.subscribeCommands(e=>{if(!e.result.ok)feedback(e.result.error)});
+ const close=()=>{dialogAbort?.abort();overlay.hidden=true;overlay.replaceChildren()};
+ function dialog(title,content,apply){close();dialogAbort=new AbortController();overlay.hidden=false;overlay.innerHTML=`<section class="dialog" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header class="dialog-header"><strong>${esc(title)}</strong><button class="dialog-close" aria-label="Close">×</button></header><div class="dialog-body">${content}</div><footer><button data-apply>Apply</button><button data-cancel>Cancel</button></footer></section>`;
+  const sig=dialogAbort.signal;overlay.querySelector('.dialog-close').addEventListener('click',close,{signal:sig});overlay.querySelector('[data-cancel]').addEventListener('click',close,{signal:sig});
+  overlay.querySelector('[data-apply]').addEventListener('click',async()=>{const args=Object.fromEntries([...overlay.querySelectorAll('[data-key]')].map(e=>[e.dataset.key,e.type==='number'?Number(e.value):e.value]));try{const r=await apply(args);if(r?.ok)close()}catch(e){feedback(e.message)}},{signal:sig});
+  overlay.querySelector('input,select,button')?.focus();overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();$('#logoButton').focus()}if(e.key==='Tab'){const els=[...overlay.querySelectorAll('button,input,select')].filter(e=>!e.disabled),i=els.indexOf(document.activeElement);if(e.shiftKey&&i===0){e.preventDefault();els.at(-1).focus()}else if(!e.shiftKey&&i===els.length-1){e.preventDefault();els[0].focus()}}},{signal:sig});
+  drag(overlay.querySelector('.dialog-header'),e=>{if(e.target.closest('button'))return;const d=overlay.querySelector('.dialog');d.style.transform=`translate(${e.clientX-innerWidth/2}px,${e.clientY-innerHeight/2}px)`},()=>{},sig);
+ }
+ function imageDialog(kind){const s=host.getSnapshot(),t=host.target(),o=s.object,d=s.docs[0];if(kind!=='canvas-size'&&(!o?.raster||o.locked)){feedback('Select an unlocked image');return}
+  const canvas=kind==='canvas-size',crop=kind==='crop',w=canvas?d.width:o.raster.width,h=canvas?d.height:o.raster.height;
+  dialog(canvas?'Canvas Size':crop?'Crop':'Image Size',`${crop?field('x','X',0)+field('y','Y',0):''}<div class="pair-grid">${field(crop?'w':'width','Width',w)}${field(crop?'h':'height','Height',h)}</div>${canvas?field('units','Units','mm','text',['mm','px','in','cm'])+field('anchor','Anchor','center','text',['top-left','top','top-right','left','center','right','bottom-left','bottom','bottom-right']):crop?'':field('resampling','Resampling','nearest','text',['nearest'])}`,a=>run(canvas?'ui017.canvas.resize.v1':crop?'ui017.image.crop.v1':'ui017.image.resize.v1',{...a,target:t}));
+ }
+ const command=async key=>{
+  menu.hidden=true;$('#logoButton').setAttribute('aria-expanded','false');const s=host.getSnapshot();
+  if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;panel.querySelector('button')?.focus();return}
+  if(key==='undo'||key==='redo')return run('history.'+key+'.v1');
+  if(key==='new')return run('document.new.v1',{width:210,height:297,units:'mm',ppi:300});
+  if(key==='open')return $('#openFile').click();if(key==='import-image'){importTarget={target:host.target(),layerId:s.docs[0]?.selection};return $('#importImageFile').click()}
+  if(key==='save')return run('document.save.v1');if(key==='export')return run('export.png.v1');
+  if(key==='fit')return run('view.fit.content.v1');if(key==='100')return run('view.zoom.set.v1',{scale:1});
+  if(key==='adjustments')return dock.activate('adjustments');
+  if(['canvas-size','image-size','crop'].includes(key))return imageDialog(key);
+  if(key==='transform'){root.querySelector('.context-float').classList.add('expanded');$('#contextToggle').setAttribute('aria-expanded','true');$('#transformControls input:not(:disabled)')?.focus();return}
+  if(key==='duplicate'||key==='delete')return host.dispatch({type:'layer.'+key,object:true,target:host.target(),source:'context'});
+  if(key==='align'){const t=host.target();if(t.refs.length<2){feedback('Select at least two objects');return}return dialog('Align',field('mode','Align','left','text',['left','centerX','right','top','centerY','bottom','distributeX','distributeY']),a=>{host.provider.requireSelection(t);return run('object.align.v1',{...a,targetRefs:t.refs.map(r=>({...r,pageId:t.pageId}))})})}
+  if(key==='history-limit'){const target=host.target(),value=host.provider.native.preferencesSnapshot().historyLimit;return dialog('History limit',field('historyLimit','Retained steps',String(value),'text',['20','30','50']),async a=>{host.provider.requireDocument(target);const limit=Number(a.historyLimit);if(![20,30,50].includes(limit))throw Error('Choose 20, 30 or 50 steps');host.provider.native.applyPreferences({historyLimit:limit});return{ok:true}})}
+  if(key==='about')return dialog('INK','<p>INK</p>',async()=>({ok:true}));
+  if(key.startsWith('panel:'))return dock.activate(key.slice(6));
+ };
+ const menus={file:[['Document tools…','native-tools'],['New','new'],['Open','open'],['Save','save'],['Export PNG','export'],['Import image','import-image']],edit:[['Undo','undo'],['Redo','redo'],['Object transform','transform'],['Duplicate selection','duplicate'],['Delete selection','delete'],['History limit…','history-limit']],image:[['Adjustments','adjustments'],['Resize selected image…','image-size'],['Canvas Size…','canvas-size'],['Crop selected image…','crop']],view:[['Fit content','fit'],['100%','100']],window:['navigator','color','swatches','character','paragraph','brushes','adjustments','layers','history','paths'].map(p=>[p[0].toUpperCase()+p.slice(1),'panel:'+p]),help:[['About','about']]};
+ function renderMenu(){const s=host.getSnapshot(),history=host.getHistory(),available=key=>['new','open','about','native-tools'].includes(key)||key.startsWith('panel:')||!!s.docs.length&&(!['duplicate','delete','transform'].includes(key)||!!s.object&&!s.object.locked)&&(!['image-size','crop'].includes(key)||!!s.object?.raster&&!s.object.locked)&&(key!=='undo'||history.index>0)&&(key!=='redo'||history.index<history.entries.length-1);menu.innerHTML=`<nav class="menu-categories">${Object.keys(menus).map(k=>`<button data-category="${k}" aria-pressed="${k===category}">${k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</nav><div class="menu-commands">${menus[category].map(([label,key])=>`<button data-command="${key}" ${available(key)?'':'disabled'}>${label}</button>`).join('')}</div>`}
+ $('#logoButton').addEventListener('click',()=>{menu.hidden=!menu.hidden;$('#logoButton').setAttribute('aria-expanded',String(!menu.hidden));renderMenu()},{signal});
+ menu.addEventListener('click',e=>{const c=e.target.closest('[data-category]'),b=e.target.closest('[data-command]');if(c){category=c.dataset.category;renderMenu();menu.querySelector(`[data-category="${category}"]`)?.focus()}if(b)Promise.resolve(command(b.dataset.command)).catch(e=>feedback(e.message))},{signal});
+ document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!$('#logoButton').contains(e.target)){menu.hidden=true;$('#logoButton').setAttribute('aria-expanded','false')}},{signal});
+ root.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.tool==='crop'){imageDialog('crop');return}if(b.dataset.tool==='zoom'){const scale=host.getSnapshot().docs[0]?.camera.zoom/100;if(scale)run('view.zoom.set.v1',{scale:Math.min(32,scale*1.25)});return}host.dispatch({type:'tool.set',value:b.dataset.tool==='hand'?'pan':b.dataset.tool,source:'rail'})},{signal}));
+ $('#quickUndo').addEventListener('click',()=>command('undo'),{signal});$('#quickRedo').addEventListener('click',()=>command('redo'),{signal});$('#railToggle').addEventListener('click',()=>root.classList.toggle('rail-double'),{signal});
+ $('#contextToggle').addEventListener('click',()=>{root.querySelector('.context-float').classList.toggle('expanded');$('#contextToggle').setAttribute('aria-expanded',String(root.querySelector('.context-float').classList.contains('expanded')))},{signal});
+ $('#colorState').addEventListener('click',()=>dock.activate('color'),{signal});$('#resetColors').disabled=true;$('#swapColors').disabled=true;
+ $('#openFile').accept='.ink,.json';$('#openFile').addEventListener('change',e=>{const file=e.target.files[0];if(file)run('document.open.v1',{file});e.target.value=''},{signal});
+ $('#importImageFile').addEventListener('change',e=>{const file=e.target.files[0],s=host.getSnapshot();if(file)run('ui017.image.import.v1',{file,...importTarget});e.target.value=''},{signal});
+ root.addEventListener('keydown',e=>{if(e.key==='Escape'&&(!overlay.hidden||!menu.hidden)){e.preventDefault();e.stopPropagation();close();if(!menu.hidden){menu.hidden=true;$('#logoButton').setAttribute('aria-expanded','false');$('#logoButton').focus()}}if(e.target.matches('input,textarea,select'))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.stopPropagation();command(e.shiftKey?'redo':'undo')}},{signal});
+ drag($('#dockResizer'),e=>root.style.setProperty('--dock-width',Math.max(210,Math.min(400,innerWidth-e.clientX))+'px'),()=>{},signal);
+ function render(s){const h=host.getHistory(),o=s.object;$('#quickUndo').disabled=h.index===0;$('#quickRedo').disabled=h.index===h.entries.length-1;
+  root.querySelectorAll('[data-tool]').forEach(b=>{b.classList.toggle('active',(b.dataset.tool==='hand'?'pan':b.dataset.tool)===s.tool);b.setAttribute('aria-pressed',String((b.dataset.tool==='hand'?'pan':b.dataset.tool)===s.tool));if(['marquee','lasso','eyedropper','gradient','guide'].includes(b.dataset.tool))b.disabled=true;else if(b.dataset.tool==='crop')b.disabled=!o?.raster||o.locked;else if(b.dataset.tool==='zoom')b.disabled=!s.docs.length});
+  $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=true;$('#contextIdentity').textContent=o?o.type:({pan:'Hand',select:'Select',pen:'Pen',brush:'Brush',shape:'Shape',text:'Text',eraser:'Eraser'}[s.tool]||s.tool);
+  if(!contextMounted){context.innerHTML=`<div class="context-actions">${[['duplicate','Duplicate'],['delete','Delete'],['align','Align']].map(([k,label])=>iconButton(k==='duplicate'?'duplicate':k==='delete'?'delete':'align',label,`data-context="${k}"`)).join('')}</div><div id="transformControls"></div><label class="field-row"><span>Fill</span><input data-fill type="color" aria-label="Object fill"></label>`;transform.mount($('#transformControls'),host);contextMounted=true;
+   context.addEventListener('click',e=>{const b=e.target.closest('[data-context]');if(b)Promise.resolve(command(b.dataset.context)).catch(e=>feedback(e.message))},{signal});context.querySelector('[data-fill]').addEventListener('change',e=>host.dispatch({type:'fill.set',color:e.target.value,source:'fill'}),{signal});
+  }
+  context.querySelectorAll('[data-context]').forEach(b=>b.disabled=!o||o.locked||(b.dataset.context==='align'&&s.target.refs.length<2));const fill=context.querySelector('[data-fill]');fill.disabled=!o||o.locked||!['path','shape'].includes(o.type);if(/^#[0-9a-f]{6}$/i.test(o?.fill))fill.value=o.fill;
+ }
+ const unsubscribe=host.subscribe(render);render(host.getSnapshot());
+ return{host,dock,command,dispose(){unsubscribe();abort.abort();close();transform.unmount();dock.unmount();host.dispose()}};
+}

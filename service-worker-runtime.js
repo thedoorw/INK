@@ -14,6 +14,26 @@ const RUNTIME_CACHE = `${CACHE_PREFIX}${BUILD_ID}-runtime`;
 // Keep this inventory synchronized with product/source/src; INK-CLOUD-016
 // adds a deterministic source/static harness that fails on drift.
 const SOURCE_SHELL = Object.freeze([
+  './src/ui/ink017/entry.js',
+  './src/ui/ink017/markup.html',
+  './src/ui/ink017/native-host.js',
+  './src/ui/ink017/native-provider.js',
+  './src/ui/ink017/panels/adjustments.js',
+  './src/ui/ink017/panels/brushes.js',
+  './src/ui/ink017/panels/character.js',
+  './src/ui/ink017/panels/color.js',
+  './src/ui/ink017/panels/history.js',
+  './src/ui/ink017/panels/layers.js',
+  './src/ui/ink017/panels/navigator.js',
+  './src/ui/ink017/panels/paragraph.js',
+  './src/ui/ink017/panels/paths.js',
+  './src/ui/ink017/panels/properties.js',
+  './src/ui/ink017/panels/swatches.js',
+  './src/ui/ink017/right-dock.js',
+  './src/ui/ink017/shared-controls.js',
+  './src/ui/ink017/shell.js',
+  './src/ui/ink017/tokens.css',
+
   './src/ai/ai-core.js',
   './src/ai/chat-reference-handoff.js',
   './src/ai/chat-runtime.js',

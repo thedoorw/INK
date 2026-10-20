@@ -5,7 +5,7 @@
 // multiple/explicitly-unsafe clients are never blindly navigated.
 // client.navigate() is deliberately fire-and-forget inside activate: awaiting it
 // can deadlock activation because the navigation is handled by the activated worker.
-const MIGRATION_ID='ink-minimal-shell-migration-v6';
+const MIGRATION_ID='ink-ui017-shell-migration-v7';
 const CACHE_PREFIX='ink-build-';
 const clientStates=new Map();
 function owned(key){return key.startsWith(CACHE_PREFIX)||key.startsWith('ink-v');}

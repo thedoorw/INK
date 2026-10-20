@@ -1,28 +1,29 @@
 <!doctype html>
-<html lang="zh-Hant" data-ink-shell-ready="false">
+<html class="ui017-loading" data-ui="ink017" lang="zh-Hant" data-ink-shell-ready="false">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#f4f4f4">
   <meta name="application-name" content="INK v0.1 · Web">
-  <meta name="description" content="INK minimal Core/ports test shell">
+  <meta name="description" content="INK creative workspace">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'">
   <link rel="manifest" href="manifest.webmanifest?v=0.1">
   <link rel="icon" href="assets/favicon.png?v=20261013-ink64" type="image/png" sizes="64x64">
   <title>INK v0.1 · Web</title>
   <link rel="stylesheet" href="stage-runtime.css">
+  <link rel="stylesheet" href="src/ui/ink017/tokens.css">
 </head>
 <body>
   <div id="inkBootGate" class="ink-boot-gate" role="status" aria-live="polite">INK Core 載入中…</div>
   <div id="app" class="ink-minimal-app" data-document-active="false">
-    <div id="minimalHost" class="ink-minimal-host">
+    <div id="nativeFunctionHost" class="native-function-module" hidden>
       <header class="ink-minimal-controls" data-slot="controls"></header>
       <aside class="ink-minimal-state" data-slot="state"></aside>
       <footer class="ink-minimal-status" data-slot="status"></footer>
     </div>
     <main id="stageWrap" class="stage-wrap">
       <canvas id="stage" tabindex="0" aria-label="INK 畫布"></canvas>
-      <div id="emptyHint" class="empty-hint"><strong>建立或開啟 INK 文件後即可測試 Core</strong></div>
+      <div id="emptyHint" class="empty-hint"><strong>建立或開啟 INK 文件開始創作</strong></div>
       <div id="textEditor" class="text-editor" hidden>
         <textarea id="textInput" rows="2" placeholder="輸入文字"></textarea>
         <div class="text-editor-actions"><button id="textCancel" type="button">取消</button><button id="textCommit" type="button">完成</button></div>
@@ -36,5 +37,6 @@
   <script src="src/ui/branding-settings.js" defer></script>
   <script src="build-identity.js"></script>
   <script type="module" src="src/ink.js"></script>
+  <script type="module" src="src/ui/ink017/entry.js"></script>
 </body>
 </html>
