@@ -4,15 +4,15 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "103e90c13a9deaba445c9653dc86fd27ea42c40c",
-    "product_tree": "021495b071433c6fbee0f79fe9993c4420909580"
+    "exact_sha": "9121885c3416fc74a9178679441722a8cc5c52f8",
+    "product_tree": "37258e3542b234e7597d0578a20da6385e0d529e"
   },
   "package": {
-    "manifest_sha256": "5562c95e46c790cad866bc3ac56076862d09d38099728e1be91c536de8ade9a2"
+    "manifest_sha256": "35aca69068f56c51bf478c8c8e8348a5146c10882bad49a818ab3137a7dca384"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "5f3a8bfcfd1a29c2e9089d7cebbd61d01422e56377655f6c899b511336c1ecd7",
+    "package_digest_sha256": "901397ae46d98c194ab1b8694537cc19710e05831ea6420130fe7bc9922a2fa2",
     "file_count": 307,
     "files": [
       {
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "02d0d6473123aabbbd67886bff46fc168843d3991495416d801324507770c0a1"
+        "sha256": "dd25e4aba8e428e368237f77e2bda24a6a2265be3f3d11ead1d54bb06a078ebb"
       },
       {
         "path": "dist/ink.compat.js",
@@ -1367,23 +1367,23 @@
       },
       {
         "path": "src/ui/ink017/panels/adjustments.js",
-        "bytes": 5734,
-        "sha256": "3a9c98d493ac1a3b3bc49937d1d36c3070a127ce2dd26efefbf8bc9d12d81cb3"
+        "bytes": 5733,
+        "sha256": "9a1be9b38527aae2b62ec8bee1cb93184a37de9c377966bdbeadbd42bfc64ea7"
       },
       {
         "path": "src/ui/ink017/panels/brushes.js",
-        "bytes": 2368,
-        "sha256": "5a487ee8f6aae239a53d26bbea52f1196da1ec018e204687efeb87b401fcac9f"
+        "bytes": 2362,
+        "sha256": "9e7763d3bf332a1f7345edd15537eb77743c44fcbf59150d785c9396752eaa65"
       },
       {
         "path": "src/ui/ink017/panels/character.js",
-        "bytes": 2360,
-        "sha256": "08b2fe9abc9a20a74bd6468ce24e3e8cd268082b44c207e47170cd5200d72898"
+        "bytes": 2415,
+        "sha256": "7ac178528715b4a47f49023591063862257d532d0aa35ca8da8ba5e671ba4969"
       },
       {
         "path": "src/ui/ink017/panels/color.js",
-        "bytes": 4987,
-        "sha256": "6a3b1b1f0a2c510a186093c4c921fe955b7d82342050fc8770c8cf5fac468e82"
+        "bytes": 4984,
+        "sha256": "7ca23477d2f0b67366723fae36afe34130e3b5c4553903279f3e9e3e814f5526"
       },
       {
         "path": "src/ui/ink017/panels/history.js",
@@ -1397,13 +1397,13 @@
       },
       {
         "path": "src/ui/ink017/panels/navigator.js",
-        "bytes": 2069,
-        "sha256": "4dde09a362874c0a1fd9fbda650c2d485f4cd87f0820601915390206629cda0b"
+        "bytes": 2066,
+        "sha256": "8377306b3e57a095ae5cd6cbd7a5405aa753804fb7eb5a5f01536e9b2e68a501"
       },
       {
         "path": "src/ui/ink017/panels/paragraph.js",
-        "bytes": 2060,
-        "sha256": "66c678f560624181decde5a78b2285674ca210ecdd84121a1ea69b18eed26db3"
+        "bytes": 2168,
+        "sha256": "d01c8610099550240d46672ef93b1b90acc5d2c0264dda78a60accee979b1d68"
       },
       {
         "path": "src/ui/ink017/panels/paths.js",
@@ -1422,8 +1422,8 @@
       },
       {
         "path": "src/ui/ink017/right-dock.js",
-        "bytes": 4520,
-        "sha256": "ed52210d1f736ac1289f955f16df42c001fcf2c0b57e23328b5a861aea319906"
+        "bytes": 4523,
+        "sha256": "3063950ebb6cbdb7e80f541e691ff3d167396cbdadda3fa776f0ad1244fc397e"
       },
       {
         "path": "src/ui/ink017/shared-controls.js",
@@ -1554,20 +1554,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/378#issuecomment-6290364877"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/383#issuecomment-6290796658"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "6157a726b1da776f0451de49b2f12c7b6090480c",
+    "exact_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
     "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "b8eb046d7580bc0fe1cf89eede13b2163275e33e",
-    "authority_record_sha256": "89a50905878177e87c6c05684b231368261e38f4151cae2db02e64012866d964",
-    "publisher_sha": "6157a726b1da776f0451de49b2f12c7b6090480c",
-    "package_publisher_sha": "6157a726b1da776f0451de49b2f12c7b6090480c",
+    "previous_target_commit": "2d97538d7dda571cc2cb2aed3dbf0be936cd1944",
+    "authority_record_sha256": "09097a79325063c7fc85f265d7d9956d0b602a557093f68a08e8070883890b05",
+    "publisher_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
+    "package_publisher_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
     "runtime_bytes_unchanged_from_package": true
   }
 }
