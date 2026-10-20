@@ -14,6 +14,17 @@ export function bindUiB002RasterPointerEvents(canvas,raster){
   return()=>{if(!active)return false;active=false;for(const off of bindings.splice(0))off();return true;};
 }
 
+export function createUiB002ColorRuntime(app,{notify=()=>{}}={}){
+  if(!app)throw new TypeError('INK_UI_B_002_COLOR_RUNTIME_REQUIRED');
+  const drawingTool=()=>DRAW_TOOLS.has(app.tool)?app.tool:(app.lastDrawTool||'pen');
+  const announce=notify;
+  const colors=()=>({foreground:app.toolSettings?.[drawingTool()]?.color||'#202020',background:app.backgroundColor||'#ffffff'});
+  const setBackgroundColor=value=>{if(!hex(value))throw new TypeError('INK_UI_B_002_BACKGROUND_COLOR_INVALID');const before=app.backgroundColor;app.backgroundColor=String(value).toLowerCase();announce('background-color');return{changed:before!==app.backgroundColor,background:app.backgroundColor};};
+  const swapColors=()=>{const current=colors(),before=current.foreground;app.setColor?.(current.background,true);app.backgroundColor=before;announce('swap-colors');return colors();};
+  const resetColors=()=>{app.setColor?.('#000000',true);app.backgroundColor='#ffffff';announce('reset-colors');return colors();};
+  return Object.freeze({colors,setBackgroundColor,swapColors,resetColors});
+}
+
 export function createUiB002ToolRuntime(app,{raster,isRasterTool=()=>false,commands=app?.commands,notify=()=>{}}={}){
   if(!app||!raster)throw new TypeError('INK_UI_B_002_TOOL_RUNTIME_REQUIRED');
   const listeners=new Set();
@@ -62,10 +73,7 @@ export function createUiB002ToolRuntime(app,{raster,isRasterTool=()=>false,comma
   };
   const offCommands=commands?.subscribe?.(reconcile)||null;
   const drawingTool=()=>DRAW_TOOLS.has(app.tool)?app.tool:(app.lastDrawTool||'pen');
-  const colors=()=>({foreground:app.toolSettings?.[drawingTool()]?.color||'#202020',background:app.backgroundColor||'#ffffff'});
-  const setBackgroundColor=value=>{if(!hex(value))throw new TypeError('INK_UI_B_002_BACKGROUND_COLOR_INVALID');const before=app.backgroundColor;app.backgroundColor=String(value).toLowerCase();announce('background-color');return{changed:before!==app.backgroundColor,background:app.backgroundColor};};
-  const swapColors=()=>{const current=colors(),before=current.foreground;app.setColor?.(current.background,true);app.backgroundColor=before;announce('swap-colors');return colors();};
-  const resetColors=()=>{app.setColor?.('#000000',true);app.backgroundColor='#ffffff';announce('reset-colors');return colors();};
+  const {colors,setBackgroundColor,swapColors,resetColors}=createUiB002ColorRuntime(app,{notify:announce});
   const setRasterOption=(key,value)=>{raster.setOption?.(key,value);return raster.options?.()||{};};
   const setTextDirection=value=>{if(!TEXT_DIRECTIONS.has(value))throw new TypeError('INK_UI_B_002_TEXT_DIRECTION_INVALID');app.uiBTextMode=value;announce('text-direction');return value;};
   const setPatternImage=(imageData,name='Pattern')=>{raster.setPattern?.(imageData,name);announce('pattern-image');return{loaded:true,name,width:imageData?.width||0,height:imageData?.height||0};};
