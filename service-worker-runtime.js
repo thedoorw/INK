@@ -324,12 +324,15 @@ async function buildConsistentNavigation(request) {
     || Response.error();
 }
 
-async function networkFirstAsset(request) {
+async function networkFirstAsset(request, cacheWrites) {
   try {
     const response = await fetch(freshRequest(request));
     if (response?.ok && response.type !== 'opaque') {
-      const runtime = await caches.open(RUNTIME_CACHE);
-      await runtime.put(request, response.clone());
+      // Retain the write in the fetch-event lifetime without blocking delivery.
+      const copy = response.clone();
+      cacheWrites.push(caches.open(RUNTIME_CACHE)
+        .then(runtime => runtime.put(request, copy))
+        .catch(() => {}));
       return response;
     }
   } catch (_) {}
@@ -350,5 +353,9 @@ self.addEventListener('fetch', event => {
     event.respondWith(buildConsistentNavigation(event.request));
     return;
   }
-  event.respondWith(networkFirstAsset(event.request));
+  const cacheWrites = [];
+  const response = networkFirstAsset(event.request, cacheWrites);
+  // Register synchronously: waitUntil remains valid after the network awaits.
+  event.waitUntil(response.then(() => Promise.all(cacheWrites)).catch(() => {}));
+  event.respondWith(response);
 });
