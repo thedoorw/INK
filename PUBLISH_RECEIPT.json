@@ -1,16 +1,16 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
-  "package_publisher_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
-  "authority_record_sha256": "09097a79325063c7fc85f265d7d9956d0b602a557093f68a08e8070883890b05",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/383#issuecomment-6290796658",
-  "source_sha": "9121885c3416fc74a9178679441722a8cc5c52f8",
-  "source_tree": "37258e3542b234e7597d0578a20da6385e0d529e",
-  "runtime_digest_sha256": "901397ae46d98c194ab1b8694537cc19710e05831ea6420130fe7bc9922a2fa2",
-  "package_manifest_sha256": "35aca69068f56c51bf478c8c8e8348a5146c10882bad49a818ab3137a7dca384",
+  "publisher_sha": "1bd37f97069e4682053047b74f247180b0574e81",
+  "package_publisher_sha": "1bd37f97069e4682053047b74f247180b0574e81",
+  "authority_record_sha256": "7004c8d12d435d2c734b0e9b31a9f7e7495e69455c1820082d654530d87e6f73",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/397#issuecomment-6305704009",
+  "source_sha": "8cff4557842e2674c2a836705a0a91c252fbae49",
+  "source_tree": "f217cd7e559a1cfe69ab0fd5f0da29ca93c745db",
+  "runtime_digest_sha256": "bd2a969ea0311fb64b9561ba94558a71c8c241491eb1475eb61ee1f648526495",
+  "package_manifest_sha256": "047ad3a7f41862983bf5705264a70ebf6c05910251b79b22101601b79b4f3108",
   "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
-  "previous_target_commit": "2d97538d7dda571cc2cb2aed3dbf0be936cd1944",
+  "previous_target_commit": "633f88d5ce1fb52a4323712824884f71200143ba",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,14 +38,14 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "ce41c1f6d9f8a8de2653b9acb97080d1378fb3dd",
-      "sha256": "11a965b55fa6fae33b79a92083becaff3d6b4bc4e333e0c99433c981e3329884",
-      "bytes": 55941
+      "git_blob_sha": "17d364cc059ec721032171ec4723f2694b8504db",
+      "sha256": "3a06a7158084ec4defc01fd553ba530e5a70dcb8eac06236f7f0c21c1cae678e",
+      "bytes": 56132
     },
     {
       "path": "build-identity.js",
-      "git_blob_sha": "d28fb6587d00c4d06f830e02a4c6a0b8afbd70ca",
-      "sha256": "dd25e4aba8e428e368237f77e2bda24a6a2265be3f3d11ead1d54bb06a078ebb",
+      "git_blob_sha": "155f14cd14b49a8b31cb0682166ce235febc6cc6",
+      "sha256": "69a93319e68e076f39243f4e44ec0babaa6cd99443c4116774c71810277637a1",
       "bytes": 193
     },
     {
@@ -92,9 +92,9 @@
     },
     {
       "path": "service-worker-runtime.js",
-      "git_blob_sha": "407d496fd56d76d15465cce640ef57b7d514596a",
-      "sha256": "db32d7b233ab7f23689035771a2cec0342d193e4fc91e47b9eddf056455fd9f5",
-      "bytes": 12727
+      "git_blob_sha": "df3203f5545500785986f8604f4c56f3fb1f5731",
+      "sha256": "7c0ba15a3669b1510bca4ceecce64ba749004580da12aa7c71353b7646a58445",
+      "bytes": 12780
     },
     {
       "path": "service-worker.js",
@@ -1675,10 +1675,16 @@
       "bytes": 7012
     },
     {
+      "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
+      "git_blob_sha": "f6c2da784fd7e7e2d5c35c8539806313a3a99aa1",
+      "sha256": "c0bb7b959147085bc43207555639f42c3aafb69d55a8add30fa0851b1bfd221c",
+      "bytes": 2611
+    },
+    {
       "path": "src/ui/ink017/panels/navigator.js",
-      "git_blob_sha": "44a21ca055972e521b3dcd80ba48fbda47a2711e",
-      "sha256": "8377306b3e57a095ae5cd6cbd7a5405aa753804fb7eb5a5f01536e9b2e68a501",
-      "bytes": 2066
+      "git_blob_sha": "87aa49da255e441b48b2a9ca18ae31d5ea24937e",
+      "sha256": "d0f59fab80246da14f3fe6ccd82828afed6c2ab6ec7f0c47612f1c68f947fbc6",
+      "bytes": 4211
     },
     {
       "path": "src/ui/ink017/panels/paragraph.js",
@@ -1700,9 +1706,9 @@
     },
     {
       "path": "src/ui/ink017/panels/swatches.js",
-      "git_blob_sha": "12885021cf3b75eed241ca3a41b6a741bb79f9c5",
-      "sha256": "419eeddbbb63f98c1254758e13ecfa8d92e2a6df1612c12d12b786d0948c9779",
-      "bytes": 960
+      "git_blob_sha": "cbbc9a4deb8873d1140fdb4f4246c9b339e2477b",
+      "sha256": "4a9be9175bbc5acddad70462e8ba9c571adf11621ac8c482bc7a33c0e8e930ee",
+      "bytes": 1540
     },
     {
       "path": "src/ui/ink017/right-dock.js",
@@ -1712,9 +1718,9 @@
     },
     {
       "path": "src/ui/ink017/shared-controls.js",
-      "git_blob_sha": "d9440cd519c2e82b31df5d54f783d7b1de7c9ec4",
-      "sha256": "9fcfba17825f5fc2c81bd67bb96e076369e07a61dd9f29b44da50a1eca1eaa17",
-      "bytes": 6557
+      "git_blob_sha": "77a529560ebb485bd0666b297400a593b45bee95",
+      "sha256": "5ab40b5a13aaee98956e0e143c8396253ad884855316feb7e9daebefaa3af654",
+      "bytes": 6588
     },
     {
       "path": "src/ui/ink017/shell.js",
@@ -1724,9 +1730,9 @@
     },
     {
       "path": "src/ui/ink017/tokens.css",
-      "git_blob_sha": "952ef4f2a36426ed019d09f6dcf471bfb1491b6a",
-      "sha256": "6ff51fc335e094b298d5519ed15f93c871fe04aee6b4c183a99c243d32784e14",
-      "bytes": 27827
+      "git_blob_sha": "08c00836a85045ad74b8014d7c8802b5f45e73e5",
+      "sha256": "169e5864cae4d95ce64b216eafe16811d6ca59b08dfa9d3c9974275d8d24364f",
+      "bytes": 28847
     },
     {
       "path": "src/ui/minimal-composition.js",

@@ -4,16 +4,16 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "9121885c3416fc74a9178679441722a8cc5c52f8",
-    "product_tree": "37258e3542b234e7597d0578a20da6385e0d529e"
+    "exact_sha": "8cff4557842e2674c2a836705a0a91c252fbae49",
+    "product_tree": "f217cd7e559a1cfe69ab0fd5f0da29ca93c745db"
   },
   "package": {
-    "manifest_sha256": "35aca69068f56c51bf478c8c8e8348a5146c10882bad49a818ab3137a7dca384"
+    "manifest_sha256": "047ad3a7f41862983bf5705264a70ebf6c05910251b79b22101601b79b4f3108"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "901397ae46d98c194ab1b8694537cc19710e05831ea6420130fe7bc9922a2fa2",
-    "file_count": 307,
+    "package_digest_sha256": "bd2a969ea0311fb64b9561ba94558a71c8c241491eb1475eb61ee1f648526495",
+    "file_count": 308,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "dd25e4aba8e428e368237f77e2bda24a6a2265be3f3d11ead1d54bb06a078ebb"
+        "sha256": "69a93319e68e076f39243f4e44ec0babaa6cd99443c4116774c71810277637a1"
       },
       {
         "path": "dist/ink.compat.js",
@@ -77,8 +77,8 @@
       },
       {
         "path": "service-worker-runtime.js",
-        "bytes": 12727,
-        "sha256": "db32d7b233ab7f23689035771a2cec0342d193e4fc91e47b9eddf056455fd9f5"
+        "bytes": 12780,
+        "sha256": "7c0ba15a3669b1510bca4ceecce64ba749004580da12aa7c71353b7646a58445"
       },
       {
         "path": "service-worker.js",
@@ -1396,9 +1396,14 @@
         "sha256": "ad7d9f437443f0a3f8ce2dd2017095ac8251584330bb6e53b08270aafd3c567e"
       },
       {
+        "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
+        "bytes": 2611,
+        "sha256": "c0bb7b959147085bc43207555639f42c3aafb69d55a8add30fa0851b1bfd221c"
+      },
+      {
         "path": "src/ui/ink017/panels/navigator.js",
-        "bytes": 2066,
-        "sha256": "8377306b3e57a095ae5cd6cbd7a5405aa753804fb7eb5a5f01536e9b2e68a501"
+        "bytes": 4211,
+        "sha256": "d0f59fab80246da14f3fe6ccd82828afed6c2ab6ec7f0c47612f1c68f947fbc6"
       },
       {
         "path": "src/ui/ink017/panels/paragraph.js",
@@ -1417,8 +1422,8 @@
       },
       {
         "path": "src/ui/ink017/panels/swatches.js",
-        "bytes": 960,
-        "sha256": "419eeddbbb63f98c1254758e13ecfa8d92e2a6df1612c12d12b786d0948c9779"
+        "bytes": 1540,
+        "sha256": "4a9be9175bbc5acddad70462e8ba9c571adf11621ac8c482bc7a33c0e8e930ee"
       },
       {
         "path": "src/ui/ink017/right-dock.js",
@@ -1427,8 +1432,8 @@
       },
       {
         "path": "src/ui/ink017/shared-controls.js",
-        "bytes": 6557,
-        "sha256": "9fcfba17825f5fc2c81bd67bb96e076369e07a61dd9f29b44da50a1eca1eaa17"
+        "bytes": 6588,
+        "sha256": "5ab40b5a13aaee98956e0e143c8396253ad884855316feb7e9daebefaa3af654"
       },
       {
         "path": "src/ui/ink017/shell.js",
@@ -1437,8 +1442,8 @@
       },
       {
         "path": "src/ui/ink017/tokens.css",
-        "bytes": 27827,
-        "sha256": "6ff51fc335e094b298d5519ed15f93c871fe04aee6b4c183a99c243d32784e14"
+        "bytes": 28847,
+        "sha256": "169e5864cae4d95ce64b216eafe16811d6ca59b08dfa9d3c9974275d8d24364f"
       },
       {
         "path": "src/ui/minimal-composition.js",
@@ -1554,20 +1559,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/383#issuecomment-6290796658"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/397#issuecomment-6305704009"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
+    "exact_sha": "1bd37f97069e4682053047b74f247180b0574e81",
     "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "2d97538d7dda571cc2cb2aed3dbf0be936cd1944",
-    "authority_record_sha256": "09097a79325063c7fc85f265d7d9956d0b602a557093f68a08e8070883890b05",
-    "publisher_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
-    "package_publisher_sha": "ccdd70933eaaf844d8921d4c3891098e8b197c44",
+    "previous_target_commit": "633f88d5ce1fb52a4323712824884f71200143ba",
+    "authority_record_sha256": "7004c8d12d435d2c734b0e9b31a9f7e7495e69455c1820082d654530d87e6f73",
+    "publisher_sha": "1bd37f97069e4682053047b74f247180b0574e81",
+    "package_publisher_sha": "1bd37f97069e4682053047b74f247180b0574e81",
     "runtime_bytes_unchanged_from_package": true
   }
 }
