@@ -254,12 +254,26 @@ const APP_SHELL = Object.freeze([
   ...SOURCE_SHELL
 ]);
 
-self.addEventListener('install', event => {
-  const takeover = self.skipWaiting();
-  const precache = caches.open(SHELL_CACHE).then(cache => cache.addAll(
-    APP_SHELL.map(path => new Request(path, { cache: 'reload' }))
-  ));
-  event.waitUntil(Promise.all([takeover, precache]));
+// Keep the complete offline closure; limit simultaneous requests so SW
+// precache does not compete with the first usable document for hundreds of files.
+const PRECACHE_BATCH_SIZE = 12;
+async function precacheShell(){
+  const cache = await caches.open(SHELL_CACHE);
+  try {
+    for(let i=0;i<APP_SHELL.length;i+=PRECACHE_BATCH_SIZE){
+      const paths=APP_SHELL.slice(i,i+PRECACHE_BATCH_SIZE);
+      await cache.addAll(paths.map(path=>new Request(path,{cache:'reload'})));
+    }
+  } catch(error) {
+    await caches.delete(SHELL_CACHE);
+    throw error;
+  }
+}
+self.addEventListener('install',event=>{
+  event.waitUntil((async()=>{
+    await precacheShell();
+    await self.skipWaiting();
+  })());
 });
 
 function isOwnedInkCache(key) {
