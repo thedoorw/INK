@@ -1,5 +1,6 @@
 import { deepClone } from '../core/index.js';
 import { applyPatches, createPatchPair, patchByteSize, patchObjectIds } from './diff.js';
+import { collectLinkedRepeatDependencies, synchronizeLinkedRepeatDependencies } from './repeat-source-sync.js';
 
 const cloneMaybe = value => value === undefined ? undefined : deepClone(value);
 
@@ -148,17 +149,22 @@ export class HistoryManager {
 
   begin(label = '變更', { targets = null } = {}) {
     if (this.pending) return false;
-    const normalizedTargets = normalizeTargets(targets);
+    const requestedTargets = normalizeTargets(targets);
+    const linkedRepeats = collectLinkedRepeatDependencies(this.app.doc, requestedTargets);
+    // Capture both original source and linked generator in a single Undo/Redo.
+    const normalizedTargets = requestedTargets
+      ? normalizeTargets([...requestedTargets, ...linkedRepeats.map(pair => pair.repeatPath)])
+      : null;
     if (normalizedTargets) {
       const beforeTargets = snapshotTargets(this.app.doc, normalizedTargets);
       const capturedBytes = snapshotByteSize(beforeTargets);
-      this.pending = { label, mode: 'scoped', targets: normalizedTargets, beforeTargets, capturedBytes };
+      this.pending = { label, mode: 'scoped', targets: normalizedTargets, beforeTargets, capturedBytes, linkedRepeats };
       this.metrics.scopedBegins++;
       this.metrics.scopedCapturedBytes += capturedBytes;
     } else {
       const before = deepClone(this.app.doc);
       const capturedBytes = snapshotByteSize(before);
-      this.pending = { label, mode: 'full', before, capturedBytes };
+      this.pending = { label, mode: 'full', before, capturedBytes, linkedRepeats };
       this.metrics.fullBegins++;
       this.metrics.fullCapturedBytes += capturedBytes;
     }
@@ -168,6 +174,7 @@ export class HistoryManager {
   commit() {
     if (!this.pending) return false;
     const pending = this.pending;
+    synchronizeLinkedRepeatDependencies(this.app.doc, pending.linkedRepeats, this.app);
     const pair = pending.mode === 'scoped'
       ? scopedPatchPair(pending.beforeTargets, this.app.doc)
       : createPatchPair(pending.before, this.app.doc);
