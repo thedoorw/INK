@@ -86,7 +86,10 @@ export function createMinimalStateModule(){
     };
     const targetCurrent=dialog=>{
       const session=activeSession(),page=ctx.selectors.get('page.active')||{};
-      return Boolean(session&&session.sessionId===dialog.dataset.sessionId&&session.documentId===dialog.dataset.documentId&&page.id===dialog.dataset.pageId);
+      // Custom New may start from no document; other size operations still bind a real page.
+      const sameSession=(session?.sessionId||'')===dialog.dataset.sessionId
+        &&(session?.documentId||'')===dialog.dataset.documentId;
+      return dialog.dataset.sizeDialog==='new'?sameSession:Boolean(sameSession&&page.id===dialog.dataset.pageId);
     };
     const input=(dialog,name)=>dialog.querySelector('[data-size-field="'+name+'"]');
     const number=(dialog,name)=>Number(input(dialog,name)?.value);
@@ -128,7 +131,7 @@ export function createMinimalStateModule(){
       const historyRows=(history.entries||[]).map((entry,index)=>'<button type="button" class="ink-history-row'+(history.applied===index+1?' active':'')+'" data-history-applied="'+(index+1)+'"><span>'+escapeText(entry.label)+'</span><span>'+(entry.applied?'✓':'↺')+'</span></button>').join('');
       const presetOptions=loadPresets().map((item,index)=>'<option value="'+index+'">'+escapeText(item.name||('Preset '+(index+1)))+'</option>').join('');
       ctx.root.innerHTML=
-        '<section class="ink-state-section"><h2>Document</h2><div class="ink-state-body"><div>'+escapeText(doc.title||'Untitled')+'</div><div class="ink-state-meta">'+escapeText(page.name||'')+' · '+(doc.dirty?'dirty':'clean')+'</div><div class="ink-size-actions"><button data-size-open="canvas">Canvas Size…</button><button data-size-open="ppi">Output PPI…</button><button data-size-open="artwork">Resize Artwork…</button></div></div></section>'+
+        '<section class="ink-state-section"><h2>Document</h2><div class="ink-state-body"><div>'+escapeText(doc.title||'Untitled')+'</div><div class="ink-state-meta">'+escapeText(page.name||'')+' · '+(doc.dirty?'dirty':'clean')+'</div><div class="ink-size-actions"><button type="button" data-size-open="new">New…</button><button data-size-open="canvas">Canvas Size…</button><button data-size-open="ppi">Output PPI…</button><button data-size-open="artwork">Resize Artwork…</button></div></div></section>'+
         '<section class="ink-state-section"><h2>Layers</h2><div class="ink-state-body">'+layerRows+'<button type="button" data-layer-add class="ink-block-action">+ Layer</button></div></section>'+
         '<section class="ink-state-section"><h2>History</h2><div class="ink-state-body">'+historyRows+'</div></section>'+
         (ctx.services.isPreviewVisible()?'<section class="ink-state-section"><h2>Preview</h2><div class="ink-state-body">'+(preview?.dataUrl?'<img class="ink-preview" alt="Current page preview" src="'+preview.dataUrl+'">':'<div class="ink-state-meta">No preview</div>')+'</div></section>':'')+
@@ -140,7 +143,7 @@ export function createMinimalStateModule(){
     };
     let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;const open=dialogOpen();if(open){if(!targetCurrent(open)){open.close();ctx.services.report('Document changed while size dialog was open');render();}return;}render();});};
     render();
-    ctx.listen(ctx.root,'click',event=>{
+    ctx.listen(ctx.root,'click',async event=>{
       const opener=event.target.closest('[data-size-open]');if(opener){const d=ctx.root.querySelector('[data-size-dialog="'+opener.dataset.sizeOpen+'"]');if(d)initializeDialog(d,opener.dataset.sizeOpen);return;}
       const dialog=event.target.closest('dialog[data-size-dialog]');
       if(dialog&&event.target.closest('[data-size-cancel]')){dialog.close();return;}
@@ -148,13 +151,31 @@ export function createMinimalStateModule(){
       if(dialog&&event.target.closest('[data-size-save-preset]')){try{const spec=normalizeNewDocumentSizeRequest({preset:'custom',units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),ppi:ppi(dialog)});const name=window.prompt('Preset name','Custom');if(!name?.trim())return;const presets=loadPresets();presets.push({name:name.trim(),units:spec.sourceUnits,width:spec.width,height:spec.height,ppi:spec.ppi});savePresets(presets);ctx.services.report('Preset saved');dialog.close();render();}catch(error){ctx.services.report(error?.message||String(error));}return;}
       
       if(dialog&&event.target.closest('[data-size-apply]')){
+        if(dialog.dataset.applying==='true')return;
         if(!targetCurrent(dialog)){dialog.close();ctx.services.report('Document changed while size dialog was open');return;}
-        const kind=dialog.dataset.sizeDialog;let result=null;
-        if(kind==='new')result=run(ctx,'document.new.v1',{preset:'custom',units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),ppi:ppi(dialog)});
-        else if(kind==='canvas')result=run(ctx,'page.canvas.resize.v1',{relative:input(dialog,'mode').value==='relative',units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),anchor:selectedAnchor(dialog)});
-        else if(kind==='ppi')result=run(ctx,'page.output-ppi.set.v1',{ppi:ppi(dialog)});
-        else result=run(ctx,'page.artwork.resize.v1',{units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),preserveAspect:Boolean(input(dialog,'lock')?.checked),primary:'width',anchor:selectedAnchor(dialog)});
-        if(result?.then)result.then(value=>{if(value?.ok!==false)dialog.close();});else if(result?.ok!==false)dialog.close();return;
+        const kind=dialog.dataset.sizeDialog,applyButton=dialog.querySelector('[data-size-apply]');
+        let id,args;
+        if(kind==='new'){id='document.new.v1';args={preset:'custom',units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),ppi:ppi(dialog)};}
+        else if(kind==='canvas'){id='page.canvas.resize.v1';args={relative:input(dialog,'mode').value==='relative',units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),anchor:selectedAnchor(dialog)};}
+        else if(kind==='ppi'){id='page.output-ppi.set.v1';args={ppi:ppi(dialog)};}
+        else{id='page.artwork.resize.v1';args={units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),preserveAspect:Boolean(input(dialog,'lock')?.checked),primary:'width',anchor:selectedAnchor(dialog)};}
+        try{
+          const expected=kind==='new'?normalizeNewDocumentSizeRequest(args):null;
+          dialog.dataset.applying='true';if(applyButton)applyButton.disabled=true;
+          const receipt=await run(ctx,id,args);
+          if(receipt?.ok!==true)return; // a null/failed command receipt cannot close the dialog
+          if(kind==='new'){
+            const actual=ctx.selectors.get('page.active')?.artboard,document=ctx.selectors.get('document.current');
+            const wanted=expected.artboard;
+            const matches=actual&&Math.abs(actual.widthMm-wanted.widthMm)<0.001
+              &&Math.abs(actual.heightMm-wanted.heightMm)<0.001
+              &&actual.ppi===wanted.ppi&&actual.unit===wanted.unit&&document?.open===true;
+            if(receipt.changed!==true||!matches){ctx.services.report('New document not confirmed at requested size; check Native state');return;}
+          }
+          dialog.close();
+        }catch(error){ctx.services.report(error?.message||String(error));}
+        finally{delete dialog.dataset.applying;if(applyButton)applyButton.disabled=false;}
+        return;
       }
       const layerId=event.target.closest('[data-layer-id]')?.dataset.layerId;if(layerId){run(ctx,'layer.activate.v1',{layerId});return;}
       const historyButton=event.target.closest('[data-history-applied]');if(historyButton){run(ctx,'history.jump.v1',{applied:Number(historyButton.dataset.historyApplied)});return;}
