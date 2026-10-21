@@ -24,6 +24,7 @@ const SOURCE_SHELL = Object.freeze([
   './src/ui/ink017/panels/color.js',
   './src/ui/ink017/panels/history.js',
   './src/ui/ink017/panels/layers.js',
+  './src/ui/ink017/panels/navigator-zoom-curve.mjs',
   './src/ui/ink017/panels/navigator.js',
   './src/ui/ink017/panels/paragraph.js',
   './src/ui/ink017/panels/paths.js',
