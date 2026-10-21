@@ -14,6 +14,7 @@ export class DocumentSessionRegistry {
     this.app=app;this.makeHistory=makeHistory;this.makeSpatialIndex=makeSpatialIndex;
     this.records=new Map();this.operations=new Map();this.sequence=0;this.activeId=null;
     this.closingId=null;this.closingLeaseId=null;this.recoveryIndex=null;this.recoveryQueue=Promise.resolve();
+    this.recoveryDiscovery=null;this.recoveryIndexRevision=0;
     this.addInitial();
   }
   addInitial(){
@@ -97,6 +98,10 @@ export class DocumentSessionRegistry {
     const previous=this.active();this.capture(previous);
     this.activeId=sessionId;
     this.restore(next);
+    if(this.recoveryIndex){
+      void this.pinActiveRecovery().catch(error=>
+        this.app.health?.recordError?.(error,{source:'session-active-recovery-index'}));
+    }
     return identity(next);
   }
   // Call after native replacement/History rollback, never on an unrelated session.
@@ -104,15 +109,46 @@ export class DocumentSessionRegistry {
   // The index is a separate InkStore record, never a FORMAT4 document/schema change.
   // Workspace tabs stay runtime-only; recovery is explicit and selected by the user.
   async discoverRecovery(){
-    const result=await this.app.store.loadWithRecovery('autosave:session:index:v1',
-      value=>value?.schema==='INK_SESSION_RECOVERY_INDEX_V1'&&Array.isArray(value.slots));
-    const slots=(result.value?.slots||[]).filter(x=>typeof x.key==='string'&&x.key.startsWith('autosave:session:')&&
-      x.key!=='autosave:session:index:v1'&&typeof x.sessionId==='string').slice(-64);
-    const cleanup=Array.isArray(result.value?.cleanup)?result.value.cleanup.filter(key=>typeof key==='string'&&key.startsWith('autosave:session:')&&key.endsWith(':close-escrow')):[];
-    this.recoveryIndex={schema:'INK_SESSION_RECOVERY_INDEX_V1',slots,cleanup};
-    return this.recoverable();
+    // Share an in-flight index read with a concurrent Native Open. Otherwise a
+    // delayed old boot read can overwrite the newly registered active .ink lane.
+    if(this.recoveryDiscovery)return this.recoveryDiscovery;
+    const revision=this.recoveryIndexRevision;
+    const read=(async()=>{
+      const result=await this.app.store.loadWithRecovery('autosave:session:index:v1',
+        value=>value?.schema==='INK_SESSION_RECOVERY_INDEX_V1'&&Array.isArray(value.slots));
+      // An independently committed index write always wins over an older read.
+      if(this.recoveryIndex&&revision!==this.recoveryIndexRevision)return this.recoverable();
+      const slots=(result.value?.slots||[]).filter(x=>typeof x.key==='string'&&x.key.startsWith('autosave:session:')&&
+        x.key!=='autosave:session:index:v1'&&typeof x.sessionId==='string').slice(-64);
+      const cleanup=Array.isArray(result.value?.cleanup)?result.value.cleanup.filter(key=>typeof key==='string'&&key.startsWith('autosave:session:')&&key.endsWith(':close-escrow')):[];
+      const requested=result.verified===true&&result.backend!=='memory'?result.value?.activeKey:null;
+      const activeKey=slots.some(x=>x.key===requested)?requested:null;
+      this.recoveryIndex={schema:'INK_SESSION_RECOVERY_INDEX_V1',slots,cleanup,activeKey};
+      return this.recoverable();
+    })();
+    this.recoveryDiscovery=read;
+    try{return await read;}
+    finally{if(this.recoveryDiscovery===read)this.recoveryDiscovery=null;}
   }
   recoverable(){return (this.recoveryIndex?.slots||[]).map(x=>Object.freeze({...x}));}
+  // A new runtime has new session IDs; point to the already durable file lane,
+  // never to a volatile handle. A recovered fork may use its original lane.
+  async pinActiveRecovery({clearMissing=false}={}){
+    const target=this.current();
+    return this.queueRecoveryUpdate(async()=>{
+      if(!this.recoveryIndex)await this.discoverRecovery();
+      if(!target||this.activeId!==target.sessionId)return false;
+      const entry=this.get(target.sessionId);
+      if(!entry||entry.state!=='OPEN')return false;
+      const candidates=[entry.autosaveKey,entry.recoverySourceKey].filter(Boolean);
+      const key=candidates.find(candidate=>this.recoveryIndex.slots.some(x=>x.key===candidate))||null;
+      // A transient newly activated session must not unpin the last saved file.
+      if(!key&&!clearMissing)return false;
+      if(this.recoveryIndex.activeKey===key)return true;
+      await this.writeRecoveryIndex({...this.recoveryIndex,activeKey:key});
+      return true;
+    });
+  }
   queueRecoveryUpdate(operation){
     const run=()=>operation();
     this.recoveryQueue=this.recoveryQueue.then(run,run);
@@ -128,11 +164,16 @@ export class DocumentSessionRegistry {
       const slots=this.recoveryIndex.slots.filter(x=>x.key!==entry.autosaveKey);
       slots.push({key:entry.autosaveKey,sessionId:entry.sessionId,documentId:entry.documentId,
         title:String(snapshot.title||'未命名作品'),modifiedAt:snapshot.modifiedAt||null});
-      const updated={...this.recoveryIndex,slots:slots.slice(-64)};
-      if(await this.app.store.save('autosave:session:index:v1',updated)!==true)return false;
-      this.recoveryIndex=updated;
+      const updated={...this.recoveryIndex,slots:slots.slice(-64),
+        activeKey:this.activeId===entry.sessionId?entry.autosaveKey:this.recoveryIndex.activeKey};
+      // Commit the native document bytes before advertising the new recovery
+      // pointer. Failed data writes must leave the last durable activeKey live.
       this.assertTarget(admission.target);
-      return this.app.store.save(entry.autosaveKey,snapshot);
+      if(await this.app.store.save(entry.autosaveKey,snapshot)!==true)return false;
+      this.assertTarget(admission.target);
+      if(await this.app.store.save('autosave:session:index:v1',updated)!==true)return false;
+      this.recoveryIndex=updated;this.recoveryIndexRevision++;
+      return true;
     });
   }
   async sweepRecoveryCleanup(){
@@ -156,9 +197,10 @@ export class DocumentSessionRegistry {
       value=>value?.schema==='INK_SESSION_RECOVERY_INDEX_V1'&&Array.isArray(value.slots));
     if(!result.verified||!result.value||result.backend==='memory'||
        JSON.stringify(result.value.slots)!==JSON.stringify(expected.slots)||
-       JSON.stringify(result.value.cleanup||[])!==JSON.stringify(expected.cleanup||[]))
+       JSON.stringify(result.value.cleanup||[])!==JSON.stringify(expected.cleanup||[])||
+       (result.value.activeKey??null)!==(expected.activeKey??null))
       fail('INK_SESSION_RECOVERY_INDEX_NOT_DURABLE');
-    this.recoveryIndex=expected;
+    this.recoveryIndex=expected;this.recoveryIndexRevision++;
     return true;
   }
   async writeRecoveryIndex(updated){
@@ -234,6 +276,23 @@ export class DocumentSessionRegistry {
       return {sourcePreserved,sourceKey,cleanupPending:!cleaned};
     });
   }
+  // Boot admission is captured before asynchronous storage reads. Opening a
+  // different file or starting any edit during recovery must win the race.
+  async restoreActiveOnStartup(admission){
+    if(!this.recoveryIndex)await this.discoverRecovery();
+    const key=this.recoveryIndex.activeKey;
+    if(!key||!this.recoveryIndex.slots.some(row=>row.key===key))return false;
+    const result=await this.app.store.loadWithRecovery(key,value=>inspectDocument(value).passed);
+    if(!result.value||result.verified!==true||result.backend==='memory')return false;
+    if(!this.app.autosaveAdmissionCurrent(admission)||
+       this.activeId!==admission?.target?.sessionId)return false;
+    const doc=sanitizeDocument(result.value);
+    if(!inspectDocument(doc).passed)return false;
+    this.assertIdle();
+    // This is a restored fork, not an invisible overwrite of a user document.
+    this.add(doc,{historyLimit:this.app.history?.limit||30,dirty:true,recoverySourceKey:key});
+    return true;
+  }
   async recover(key,{lease=null}={}){
     this.assertIdle(lease);
     await this.discoverRecovery();
@@ -274,7 +333,12 @@ export class DocumentSessionRegistry {
           closedSessionId:sessionId,originalActiveId:originalActive
         });
         const next=(preferred&&this.records.get(preferred))||this.records.values().next().value;
-        if(next){this.activeId=next.sessionId;this.restore(next);}
+        if(next){
+          this.activeId=next.sessionId;this.restore(next);
+          // The old active lane was retired: pin the surviving visible paper.
+          if(this.recoveryIndex)void this.pinActiveRecovery({clearMissing:true}).catch(error=>
+            this.app.health?.recordError?.(error,{source:'session-close-active-recovery-index'}));
+        }
         else{this.activeId=null;this.app.documentOpen=false;this.app.commands?.notify?.('native-session-empty');}
       }
       this.app.commands?.notify?.('native-session-close');
