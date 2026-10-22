@@ -156,6 +156,14 @@ export class FunctionModuleHost {
     return errors;
   }
 
+  cleanupStagedCandidate(module,state,cleanups,initialized) {
+    return initialized?this.cleanupRecord({module,state,cleanups}):this.cleanupList(cleanups);
+  }
+
+  appendCleanupErrors(error,errors) {
+    if(errors.length)error.details={...(error.details||{}),cleanupErrors:errors.map(item=>item?.message||String(item))};
+  }
+
   clearOwnedState(id) {
     this.active.delete(id);
     for(const [capability,owner] of [...this.capabilities.entries()])if(owner===id)this.capabilities.delete(capability);
@@ -176,9 +184,10 @@ export class FunctionModuleHost {
     if(this.active.has(module.id))throw contractError('DUPLICATE_MODULE',module.id);
     this.validateDependencies(module);this.dependencyGraph(module);
     const staged=this.contextFor(module);
-    let state=null;
+    let state=null,initialized=false;
     try{
       state=module.initialize(staged.context) ?? null;
+      initialized=true;
       this.verifySurface(module,staged.stagedCommands,staged.stagedSelectors);
       this.commands.registerOwned(module.id,{commands:staged.stagedCommands,selectors:staged.stagedSelectors});
       const record={module,state,cleanups:staged.cleanups,optional:Boolean(optional)};
@@ -188,7 +197,7 @@ export class FunctionModuleHost {
       return this.describe(module.id);
     }catch(error){
       this.stats.failedInitializations++;
-      for(const cleanup of [...staged.cleanups].reverse()){try{cleanup();}catch{}}
+      this.appendCleanupErrors(error,this.cleanupStagedCandidate(module,state,staged.cleanups,initialized));
       if(optional)return {id:module.id,available:false,error:{code:error.code||'INITIALIZATION_FAILED',message:error.message}};
       throw error;
     }
@@ -209,26 +218,37 @@ export class FunctionModuleHost {
     this.dependencyGraph(module);
 
     const staged=this.contextFor(module);
-    let state=null;
+    let state=null,initialized=false;
     try{
       state=module.initialize(staged.context) ?? null;
+      initialized=true;
       this.verifySurface(module,staged.stagedCommands,staged.stagedSelectors);
     }catch(error){
       this.stats.failedInitializations++;
-      this.cleanupList(staged.cleanups);
+      this.appendCleanupErrors(error,this.cleanupStagedCandidate(module,state,staged.cleanups,initialized));
       throw error;
     }
+    const stagedRecord={module,state,cleanups:staged.cleanups};
 
-    this.commands.disableOwned(id);
-    if(this.isTransactionActive()||!this.commands.isOwnerIdle(id)){
-      this.commands.enableOwned(id);
-      this.cleanupList(staged.cleanups);
-      throw contractError('PROVIDER_BUSY',id);
+    // Once staging succeeds, even an authority rejection must dispose the candidate.
+    // Restore the incumbent if possible; otherwise close it rather than keep a disabled owner.
+    try{
+      this.commands.disableOwned(id);
+      if(this.isTransactionActive()||!this.commands.isOwnerIdle(id))throw contractError('PROVIDER_BUSY',id);
+    }catch(error){
+      const cleanupErrors=this.cleanupRecord(stagedRecord);
+      try{this.commands.enableOwned(id);}catch(restoreError){
+        cleanupErrors.push(restoreError);
+        cleanupErrors.push(...this.cleanupRecord(current));
+        cleanupErrors.push(...this.failClosed(id));
+      }
+      this.appendCleanupErrors(error,cleanupErrors);
+      throw error;
     }
 
     const teardownErrors=this.cleanupRecord(current);
     if(teardownErrors.length){
-      const stagedErrors=this.cleanupList(staged.cleanups);
+      const stagedErrors=this.cleanupRecord(stagedRecord);
       const closeErrors=this.failClosed(id);
       throw lifecycleError('REPLACEMENT_TEARDOWN_FAILED',id,[...teardownErrors,...stagedErrors,...closeErrors]);
     }
@@ -243,7 +263,7 @@ export class FunctionModuleHost {
       this.stats.replacements++;
       return this.describe(id);
     }catch(error){
-      const stagedErrors=this.cleanupList(staged.cleanups);
+      const stagedErrors=this.cleanupRecord(stagedRecord);
       const closeErrors=this.failClosed(id);
       if(stagedErrors.length||closeErrors.length)error.details={...(error.details||{}),cleanupErrors:[...stagedErrors,...closeErrors].map(item=>item?.message||String(item))};
       throw error;
