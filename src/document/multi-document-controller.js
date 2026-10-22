@@ -65,7 +65,12 @@ export function installMultiDocumentController(app,{createSecondaryView}={}){
     return result;
   };
   app.commands.registerOwned('multi-document-session',{commands:[
-    {id:'session.activate.v1',definition:read((args,envelope,execution)=>({changed:true,result:activate(args.sessionId,execution.sessionOperation)}))},
+    {id:'session.activate.v1',definition:{...read(async(args,envelope,execution)=>{
+      const target=activate(args.sessionId,execution.sessionOperation);
+      if(await registry.ensureActiveRecovery()!==true)
+        err('INK_SESSION_ACTIVATION_NOT_PERSISTED');
+      return{changed:true,result:target};
+    }),async:true}},
     {id:'session.close.v1',definition:{...read(async (args,envelope,execution)=>{const result=await close(args.sessionId,args.decision,execution.sessionOperation);return{changed:result.closed,result};}),async:true}},
     {id:'session.compare.v1',definition:read(args=>({changed:true,result:{enabled:setCompare(args.sessionId||null)}}))},
     {id:'session.copy.v1',definition:read((args,envelope,execution)=>({changed:false,result:copy(args.sessionId,execution.sessionOperation)}))},

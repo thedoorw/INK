@@ -10,6 +10,15 @@ const run=(ctx,id,args={})=>{
     return result;
   }catch(error){ctx.services.report(error?.message||String(error));return null;}
 };
+// Native dialog Cancel/Escape use one dismissal rule. After Create was
+// submitted, persistence is non-cancellable: neither control may imply that
+// the document was discarded while InkStore is still committing its bytes.
+export function dismissSizeDialog(dialog,event=null){
+  if(!dialog)return false;
+  if(dialog.dataset?.applying==='true'){event?.preventDefault?.();return false;}
+  if(event?.type!=='cancel')dialog.close();
+  return true;
+}
 const button=(action,label,pressed=false)=>'<button type="button" data-action="'+action+'"'+(pressed?' aria-pressed="true"':'')+'>'+label+'</button>';
 
 export function createMinimalControlsModule(){
@@ -17,6 +26,10 @@ export function createMinimalControlsModule(){
     const render=()=>{
       const tool=ctx.selectors.get('tool.current'),history=ctx.selectors.get('history.summary')||{},doc=ctx.selectors.get('document.current')||{};
       const sessions=ctx.selectors.get('session.list')||[],comparison=ctx.selectors.get('session.compare')||{},clip=ctx.selectors.get('session.transfer')||{},views=ctx.selectors.get('session.views')||{layout:1};
+       const recovery=ctx.selectors.get('session.recovery.list')||[];
+       const recoveryOptions=recovery.length
+         ?'<option value="">Choose saved document…</option>'+recovery.map(item=>'<option value="'+escapeText(item.key)+'">'+escapeText(item.title||item.documentId||'Untitled')+(item.kind==='legacy'?' (legacy)':'')+'</option>').join('')
+         :'<option value="">No recoverable documents</option>';
       const sessionButtons=sessions.map(item=>'<button type="button" data-action="session-select" data-session-id="'+escapeText(item.sessionId)+'" aria-pressed="'+Boolean(item.active)+'" title="'+escapeText(item.title)+'">'+escapeText(item.title||'Untitled')+(item.dirty?' *':'')+'</button>').join('');
       const compareCandidate=sessions.find(item=>!item.active&&item.sessionId!==comparison.secondary);
       const compareToggle=comparison.secondary?'Compare off':compareCandidate?'Compare '+escapeText(compareCandidate.title||'B'):'Compare (open B)';
@@ -25,6 +38,7 @@ export function createMinimalControlsModule(){
       ctx.root.innerHTML=
         '<div class="ink-control-group ink-branding-launch"><img data-ink-brand-logo class="ink-branding-logo-toolbar" alt="INK LOGO" src="'+escapeText(brandLogo)+'">'+button('branding-open','品牌')+'</div>'+ 
         '<div class="ink-control-group">'+button('new-a4','New A4')+button('open','Open')+button('save','Save')+'</div>'+
+         '<div class="ink-control-group ink-recovery-controls"><label>Recover <select data-recovery-key aria-label="Recover existing document">'+recoveryOptions+'</select></label>'+button('session-restore','Restore')+'</div>'+
         '<div class="ink-control-group ink-session-buttons">'+sessionButtons+button('session-close','Close')+(views.enabled?'':button('session-compare',compareToggle))+button('view-1','1 view',views.enabled&&views.layout===1)+button('view-2','2 views',views.enabled&&views.layout===2)+button('view-4','4 views',views.enabled&&views.layout===4)+button('session-copy','Copy selected')+button('session-paste','Paste'+(clip.ready?' ('+clip.count+')':''))+'</div>'+
         '<div class="ink-control-group">'+button('tool-select','Select',tool==='select')+button('tool-pen','Pen',tool==='pen')+button('tool-brush','Brush',tool==='brush')+button('tool-pan','Pan',tool==='pan')+'</div>'+
         '<div class="ink-control-group">'+button('undo','Undo',false)+(button('redo','Redo',false))+button('fit','Fit')+button('zoom100','100%')+'</div>'+
@@ -37,6 +51,11 @@ export function createMinimalControlsModule(){
       const action=event.target.closest('[data-action]')?.dataset.action;if(!action)return;
       if(action==='branding-open'){globalThis.dispatchEvent(new Event('ink:branding-open'));return;}
       if(action==='session-select'){run(ctx,'session.activate.v1',{sessionId:event.target.closest('[data-session-id]')?.dataset.sessionId});return;}
+       if(action==='session-restore'){
+         const key=ctx.root.querySelector('[data-recovery-key]')?.value;
+         if(!key){ctx.services.report('Choose a recoverable document first');return;}
+         run(ctx,'session.recovery.restore.v1',{key});return;
+       }
       if(/^view-[124]$/.test(action)){run(ctx,'session.view.layout.v1',{layout:Number(action.slice(5))});return;}
       if(action==='session-copy'){run(ctx,'session.copy.v1');return;}
       if(action==='session-paste'){run(ctx,'session.paste.v1');return;}
@@ -131,7 +150,7 @@ export function createMinimalStateModule(){
       const historyRows=(history.entries||[]).map((entry,index)=>'<button type="button" class="ink-history-row'+(history.applied===index+1?' active':'')+'" data-history-applied="'+(index+1)+'"><span>'+escapeText(entry.label)+'</span><span>'+(entry.applied?'✓':'↺')+'</span></button>').join('');
       const presetOptions=loadPresets().map((item,index)=>'<option value="'+index+'">'+escapeText(item.name||('Preset '+(index+1)))+'</option>').join('');
       ctx.root.innerHTML=
-        '<section class="ink-state-section"><h2>Document</h2><div class="ink-state-body"><div>'+escapeText(doc.title||'Untitled')+'</div><div class="ink-state-meta">'+escapeText(page.name||'')+' · '+(doc.dirty?'dirty':'clean')+'</div><div class="ink-size-actions"><button type="button" data-size-open="new">New…</button><button data-size-open="canvas">Canvas Size…</button><button data-size-open="ppi">Output PPI…</button><button data-size-open="artwork">Resize Artwork…</button></div></div></section>'+
+        '<section class="ink-state-section"><h2>Document</h2><div class="ink-state-body"><div>'+escapeText(doc.open?(doc.title||'Untitled'):'No document')+'</div><div class="ink-state-meta">'+(doc.open?escapeText(page.name||'')+' · '+(doc.dirty?'dirty':'clean'):'New, Open or Recover a saved document')+'</div><div class="ink-size-actions"><button type="button" data-size-open="new">New…</button><button data-size-open="canvas"'+(doc.open?'':' disabled')+'>Canvas Size…</button><button data-size-open="ppi"'+(doc.open?'':' disabled')+'>Output PPI…</button><button data-size-open="artwork"'+(doc.open?'':' disabled')+'>Resize Artwork…</button></div></div></section>'+
         '<section class="ink-state-section"><h2>Layers</h2><div class="ink-state-body">'+layerRows+'<button type="button" data-layer-add class="ink-block-action">+ Layer</button></div></section>'+
         '<section class="ink-state-section"><h2>History</h2><div class="ink-state-body">'+historyRows+'</div></section>'+
         (ctx.services.isPreviewVisible()?'<section class="ink-state-section"><h2>Preview</h2><div class="ink-state-body">'+(preview?.dataUrl?'<img class="ink-preview" alt="Current page preview" src="'+preview.dataUrl+'">':'<div class="ink-state-meta">No preview</div>')+'</div></section>':'')+
@@ -141,12 +160,12 @@ export function createMinimalStateModule(){
         '<dialog class="ink-size-dialog" data-size-dialog="artwork" aria-labelledby="ink-artwork-title"><header class="dialog-header"><h2 id="ink-artwork-title">Resize Whole Artwork</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Resize Whole Artwork">×</button></header><div class="dialog-body"><div class="ink-size-grid"><label>Units<select data-size-field="units"><option>px</option><option>mm</option><option>cm</option><option>in</option></select></label><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label></div><label><input data-size-field="lock" type="checkbox" checked> Lock proportions</label><fieldset class="ink-anchor-grid"><legend>Anchor</legend>'+anchorOptions()+'</fieldset><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>';
       const appRoot=document.getElementById('app');if(appRoot)appRoot.dataset.documentActive=String(Boolean(doc.open));
     };
-    let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;const open=dialogOpen();if(open){if(!targetCurrent(open)){open.close();ctx.services.report('Document changed while size dialog was open');render();}return;}render();});};
+    let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;const open=dialogOpen();if(open){if(open.dataset.sizeDialog==='new'&&open.dataset.applying==='true')return;if(!targetCurrent(open)){open.close();ctx.services.report('Document changed while size dialog was open');render();}return;}render();});};
     render();
     ctx.listen(ctx.root,'click',async event=>{
       const opener=event.target.closest('[data-size-open]');if(opener){const d=ctx.root.querySelector('[data-size-dialog="'+opener.dataset.sizeOpen+'"]');if(d)initializeDialog(d,opener.dataset.sizeOpen);return;}
       const dialog=event.target.closest('dialog[data-size-dialog]');
-      if(dialog&&event.target.closest('[data-size-cancel]')){dialog.close();return;}
+      if(dialog&&event.target.closest('[data-size-cancel]')){if(!dismissSizeDialog(dialog,event))ctx.services.report('Document creation is being saved; Cancel is unavailable until it completes');return;}
       if(dialog&&event.target.closest('[data-size-swap]')){const w=input(dialog,'width').value;input(dialog,'width').value=input(dialog,'height').value;input(dialog,'height').value=w;syncRatio(dialog);updateNewPreview(dialog);return;}
       if(dialog&&event.target.closest('[data-size-save-preset]')){try{const spec=normalizeNewDocumentSizeRequest({preset:'custom',units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),ppi:ppi(dialog)});const name=window.prompt('Preset name','Custom');if(!name?.trim())return;const presets=loadPresets();presets.push({name:name.trim(),units:spec.sourceUnits,width:spec.width,height:spec.height,ppi:spec.ppi});savePresets(presets);ctx.services.report('Preset saved');dialog.close();render();}catch(error){ctx.services.report(error?.message||String(error));}return;}
       
@@ -174,13 +193,20 @@ export function createMinimalStateModule(){
           }
           dialog.close();
         }catch(error){ctx.services.report(error?.message||String(error));}
-        finally{delete dialog.dataset.applying;if(applyButton)applyButton.disabled=false;}
+        finally{delete dialog.dataset.applying;if(applyButton)applyButton.disabled=false;if(kind==='new'&&dialog.open&&!targetCurrent(dialog))dialog.close();}
         return;
       }
       const layerId=event.target.closest('[data-layer-id]')?.dataset.layerId;if(layerId){run(ctx,'layer.activate.v1',{layerId});return;}
       const historyButton=event.target.closest('[data-history-applied]');if(historyButton){run(ctx,'history.jump.v1',{applied:Number(historyButton.dataset.historyApplied)});return;}
       if(event.target.closest('[data-layer-add]'))run(ctx,'layer.create.v1');
     });
+    // `cancel` is a non-bubbling native dialog event. Capture it from this
+    // stable root (dialogs are recreated during normal selector renders).
+    ctx.listen(ctx.root,'cancel',event=>{
+      const dialog=event.target?.closest?.('dialog[data-size-dialog]');
+      if(dialog&&!dismissSizeDialog(dialog,event))
+        ctx.services.report('Document creation is being saved; Escape is unavailable until it completes');
+    },true);
     ctx.listen(ctx.root,'input',event=>{
       const dialog=event.target.closest('dialog[data-size-dialog]');if(!dialog)return;
       const changed=event.target.dataset.sizeField;
