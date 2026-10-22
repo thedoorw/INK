@@ -1,16 +1,16 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "8f33d49bfbe5419064edc444f79ba45538dde011",
-  "package_publisher_sha": "8f33d49bfbe5419064edc444f79ba45538dde011",
-  "authority_record_sha256": "c11b0582d7328014998ae14913e55a50e2f3ae4d4a470b94945fc88ff6fc3790",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/413#issuecomment-6318432382",
-  "source_sha": "a384382770ce8b99507128e34630f97be0ec8ef0",
-  "source_tree": "7d3751d79a949583d5c3a703a0f79098f9116dd4",
-  "runtime_digest_sha256": "2744abc61012454591e0203644d1d6f339c498ee467b00b9a156ba33a101191a",
-  "package_manifest_sha256": "dd0438e1ccfb4d08e4f3d620bf5806029e419d7a5a6d5c7993414feba2253464",
+  "publisher_sha": "5698f2e7142b5336fe299a2a70deb6c364ee5c5d",
+  "package_publisher_sha": "5698f2e7142b5336fe299a2a70deb6c364ee5c5d",
+  "authority_record_sha256": "044672714b0d7aac9267c155b47dd6dcb93c419c7c857ae1378516ac615ea044",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/414#issuecomment-6331952361",
+  "source_sha": "f96a94a33d8d224639a93d1031725941694e716f",
+  "source_tree": "0ba16c9521bfde5683c7c74cfe5bf926f1416183",
+  "runtime_digest_sha256": "ac1ec873b2ca1d67b2442ba63b1591d4bbbd1fb2e9f0278e0e38c069c80e7ed5",
+  "package_manifest_sha256": "9d5396399b95812dec791b685972944c80dfdb1e5d2a3d9eaa896a8b0b8bfa17",
   "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
-  "previous_target_commit": "79807bf99f72e27be5f00b99f5adc1e563a0fe8e",
+  "previous_target_commit": "85e62e12c9f2212dcb5de054c119da2058b43cec",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,14 +38,14 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "e54a2430a6686a41a7ca014871446e19a978a064",
-      "sha256": "212d28634ae28f052d557f98f64a18f8775ea471960575e8d29d979c0dc4b48d",
-      "bytes": 56312
+      "git_blob_sha": "e8e1b49ca319588d0f6aa1a6c184f0a26af697f8",
+      "sha256": "73319e74d9c828c15c7f7c2194aa8f13c3d885e0cd482f137c5ff04dd68970ed",
+      "bytes": 56479
     },
     {
       "path": "build-identity.js",
-      "git_blob_sha": "feab843ad3da789d14edf885185a96b812d67c71",
-      "sha256": "72ca0ba9d00ecbe5b9868f5b8e6865333f797aeb873ac480463127705cbd882b",
+      "git_blob_sha": "4482816a2bdc4f7d16b4c893505a534de79b3151",
+      "sha256": "bed9482dbdb59089f872ec02c02110f78d7587af1ca1080aee364ab11cf8e720",
       "bytes": 193
     },
     {
@@ -548,9 +548,9 @@
     },
     {
       "path": "src/editor/function-modules/module-host.js",
-      "git_blob_sha": "cc05671b26fa09a4728511188b078670f5394edf",
-      "sha256": "2aecbf94b78698ff479b1f869083fdcbffd51b4a9e6652b814fd3d5e08ec6ccf",
-      "bytes": 13632
+      "git_blob_sha": "257d99f8f8d571141cf1073e93155195de606e47",
+      "sha256": "f3638169ac082beca5ab1b624c35d61d371e3245a8328be826db9032f31b3c93",
+      "bytes": 14682
     },
     {
       "path": "src/editor/function-modules/native-service-ports.js",
@@ -1616,9 +1616,9 @@
     },
     {
       "path": "src/ui/branding-settings.js",
-      "git_blob_sha": "92e4a399c1158ed0987d77d11d09c3b8e13d2f33",
-      "sha256": "f8711ddf9c789e1682f9819e43c7adb9dfca79152f6b04041f88485062ddb83e",
-      "bytes": 5530
+      "git_blob_sha": "ceb0f7e0578eb260481d9a3ae8b71e24eb785c4b",
+      "sha256": "f8676117fba939b546c2327dc375358d88e34cb30f379fac144f3c740ade50c2",
+      "bytes": 7188
     },
     {
       "path": "src/ui/ink017/entry.js",
@@ -1631,6 +1631,12 @@
       "git_blob_sha": "46cd9ef814fd32889501f785833c37c5f8d38a6c",
       "sha256": "01fc3ea4396a3df4df1a7291f33fcd48300672aecd8cba35f1948ec39876fec9",
       "bytes": 4834
+    },
+    {
+      "path": "src/ui/ink017/menu-ui.js",
+      "git_blob_sha": "ecc4e930690686db3d5879e664cb0a5595533378",
+      "sha256": "e468a13ca7b63d4f6204b7e471dbc86040e140acfdc6d45a0ecb9b2c8994ccc3",
+      "bytes": 7978
     },
     {
       "path": "src/ui/ink017/native-host.js",
@@ -1718,9 +1724,9 @@
     },
     {
       "path": "src/ui/ink017/right-dock.js",
-      "git_blob_sha": "46bca999f381f85bbd4d79a3acacdb1c5b7f5f47",
-      "sha256": "3063950ebb6cbdb7e80f541e691ff3d167396cbdadda3fa776f0ad1244fc397e",
-      "bytes": 4523
+      "git_blob_sha": "38095fc00185a5b9999b3932845e7fac6ea22a7c",
+      "sha256": "ade816e675b5dd08692624090a583b50222c9227d3ff6344295e86e358a47f62",
+      "bytes": 4533
     },
     {
       "path": "src/ui/ink017/shared-controls.js",
@@ -1730,15 +1736,15 @@
     },
     {
       "path": "src/ui/ink017/shell.js",
-      "git_blob_sha": "acb0d71a16c392ba778119b354d63a2b3a059c17",
-      "sha256": "cb9cdc8b0b7981ad695f94bab7e36f295df392878878261d78b853a7fffebc9d",
-      "bytes": 12786
+      "git_blob_sha": "313b90eb10b96f0a30f8821613ceec045dfd362b",
+      "sha256": "f0ed6b19f86c9340dda89f4ded719e823cbd88d629d1392558a9b4bcd9bc4344",
+      "bytes": 14554
     },
     {
       "path": "src/ui/ink017/tokens.css",
-      "git_blob_sha": "08c00836a85045ad74b8014d7c8802b5f45e73e5",
-      "sha256": "169e5864cae4d95ce64b216eafe16811d6ca59b08dfa9d3c9974275d8d24364f",
-      "bytes": 28847
+      "git_blob_sha": "98b8ba978ffde650a974c47f354be03bf49d74a7",
+      "sha256": "fd28f51f60167e1ddbbb7df67f37b01d01e98e6d99ad263780d923741c60e08e",
+      "bytes": 32841
     },
     {
       "path": "src/ui/minimal-composition.js",
@@ -1754,9 +1760,9 @@
     },
     {
       "path": "src/ui/minimal-test-shell/modules.js",
-      "git_blob_sha": "5770f5883969e75c289d916fd2d3808f39f73415",
-      "sha256": "3f1d693abc946a41703cca033014dab2a4bed31191df19709853ae3e63ecf2e8",
-      "bytes": 26810
+      "git_blob_sha": "c8ab3b52c2598a5daf4f0e21ae773f92a22b8681",
+      "sha256": "a7652467abdfe7168f87996ceea711cfc641bc55b2226b3acbbf0924ce2928f6",
+      "bytes": 28124
     },
     {
       "path": "src/ui/modular-ui/module-host.js",
@@ -1862,9 +1868,9 @@
     },
     {
       "path": "stage-runtime.css",
-      "git_blob_sha": "2ce1cd216720263cf8ad84c2be469a0f494e4edd",
-      "sha256": "07f68ed4a688929444b290dcb6a901b684f6979148b2f675dfc7a5bd2dfc1645",
-      "bytes": 13924
+      "git_blob_sha": "8967b1dfb157c51e3d26fb6225ca8ff810e2ac98",
+      "sha256": "de7104931178cd34f3f2fd88e30d8b668e17a0ae516189f912d8222d489265f9",
+      "bytes": 15994
     },
     {
       "path": "ui/capability-raster-tools.js",

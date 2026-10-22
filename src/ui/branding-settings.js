@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const KEY = 'ink.web.branding.active.v1';
-  const DEFAULT = Object.freeze({logo:'assets/ink-mark.svg',favicon:'assets/favicon.png?v=20261013-ink64'});
+  const DEFAULT = Object.freeze({name:'INK',title:'INK',logo:'assets/ink-mark.svg',favicon:'assets/favicon.png?v=20261013-ink64'});
   const LIMIT = {logo:768*1024,favicon:256*1024};
   const MIME = new Set(['image/png','image/jpeg','image/webp','image/gif']);
   const read = () => {
@@ -10,12 +10,16 @@
       const v=JSON.parse(localStorage.getItem(KEY)||'null');
       if(!v||typeof v!=='object') return {...DEFAULT};
       const safe=k=>typeof v[k]==='string' && (/^data:image\/(?:png|jpeg|webp|gif);base64,[a-z0-9+/=]+$/i.test(v[k]) || v[k]===DEFAULT[k]) && v[k].length < 1150000 ? v[k] : DEFAULT[k];
-      return {logo:safe('logo'),favicon:safe('favicon')};
+      const safeLabel=(key,max)=>typeof v[key]==='string'&&v[key].trim()?v[key].trim().slice(0,max):DEFAULT[key];
+      return {name:safeLabel('name',32),title:safeLabel('title',100),logo:safe('logo'),favicon:safe('favicon')};
     } catch {return {...DEFAULT};}
   };
-  let current=read(), previousFocus=null, backdrop=null,logo=null,fav=null,status=null;
+  let current=read(), previousFocus=null, backdrop=null,logo=null,fav=null,status=null,nameInput=null,titleInput=null;
   const apply = value => {
     current={...value};
+    document.title=current.title||'INK';
+    if(nameInput&&nameInput.value!==current.name)nameInput.value=current.name;
+    if(titleInput&&titleInput.value!==current.title)titleInput.value=current.title;
     const link=document.querySelector('link[rel~="icon"]');
     if(link) {link.href=current.favicon;link.type=current.favicon.startsWith('data:')?current.favicon.slice(5,current.favicon.indexOf(';')):'image/png';}
     if(logo && logo.src!==new URL(current.logo,location.href).href)logo.src=current.logo;
@@ -64,12 +68,30 @@
     if(backdrop)return;
     backdrop=make('div',{class:'ink-branding-backdrop',hidden:''});
     const panel=make('section',{class:'ink-branding-panel',role:'dialog','aria-modal':'true','aria-label':'INK 品牌圖示'});
-    panel.append(make('h2',{},'LOGO 與 Favicon'));
+    panel.append(make('h2',{},'Preferences'));
+    const body=make('div',{class:'ink-branding-pref-body'});
+    const nav=make('nav',{class:'ink-branding-pref-nav','aria-label':'Preferences sections'});
+    nav.append(make('span',{class:'active'},'Branding'));
+    const content=make('div',{class:'ink-branding-pref-content'});
+    content.append(make('h3',{},'Branding'));
+    content.append(make('p',{class:'ink-branding-help'},'Customize the application identity in this browser.'));
+    const fields=make('div',{class:'ink-branding-fields'});
+    const addText=(key,label,max)=>{
+      const l=make('label',{for:'inkBrand'+key},label);
+      const field=make('input',{id:'inkBrand'+key,type:'text',maxlength:String(max)});
+      field.value=current[key];
+      field.addEventListener('change',()=>{const next=field.value.trim().slice(0,max)||DEFAULT[key];if(save({...current,[key]:next}))setStatus(label+' saved');});
+      fields.append(l,field);return field;
+    };
+    nameInput=addText('name','Application Name',32);
+    titleInput=addText('title','Browser Title',100);
+    content.append(fields);
     const preview=make('div',{class:'ink-branding-preview'});
     logo=make('img',{alt:'LOGO 預覽'}); fav=make('img',{alt:'Favicon 預覽'});
-    preview.append(logo,fav);panel.append(preview);
-    makeFile(panel,'inkBrandLogoFile','更換 LOGO','logo');
-    makeFile(panel,'inkBrandFaviconFile','更換 Favicon','favicon');
+    preview.append(logo,fav);content.append(preview);
+    makeFile(content,'inkBrandLogoFile','Choose Logo','logo');
+    makeFile(content,'inkBrandFaviconFile','Choose Favicon','favicon');
+    body.append(nav,content);panel.append(body);
     const actions=make('div',{class:'ink-branding-actions'});
     const reset=make('button',{type:'button'},'恢復產品預設');
     reset.addEventListener('click',()=>{if(save(DEFAULT))setStatus('已恢復產品預設');});
@@ -90,8 +112,9 @@
     });
     apply(current);
   };
-  window.INK_BRANDING=Object.freeze({getLogo:()=>current.logo});
+  window.INK_BRANDING=Object.freeze({getLogo:()=>current.logo,getName:()=>current.name,getTitle:()=>current.title});
   window.addEventListener('ink:branding-open',open);
+  window.addEventListener('ink:ui-shell-mounted',()=>apply(current));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
 })();
