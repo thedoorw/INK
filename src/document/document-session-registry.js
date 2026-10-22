@@ -7,6 +7,26 @@ const fail=(code)=>{throw Object.assign(new Error(code),{code});};
 const transientKeys=['doc','documentOpen','history','dirty','selection','spatialIndex','spatialDirty','spatialPending','persistenceGeneration','mutationEpoch','autosaveBoundaryPromise','layoutViewportPreview','strokeEdit','draft'];
 const studioKeys=['currentFixture','lastExecutionId','lastPaintSession','lastProgramImport','lastProgramReplay','lastDifference','lastReferenceRun','lastReferencePackage','lastDrawingImport','lastDrawingReplay','lastDrawingQuality','lastInteractiveBenchmark','activeStrokeRecorder','lastStylusReport','programStep'];
 const identity=(entry)=>Object.freeze({sessionId:entry.sessionId,documentId:entry.documentId,generation:entry.generation,pageId:entry.doc?.activePageId||null});
+// The marker records this tab's chosen existing InkStore lane, NOT its document bytes.
+// Session storage is per top-level tab and is never used as another recovery store.
+const TAB_SELECTION_KEY='ink:workspace:tab-selected-recovery:v1';
+const TAB_SELECTION_SCHEMA='INK_TAB_RECOVERY_SELECTION_V1';
+
+// Startup orchestration stays on the existing session registry authority.
+// It performs no data writes except the per-tab blank/selection marker.
+export async function restoreWorkspaceStartupDocument(app,{navigationType='navigate',fresh=false}={}){
+  const admission=app.autosaveAdmission();
+  const key=app.sessions.tabStartupSelection({reload:navigationType==='reload',fresh});
+  try{
+    await app.sessions.discoverRecovery();
+    app.commands?.notify?.('session-recovery-discovered');
+    if(!key||!app.autosaveAdmissionCurrent(admission))return false;
+    return app.sessions.restoreActiveOnStartup(admission,key);
+  }catch(error){
+    app.health?.recordError?.(error,{source:'startup-document-recovery'});
+    return false;
+  }
+}
 
 export class DocumentSessionRegistry {
   constructor(app,{makeHistory,makeSpatialIndex}={}){
@@ -14,8 +34,34 @@ export class DocumentSessionRegistry {
     this.app=app;this.makeHistory=makeHistory;this.makeSpatialIndex=makeSpatialIndex;
     this.records=new Map();this.operations=new Map();this.sequence=0;this.activeId=null;
     this.closingId=null;this.closingLeaseId=null;this.recoveryIndex=null;this.recoveryQueue=Promise.resolve();
-    this.recoveryDiscovery=null;this.recoveryIndexRevision=0;
+    this.recoveryDiscovery=null;this.recoveryIndexRevision=0;this.legacyRecovery=null;
+    // Tests supply an isolated tabStorage; production uses this tab's sessionStorage.
+    try{this.tabStorage=app.tabStorage||globalThis.sessionStorage||null;}catch{this.tabStorage=null;}
     this.addInitial();
+  }
+  setTabSelection(key=null){
+    // Fail closed when sessionStorage is disabled: never use another tab's activeKey.
+    try{
+      if(!this.tabStorage)return false;
+      this.tabStorage.setItem(TAB_SELECTION_KEY,JSON.stringify({
+        schema:TAB_SELECTION_SCHEMA,key:typeof key==='string'?key:null
+      }));
+      return true;
+    }catch{return false;}
+  }
+  selectedTabKey(){
+    try{
+      const value=JSON.parse(this.tabStorage?.getItem(TAB_SELECTION_KEY)||'null');
+      if(value?.schema!==TAB_SELECTION_SCHEMA)return null;
+      return typeof value.key==='string'&&value.key.startsWith('autosave:session:')
+        &&value.key!=='autosave:session:index:v1'?value.key:null;
+    }catch{return null;}
+  }
+  tabStartupSelection({reload=false,fresh=false}={}){
+    // Ordinary navigation and ?fresh deliberately start blank, even when the
+    // shared IndexedDB index has an older activeKey from this/another tab.
+    if(!reload||fresh){this.setTabSelection(null);return null;}
+    return this.selectedTabKey();
   }
   addInitial(){
     const entry=this.makeEntry(this.app.doc,true);
@@ -55,7 +101,7 @@ export class DocumentSessionRegistry {
   active(){return this.records.get(this.activeId)||null;}
   current(){const active=this.active();return active?identity(active):null;}
   get(sessionId){return this.records.get(sessionId)||null;}
-  list(){this.capture();return [...this.records.values()].map(x=>Object.freeze({...identity(x),active:x.sessionId===this.activeId,dirty:Boolean(x.values.dirty),title:x.doc.title,state:x.state}));}
+  list(){this.capture();return [...this.records.values()].filter(x=>x.values.documentOpen!==false).map(x=>Object.freeze({...identity(x),active:x.sessionId===this.activeId,dirty:Boolean(x.values.dirty),title:x.doc.title,state:x.state}));}
   assertTarget(target,{active=false}={}){
     const entry=this.get(target?.sessionId);
     if(!entry||entry.state!=='OPEN'||entry.documentId!==target.documentId||entry.generation!==target.generation)fail('INK_SESSION_STALE_TARGET');
@@ -97,6 +143,8 @@ export class DocumentSessionRegistry {
     if(!next||(next.state!=='OPEN'&&!(closing&&next.state==='CLOSING'&&this.closingId===sessionId&&this.closingLeaseId===lease?.id)))fail('INK_SESSION_NOT_FOUND');
     const previous=this.active();this.capture(previous);
     this.activeId=sessionId;
+    // In-flight file switches must not let F5 revive the previously selected file.
+    this.setTabSelection(null);
     this.restore(next);
     if(this.recoveryIndex){
       void this.pinActiveRecovery().catch(error=>
@@ -118,22 +166,30 @@ export class DocumentSessionRegistry {
         value=>value?.schema==='INK_SESSION_RECOVERY_INDEX_V1'&&Array.isArray(value.slots));
       // An independently committed index write always wins over an older read.
       if(this.recoveryIndex&&revision!==this.recoveryIndexRevision)return this.recoverable();
+      // The pre-session autosave is an independent, read-only recovery candidate.
+      // Never delete or migrate its bytes simply because startup is now blank.
+      const legacy=await this.app.store.loadWithRecovery('autosave',value=>inspectDocument(value).passed);
+      this.legacyRecovery=legacy.value&&legacy.verified===true&&legacy.backend!=='memory'
+        ?{key:'autosave',sessionId:'legacy-autosave',documentId:legacy.value.id,
+          title:String(legacy.value.title||'Previous autosave'),modifiedAt:legacy.value.modifiedAt||null,kind:'legacy'}
+        :null;
       const slots=(result.value?.slots||[]).filter(x=>typeof x.key==='string'&&x.key.startsWith('autosave:session:')&&
         x.key!=='autosave:session:index:v1'&&typeof x.sessionId==='string').slice(-64);
       const cleanup=Array.isArray(result.value?.cleanup)?result.value.cleanup.filter(key=>typeof key==='string'&&key.startsWith('autosave:session:')&&key.endsWith(':close-escrow')):[];
       const requested=result.verified===true&&result.backend!=='memory'?result.value?.activeKey:null;
       const activeKey=slots.some(x=>x.key===requested)?requested:null;
       this.recoveryIndex={schema:'INK_SESSION_RECOVERY_INDEX_V1',slots,cleanup,activeKey};
+      this.app.commands?.notify?.('session-recovery-discovered');
       return this.recoverable();
     })();
     this.recoveryDiscovery=read;
     try{return await read;}
     finally{if(this.recoveryDiscovery===read)this.recoveryDiscovery=null;}
   }
-  recoverable(){return (this.recoveryIndex?.slots||[]).map(x=>Object.freeze({...x}));}
+  recoverable(){return [...(this.legacyRecovery?[this.legacyRecovery]:[]),...(this.recoveryIndex?.slots||[])].map(x=>Object.freeze({...x}));}
   // A new runtime has new session IDs; point to the already durable file lane,
   // never to a volatile handle. A recovered fork may use its original lane.
-  async pinActiveRecovery({clearMissing=false}={}){
+  async pinActiveRecovery({clearMissing=true}={}){
     const target=this.current();
     return this.queueRecoveryUpdate(async()=>{
       if(!this.recoveryIndex)await this.discoverRecovery();
@@ -142,7 +198,8 @@ export class DocumentSessionRegistry {
       if(!entry||entry.state!=='OPEN')return false;
       const candidates=[entry.autosaveKey,entry.recoverySourceKey].filter(Boolean);
       const key=candidates.find(candidate=>this.recoveryIndex.slots.some(x=>x.key===candidate))||null;
-      // A transient newly activated session must not unpin the last saved file.
+      // An unsaved selection must never leave another document as the active F5 target.
+      // Its bytes remain independently listed under recovery slots.
       if(!key&&!clearMissing)return false;
       if(this.recoveryIndex.activeKey===key)return true;
       await this.writeRecoveryIndex({...this.recoveryIndex,activeKey:key});
@@ -153,6 +210,16 @@ export class DocumentSessionRegistry {
     const run=()=>operation();
     this.recoveryQueue=this.recoveryQueue.then(run,run);
     return this.recoveryQueue;
+  }
+  async ensureActiveRecovery(){
+    const entry=this.active();
+    if(!entry||entry.state!=='OPEN')return false;
+    this.capture(entry);
+    if(entry.values.documentOpen!==true)return this.pinActiveRecovery({clearMissing:true});
+    // Existing InkStore and recovery index remain the only durability authority.
+    // Switching/new/open does not report completion until the selected file is saved.
+    const admission=this.app.autosaveAdmission();
+    return this.persistAutosave(admission,deepClone(this.app.doc));
   }
   async persistAutosave(admission,snapshot){
     const entry=this.get(admission.target?.sessionId);
@@ -173,6 +240,10 @@ export class DocumentSessionRegistry {
       this.assertTarget(admission.target);
       if(await this.app.store.save('autosave:session:index:v1',updated)!==true)return false;
       this.recoveryIndex=updated;this.recoveryIndexRevision++;
+      // The active lane is eligible for this tab's F5 only after both durable
+      // document bytes and recovery-index transaction completed successfully.
+      if(this.activeId===entry.sessionId&&this.app.doc===entry.doc)
+        this.setTabSelection(entry.autosaveKey);
       return true;
     });
   }
@@ -278,9 +349,11 @@ export class DocumentSessionRegistry {
   }
   // Boot admission is captured before asynchronous storage reads. Opening a
   // different file or starting any edit during recovery must win the race.
-  async restoreActiveOnStartup(admission){
+  async restoreActiveOnStartup(admission,selectedKey=this.selectedTabKey()){
     if(!this.recoveryIndex)await this.discoverRecovery();
-    const key=this.recoveryIndex.activeKey;
+    // Explicit per-tab choice is mandatory. Shared activeKey is discovery
+    // metadata only, not authorization to replace this tab's blank workspace.
+    const key=selectedKey;
     if(!key||!this.recoveryIndex.slots.some(row=>row.key===key))return false;
     const result=await this.app.store.loadWithRecovery(key,value=>inspectDocument(value).passed);
     if(!result.value||result.verified!==true||result.backend==='memory')return false;
@@ -291,18 +364,27 @@ export class DocumentSessionRegistry {
     this.assertIdle();
     // This is a restored fork, not an invisible overwrite of a user document.
     this.add(doc,{historyLimit:this.app.history?.limit||30,dirty:true,recoverySourceKey:key});
+    // An F5-restored fork still uses its original durable lane until its own
+    // first autosave; retain selection across another immediate F5.
+    this.setTabSelection(key);
     return true;
   }
   async recover(key,{lease=null}={}){
     this.assertIdle(lease);
     await this.discoverRecovery();
-    if(!this.recoveryIndex.slots.some(x=>x.key===key))fail('INK_SESSION_RECOVERY_NOT_INDEXED');
+    const legacy=key==='autosave';
+    if(legacy?!this.legacyRecovery:!this.recoveryIndex.slots.some(x=>x.key===key))fail('INK_SESSION_RECOVERY_NOT_INDEXED');
     const result=await this.app.store.loadWithRecovery(key,value=>inspectDocument(value).passed);
     if(!result.value||result.verified!==true)fail('INK_SESSION_RECOVERY_NOT_DURABLE');
     const doc=sanitizeDocument(result.value);
     if(!inspectDocument(doc).passed)fail('INK_SESSION_RECOVERY_INVALID');
     this.assertIdle(lease);
-    return this.add(doc,{lease,historyLimit:this.app.history?.limit||30,dirty:true,recoverySourceKey:key});
+    const target=this.add(doc,{lease,historyLimit:this.app.history?.limit||30,dirty:true,
+      recoverySourceKey:legacy?null:key});
+    // A manual recovery is a fresh active session, not an overwrite of the source.
+    // Preserve the original lane (including legacy autosave) for later recovery.
+    if(await this.ensureActiveRecovery()!==true)fail('INK_SESSION_RECOVERY_NOT_PERSISTED');
+    return target;
   }
   async close(sessionId,{decision=null,lease=null}={}){
     const entry=this.get(sessionId);if(!entry||entry.state!=='OPEN')fail('INK_SESSION_NOT_FOUND');
@@ -325,6 +407,7 @@ export class DocumentSessionRegistry {
       const recoveryReceipt=await this.retireRecovery(entry);
       if(entry.autosaveTimer)clearTimeout(entry.autosaveTimer);
       const wasActive=this.activeId===sessionId;
+      if(wasActive)this.setTabSelection(null);
       entry.generation++;this.records.delete(sessionId);entry.state='CLOSED';
       if(wasActive){
         // The 002 view authority chooses an eligible native editing session,
@@ -338,6 +421,10 @@ export class DocumentSessionRegistry {
           // The old active lane was retired: pin the surviving visible paper.
           if(this.recoveryIndex)void this.pinActiveRecovery({clearMissing:true}).catch(error=>
             this.app.health?.recordError?.(error,{source:'session-close-active-recovery-index'}));
+          // Only an already indexed/durable replacement can be selected now.
+          if(next.values.documentOpen===true&&
+             this.recoveryIndex?.slots?.some(row=>row.key===next.autosaveKey))
+            this.setTabSelection(next.autosaveKey);
         }
         else{this.activeId=null;this.app.documentOpen=false;this.app.commands?.notify?.('native-session-empty');}
       }

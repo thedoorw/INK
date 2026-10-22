@@ -41,7 +41,7 @@ import { decodeFormat as decodeImageFormatCore, documentImageStateToFormatPayloa
 import { installCommandAuthority } from './editor/command-authority.js';
 import { installFunctionModuleComposition, bindTranslationFunctionProvider } from './editor/function-modules/composition.js';
 import { createMinimalComposition } from './ui/minimal-composition.js';
-import { DocumentSessionRegistry } from './document/document-session-registry.js';
+import { DocumentSessionRegistry, restoreWorkspaceStartupDocument } from './document/document-session-registry.js';
 import { installMultiDocumentController } from './document/multi-document-controller.js';
 import { installMultiViewWorkspace } from './document/multi-view-workspace.js';
 
@@ -139,6 +139,13 @@ class Renderer{
   worldScreenScale(page=activePage(this.app.doc)){return Math.max(.0001,page.camera.scale*(this.app.spaceMode()==='layout'?this.layoutViewport(page).scale:1));}
   render(){
     if(!this.ctx||!this.app.doc)return;
+    // No file is open: the dormant model is an internal fallback, not an A4 document.
+    if(!this.app.documentOpen){
+      this.ctx.setTransform(this.dpr,0,0,this.dpr,0,0);
+      this.ctx.globalAlpha=1;this.ctx.globalCompositeOperation='source-over';
+      this.ctx.fillStyle='#dedede';this.ctx.fillRect(0,0,this.width,this.height);
+      this.app.updateStatus();return;
+    }
     const ctx=this.ctx,page=activePage(this.app.doc),fixed=this.app.spaceMode()==='layout';
     ctx.setTransform(this.dpr,0,0,this.dpr,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle=fixed?'#dedede':page.paper.color;ctx.fillRect(0,0,this.width,this.height);
     ctx.save();this.applyCamera(ctx);
@@ -558,22 +565,11 @@ class InkApp{
     },700);
   }
   async restoreStartupDocument(){
-    // Explicit ?fresh must continue to bypass BOTH legacy and session restore.
-    if(new URLSearchParams(location.search).has('fresh'))return false;
-    // A file opened in a nonlegacy Session has its own durable recovery lane.
-    // Try that pinned lane before the old single-document autosave key.
-    // Both paths must refuse stale asynchronous completions after New/Open/edit.
-    const admission=this.autosaveAdmission();
-    try{
-      await this.sessions.discoverRecovery();
-      if(!this.autosaveAdmissionCurrent(admission))return false;
-      if(await this.sessions.restoreActiveOnStartup(admission))return true;
-      if(!this.autosaveAdmissionCurrent(admission))return false;
-      return this.loadAutosave();
-    }catch(error){
-      this.health.recordError(error,{source:'startup-document-recovery'});
-      return false;
-    }
+    const navigation=globalThis.performance?.getEntriesByType?.('navigation')?.[0];
+    return restoreWorkspaceStartupDocument(this,{
+      navigationType:navigation?.type||'navigate',
+      fresh:new URLSearchParams(location.search).has('fresh')
+    });
   }
   async loadAutosave(){if(new URLSearchParams(location.search).has('fresh'))return false;const admission=this.autosaveAdmission();const result=await this.store.loadWithRecovery('autosave',value=>inspectDocument(value).passed);if(!this.autosaveAdmissionCurrent(admission))return false;const saved=result.value;if(saved?.modifiedAt){try{if(!this.autosaveAdmissionCurrent(admission))return false;this.replaceDocument(saved);this.toast(result.recovered?`已從 ${result.source} 備援恢復`:'已恢復上次自動儲存');return true;}catch(e){this.health.recordError(e,{source:'autosave-restore'});console.warn('Autosave restore failed',e);}}return false;}
   captureHealthSnapshot(){const integrity=inspectDocument(this.doc);return this.health.heartbeat({document:{passed:integrity.passed,stats:integrity.stats,fingerprint:integrity.fingerprint},history:this.history.stats(),render:this.renderer.naturalMedia.diagnostics(),liveTiles:this.renderer.liveTileDiagnostics(),artboard:{...this.page().artboard},storage:this.store.diagnostics(),updates:this.updates.diagnostics()});}
@@ -656,7 +652,7 @@ class InkApp{
       }
     }
   }
-  newDocument({artboard=null,execution=null}={}){const document=defaultDocument();for(const page of document.pages){if(artboard)page.artboard=normalizeArtboard({...page.artboard,...artboard});page.artboard.showSafeArea=false;page.artboard.showCenter=false;activateWorkspace(page,'layout');}this.sessions.add(document,{lease:execution?.sessionOperation,historyLimit:this.history.limit});this.fitArtboard({switchSpace:false});this.toast('已建立新作品');return{changed:true,cancelled:false,artboard:deepClone(this.page().artboard)};}
+  async newDocument({artboard=null,execution=null}={}){const document=defaultDocument();for(const page of document.pages){if(artboard)page.artboard=normalizeArtboard({...page.artboard,...artboard});page.artboard.showSafeArea=false;page.artboard.showCenter=false;activateWorkspace(page,'layout');}this.sessions.add(document,{lease:execution?.sessionOperation,historyLimit:this.history.limit});this.fitArtboard({switchSpace:false});if(await this.sessions.ensureActiveRecovery()!==true)throw Object.assign(new Error('New document not durably saved; F5 recovery unavailable'),{code:'INK_NEW_DOCUMENT_NOT_PERSISTED'});this.toast('已建立新作品');return{changed:true,cancelled:false,artboard:deepClone(this.page().artboard)};}
   addPage(){this.history.pushScoped('新增頁面',[['pages'],['activePageId']],()=>{const p=defaultPage(this.doc.pages.length+1);this.doc.pages.push(p);this.doc.activePageId=p.id;});this.selection=[];this.refreshAll();}
   deletePage(id=this.doc.activePageId){if(this.doc.pages.length<=1){this.toast('至少需要保留一個頁面');return;}this.history.pushScoped('刪除頁面',[['pages'],['activePageId']],()=>{const i=this.doc.pages.findIndex(p=>p.id===id);this.doc.pages.splice(i,1);this.doc.activePageId=this.doc.pages[Math.max(0,i-1)].id;});this.selection=[];this.refreshAll();}
   duplicatePage(id=this.doc.activePageId){this.history.pushScoped('複製頁面',[['pages'],['activePageId']],()=>{const i=this.doc.pages.findIndex(p=>p.id===id),copy=deepClone(this.doc.pages[i]);copy.id=uid();copy.name+= ' 副本';copy.layers.forEach(l=>{l.id=uid();l.objects.forEach(o=>this.regenerateIds(o));});copy.activeLayerId=copy.layers[0].id;this.doc.pages.splice(i+1,0,copy);this.doc.activePageId=copy.id;});this.selection=[];this.refreshAll();}
@@ -712,7 +708,7 @@ class InkApp{
   fitArtboard({switchSpace=false}={}){if(switchSpace&&this.spaceMode()!=='layout'){this.switchWorkspace('layout',{fit:false,announce:false});}this.fitBounds(artboardBleedBounds(this.page(),true),56);}
 
   async saveProject(execution=null){execution?.assertDocumentCurrent?.();this.doc.modifiedAt=nowISO();const integrity=inspectDocument(this.doc);if(!integrity.passed){this.toast(`無法儲存：文件完整性錯誤 ${integrity.errors.length} 項`,3000);return false;}const json=JSON.stringify(this.doc,null,2);execution?.assertDocumentCurrent?.();this.download(new Blob([json],{type:'application/json'}),`${fileSafe(this.doc.title)}.ink`);this.dirty=false;this.sessions?.capture?.();this.toast('INK 專案檔已建立');return true;}
-  async openProjectFile(file,execution=null){if(!file)return false;try{const text=await file.text();const doc=sanitizeDocument(JSON.parse(text));const integrity=inspectDocument(doc);if(!integrity.passed)throw new Error(`文件完整性錯誤 ${integrity.errors.length} 項`);execution?.assertDocumentCurrent?.();const target=this.sessions.add(doc,{lease:execution?.sessionOperation,historyLimit:this.history.limit});const snapshot=deepClone(this.doc);const admission=this.autosaveAdmission();const persisted=await this.sessions.persistAutosave(admission,snapshot);if(this.autosaveAdmissionCurrent(admission)){this.commands?.notify?.(persisted===true?'autosave-saved':'autosave-error');this.toast(persisted===true?'專案已開啟':'專案已開啟，但自動儲存未寫入持久儲存',3000);}return Boolean(target);}catch(e){console.error(e);this.toast(`無法開啟：${e.message}`,3000);if(e?.code==='STALE_DOCUMENT')throw e;return false;}}
+  async openProjectFile(file,execution=null){if(!file)return false;try{const text=await file.text();const doc=sanitizeDocument(JSON.parse(text));const integrity=inspectDocument(doc);if(!integrity.passed)throw new Error(`文件完整性錯誤 ${integrity.errors.length} 項`);execution?.assertDocumentCurrent?.();const target=this.sessions.add(doc,{lease:execution?.sessionOperation,historyLimit:this.history.limit});const snapshot=deepClone(this.doc);const admission=this.autosaveAdmission();const persisted=await this.sessions.persistAutosave(admission,snapshot);if(this.autosaveAdmissionCurrent(admission)){this.commands?.notify?.(persisted===true?'autosave-saved':'autosave-error');this.toast(persisted===true?'專案已開啟':'專案已開啟，但未完成持久儲存，F5 無法保證恢復',3000);}return Boolean(target)&&persisted===true;}catch(e){console.error(e);this.toast(`無法開啟：${e.message}`,3000);if(e?.code==='STALE_DOCUMENT')throw e;return false;}}
   imageFormatProbe(input){return probeImageFormat(input)}
   async decodeImageFormat(input,options={}){return decodeImageFormatCore(input,options)}
   async importImageFormat(input,{name='Imported image',matrix=null,...decodeOptions}={}){

@@ -170,7 +170,7 @@ export function createNativeFunctionServicePorts(app){
       summary:()=>historySummary(app)
     }),
     documentIO:Object.freeze({
-      current:()=>({id:app?.doc?.id||null,title:app?.doc?.title||'未命名作品',modifiedAt:app?.doc?.modifiedAt||null,open:Boolean(app?.documentOpen),dirty:Boolean(app?.dirty)}),
+      current:()=>({id:app?.documentOpen?app.doc?.id||null:null,title:app?.documentOpen?app.doc?.title||'未命名作品':null,modifiedAt:app?.documentOpen?app.doc?.modifiedAt||null:null,open:Boolean(app?.documentOpen),dirty:Boolean(app?.documentOpen&&app.dirty)}),
       newDocument:(args,execution)=>uiB002Document.newDocument(args,execution),
       open:async(file,execution)=>{
         execution?.assertDocumentCurrent?.();
