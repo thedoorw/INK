@@ -3,16 +3,32 @@
  * UI interaction only: delegates all pixel algorithms to the promoted image authority.
  */
 import { Matrix as M } from '../src/core/index.js';
+import { createPath, createAnchor } from '../src/vector/vector-core.js';
 import {
   colorRasterToRgba8, createColorRaster, serializeColorRaster, deserializeColorRaster,
   magicWandSelection, quickSelection, polygonalLassoSelection, magneticLassoSelection, objectSelection,
-  refineRasterSelection, sampleRasterColor, gradientFill, paintBucketFill,
+  refineRasterSelection, rasterizePathMask, sampleRasterColor, gradientFill, paintBucketFill,
   cloneStamp, patternStamp, healingBrush, spotHealing, patchRaster,
   dodge, burn, sponge, localBlur, localSharpen, colorReplacementBrush
 } from '../src/image/image-core.js';
 
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 const copyImage=image=>({width:image.width,height:image.height,data:new Uint8ClampedArray(image.data)});
+
+export function createMarqueeSelection(width,height,start,end,ellipse=false){
+  const x=Math.max(0,Math.min(width,start.x,end.x)),y=Math.max(0,Math.min(height,start.y,end.y));
+  const right=Math.min(width,Math.max(0,start.x,end.x)),bottom=Math.min(height,Math.max(0,start.y,end.y));
+  if(right<=x||bottom<=y)return null;
+  if(!ellipse)return polygonalLassoSelection(width,height,[{x,y},{x:right,y},{x:right,y:bottom},{x,y:bottom}]);
+  const cx=(x+right)/2,cy=(y+bottom)/2,rx=(right-x)/2,ry=(bottom-y)/2,k=.5522847498307936;
+  const path=createPath({subpaths:[{closed:true,anchors:[
+    createAnchor(cx+rx,cy,{x:0,y:-ry*k},{x:0,y:ry*k}),
+    createAnchor(cx,cy+ry,{x:rx*k,y:0},{x:-rx*k,y:0}),
+    createAnchor(cx-rx,cy,{x:0,y:ry*k},{x:0,y:-ry*k}),
+    createAnchor(cx,cy-ry,{x:-rx*k,y:0},{x:rx*k,y:0})
+  ]}]});
+  return {...rasterizePathMask(path,width,height),type:'selection',source:'ellipse-marquee',bounds:{x,y,w:right-x,h:bottom-y}};
+}
 
 function alphaCombine(current,next,mode){
   if(!current||mode==='new')return next;
@@ -44,6 +60,7 @@ function colorHex(sample){
 }
 
 export const UI_B_RASTER_TOOL_IDS=Object.freeze(new Set([
+  'rectangleMarquee','ellipseMarquee',
   'polygonalLasso','magneticLasso','quickSelection','magicWand','objectSelection',
   'gradient','paintBucket','eyedropper','colorSampler','measure',
   'cloneStamp','patternStamp','healingBrush','spotHealing','patch',
@@ -51,6 +68,7 @@ export const UI_B_RASTER_TOOL_IDS=Object.freeze(new Set([
 ]));
 
 export function createRasterToolController(app,{onStateChange=()=>{}}={}){
+  let selectionLease=null;
   const state={
     tool:null,
     selection:null,
@@ -70,6 +88,25 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
   };
 
   const notify=()=>onStateChange({...state,options:{...state.options}});
+
+  function selectionTargetValid(target,lease=selectionLease){
+    if(!target?.image||!lease||!app.documentOpen)return false;
+    const items=app.selectedObjects();
+    const current=items[0],matrix=current?.worldMatrix||current?.object?.matrix;
+    if(!matrix||!M.tryInvert(matrix)||!(current.object.w>0&&current.object.h>0))return false;
+    return items.length===1&&items[0].object===lease.object&&items[0].layer===lease.layer&&
+      app.doc===lease.document&&app.page()===lease.page&&
+      target.found.object.rasterState.colorRaster===lease.raster&&
+      !items[0].effectiveLocked&&!items[0].layer.locked&&!items[0].object.locked&&
+      items[0].effectiveVisible!==false&&items[0].interactionExposed!==false&&items[0].layer.visible!==false;
+  }
+  const captureSelectionTarget=target=>({document:app.doc,page:app.page(),object:target.found.object,layer:target.found.layer,raster:target.found.object.rasterState.colorRaster});
+  function selection(){
+    if(state.selection&&!selectionTargetValid(selectedRaster())){state.selection=null;selectionLease=null;}
+    return state.selection;
+  }
+  function clearSelection(){state.selection=null;selectionLease=null;cancelActiveInteraction({restore:true});notify();return true;}
+  function selectionPreview(){const drag=state.drag;return drag?.type==='marquee'&&selectionTargetValid(selectedRaster(),drag.lease)?{...drag,width:drag.target.image.width,height:drag.target.image.height}:null;}
 
   function selectedRaster(){
     const found=app.selectedObjects().find(item=>item.object?.type==='image'&&item.object?.rasterState?.colorRaster);
@@ -111,8 +148,11 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
     return target;
   }
 
-  function setSelection(next){
-    state.selection=alphaCombine(state.selection,next,state.options.selectionMode);
+  function setSelection(next,target=selectedRaster()){
+    const lease=captureSelectionTarget(target);
+    if(!selectionTargetValid(target,lease))throw Error('Selection target is unavailable');
+    state.selection=alphaCombine(selection(),next,state.options.selectionMode);
+    selectionLease=lease;
     notify();
     app.toast('Raster selection 已更新');
   }
@@ -164,6 +204,11 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
         state.sourcePoint={x:point.x,y:point.y};app.toast('來源點已設定');notify();return true;
       }
       if(state.tool==='magicWand'){setSelection(magicWandSelection(target.image,{x:point.x,y:point.y,tolerance:state.options.tolerance,contiguous:state.options.contiguous}));return true;}
+      if(state.tool==='rectangleMarquee'||state.tool==='ellipseMarquee'){
+        const lease=captureSelectionTarget(target);if(!selectionTargetValid(target,lease))throw Error('Select one unlocked visible RGB image');
+        const start={x:clamp(point.local.x/target.found.object.w*target.image.width,0,target.image.width),y:clamp(point.local.y/target.found.object.h*target.image.height,0,target.image.height)};
+        state.drag={type:'marquee',pointerId:event.pointerId,target,lease,start,current:start,ellipse:state.tool==='ellipseMarquee'};notify();return true;
+      }
       if(state.tool==='quickSelection'){setSelection(quickSelection(target.image,{samples:[{x:point.x,y:point.y}],tolerance:state.options.tolerance,edgeThreshold:state.options.edgeThreshold,initialSelection:state.options.selectionMode==='add'?state.selection:null}));return true;}
       if(state.tool==='objectSelection'){setSelection(objectSelection(target.image,{seed:{x:point.x,y:point.y},colorThreshold:state.options.tolerance,edgeThreshold:state.options.edgeThreshold,alphaThreshold:1,minComponentSize:1}));return true;}
       if(state.tool==='polygonalLasso'||state.tool==='magneticLasso'){
@@ -200,6 +245,13 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
   }
 
   function pointerMove(event){
+    if(state.drag?.pointerId===event.pointerId&&state.drag.type==='marquee'){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(!selectionTargetValid(selectedRaster(),state.drag.lease)){cancelActiveInteraction();return true;}
+      const p=pointForEvent(event,state.drag.target),t=state.drag.target;
+      if(p)state.drag.current={x:clamp(p.local.x/t.found.object.w*t.image.width,0,t.image.width),y:clamp(p.local.y/t.found.object.h*t.image.height,0,t.image.height)};
+      return true;
+    }
     if(state.drag?.pointerId===event.pointerId&&state.drag.type==='gradient'){
       const point=pointForEvent(event,state.drag.target);if(point)state.drag.current={x:point.x,y:point.y};return true;
     }
@@ -218,6 +270,16 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
     if(state.drag?.pointerId===event.pointerId){
       event.preventDefault();event.stopImmediatePropagation();
       const drag=state.drag;state.drag=null;
+      if(drag.type==='marquee'){
+        if(!cancelled&&selectionTargetValid(selectedRaster(),drag.lease)){
+          const p=pointForEvent(event,drag.target),t=drag.target;
+          if(p)drag.current={x:clamp(p.local.x/t.found.object.w*t.image.width,0,t.image.width),y:clamp(p.local.y/t.found.object.h*t.image.height,0,t.image.height)};
+          const next=createMarqueeSelection(t.image.width,t.image.height,drag.start,drag.current,drag.ellipse);
+          if(next)setSelection(next,t);else clearSelection();
+        }
+        try{app.el.canvas.releasePointerCapture?.(event.pointerId);}catch{}
+        notify();return true;
+      }
       if(!cancelled){
         const stops=[{offset:0,color:state.options.gradientStart},{offset:1,color:state.options.gradientEnd}];
         const fill=gradientFill(drag.target.image.width,drag.target.image.height,{type:state.options.gradientType,stops,start:drag.start,end:drag.current,center:drag.start,radius:Math.hypot(drag.current.x-drag.start.x,drag.current.y-drag.start.y),opacity:state.options.opacity});
@@ -258,10 +320,10 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
   function clearTool({restore=true}={}){cancelActiveInteraction({restore});state.tool=null;notify();}
   function setOption(key,value){if(Object.prototype.hasOwnProperty.call(state.options,key)){state.options[key]=value;notify();}}
   function setPattern(imageData,name='Pattern'){if(!imageData?.width||!imageData?.height||!imageData?.data)throw new Error('INK_UI_B_PATTERN_INVALID');state.patternImage=copyImage(imageData);state.patternName=name;notify();return true;}
-  function refineSelection(options={}){if(!state.selection)throw new Error('INK_UI_B_SELECTION_REQUIRED');state.selection=refineRasterSelection(state.selection,options);notify();return state.selection;}
-  function selection(){return state.selection;}
+  function refineSelection(options={}){if(!selection())throw new Error('INK_UI_B_SELECTION_REQUIRED');state.selection=refineRasterSelection(state.selection,options);notify();return state.selection;}
   function options(){return{...state.options};}
   function activeTool(){return state.tool;}
 
-  return{state,setTool,clearTool,cancelActiveInteraction,setOption,setPattern,selection,options,activeTool,selectedRaster,pointForEvent,pointerDown,pointerMove,pointerUp,refineSelection};
+  return{state,setTool,clearTool,cancelActiveInteraction,setOption,setPattern,selection,clearSelection,selectionPreview,options,activeTool,selectedRaster,pointForEvent,pointerDown,pointerMove,pointerUp,refineSelection};
 }
+

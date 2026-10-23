@@ -22,6 +22,9 @@ export function createUiB002ToolsAdapter(app,{notify=()=>{},commands=app?.comman
   const loadPatternFile=async file=>runtime.setPatternImage(await imageDataFromPatternFile(file),file?.name||'Pattern');
   const rasterSelection=()=>raster.selection();
   const refineSelection=options=>raster.refineSelection(options||{});
+  const clearRasterSelection=()=>raster.clearSelection();
+  const rasterSelectionPreview=()=>raster.selectionPreview();
   const dispose=()=>{if(disposed)return false;disposed=true;releasePointer();runtime.dispose();return true;};
-  return Object.freeze({...runtime,schema:'INK-UI-B-002-NATIVE-TOOLS',version:2,loadPatternFile,rasterSelection,refineSelection,dispose});
+  return Object.freeze({...runtime,schema:'INK-UI-B-002-NATIVE-TOOLS',version:2,loadPatternFile,rasterSelection,refineSelection,clearRasterSelection,rasterSelectionPreview,dispose});
 }
+

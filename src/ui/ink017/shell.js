@@ -1,11 +1,11 @@
-import transform from './panels/properties.js';
+import {mountToolsWorkbench} from './tool-slices/workbench.js';
 import {mountMenuUi} from './menu-ui.js';
 import {mountDock} from './right-dock.js';
 import {createNativeHost} from './native-host.js';
 import {esc,selected,field,iconButton,drag} from './shared-controls.js';
 export function mountNativeShell(app,root){
  const host=createNativeHost(app),$=s=>root.querySelector(s),dock=mountDock($('#rightDock'),host),abort=new AbortController(),{signal}=abort;
- const menu=$('#mainMenu'),overlay=$('#overlay'),context=$('#contextControls');let contextMounted=false,dialogAbort,importTarget,menuUi=null,dialogReturnFocus=null;
+ const menu=$('#mainMenu'),overlay=$('#overlay');let dialogAbort,importTarget,menuUi=null,dialogReturnFocus=null;
  const feedback=message=>{const toast=$('#ui017Toast');toast.textContent=message;clearTimeout(feedback.timer);feedback.timer=setTimeout(()=>toast.textContent='',4000)};
  const run=async(id,args={})=>{const r=await host.execute(id,args);if(!r.ok)feedback(r.error.message);return r};
  host.subscribeCommands(e=>{if(!e.result.ok)feedback(e.result.error)});
@@ -83,7 +83,7 @@ export function mountNativeShell(app,root){
   if(key==='fit')return run('view.fit.content.v1');if(key==='100')return run('view.zoom.set.v1',{scale:1});
   if(key==='adjustments')return dock.activate('adjustments');
   if(['image-size','crop'].includes(key))return imageDialog(key);
-  if(key==='transform'){root.querySelector('.context-float').classList.add('expanded');$('#contextToggle').setAttribute('aria-expanded','true');$('#transformControls input:not(:disabled)')?.focus();return}
+  if(key==='transform'){host.dispatch({type:'tool.set',value:'select',source:'menu.transform'});contextToolbar.expand(true);return}
   if(key==='duplicate'||key==='delete')return host.dispatch({type:'layer.'+key,object:true,target:host.target(),source:'context'});
   if(key==='align'){const t=host.target();if(t.refs.length<2){feedback('Select at least two objects');return}return dialog('Align',field('mode','Align','left','text',['left','centerX','right','top','centerY','bottom','distributeX','distributeY']),a=>{host.provider.requireSelection(t);return run('object.align.v1',{...a,targetRefs:t.refs.map(r=>({...r,pageId:t.pageId}))})})}
   if(key==='history-limit'){const target=host.target(),value=host.provider.native.preferencesSnapshot().historyLimit;return dialog('History limit',field('historyLimit','Retained steps',String(value),'text',['20','30','50']),async a=>{host.provider.requireDocument(target);const limit=Number(a.historyLimit);if(![20,30,50].includes(limit))throw Error('Choose 20, 30 or 50 steps');host.provider.native.applyPreferences({historyLimit:limit});return{ok:true}})}
@@ -91,22 +91,17 @@ export function mountNativeShell(app,root){
   if(key.startsWith('panel:'))return dock.activate(key.slice(6));
  };
  menuUi=mountMenuUi({menu,logo:$('#logoButton'),host,invoke:command,signal});
- root.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.tool==='crop'){imageDialog('crop');return}if(b.dataset.tool==='zoom'){const scale=host.getSnapshot().docs[0]?.camera.zoom/100;if(scale)run('view.zoom.set.v1',{scale:Math.min(32,scale*1.25)});return}host.dispatch({type:'tool.set',value:b.dataset.tool==='hand'?'pan':b.dataset.tool,source:'rail'})},{signal}));
  $('#quickUndo').addEventListener('click',()=>command('undo'),{signal});$('#quickRedo').addEventListener('click',()=>command('redo'),{signal});$('#railToggle').addEventListener('click',()=>root.classList.toggle('rail-double'),{signal});
- $('#contextToggle').addEventListener('click',()=>{root.querySelector('.context-float').classList.toggle('expanded');$('#contextToggle').setAttribute('aria-expanded',String(root.querySelector('.context-float').classList.contains('expanded')))},{signal});
  $('#colorState').addEventListener('click',()=>dock.activate('color'),{signal});$('#resetColors').addEventListener('click',()=>host.dispatch({type:'paint.reset',source:'rail'}),{signal});$('#swapColors').addEventListener('click',()=>host.dispatch({type:'paint.swap',source:'rail'}),{signal});
  $('#openFile').accept='.ink,.json';$('#openFile').addEventListener('change',e=>{const file=e.target.files[0];if(file)run('document.open.v1',{file});e.target.value=''},{signal});
  $('#importImageFile').addEventListener('change',e=>{const file=e.target.files[0],s=host.getSnapshot();if(file)run('ui017.image.import.v1',{file,...importTarget});e.target.value=''},{signal});
  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&(!overlay.hidden||!menu.hidden)){e.preventDefault();e.stopPropagation();close();if(!menu.hidden)menuUi.close(true)}if(e.target.matches('input,textarea,select'))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.stopPropagation();command(e.shiftKey?'redo':'undo')}},{signal});
  drag($('#dockResizer'),e=>root.style.setProperty('--dock-width',Math.max(210,Math.min(400,innerWidth-e.clientX))+'px'),()=>{},signal);
  function render(s){const h=host.getHistory(),o=s.object;$('#quickUndo').disabled=h.index===0;$('#quickRedo').disabled=h.index===h.entries.length-1;
-  root.querySelectorAll('[data-tool]').forEach(b=>{b.classList.toggle('active',(b.dataset.tool==='hand'?'pan':b.dataset.tool)===s.tool);b.setAttribute('aria-pressed',String((b.dataset.tool==='hand'?'pan':b.dataset.tool)===s.tool));if(['marquee','lasso','eyedropper','gradient','guide'].includes(b.dataset.tool))b.disabled=true;else if(b.dataset.tool==='crop')b.disabled=!o?.raster||o.locked;else if(b.dataset.tool==='zoom')b.disabled=!s.docs.length});
-  $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;$('#contextIdentity').textContent=o?o.type:({pan:'Hand',select:'Select',pen:'Pen',brush:'Brush',shape:'Shape',text:'Text',eraser:'Eraser'}[s.tool]||s.tool);
-  if(!contextMounted){context.innerHTML=`<div class="context-actions">${[['duplicate','Duplicate'],['delete','Delete'],['align','Align']].map(([k,label])=>iconButton(k==='duplicate'?'duplicate':k==='delete'?'delete':'align',label,`data-context="${k}"`)).join('')}</div><div id="transformControls"></div><label class="field-row"><span>Fill</span><input data-fill type="color" aria-label="Object fill"></label>`;transform.mount($('#transformControls'),host);contextMounted=true;
-   context.addEventListener('click',e=>{const b=e.target.closest('[data-context]');if(b)Promise.resolve(command(b.dataset.context)).catch(e=>feedback(e.message))},{signal});context.querySelector('[data-fill]').addEventListener('change',e=>host.dispatch({type:'fill.set',color:e.target.value,source:'fill'}),{signal});
-  }
-  context.querySelectorAll('[data-context]').forEach(b=>b.disabled=!o||o.locked||(b.dataset.context==='align'&&s.target.refs.length<2));const fill=context.querySelector('[data-fill]');fill.disabled=!o||o.locked||!['path','shape'].includes(o.type);if(/^#[0-9a-f]{6}$/i.test(o?.fill))fill.value=o.fill;
+  $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
+  contextToolbar.render(s);
  }
+ const contextToolbar=mountToolsWorkbench(root,host,feedback,signal);
  const syncBrandName=()=>{
   const name=globalThis.INK_BRANDING?.getName?.()||'INK';
   $('#logoButton').title=name;
@@ -116,5 +111,6 @@ export function mountNativeShell(app,root){
  syncBrandName();
  globalThis.dispatchEvent(new Event('ink:ui-shell-mounted'));
  const unsubscribe=host.subscribe(render);render(host.getSnapshot());
- return{host,dock,command,dispose(){sizeRouteCleanup?.();unsubscribe();abort.abort();close();transform.unmount();dock.unmount();host.dispose()}};
+ return{host,dock,command,dispose(){sizeRouteCleanup?.();unsubscribe();abort.abort();close();contextToolbar.dispose();dock.unmount();host.dispose()}};
 }
+

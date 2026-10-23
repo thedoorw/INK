@@ -4,16 +4,16 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "1abad083c0f6b907271af7a6eed1160126fd3838",
-    "product_tree": "3bd0bae23ca67941fcfa1db53981880ff4ad5db7"
+    "exact_sha": "a43d3b2bdf093a8414f03905489f746cd2835605",
+    "product_tree": "701a83cb374ecd7159b0de471636be7732813429"
   },
   "package": {
-    "manifest_sha256": "29389f7bae8fbc27141761423f23a7cda864c31c893a2c52e184b2e23ce9801a"
+    "manifest_sha256": "d8809797db029d344fcfe7c28076b3494d1e050488fbf169062c716cee56498a"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "86fa5f679bcbf9868bf169241f96cf9619ff1974ee414e5a11a458f9fdc3cc14",
-    "file_count": 310,
+    "package_digest_sha256": "fc04db500c3ede82d41f289144f552b397a54e74cf998e4bdd66e2bf92e6b5db",
+    "file_count": 321,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "c853f2e87cf5d3845a18ecf69471193970ea81d8dcdb4bf65b6824c3f57b0203"
+        "sha256": "120d7f7f4b6bf95dbad745a5fd0c18d57704190d5e0e7fac6bcdc19f443b93db"
       },
       {
         "path": "dist/ink.compat.js",
@@ -492,13 +492,23 @@
       },
       {
         "path": "src/editor/function-modules/ui-b-002-tools-adapter.js",
-        "bytes": 2014,
-        "sha256": "f18f3c960f217faea5d02149daa424a19695ec54acc596efb31dd71e27cd4e66"
+        "bytes": 2179,
+        "sha256": "900a2b8fc5273dec912119bc5ea08bce694e885dc8544acfdc58e000076deefe"
       },
       {
         "path": "src/editor/function-modules/ui-b-002-tools-runtime.js",
         "bytes": 6067,
         "sha256": "af2e38971060405ce2444ad49bcd3a124f31360927540e9e2620da196dc40ebe"
+      },
+      {
+        "path": "src/editor/function-modules/ui-entry-completion-003-adapter.js",
+        "bytes": 1326,
+        "sha256": "8efbfdab2fef797dda6b6fbf1f22816c3b6efd83bd846abf6f196c4f5c45cfa9"
+      },
+      {
+        "path": "src/editor/function-modules/ui-entry-completion-003-runtime.js",
+        "bytes": 21808,
+        "sha256": "aec1c94d751deacebf3e0ed991d1f7ee8e2808ffb22388470f42ed34bfc94922"
       },
       {
         "path": "src/editor/index.js",
@@ -1357,8 +1367,8 @@
       },
       {
         "path": "src/ui/ink017/markup.html",
-        "bytes": 4834,
-        "sha256": "01fc3ea4396a3df4df1a7291f33fcd48300672aecd8cba35f1948ec39876fec9"
+        "bytes": 1836,
+        "sha256": "f70d81b78fe861e13f3d92d0b80064cf5a4dad004a08fb6f78b9870279523381"
       },
       {
         "path": "src/ui/ink017/menu-ui.js",
@@ -1447,13 +1457,58 @@
       },
       {
         "path": "src/ui/ink017/shell.js",
-        "bytes": 14554,
-        "sha256": "f0ed6b19f86c9340dda89f4ded719e823cbd88d629d1392558a9b4bcd9bc4344"
+        "bytes": 12183,
+        "sha256": "4cf7d0de2d06406c6d20e112de38968be0359b70367b829c112cdc39f6fe7d55"
       },
       {
         "path": "src/ui/ink017/tokens.css",
-        "bytes": 32841,
-        "sha256": "fd28f51f60167e1ddbbb7df67f37b01d01e98e6d99ad263780d923741c60e08e"
+        "bytes": 35246,
+        "sha256": "8d5a9565588049ac118f545a9c35b86cbc0a94a928b8b646da4056a27214520b"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/completion-overlay.js",
+        "bytes": 5321,
+        "sha256": "bebe1767ec2361137db32e52717e81849006d2c7798cc4ce3587fbf365635880"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/completion-tools.js",
+        "bytes": 13662,
+        "sha256": "1a9d38d44f5ed0439c0163dc4c975e69b16463ba92d84dc3cc9a9027d4dee2cd"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/dev1/catalog.js",
+        "bytes": 5159,
+        "sha256": "0ebe333d27be1709e6ece5810f5d00d89091774c323b8e994250e1a6fb82be6e"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/dev1/options.js",
+        "bytes": 10179,
+        "sha256": "4e7b84abdfb572decb675165977a52865ce951c5bc2e119018320f2f3c76744f"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/dev1/raster-session.js",
+        "bytes": 8792,
+        "sha256": "f40ba631f8b67911e619fd23f2aba3f54569f4f45149b0622e88f05f849e588f"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/dev2/index.mjs",
+        "bytes": 23769,
+        "sha256": "b5c184bc18421fc4037e1aa11fd2e14538a2247d7a2ec8d3b3a384630ea4872e"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/dev3/tools-context-dev3.mjs",
+        "bytes": 19202,
+        "sha256": "e690b3740be8298c8bd220dcd80f6bc38c8508085362a032583a48b0845e8994"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/registry.js",
+        "bytes": 4380,
+        "sha256": "b26e256296361a528b3c4716e526007d9f6a8840467ead85c8836b6828856304"
+      },
+      {
+        "path": "src/ui/ink017/tool-slices/workbench.js",
+        "bytes": 14413,
+        "sha256": "36b3496f7e47cce0a82ca27d3f057b5e45aab70ed04137c0c4f73a5a0910ae80"
       },
       {
         "path": "src/ui/minimal-composition.js",
@@ -1562,27 +1617,27 @@
       },
       {
         "path": "ui/capability-raster-tools.js",
-        "bytes": 14858,
-        "sha256": "974f7ea5b2af9c7aa3152d192c86ab513e1e70b3f7137145fdce5b036679b587"
+        "bytes": 19292,
+        "sha256": "56a27b32e9a8734021cf63df6e82101fe003e40704189a828f807037c60b1256"
       }
     ]
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/423#issuecomment-6339440064"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/420#issuecomment-6354996850"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "f644f8fbdde3707615178b5ab1d330162c019983",
+    "exact_sha": "532f35e164e72336106befbbf6bd6f813a2d98ec",
     "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "02319e14b5f1988ef74d345bfa9b6ec95fa57222",
-    "authority_record_sha256": "989a792d4a269b3bb5153d1e7d97a517ef115d80116a57bd7fdbb0a5fd8906a3",
-    "publisher_sha": "f644f8fbdde3707615178b5ab1d330162c019983",
-    "package_publisher_sha": "f644f8fbdde3707615178b5ab1d330162c019983",
+    "previous_target_commit": "3e33b0c149007a9cf4e1a9967a0a337587d97059",
+    "authority_record_sha256": "bbb97f2d8f2cfcfd82c6f34722711205f32fd5b6a5d54099067cdb7675e7aa75",
+    "publisher_sha": "532f35e164e72336106befbbf6bd6f813a2d98ec",
+    "package_publisher_sha": "532f35e164e72336106befbbf6bd6f813a2d98ec",
     "runtime_bytes_unchanged_from_package": true
   }
 }
