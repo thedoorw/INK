@@ -1,4 +1,5 @@
 import {esc} from '../shared-controls.js';
+import {mountToolbarCustomizer} from './toolbar-customizer.js';
 import {UI_B_RASTER_TOOL_IDS} from '../../../../ui/capability-raster-tools.js';
 import {TOOL_GROUPS,toolAvailability,activeToolContext,activateToolContext,rasterGeometryAvailable} from './registry.js';
 import {renderDev1Options,mountDev1Options} from './dev1/options.js';
@@ -23,6 +24,7 @@ export function mountToolsWorkbench(root,host,feedback,signal){
  bar.classList.add('tools-context');
  let expanded=false;
  const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(()=>{frame=0;render()})};
+ const toolbarCustomization=mountToolbarCustomizer(root,TOOL_GROUPS,{signal,onLayoutChanged:schedule,feedback});
  const completion=mountCompletionTools(root,host,feedback,signal,schedule);
  // DEV2 guard is installed before any activation, using existing cancellation
  // owner. It intercepts unsafe canvas events even before owner notifications.
@@ -136,7 +138,7 @@ export function mountToolsWorkbench(root,host,feedback,signal){
  }
  const offHost=host.subscribe(schedule),offRaster=rt?.subscribe?.(schedule);
  setExpanded(true);render();
- function dispose(){if(disposed)return;disposed=true;if(frame)cancelAnimationFrame(frame);clearHold();closeMenu();observer.disconnect();stopOptions();offHost?.();offRaster?.();safety?.dispose();menu.remove();}
+ function dispose(){if(disposed)return;disposed=true;if(frame)cancelAnimationFrame(frame);clearHold();closeMenu();observer.disconnect();stopOptions();toolbarCustomization.dispose();offHost?.();offRaster?.();safety?.dispose();menu.remove();}
  signal.addEventListener('abort',dispose,{once:true});
  return {render:schedule,expand(value){setExpanded(value);schedule();},dispose};
 }
