@@ -1,16 +1,16 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "f5c0f34eaae01c0eed416bcf40103a6298a528e5",
-  "package_publisher_sha": "f5c0f34eaae01c0eed416bcf40103a6298a528e5",
-  "authority_record_sha256": "66e9bb552802620da9cc0040d3f5a95a2bfd063554039e49ab0226788df50f3a",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/433#issuecomment-6356581678",
-  "source_sha": "b40b2255c5250d8fc2b293ccebe411fb57358677",
-  "source_tree": "96a0a4c154ab552f2ff37bff7da15a80c6b967a4",
-  "runtime_digest_sha256": "c003b2f444f4ab4ec1d0bf6e1377780909d4065ec4f14fa5279bcf62a051743a",
-  "package_manifest_sha256": "a2885a2fb9614dd117c23d9f1d51bec533e2f5a9f86e408668e1633040bc1c82",
+  "publisher_sha": "3bcff2dd6f32365c48b5187dc0de1af73b1aba5b",
+  "package_publisher_sha": "3bcff2dd6f32365c48b5187dc0de1af73b1aba5b",
+  "authority_record_sha256": "32c765828ab2fb7fa9e0d2096fdc3e882a5fd1742b44fa047804f934c0bcca71",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/435#issuecomment-6360314778",
+  "source_sha": "f84609ea9e0c4811e6c5afc7ce39b825c289d461",
+  "source_tree": "4d618adda267b3538ef3a280f54a6dc91f5ae79e",
+  "runtime_digest_sha256": "4ed6f13b0cf270e058d6622abe31ffa4bd57a020ac0e6ca7efad208cfe7e2099",
+  "package_manifest_sha256": "c4f7c55330d0ca04ff2efd1aa46b119e16bdb0569d746b22ed458d59325f9bfd",
   "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
-  "previous_target_commit": "16943c06bb3b640f0e506864462ba8d5fc906bf6",
+  "previous_target_commit": "3c2faf987f7381bce12c81649e88135f0187dd4e",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,9 +38,9 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "1ed4141d82243edae7e56bc2f049b164157b56ff",
-      "sha256": "bbd15efff563fb4655f477f6bd23d9bed64e04f2ef839a7b2d6fc868a702d8c5",
-      "bytes": 58594
+      "git_blob_sha": "87994b90d0790700f47b67dccd37df6bb43e779e",
+      "sha256": "f830539d2f2f0c4fc8db65271125ed1b44e6fa045f9e85622792a89d4cf496dd",
+      "bytes": 58786
     },
     {
       "path": "build-identity.js",
@@ -1640,9 +1640,9 @@
     },
     {
       "path": "src/ui/ink017/markup.html",
-      "git_blob_sha": "58e04e91e444082e5a22f5b94c38965c51ecada4",
-      "sha256": "f70d81b78fe861e13f3d92d0b80064cf5a4dad004a08fb6f78b9870279523381",
-      "bytes": 1836
+      "git_blob_sha": "6e5b6d2489ade43e99a5e683ef566f31e4f1d138",
+      "sha256": "8856e8848e7c19de8dc1c0d53dffc1ad2c9725e9c5895d3897d2adf18b05a13b",
+      "bytes": 1942
     },
     {
       "path": "src/ui/ink017/menu-ui.js",
@@ -1754,9 +1754,9 @@
     },
     {
       "path": "src/ui/ink017/tokens.css",
-      "git_blob_sha": "8c7c507ce881821b01bbfdddf81c96644dd200cf",
-      "sha256": "8d5a9565588049ac118f545a9c35b86cbc0a94a928b8b646da4056a27214520b",
-      "bytes": 35246
+      "git_blob_sha": "9043abb325c478c63c39d1d1dfcae6a135193241",
+      "sha256": "dd37eb5dd4380ff9611c1a9ef11cc18fb8c725fcb833c59da847a95c6071766d",
+      "bytes": 39345
     },
     {
       "path": "src/ui/ink017/tool-slices/completion-overlay.js",
@@ -1807,10 +1807,16 @@
       "bytes": 4401
     },
     {
+      "path": "src/ui/ink017/tool-slices/toolbar-customizer.js",
+      "git_blob_sha": "67a951eb86a87e93cefb89c5331263a1ff98e463",
+      "sha256": "ea245a862dbc3eac32c1acc9c5ddc804a76aaf87e2e8102ca1813b9e5bc4789b",
+      "bytes": 7919
+    },
+    {
       "path": "src/ui/ink017/tool-slices/workbench.js",
-      "git_blob_sha": "95c10f60760bc4e459661caef2cda0254e4ee19b",
-      "sha256": "f7d96d1fadcccd1b816743064ff223ce174c89da984e733ab40672054f110bd2",
-      "bytes": 14432
+      "git_blob_sha": "dbdf5d8c31cf824a06c4d4bfafe257d14ce4c59d",
+      "sha256": "dfa38e7269df68e4b39132183e602df38f248d039944c0e9d0ffe037a5baa5d0",
+      "bytes": 14640
     },
     {
       "path": "src/ui/minimal-composition.js",
