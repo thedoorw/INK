@@ -127,7 +127,7 @@ export function mountToolsWorkbench(root,host,feedback,signal){
   }
   identity.textContent=context?.item?.label||'工具';toggle.disabled=!s.docs.length;
   const completed=completion.snapshot();
-  const next=JSON.stringify([context?.group.id,context?.item.id,completed.id,completed.count,completed.pixels,completed.options,completed.selection?.source,completed.selection?.bounds,targetKey(),s.object,s.docs[0]?.guides,s.docs[0]?.camera,s.toolOptions,host.select('tool.options'),host.select('tool.settings',{tool:s.tool}),rt?.rasterOptions?.(),host.select('path.current'),host.app?.strokeEdit?.nodeIndices?.size]);
+  const next=JSON.stringify([context?.group.id,context?.item.id,completed.id,completed.count,completed.pixels,completed.options,completed.selection?.source,completed.selection?.bounds,targetKey(),s.object,s.docs[0]?.guides,s.docs[0]?.camera,s.toolOptions,host.select('tool.options'),host.select('tool.settings',{tool:s.tool}),rt?.rasterOptions?.(),rt?.sourceInfo?.(),host.select('path.current'),host.app?.strokeEdit?.nodeIndices?.size]);
   if(next!==signature){
    const focused=options.contains(document.activeElement)&&document.activeElement?.matches('input,select,textarea');
    if(focused&&options.dataset.nativeTarget===JSON.stringify(host.target()))return;

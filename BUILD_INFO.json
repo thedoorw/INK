@@ -4,15 +4,15 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "a43d3b2bdf093a8414f03905489f746cd2835605",
-    "product_tree": "701a83cb374ecd7159b0de471636be7732813429"
+    "exact_sha": "b40b2255c5250d8fc2b293ccebe411fb57358677",
+    "product_tree": "96a0a4c154ab552f2ff37bff7da15a80c6b967a4"
   },
   "package": {
-    "manifest_sha256": "d8809797db029d344fcfe7c28076b3494d1e050488fbf169062c716cee56498a"
+    "manifest_sha256": "a2885a2fb9614dd117c23d9f1d51bec533e2f5a9f86e408668e1633040bc1c82"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "fc04db500c3ede82d41f289144f552b397a54e74cf998e4bdd66e2bf92e6b5db",
+    "package_digest_sha256": "c003b2f444f4ab4ec1d0bf6e1377780909d4065ec4f14fa5279bcf62a051743a",
     "file_count": 321,
     "files": [
       {
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "120d7f7f4b6bf95dbad745a5fd0c18d57704190d5e0e7fac6bcdc19f443b93db"
+        "sha256": "b84718382f15fbac899a7b7934a7f67496f44a996b9314858e485bde0a905f58"
       },
       {
         "path": "dist/ink.compat.js",
@@ -492,8 +492,8 @@
       },
       {
         "path": "src/editor/function-modules/ui-b-002-tools-adapter.js",
-        "bytes": 2179,
-        "sha256": "900a2b8fc5273dec912119bc5ea08bce694e885dc8544acfdc58e000076deefe"
+        "bytes": 2388,
+        "sha256": "6da173d83c96da8ccb9547e6d9cd071d2650ade45128564b06cb6366a73f11a6"
       },
       {
         "path": "src/editor/function-modules/ui-b-002-tools-runtime.js",
@@ -872,8 +872,8 @@
       },
       {
         "path": "src/image/raster-retouch-tools.js",
-        "bytes": 16641,
-        "sha256": "dc5b586483007cf78fe3be2ac677960ad87e4ab4b465cb1d1eabb4f8e7df7763"
+        "bytes": 17573,
+        "sha256": "13b36c4663bae1c1eddac068963c78b103a3ecfd3221a8d2cc9f4771f931b7c1"
       },
       {
         "path": "src/image/raster-selection-tools.js",
@@ -1467,13 +1467,13 @@
       },
       {
         "path": "src/ui/ink017/tool-slices/completion-overlay.js",
-        "bytes": 5321,
-        "sha256": "bebe1767ec2361137db32e52717e81849006d2c7798cc4ce3587fbf365635880"
+        "bytes": 5906,
+        "sha256": "95861472ec37b6e71222a4d4fa4030370add488300c4d1ea14dd425c49a13da4"
       },
       {
         "path": "src/ui/ink017/tool-slices/completion-tools.js",
-        "bytes": 13662,
-        "sha256": "1a9d38d44f5ed0439c0163dc4c975e69b16463ba92d84dc3cc9a9027d4dee2cd"
+        "bytes": 15510,
+        "sha256": "16e1f22f232cf639d52030dffa271f8c5c72a021d75efb3202559826ee50e12e"
       },
       {
         "path": "src/ui/ink017/tool-slices/dev1/catalog.js",
@@ -1492,8 +1492,8 @@
       },
       {
         "path": "src/ui/ink017/tool-slices/dev2/index.mjs",
-        "bytes": 23769,
-        "sha256": "b5c184bc18421fc4037e1aa11fd2e14538a2247d7a2ec8d3b3a384630ea4872e"
+        "bytes": 23784,
+        "sha256": "a10be801cbd71a22900cfab87764659d7dadb60e9adac98ff37ac3fec84b4e6f"
       },
       {
         "path": "src/ui/ink017/tool-slices/dev3/tools-context-dev3.mjs",
@@ -1502,13 +1502,13 @@
       },
       {
         "path": "src/ui/ink017/tool-slices/registry.js",
-        "bytes": 4380,
-        "sha256": "b26e256296361a528b3c4716e526007d9f6a8840467ead85c8836b6828856304"
+        "bytes": 4401,
+        "sha256": "236032971db4d045b4bbedb4fde7767b7d092f3f240d9cac40b0ba7c9ea413fa"
       },
       {
         "path": "src/ui/ink017/tool-slices/workbench.js",
-        "bytes": 14413,
-        "sha256": "36b3496f7e47cce0a82ca27d3f057b5e45aab70ed04137c0c4f73a5a0910ae80"
+        "bytes": 14432,
+        "sha256": "f7d96d1fadcccd1b816743064ff223ce174c89da984e733ab40672054f110bd2"
       },
       {
         "path": "src/ui/minimal-composition.js",
@@ -1617,27 +1617,27 @@
       },
       {
         "path": "ui/capability-raster-tools.js",
-        "bytes": 19292,
-        "sha256": "56a27b32e9a8734021cf63df6e82101fe003e40704189a828f807037c60b1256"
+        "bytes": 23887,
+        "sha256": "ffca8de40a0a07d69e8b26d3747af84439023f147b8edb176b6f3a6060172351"
       }
     ]
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/420#issuecomment-6354996850"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/433#issuecomment-6356581678"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "532f35e164e72336106befbbf6bd6f813a2d98ec",
+    "exact_sha": "f5c0f34eaae01c0eed416bcf40103a6298a528e5",
     "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "3e33b0c149007a9cf4e1a9967a0a337587d97059",
-    "authority_record_sha256": "bbb97f2d8f2cfcfd82c6f34722711205f32fd5b6a5d54099067cdb7675e7aa75",
-    "publisher_sha": "532f35e164e72336106befbbf6bd6f813a2d98ec",
-    "package_publisher_sha": "532f35e164e72336106befbbf6bd6f813a2d98ec",
+    "previous_target_commit": "16943c06bb3b640f0e506864462ba8d5fc906bf6",
+    "authority_record_sha256": "66e9bb552802620da9cc0040d3f5a95a2bfd063554039e49ab0226788df50f3a",
+    "publisher_sha": "f5c0f34eaae01c0eed416bcf40103a6298a528e5",
+    "package_publisher_sha": "f5c0f34eaae01c0eed416bcf40103a6298a528e5",
     "runtime_bytes_unchanged_from_package": true
   }
 }

@@ -44,7 +44,14 @@ export function mountCompletionOverlay(host,session,signal){
    const transform=M.multiply(view,M.multiply(found.worldMatrix||o.matrix,[o.w/w,0,0,o.h/h,0,0]));
    let content='';
    if(mask){maskImage(mask);content+='<image width="'+w+'" height="'+h+'" href="'+cachedImage+'"/>'+edges(cachedOutline);}
-   if(preview){const x=Math.min(preview.start.x,preview.current.x),y=Math.min(preview.start.y,preview.current.y),ww=Math.abs(preview.start.x-preview.current.x),hh=Math.abs(preview.start.y-preview.current.y);content+=preview.ellipse?'<ellipse class="completion-preview" cx="'+(x+ww/2)+'" cy="'+(y+hh/2)+'" rx="'+ww/2+'" ry="'+hh/2+'"/>':'<rect class="completion-preview" x="'+x+'" y="'+y+'" width="'+ww+'" height="'+hh+'"/>';}
+   if(preview?.type==='polygon'){
+     const pts=[...preview.points,...(preview.cursor?[preview.cursor]:[])];
+     content+='<path class="completion-preview" d="'+pts.map((p,i)=>(i?'L':'M')+p.x+' '+p.y).join('')+'"/>';
+     for(const p of preview.points)content+='<circle class="completion-anchor" r="2" cx="'+p.x+'" cy="'+p.y+'"/>';
+   }else if(preview?.type==='patch'){
+     const dx=preview.current.x-preview.start.x,dy=preview.current.y-preview.start.y;
+     content+='<g transform="translate('+dx+' '+dy+')">'+edges(selectionOutline(preview.mask))+'</g>';
+   }else if(preview?.type==='marquee'){const x=Math.min(preview.start.x,preview.current.x),y=Math.min(preview.start.y,preview.current.y),ww=Math.abs(preview.start.x-preview.current.x),hh=Math.abs(preview.start.y-preview.current.y);content+=preview.ellipse?'<ellipse class="completion-preview" cx="'+(x+ww/2)+'" cy="'+(y+hh/2)+'" rx="'+ww/2+'" ry="'+hh/2+'"/>':'<rect class="completion-preview" x="'+x+'" y="'+y+'" width="'+ww+'" height="'+hh+'"/>';}
    html+='<g transform="'+matrixAttr(transform)+'">'+content+'</g>';
   }
   const draft=session.draft();

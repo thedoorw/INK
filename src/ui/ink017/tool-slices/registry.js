@@ -10,7 +10,7 @@ const variantIcon=(g,t)=>g.id==='shape'?({line:'M4 20L20 4',arrow:'M4 20L20 4M10
 export const WITHHELD_GROUPS=Object.freeze([]);
 export const TOOL_GROUPS=Object.freeze([
  ...COMPLETION_GROUPS,
- ...DEV1_GROUPS.map(g=>({id:g.key,row:g.row,label:g.label,owner:1,items:g.items.filter(t=>t.capability==='native').map(t=>({id:t.key,label:t.label,icon:vector(t.icon)}))})),
+ ...DEV1_GROUPS.filter(g=>g.row!==3).map(g=>({id:g.key,row:g.row,label:g.label,owner:1,items:g.items.filter(t=>t.capability==='native').map(t=>({id:t.key,label:t.label,icon:vector(t.icon)}))})),
  ...DEV2_TOOL_GROUPS.map(g=>({id:g.id,row:g.row,label:g.title,owner:2,items:g.items.map(t=>({id:t.id,label:t.label,icon:vector(t.icon)}))})),
  ...DEV3_TOOL_GROUPS.map(g=>({id:g.id,row:({text:15,nodes:16,shape:17,guide:18,pan:19,zoom:20})[g.id],label:g.label,owner:3,items:(g.variants.length?g.variants:[{id:g.id,label:g.label}]).map(t=>({id:t.id,label:t.label,icon:vector(variantIcon(g,t))}))}))
 ].filter(g=>g.items.length).sort((a,b)=>a.row-b.row));
