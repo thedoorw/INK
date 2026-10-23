@@ -1,16 +1,16 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "3bcff2dd6f32365c48b5187dc0de1af73b1aba5b",
-  "package_publisher_sha": "3bcff2dd6f32365c48b5187dc0de1af73b1aba5b",
-  "authority_record_sha256": "32c765828ab2fb7fa9e0d2096fdc3e882a5fd1742b44fa047804f934c0bcca71",
+  "publisher_sha": "e2b2fe29784742b3d26223fe6dce6ddd3dd2805b",
+  "package_publisher_sha": "e2b2fe29784742b3d26223fe6dce6ddd3dd2805b",
+  "authority_record_sha256": "c33761175041078e39516a52bcd3ace7a0b566084d9140e3e8c8fa55f4afdce1",
   "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/435#issuecomment-6360314778",
-  "source_sha": "f84609ea9e0c4811e6c5afc7ce39b825c289d461",
-  "source_tree": "4d618adda267b3538ef3a280f54a6dc91f5ae79e",
-  "runtime_digest_sha256": "4ed6f13b0cf270e058d6622abe31ffa4bd57a020ac0e6ca7efad208cfe7e2099",
-  "package_manifest_sha256": "c4f7c55330d0ca04ff2efd1aa46b119e16bdb0569d746b22ed458d59325f9bfd",
+  "source_sha": "2f6b7275418679e9780f1e469bf82dfb929b2c2f",
+  "source_tree": "e2f50330844f733c05b89346983566be3be56446",
+  "runtime_digest_sha256": "2fd0f81ac9a4539c76c480cd509492827a7140329c0808d1ed7a61799a7de58f",
+  "package_manifest_sha256": "ed4cc20cdc6a605a061bf4b52d8a18a6b50c2c06d283efd7321d4fa49e502512",
   "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
-  "previous_target_commit": "3c2faf987f7381bce12c81649e88135f0187dd4e",
+  "previous_target_commit": "f1bbfac876ff880633df291f51ab57a60d6f92bc",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,14 +38,14 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "87994b90d0790700f47b67dccd37df6bb43e779e",
-      "sha256": "f830539d2f2f0c4fc8db65271125ed1b44e6fa045f9e85622792a89d4cf496dd",
+      "git_blob_sha": "3409919997d35073430c2d731a31e42f188bfac7",
+      "sha256": "2fe96cb84b451cca01988018b82e10a62bccdfff0260c532c8119bc02d25df27",
       "bytes": 58786
     },
     {
       "path": "build-identity.js",
-      "git_blob_sha": "d8ac20cf4ebcaabe54927915b3ac3ab5e9e8bd90",
-      "sha256": "b84718382f15fbac899a7b7934a7f67496f44a996b9314858e485bde0a905f58",
+      "git_blob_sha": "36a38abae2df7eeec69f4f38556ba512ec6538cb",
+      "sha256": "3b4ee08b2ec7e799f2d7ebfb47b0c41608a2b82b5685a1c7465a370e70d6a929",
       "bytes": 193
     },
     {
