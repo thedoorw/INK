@@ -8,7 +8,7 @@ import {
   colorRasterToRgba8, createColorRaster, serializeColorRaster, deserializeColorRaster,
   magicWandSelection, quickSelection, polygonalLassoSelection, magneticLassoSelection, objectSelection,
   refineRasterSelection, rasterizePathMask, sampleRasterColor, gradientFill, paintBucketFill,
-  cloneStamp, patternStamp, healingBrush, spotHealing, patchRaster,
+  cloneStamp, patternStamp, healingBrush, spotHealing, patchRaster, smudge, clipRasterSelection,
   dodge, burn, sponge, localBlur, localSharpen, colorReplacementBrush
 } from '../src/image/image-core.js';
 
@@ -64,11 +64,11 @@ export const UI_B_RASTER_TOOL_IDS=Object.freeze(new Set([
   'polygonalLasso','magneticLasso','quickSelection','magicWand','objectSelection',
   'gradient','paintBucket','eyedropper','colorSampler','measure',
   'cloneStamp','patternStamp','healingBrush','spotHealing','patch',
-  'dodge','burn','sponge','localBlur','localSharpen','colorReplacement'
+  'dodge','burn','sponge','localBlur','localSharpen','smudge','colorReplacement'
 ]));
 
 export function createRasterToolController(app,{onStateChange=()=>{}}={}){
-  let selectionLease=null;
+  let selectionLease=null,sourceLease=null,polygonLease=null;
   const state={
     tool:null,
     selection:null,
@@ -81,7 +81,7 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
     patternName:null,
     options:{
       selectionMode:'new',tolerance:32,contiguous:true,edgeThreshold:40,searchRadius:8,
-      radius:18,strength:.55,opacity:1,hardness:.85,sampleRadius:0,
+      radius:18,strength:.55,opacity:1,hardness:.85,sampleRadius:0,feather:2,
       gradientType:'linear',gradientStart:'#202020',gradientEnd:'#ffffff',
       replacementColor:'#3b63fb',spongeMode:'saturate'
     }
@@ -93,20 +93,36 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
     if(!target?.image||!lease||!app.documentOpen)return false;
     const items=app.selectedObjects();
     const current=items[0],matrix=current?.worldMatrix||current?.object?.matrix;
-    if(!matrix||!M.tryInvert(matrix)||!(current.object.w>0&&current.object.h>0))return false;
+    if(!matrix||matrix.length!==6||!Array.from(matrix).every(Number.isFinite)||!M.tryInvert(matrix)||!(current.object.w>0&&current.object.h>0))return false;
     return items.length===1&&items[0].object===lease.object&&items[0].layer===lease.layer&&
       app.doc===lease.document&&app.page()===lease.page&&
       target.found.object.rasterState.colorRaster===lease.raster&&
+      JSON.stringify([matrix,current.object.w,current.object.h])===lease.geometry&&
       !items[0].effectiveLocked&&!items[0].layer.locked&&!items[0].object.locked&&
       items[0].effectiveVisible!==false&&items[0].interactionExposed!==false&&items[0].layer.visible!==false;
   }
-  const captureSelectionTarget=target=>({document:app.doc,page:app.page(),object:target.found.object,layer:target.found.layer,raster:target.found.object.rasterState.colorRaster});
+  const captureSelectionTarget=target=>({document:app.doc,page:app.page(),object:target.found.object,layer:target.found.layer,raster:target.found.object.rasterState.colorRaster,geometry:JSON.stringify([target.found.worldMatrix||target.found.object.matrix,target.found.object.w,target.found.object.h])});
   function selection(){
     if(state.selection&&!selectionTargetValid(selectedRaster())){state.selection=null;selectionLease=null;}
     return state.selection;
   }
   function clearSelection(){state.selection=null;selectionLease=null;cancelActiveInteraction({restore:true});notify();return true;}
-  function selectionPreview(){const drag=state.drag;return drag?.type==='marquee'&&selectionTargetValid(selectedRaster(),drag.lease)?{...drag,width:drag.target.image.width,height:drag.target.image.height}:null;}
+  function selectionPreview(){
+    const target=selectedRaster(),drag=state.drag;
+    if(polygonLease&&!selectionTargetValid(target,polygonLease)){state.polygonPoints=[];polygonLease=null;}
+    if(state.polygonPoints.length)return{type:'polygon',points:state.polygonPoints,cursor:state.polygonCursor,width:target.image.width,height:target.image.height};
+    return drag&&selectionTargetValid(target,drag.lease)?{...drag,width:drag.target.image.width,height:drag.target.image.height}:null;
+  }
+  function sourceInfo(){if(sourceLease&&!selectionTargetValid(selectedRaster(),sourceLease)){sourceLease=null;state.sourcePoint=null;}return state.sourcePoint?{...state.sourcePoint}:null;}
+  function resetSource(){sourceLease=null;state.sourcePoint=null;notify();}
+  function finishPolygon(){
+    const target=requireRaster();if(!target||!selectionTargetValid(target,polygonLease))throw Error('Selection target changed');
+    if(state.polygonPoints.length<3)throw Error('至少需要三個節點');
+    const next=state.tool==='polygonalLasso'?polygonalLassoSelection(target.image.width,target.image.height,state.polygonPoints):magneticLassoSelection(target.image,{anchors:state.polygonPoints,close:true,searchRadius:state.options.searchRadius,edgeSensitivity:state.options.edgeThreshold});
+    state.polygonPoints=[];polygonLease=null;setSelection(next,target);return true;
+  }
+  function removePolygonPoint(){state.polygonPoints.pop();notify();}
+
 
   function selectedRaster(){
     const found=app.selectedObjects().find(item=>item.object?.type==='image'&&item.object?.rasterState?.colorRaster);
@@ -129,7 +145,11 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
   }
 
   function writeRaster(target,image){
-    target.found.object.rasterState.colorRaster=rgbaToSerializedRaster(image);
+    const old=target.found.object.rasterState.colorRaster,mask=selection();
+    image=clipRasterSelection(target.image,image,mask);
+    const next=rgbaToSerializedRaster(image);
+    target.found.object.rasterState.colorRaster=next;
+    for(const lease of [selectionLease,sourceLease,state.stroke?.lease])if(lease?.raster===old&&lease.object===target.found.object)lease.raster=next;
     target.found.object.rasterState.source={...(target.found.object.rasterState.source||{}),format:'INK',uiBEdited:true};
     app.spatialDirty=true;
     app.renderer?.studioImageCache?.clear?.();
@@ -145,6 +165,7 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
     const target=selectedRaster();
     if(!target){app.toast('請先選取含 Raster State 的影像');return null;}
     if(target.unsupported){app.toast(target.unsupported,3000);return null;}
+    if(!selectionTargetValid(target,captureSelectionTarget(target))){app.toast('請選取單一可編輯影像');return null;}
     return target;
   }
 
@@ -166,23 +187,19 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
     const common={targetPoint:point,radius:brushRadius(target),brushRadius:brushRadius(target),opacity:state.options.opacity,strength:state.options.strength,hardness:state.options.hardness};
     const image=target.image;
     if(tool==='cloneStamp'){
-      if(!state.sourcePoint)throw new Error('請先 Alt/Option 點擊設定來源');
-      return cloneStamp(image,{...common,sourcePoint:state.sourcePoint});
+      if(!sourceInfo())throw new Error('請先 Alt/Option 點擊設定來源');
+      return cloneStamp(image,{...common,sourcePoint:state.stroke?.sourceStart?{x:state.stroke.sourceStart.x+point.x-state.stroke.start.x,y:state.stroke.sourceStart.y+point.y-state.stroke.start.y}:state.sourcePoint});
     }
     if(tool==='patternStamp'){
       if(!state.patternImage)throw new Error('請先載入 Pattern image');
       return patternStamp(image,{...common,pattern:state.patternImage,origin:{x:0,y:0}});
     }
     if(tool==='healingBrush'){
-      if(!state.sourcePoint)throw new Error('請先 Alt/Option 點擊設定來源');
-      return healingBrush(image,{...common,sourcePoint:state.sourcePoint});
+      if(!sourceInfo())throw new Error('請先 Alt/Option 點擊設定來源');
+      return healingBrush(image,{...common,sourcePoint:state.stroke?.sourceStart?{x:state.stroke.sourceStart.x+point.x-state.stroke.start.x,y:state.stroke.sourceStart.y+point.y-state.stroke.start.y}:state.sourcePoint});
     }
     if(tool==='spotHealing')return spotHealing(image,{...common,neighborRadius:2});
-    if(tool==='patch'){
-      if(!state.sourcePoint)throw new Error('請先 Alt/Option 點擊設定來源');
-      const r=Math.max(2,Math.round(brushRadius(target))),w=r*2,h=r*2;
-      return patchRaster(image,{sourceRegion:{x:Math.round(state.sourcePoint.x-r),y:Math.round(state.sourcePoint.y-r),w,h},targetRegion:{x:Math.round(point.x-r),y:Math.round(point.y-r),w,h},opacity:state.options.opacity,feather:Math.max(0,Math.round(r*.2))});
-    }
+    if(tool==='smudge')return smudge(image,{...common,previousPoint:state.stroke?.last||point});
     if(tool==='dodge')return dodge(image,{...common});
     if(tool==='burn')return burn(image,{...common});
     if(tool==='sponge')return sponge(image,{...common,mode:state.options.spongeMode});
@@ -193,15 +210,15 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
   }
 
   function pointerDown(event){
-    if(!state.tool||!UI_B_RASTER_TOOL_IDS.has(state.tool))return false;
+    if(!state.tool||!UI_B_RASTER_TOOL_IDS.has(state.tool)||app.spaceDown||(event.button!=null&&event.button!==0))return false;
     const target=requireRaster();if(!target)return true;
     const point=pointForEvent(event,target);if(!point)return true;
     event.preventDefault();event.stopImmediatePropagation();
     app.el.canvas.setPointerCapture?.(event.pointerId);
 
     try{
-      if(['cloneStamp','healingBrush','patch'].includes(state.tool)&&(event.altKey||event.ctrlKey)){
-        state.sourcePoint={x:point.x,y:point.y};app.toast('來源點已設定');notify();return true;
+      if(['cloneStamp','healingBrush'].includes(state.tool)&&event.altKey){
+        sourceLease=captureSelectionTarget(target);state.sourcePoint={x:point.x,y:point.y};app.toast('來源點已設定');notify();return true;
       }
       if(state.tool==='magicWand'){setSelection(magicWandSelection(target.image,{x:point.x,y:point.y,tolerance:state.options.tolerance,contiguous:state.options.contiguous}));return true;}
       if(state.tool==='rectangleMarquee'||state.tool==='ellipseMarquee'){
@@ -212,11 +229,10 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
       if(state.tool==='quickSelection'){setSelection(quickSelection(target.image,{samples:[{x:point.x,y:point.y}],tolerance:state.options.tolerance,edgeThreshold:state.options.edgeThreshold,initialSelection:state.options.selectionMode==='add'?state.selection:null}));return true;}
       if(state.tool==='objectSelection'){setSelection(objectSelection(target.image,{seed:{x:point.x,y:point.y},colorThreshold:state.options.tolerance,edgeThreshold:state.options.edgeThreshold,alphaThreshold:1,minComponentSize:1}));return true;}
       if(state.tool==='polygonalLasso'||state.tool==='magneticLasso'){
-        state.polygonPoints.push({x:point.x,y:point.y});
-        if(event.detail>=2&&state.polygonPoints.length>=3){
-          const next=state.tool==='polygonalLasso'?polygonalLassoSelection(target.image.width,target.image.height,state.polygonPoints):magneticLassoSelection(target.image,{anchors:state.polygonPoints,close:true,searchRadius:state.options.searchRadius,edgeSensitivity:state.options.edgeThreshold});
-          state.polygonPoints=[];setSelection(next);
-        }else{app.toast('加入選取節點；雙擊完成');notify();}
+        if(!selectionTargetValid(target,polygonLease)){state.polygonPoints=[];polygonLease=captureSelectionTarget(target);}
+        const last=state.polygonPoints.at(-1);
+        if(!last||last.x!==point.x||last.y!==point.y)state.polygonPoints.push({x:point.x,y:point.y});
+        if(event.detail>=2&&state.polygonPoints.length>=3)finishPolygon();else{app.toast('加入節點；Enter 或雙擊完成');notify();}
         return true;
       }
       if(state.tool==='eyedropper'||state.tool==='colorSampler'){
@@ -234,17 +250,27 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
         commitOne('Paint Bucket',target,result);return true;
       }
       if(state.tool==='gradient'){
-        state.drag={type:'gradient',pointerId:event.pointerId,target,start:{x:point.x,y:point.y},current:{x:point.x,y:point.y}};notify();return true;
+        state.drag={type:'gradient',pointerId:event.pointerId,target,lease:captureSelectionTarget(target),start:{x:point.x,y:point.y},current:{x:point.x,y:point.y}};notify();return true;
+      }
+      if(state.tool==='patch'){
+        const mask=selection();if(!mask?.alpha?.some(a=>a>0))throw Error('請先建立修補選區，再拖曳至來源');
+        if(!mask.alpha[Math.floor(point.y)*mask.width+Math.floor(point.x)])throw Error('請從修補選區內開始拖曳');
+        state.drag={type:'patch',pointerId:event.pointerId,target,lease:captureSelectionTarget(target),start:point,current:point,mask};notify();return true;
+      }
+      if(state.tool==='smudge'){
+        state.stroke={pointerId:event.pointerId,target,lease:captureSelectionTarget(target),tool:state.tool,start:point,last:point,changed:false};return true;
       }
       const image=applyRetouch(state.tool,target,point);
       app.history.begin('Raster '+state.tool,{targets:[app.objectPath(target.found)]});
       writeRaster(target,image);
-      state.stroke={pointerId:event.pointerId,target,tool:state.tool,last:{x:point.x,y:point.y},changed:true};
+      state.stroke={pointerId:event.pointerId,target,lease:captureSelectionTarget(target),sourceStart:sourceInfo(),start:point,tool:state.tool,last:{x:point.x,y:point.y},changed:true};
       app.renderer.render();notify();return true;
-    }catch(error){app.toast(error.message||'Raster tool failed',3000);return true;}
+    }catch(error){app.toast(error.message||'Raster tool failed',3000);return true;}finally{if(!state.drag&&!state.stroke)try{app.el.canvas.releasePointerCapture?.(event.pointerId)}catch{}}
   }
 
   function pointerMove(event){
+    if(state.polygonPoints.length){selectionPreview();const p=pointForEvent(event);if(p)state.polygonCursor=p;}
+
     if(state.drag?.pointerId===event.pointerId&&state.drag.type==='marquee'){
       event.preventDefault();event.stopImmediatePropagation();
       if(!selectionTargetValid(selectedRaster(),state.drag.lease)){cancelActiveInteraction();return true;}
@@ -252,15 +278,18 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
       if(p)state.drag.current={x:clamp(p.local.x/t.found.object.w*t.image.width,0,t.image.width),y:clamp(p.local.y/t.found.object.h*t.image.height,0,t.image.height)};
       return true;
     }
-    if(state.drag?.pointerId===event.pointerId&&state.drag.type==='gradient'){
+    if(state.drag?.pointerId===event.pointerId&&['gradient','patch'].includes(state.drag.type)){
+      if(!selectionTargetValid(selectedRaster(),state.drag.lease)){cancelActiveInteraction();return true;}
       const point=pointForEvent(event,state.drag.target);if(point)state.drag.current={x:point.x,y:point.y};return true;
     }
     if(state.stroke?.pointerId!==event.pointerId||!event.buttons)return false;
     event.preventDefault();event.stopImmediatePropagation();
-    const target=selectedRaster();if(!target||target.unsupported)return true;
+    const target=selectedRaster();if(!selectionTargetValid(target,state.stroke.lease)){cancelActiveInteraction();return true;}
     const point=pointForEvent(event,target);if(!point)return true;
+    if(point.x===state.stroke.last.x&&point.y===state.stroke.last.y)return true;
     try{
       const image=applyRetouch(state.stroke.tool,target,point);
+      if(!state.stroke.changed)app.history.begin('Raster '+state.stroke.tool,{targets:[app.objectPath(target.found)]});
       writeRaster(target,image);state.stroke.target=target;state.stroke.last={x:point.x,y:point.y};state.stroke.changed=true;app.renderer.render();
     }catch(error){app.toast(error.message||'Raster tool failed',2500);}
     return true;
@@ -280,7 +309,21 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
         try{app.el.canvas.releasePointerCapture?.(event.pointerId);}catch{}
         notify();return true;
       }
-      if(!cancelled){
+      try{app.el.canvas.releasePointerCapture?.(event.pointerId)}catch{}
+      if(drag.type==='patch'){
+        if(!cancelled&&selectionTargetValid(selectedRaster(),drag.lease)){
+          const p=pointForEvent(event,drag.target)||drag.current,dx=Math.round(p.x-drag.start.x),dy=Math.round(p.y-drag.start.y);
+          if(dx||dy){
+            const m=drag.mask;let x0=m.width,y0=m.height,x1=0,y1=0;
+            for(let y=0;y<m.height;y++)for(let x=0;x<m.width;x++)if(m.alpha[y*m.width+x]){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x+1);y1=Math.max(y1,y+1);}
+            // Keep source and destination geometry equal when the source meets an edge.
+            const x=Math.max(x0,-dx),y=Math.max(y0,-dy),w=Math.min(x1,m.width-dx)-x,h=Math.min(y1,m.height-dy)-y;
+            if(w>0&&h>0)commitOne('Patch',drag.target,patchRaster(drag.target.image,{sourceRegion:{x:x+dx,y:y+dy,w,h},targetRegion:{x,y,w,h},opacity:state.options.opacity,feather:state.options.feather}));
+          }
+        }
+        notify();return true;
+      }
+      if(!cancelled&&selectionTargetValid(selectedRaster(),drag.lease)){
         const stops=[{offset:0,color:state.options.gradientStart},{offset:1,color:state.options.gradientEnd}];
         const fill=gradientFill(drag.target.image.width,drag.target.image.height,{type:state.options.gradientType,stops,start:drag.start,end:drag.current,center:drag.start,radius:Math.hypot(drag.current.x-drag.start.x,drag.current.y-drag.start.y),opacity:state.options.opacity});
         commitOne('Gradient Fill',drag.target,fill);
@@ -289,8 +332,10 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
     }
     if(state.stroke?.pointerId===event.pointerId){
       event.preventDefault();event.stopImmediatePropagation();
-      const changed=state.stroke.changed;state.stroke=null;
-      if(cancelled||!changed)app.history.cancel({restore:true});else{app.history.commit();app.markDirty?.();}
+      const valid=selectionTargetValid(selectedRaster(),state.stroke.lease),changed=state.stroke.changed;state.stroke=null;
+      try{app.el.canvas.releasePointerCapture?.(event.pointerId)}catch{}
+      cancelled=cancelled||!valid;
+      if(cancelled||!changed){if(changed)app.history.cancel({restore:true});}else{app.history.commit();app.markDirty?.();}
       app.renderer.render();notify();return true;
     }
     return false;
@@ -299,8 +344,8 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
   function cancelActiveInteraction({restore=true}={}){
     const pointerId=state.stroke?.pointerId??state.drag?.pointerId??null;
     const hadStroke=Boolean(state.stroke),hadInteraction=hadStroke||Boolean(state.drag)||Boolean(state.polygonPoints.length);
-    if(hadStroke)app.history.cancel({restore:Boolean(restore)});
-    state.stroke=null;state.drag=null;state.polygonPoints=[];
+    if(state.stroke?.changed)app.history.cancel({restore:Boolean(restore)});
+    state.stroke=null;state.drag=null;state.polygonPoints=[];polygonLease=null;
     if(pointerId!=null)try{app.el.canvas.releasePointerCapture?.(pointerId);}catch{}
     if(hadStroke)app.renderer.render();
     if(hadInteraction)notify();
@@ -324,6 +369,6 @@ export function createRasterToolController(app,{onStateChange=()=>{}}={}){
   function options(){return{...state.options};}
   function activeTool(){return state.tool;}
 
-  return{state,setTool,clearTool,cancelActiveInteraction,setOption,setPattern,selection,clearSelection,selectionPreview,options,activeTool,selectedRaster,pointForEvent,pointerDown,pointerMove,pointerUp,refineSelection};
+  return{state,sourceInfo,resetSource,finishPolygon,removePolygonPoint,setTool,clearTool,cancelActiveInteraction,setOption,setPattern,selection,clearSelection,selectionPreview,options,activeTool,selectedRaster,pointForEvent,pointerDown,pointerMove,pointerUp,refineSelection};
 }
 

@@ -285,3 +285,18 @@ export function colorReplacementBrush(imageData, { targetPoint, radius = 1, regi
 }
 
 export const RETOUCH_METRICS = Object.freeze({ luminance });
+
+// Composite a completed native operation through the existing soft selection.
+export function clipRasterSelection(before, after, mask) {
+  const a=assertImageData(before), b=assertImageData(after);
+  if(a.width!==b.width||a.height!==b.height)throw Error('INK_RETOUCH_IMAGE_SIZE_MISMATCH');
+  if(!mask)return after;
+  if(mask.width!==a.width||mask.height!==a.height||mask.alpha?.length!==a.width*a.height)throw Error('INK_RETOUCH_MASK_SIZE_MISMATCH');
+  return applyMaskedPixels(before,mask.alpha,({x,y,target,local})=>mixRgba(target,readRgba(b.data,b.width,x,y),local));
+}
+
+// A moving finger transports the previous dab into the current dab.
+export function smudge(imageData,{previousPoint,targetPoint,strength=.5,...options}={}) {
+  if(!previousPoint||!targetPoint)throw Error('INK_SMUDGE_POINTS_REQUIRED');
+  return cloneStamp(imageData,{...options,sourcePoint:previousPoint,targetPoint,opacity:normalizeUnit(strength,.5)});
+}

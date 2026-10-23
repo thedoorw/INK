@@ -7,6 +7,7 @@ import {UI_B_RASTER_TOOL_IDS} from '../../../../../ui/capability-raster-tools.js
 export const DEV2_SUBTOOL_ICONS=Object.freeze({
  crop:'<path d="M7 3v14a2 2 0 0 0 2 2h12M3 7h14a2 2 0 0 1 2 2v12"/>',
  eyedropper:'<path d="M14 5l5 5M7 17l10-10 3 3-10 10H7zM5 19h5"/>',
+ smudge:'<path d="M5 16c3-8 5-9 7-7l-2 6 5-5c3-2 5 1 2 4l-5 7H7z"/>',
  spotHealing:'<path d="M4 18 18 4l3 3L7 21H4zM14 4v4M12 6h4"/>',
  healingBrush:'<path d="m5 19 11-11 3 3L8 22H5zM11 9l5 5M17 3v3M15 5h4"/>',
  patch:'<path d="M5 7 12 4l7 3v10l-7 3-7-3zM8 12h8" stroke-dasharray="2 2"/>',
@@ -28,16 +29,16 @@ export const DEV2_TOOL_GROUPS=Object.freeze([
  row('crop',5,'影像裁切','<path d="M7 3v14a2 2 0 0 0 2 2h12M3 7h14a2 2 0 0 1 2 2v12"/>',[['crop','影像裁切',null]]),
  row('eyedropper',6,'滴管','<path d="M14 5l5 5M7 17l10-10 3 3-10 10H7zM5 19h5"/>',[['eyedropper','滴管']]),
  row('healing',8,'修復','<path d="M5 17 17 5l3 3L8 20H5zM9 10l5 5M4 6h4M6 4v4"/>',[
-  ['spotHealing','污點修復']
+  ['spotHealing','污點修復'],['healingBrush','修復筆刷'],['patch','修補']
  ]),
  row('stamp',9,'印章','<path d="M8 11V7a4 4 0 0 1 8 0v4l4 5v3H4v-3zM4 21h16"/>',[
-  ['patternStamp','圖樣印章']
+  ['cloneStamp','仿製印章'],['patternStamp','圖樣印章']
  ]),
  row('fill',11,'填色','<path d="M4 5h16v14H4zM4 19 20 5"/>',[
   ['gradient','漸層'],['paintBucket','油漆桶']
  ]),
  row('local',12,'局部處理','<path d="M4 12c3-5 5 5 8 0s5-5 8 0M4 17c3-5 5 5 8 0s5-5 8 0"/>',[
-  ['localBlur','模糊'],['localSharpen','銳利化']
+  ['localBlur','模糊'],['localSharpen','銳利化'],['smudge','塗抹']
  ]),
  row('tone',13,'明暗／色彩','<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M3 12h2M19 12h2M12 7a5 5 0 1 0 0 10a5 5 0 0 0 0-10"/>',[
   ['dodge','加亮'],['burn','加深'],['sponge','海綿']
@@ -46,18 +47,12 @@ export const DEV2_TOOL_GROUPS=Object.freeze([
 export const DEV2_GAPS=Object.freeze([
  {row:5,id:'crop-preview',reason:'Native ui017.image.crop.v1 is a numeric commit; there is no drag crop bounds, viewport preview or interactive crop handles.'},
  {row:6,id:'all-layers-sampling',reason:'Raster eyedropper samples only the selected 8-bit RGB image, not a composited all-layers surface.'},
- {row:8,id:'patch-selection',reason:'Native patch currently copies a circular radius region from an Alt-click point; no draggable source/target patch-selection workflow or free feather.'},
- {row:8,id:'source-binding',reason:'Raster sourcePoint lives in controller state and is not keyed by selected object; switching image can retain a prior source point.'},
- {row:9,id:'clone-source-binding',reason:'Native clone and healing sourcePoint is not selection-scoped, and Pattern image is transient in memory rather than document state.'},
  {row:11,id:'gradient-stops',reason:'Raster gradient controller uses exactly two endpoint colors and pointer drag; arbitrary color-stop editing and preview are absent.'},
- {row:12,id:'smudge',reason:'No persistent native Smudge pointer tool is registered in UI_B_RASTER_TOOL_IDS; do not expose a false Smudge choice.'},
- {row:12,id:'pixel-mask',reason:'Current raster retouch pointer controller does not apply state.selection alpha to per-stroke output.'},
  {row:13,id:'tone-range',reason:'Dodge and Burn do not expose independent Shadows/Midtones/Highlights ranges or exposure parameters.'},
- {row:13,id:'tonal-pixel-mask',reason:'Current tonal pointer controller does not apply raster selection alpha to per-stroke output.'}
 ]);
 
-// These Native modes retain an unscoped sourcePoint across images; no safe reset API exists.
-export const DEV2_WITHHELD_TOOLS=Object.freeze(['healingBrush','patch','cloneStamp']);
+// Source modes use the controller-owned target lease and explicit source reset.
+export const DEV2_WITHHELD_TOOLS=Object.freeze([]);
 const SOURCE_WITHHELD=new Set(DEV2_WITHHELD_TOOLS);
 const TOOL_IDS=new Set(DEV2_TOOL_GROUPS.flatMap(group=>group.items.map(item=>item.id)));
 const MUTATING_IDS=new Set([...TOOL_IDS].filter(id=>id!=='crop'&&id!=='eyedropper'));
@@ -71,7 +66,8 @@ const brushFields=[num('radius','半徑（物件單位）',1,300),pct('opacity',
 export const DEV2_FIELD_SCHEMAS=Object.freeze({
  crop:[num('x','X px',0,8191),num('y','Y px',0,8191),num('w','寬度 px',1,8192),num('h','高度 px',1,8192)],
  eyedropper:[num('sampleRadius','取樣半徑 px',0,32)],
- spotHealing:brushFields,healingBrush:brushFields,patch:[num('radius','半徑（物件單位）',1,300),pct('opacity','不透明度 %')],
+ spotHealing:brushFields,healingBrush:brushFields,patch:[pct('opacity','不透明度 %'),num('feather','邊緣羽化 px',0,100)],
+ smudge:[num('radius','半徑（物件單位）',1,300),pct('strength','強度 %'),pct('hardness','硬度 %')],
  cloneStamp:brushFields,patternStamp:brushFields,
  gradient:[choice('gradientType','類型',['linear','radial']),color('gradientStart','起始色'),color('gradientEnd','結束色'),pct('opacity','不透明度 %')],
  paintBucket:[num('tolerance','容差',0,255),choice('contiguous','相鄰區域',['On','Off']),pct('opacity','不透明度 %')],
@@ -100,6 +96,7 @@ const selected=host=>{
 };
 export function dev2Availability(host,id){
  if(SOURCE_WITHHELD.has(id))return {available:false,reason:'SOURCE_RESET_UNAVAILABLE'};
+ if(['cloneStamp','healingBrush'].includes(id)&&(!runtime(host)?.sourceInfo||!runtime(host)?.resetRasterSource))return {available:false,reason:'SOURCE_RESET_UNAVAILABLE'};
  if(!TOOL_IDS.has(id))return {available:false,reason:'UNKNOWN_TOOL'};
  const s=selected(host);
  if(!s.ok)return {available:false,reason:s.reason};
@@ -108,7 +105,7 @@ export function dev2Availability(host,id){
  const rt=runtime(host);
  if(id!=='crop'&&(!rt||typeof rt.activate!=='function'||typeof rt.activeTool!=='function'||typeof rt.setRasterOption!=='function'))return {available:false,reason:'RASTER_RUNTIME_MISSING'};
  if(MUTATING_IDS.has(id)&&typeof rt.rasterSelection!=='function')return {available:false,reason:'RASTER_SELECTION_RECEIVER_MISSING'};
- if(MUTATING_IDS.has(id)&&rt.rasterSelection()?.alpha)return {available:false,reason:'RASTER_SELECTION_MASK_UNSUPPORTED'};
+ if(MUTATING_IDS.has(id)&&rt.selectionClipping!==true&&rt.rasterSelection()?.alpha)return {available:false,reason:'RASTER_SELECTION_MASK_UNSUPPORTED'};
  if(id!=='crop'&&!guards.has(host))return {available:false,reason:'SAFETY_GUARD_REQUIRED'};
  return {available:true,reason:'READY',width:s.width,height:s.height};
 }
@@ -158,7 +155,7 @@ export function mountDev2SafetyGuard(host,{eventTarget=typeof window!=='undefine
    const info=selected(host);
    if(!info.ok)reason=info.reason;
    else if(!sameTarget(host.target(),lease.token)||info.found.object!==lease.object||info.found.layer!==lease.layer)reason='TARGET_CHANGED';
-   else if(MUTATING_IDS.has(lease.id)&&rt.rasterSelection?.()?.alpha)reason='RASTER_SELECTION_MASK_UNSUPPORTED';
+   else if(MUTATING_IDS.has(lease.id)&&rt.selectionClipping!==true&&rt.rasterSelection?.()?.alpha)reason='RASTER_SELECTION_MASK_UNSUPPORTED';
    else return {ok:true,id:lease.id};
   }catch(e){reason=e.code||'TARGET_CHANGED'}
   stop(reason);return {ok:false,reason};
@@ -181,7 +178,7 @@ export function mountDev2SafetyGuard(host,{eventTarget=typeof window!=='undefine
    const info=selected(host);
    if(!info.ok)fail(info.reason);
    if(!sameTarget(host.target(),token))fail('TARGET_STALE');
-   if(MUTATING_IDS.has(id)&&rt.rasterSelection?.()?.alpha)fail('RASTER_SELECTION_MASK_UNSUPPORTED');
+   if(MUTATING_IDS.has(id)&&rt.selectionClipping!==true&&rt.rasterSelection?.()?.alpha)fail('RASTER_SELECTION_MASK_UNSUPPORTED');
    lease={id,token,object:info.found.object,layer:info.found.layer};
   },
   check,
@@ -298,21 +295,23 @@ export function dev2OptionsMarkup(host,id){
   crop:'數值裁切，尚無畫布框選預覽。Apply 會建立 Native History；Cancel 不修改文件。',
   eyedropper:'從選取影像取色（不支援合成所有圖層）。',
   healingBrush:'Alt/Option 點擊影像設定來源，再在目標處刷過。',
-  patch:'Alt/Option 點擊來源，再點擊目標；目前僅圓形區域修補。',
-  cloneStamp:'Alt/Option 點擊來源，再刷至目標；切換影像後請重新取樣。',
+  patch:'先建立像素選區，從選區內拖曳到來源區域；放開後修補。',
+  cloneStamp:'Alt/Option 點擊來源，再刷至目標；來源綁定目前影像，切換後需重新取樣。',
   patternStamp:'先載入圖樣，再在目標影像刷過；圖樣尚未寫入文件。',
   gradient:'在影像上拖曳起點與終點；目前只有兩個色標。',
   paintBucket:'點擊影像色域填色；顏色來自現有前景色。',
-  localBlur:'在影像刷過模糊；尚未遵從 Raster 選區遮罩。',
-  localSharpen:'在影像刷過銳化；尚未遵從 Raster 選區遮罩。',
+  localBlur:'在影像刷過模糊；遵從目前像素選區。',
+  localSharpen:'在影像刷過銳化；遵從目前像素選區。',
   dodge:'在影像刷過加亮；尚無高光／中間調／陰影範圍。',
   burn:'在影像刷過加深；尚無高光／中間調／陰影範圍。',
+  smudge:'按住拖曳將顏色推向移動方向；遵從目前像素選區。',
   sponge:'在影像刷過增加或降低飽和度。'
  })[id]||'按目前已安裝的 Raster 互動操作。';
  const controls=id==='crop'?'<button type="button" data-dev2-action="apply">Apply</button><button type="button" data-dev2-action="cancel">Cancel</button>':'';
  const pattern=id==='patternStamp'?'<label class="field-row"><span>圖樣影像</span><input type="file" data-dev2-pattern accept="image/*" aria-label="載入圖樣影像"></label><span class="context-readout">'+esc(rt?.patternInfo?.().name||'尚未載入圖樣')+'</span>':'';
+ const source=['cloneStamp','healingBrush'].includes(id)?'<span class="context-readout">來源 '+esc(rt?.sourceInfo?.()?Math.round(rt.sourceInfo().x)+', '+Math.round(rt.sourceInfo().y):'尚未取樣')+'</span><button type="button" data-dev2-action="source-clear">清除來源</button>':'';
  const readout=id==='eyedropper'?'<span class="context-readout">前景色 '+esc(current(host).paint?.foreground||'—')+'</span>':'';
- return '<div data-dev2-options="'+esc(id)+'" class="context-parameter-group" role="group" aria-label="'+esc(item.label)+' 選項"><fieldset'+(availability.available?'':' disabled')+'>'+html+pattern+readout+controls+'</fieldset><span class="capability-empty">'+esc(availability.available?explain:availability.reason)+'</span></div>';
+ return '<div data-dev2-options="'+esc(id)+'" class="context-parameter-group" role="group" aria-label="'+esc(item.label)+' 選項"><fieldset'+(availability.available?'':' disabled')+'>'+html+source+pattern+readout+controls+'</fieldset><span class="capability-empty">'+esc(availability.available?explain:availability.reason)+'</span></div>';
 }
 async function loadPattern(host,file,token,isDisposed){
  if(!file||!String(file.type||'').startsWith('image/')||file.size>16777216)fail('PATTERN_FILE_INVALID');
@@ -355,10 +354,12 @@ export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{}
   paint();
  };
  const click=async event=>{
-  if(disposed||busy||id!=='crop')return;
+  if(disposed||busy)return;
   const action=event.target?.closest?.('[data-dev2-action]')?.dataset.dev2Action;
   if(!action)return;
   event.preventDefault();
+  if(action==='source-clear'){runtime(host)?.resetRasterSource?.();paint();return;}
+  if(id!=='crop')return;
   if(action==='cancel'){onCancel();if(!disposed)root.replaceChildren();return}
   const values={};
   for(const el of root.querySelectorAll('[data-key]'))values[el.dataset.key]=el.value;
