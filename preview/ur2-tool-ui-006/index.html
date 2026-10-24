@@ -167,6 +167,7 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #ur2Review .ur2-item fieldset{display:block}
 #ur2Review .ur2-item button{min-height:22px}
 #ur2Review footer{border-top:1px solid var(--line);padding:7px 9px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--secondary)}
+#ur2Review footer{flex-wrap:wrap}
 #ur2Notice{position:fixed;z-index:99;bottom:70px;left:50%;transform:translateX(-50%);background:var(--primary);color:var(--surface);padding:7px 12px;border-radius:var(--radius)}
 #contextToolOptions .ur2-pending{opacity:.5}
 #ur2LiveFrame{position:fixed;inset:0;width:100vw;height:100dvh;border:0;z-index:80;background:var(--workspace)}
@@ -352,6 +353,8 @@ function downloadMeasurements(){
  a.href=url;a.download='INK_UR2_v006_preview_geometry.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);
 }
 el('#ur2GeometryExport').onclick=downloadMeasurements;
+ctx.addEventListener('click',e=>{if(e.target.closest('button:not(:disabled)'))showNote('情境控制為獨立預覽值，不會執行 Native 編輯。')});
+ctx.addEventListener('change',e=>{if(e.target.matches('input,select'))showNote('此數值只保留於示意頁，不會修改正式文件。')});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMenu();review.hidden=true}});
 window.addEventListener('resize',()=>{closeMenu();renderContext()});
 paintColors();renderRail();renderContext();renderReview();
