@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>INK · 靜水一滴｜開機動畫原型 v1.0</title>
+  <style>
+    /* INK Still Water | standalone visual prototype, no external assets. */
+    :root {
+      --ink-boot-background: #f1f0ec;
+      --ink-boot-drop-color: #748995;
+      --ink-boot-line-color: #9da9ae;
+      --ink-boot-cycle: 8s;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+    #inkBootGate {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483640;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      background: var(--ink-boot-background);
+      isolation: isolate;
+    }
+
+    /* Fixed, low-contrast haze. No pictures, noise loops, or external textures. */
+    #inkBootGate::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 68% 65% at 48% 36%, rgba(255,255,255,.38), transparent 84%),
+        radial-gradient(ellipse 75% 70% at 72% 86%, rgba(179,190,191,.055), transparent 87%);
+    }
+
+    .ink-boot-scene {
+      position: relative;
+      width: 120px;
+      height: 96px;
+      margin-top: min(4vh, 28px); /* Composition: slightly below viewport center. */
+      overflow: visible;
+    }
+
+    .ink-boot-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .ink-boot-drop {
+      fill: var(--ink-boot-drop-color);
+      opacity: 0;
+      transform: translateY(1px);
+      animation: ink-water-drop var(--ink-boot-cycle) infinite;
+    }
+
+    .ink-boot-waterline,
+    .ink-boot-reduced-line {
+      fill: none;
+      stroke: var(--ink-boot-line-color);
+      stroke-width: 1.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .ink-boot-reduced-line { display: none; }
+
+    /* Each 8 s cycle: 2 s silence, 2.2 s fall, .12 s absorption,
+       1.6 s linear ripple, 2.08 s silence. */
+    @keyframes ink-water-drop {
+       0%, 24.99% { opacity: 0; transform: translateY(1px); }
+       25%        { opacity: 0; transform: translateY(1px); }
+       27%        { opacity: 1; transform: translateY(1px); }
+       52.5%      { opacity: 1; transform: translateY(49px); }
+       54%        { opacity: 0; transform: translateY(49px); }
+       100%       { opacity: 0; transform: translateY(49px); }
+    }
+    .ink-boot-drop {
+      animation-timing-function: cubic-bezier(.38,.04,.62,.92);
+    }
+
+    .ink-boot-sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border: 0;
+    }
+    .ink-boot-error {
+      display: none;
+      position: relative;
+      max-width: 24rem;
+      padding: 1rem;
+      color: #43545d;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    /* Integration hooks: actual Shell readiness must be provided by INK.
+       This prototype intentionally does not fake a timeout or readiness event. */
+    html[data-ink-shell-ready="true"] #inkBootGate { display: none; }
+    html[data-ink-shell-ready="error"] .ink-boot-scene { display: none; }
+    html[data-ink-shell-ready="error"] .ink-boot-error { display: block; }
+
+    @media (max-width: 480px) {
+      .ink-boot-scene { width: 112px; height: 89.6px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ink-boot-drop {
+        opacity: 1;
+        animation: none;
+        transform: translateY(24px);
+      }
+      /* The SMIL-driven waterline is invisible; a static path replaces it. */
+      .ink-boot-waterline { display: none; }
+      .ink-boot-reduced-line { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div id="inkBootGate" role="status" aria-label="INK 正在啟動" aria-live="polite">
+    <div class="ink-boot-scene" aria-hidden="true">
+      <svg class="ink-boot-svg" viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" focusable="false">
+        <!-- One blue-grey water drop, about 10 x 15 viewBox units. -->
+        <path class="ink-boot-drop" d="M60 0 C57.4 3.6 55 7.4 55 10.2 A5 5 0 0 0 65 10.2 C65 7.4 62.6 3.6 60 0Z" />
+
+        <!-- Actual waterline path morphing, rather than concentric circles. -->
+        <path class="ink-boot-waterline"
+          d="M30 64 C35 64 39 64 45 64 C51 64 56 64 60 64 C64 64 69 64 75 64 C81 64 85 64 90 64">
+          <animate attributeName="d"
+            dur="8s" repeatCount="indefinite" calcMode="linear"
+            keyTimes="0;0.525;0.540;0.575;0.625;0.685;0.740;1"
+            values="
+              M30 64 C35 64 39 64 45 64 C51 64 56 64 60 64 C64 64 69 64 75 64 C81 64 85 64 90 64;
+              M30 64 C35 64 39 64 45 64 C51 64 56 64 60 64 C64 64 69 64 75 64 C81 64 85 64 90 64;
+              M30 64 C35 64 39 64 45 64 C51 64 55 65.2 60 65.8 C65 65.2 69 64 75 64 C81 64 85 64 90 64;
+              M30 64 C35 64 39 64 45 63.9 C50 63.3 54 65.1 60 64 C66 65.1 70 63.3 75 63.9 C81 64 85 64 90 64;
+              M30 64 C35 64 39 63.1 45 64.3 C50 64.6 54 64.1 60 64 C66 64.1 70 64.6 75 64.3 C81 63.1 85 64 90 64;
+              M30 64 C35 63.7 39 64.5 45 64.2 C50 64.05 54 64 60 64 C66 64 70 64.05 75 64.2 C81 64.5 85 63.7 90 64;
+              M30 64 C35 64 39 64 45 64 C51 64 56 64 60 64 C64 64 69 64 75 64 C81 64 85 64 90 64;
+              M30 64 C35 64 39 64 45 64 C51 64 56 64 60 64 C64 64 69 64 75 64 C81 64 85 64 90 64" />
+        </path>
+        <path class="ink-boot-reduced-line" d="M30 64H90" />
+      </svg>
+    </div>
+    <span class="ink-boot-sr-only">INK 正在啟動</span>
+    <p class="ink-boot-error" role="alert">INK 啟動時發生錯誤，請重新整理頁面。</p>
+  </div>
+</body>
+</html>
