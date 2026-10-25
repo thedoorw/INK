@@ -122,16 +122,33 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .native-function-module [data-slot]{display:flex;flex-wrap:wrap;gap:8px;position:static;overflow:visible;max-height:none}
 .native-function-module .ink-control-group{display:flex;flex-wrap:wrap;gap:5px;padding:6px;border:1px solid #ccc}
 .native-function-module input,.native-function-module select,.native-function-module button{font:inherit;max-width:100%;min-height:28px}
-.panel-host[data-panel=character] .character-font-row{display:grid;gap:4px;margin-bottom:5px}
-.panel-host[data-panel=character] .character-font-row .field-row{grid-template-columns:42px minmax(0,1fr);margin:0}
-.panel-host[data-panel=character] .character-metrics{margin-bottom:5px}
-.panel-host[data-panel=character] .character-metrics .field-row{grid-template-columns:60px minmax(0,1fr);margin:0;gap:2px}
-.panel-host[data-panel=character] .character-style-controls{display:flex;align-items:center;min-height:24px;gap:5px;margin-bottom:4px}
-.panel-host[data-panel=character] .character-style-controls button{width:28px;height:24px;min-width:28px;padding:2px}
-.panel-host[data-panel=character] .character-style-controls button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
-.panel-host[data-panel=character] .character-style-controls svg{width:16px;height:16px}
-.panel-host[data-panel=character] .character-text-edit .field-row{grid-template-columns:42px minmax(0,1fr)}
-.panel-host[data-panel=character] .unit-hint{margin:3px 0;color:var(--secondary);font-size:var(--text-tiny)}
+
+/* UR3 R2.10 Native Character: same dense two-column geometry as the frozen visual,
+   with Native text.patch as the only edit owner. */
+.right-dock .panel-host[data-panel=character] .ps-native-character{min-width:0}
+.right-dock .panel-host[data-panel=character] .ps-native-char-main{display:flex;flex-direction:column;gap:1px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:5px;min-height:23px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-family{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);margin:2px 0 4px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-combo,.right-dock .panel-host[data-panel=character] .ps-native-char-edit,.right-dock .panel-host[data-panel=character] .ps-native-char-color{min-width:0;height:24px;display:flex;align-items:center;gap:3px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-glyph{flex:0 0 27px;width:27px;min-width:27px;display:grid;place-items:center;height:21px;color:var(--secondary);font-size:13px;letter-spacing:-.5px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-family .ps-native-char-glyph,.right-dock .panel-host[data-panel=character] .ps-native-char-combo.font .ps-native-char-glyph,.right-dock .panel-host[data-panel=character] .ps-native-char-combo.style .ps-native-char-glyph{display:none}
+.right-dock .panel-host[data-panel=character] .ps-native-char-select{position:relative;flex:1;min-width:0;height:21px;border:1px solid var(--border);background:var(--surface);border-radius:0}
+.right-dock .panel-host[data-panel=character] .ps-native-char-select:after{content:'';position:absolute;right:0;top:0;bottom:0;width:14px;border-left:1px solid var(--border);pointer-events:none;background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2012%2012'%3E%3Cpath%20d='M2.5%204.5%206%208%209.5%204.5'%20fill='none'%20stroke='%23666666'%20stroke-width='1.25'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px 12px no-repeat}
+.right-dock .panel-host[data-panel=character] .ps-native-char-select select{appearance:none;-webkit-appearance:none;display:block;width:100%;min-width:0;height:19px;min-height:19px;line-height:19px;padding:0 16px 0 4px;border:0;border-radius:0;background:transparent;color:var(--primary);text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-select select:disabled{opacity:1;color:var(--secondary)}
+.right-dock .panel-host[data-panel=character] .ps-native-char-select select:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-edit input{flex:1;height:21px;min-width:0;width:0;padding:0 4px;border-radius:0}
+.right-dock .panel-host[data-panel=character] .ps-native-char-edit input:disabled{opacity:1;color:var(--secondary)}
+.right-dock .panel-host[data-panel=character] .ps-native-char-color span{flex:0 0 auto;font-size:11px;color:var(--secondary)}
+.right-dock .panel-host[data-panel=character] .ps-native-char-color input[type=color]{height:22px;flex:1;min-width:0;padding:0;border-radius:0}
+.right-dock .panel-host[data-panel=character] .ps-native-char-styles{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(2,22px);gap:0 1px;margin:5px 0 3px;padding:2px 0 0}
+.right-dock .panel-host[data-panel=character] .ps-native-char-style{display:grid;place-items:center;height:21px;min-height:0;width:100%;min-width:0;padding:0;border:0;border-radius:0;background:transparent;font-size:13px;line-height:20px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-style:disabled{opacity:1;color:var(--secondary)}
+.right-dock .panel-host[data-panel=character] .ps-native-char-style[aria-pressed=true]{color:var(--accent);background:var(--accent-soft)}
+.right-dock .panel-host[data-panel=character] .ps-native-char-bottom{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:5px;margin-top:4px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-advanced{margin-top:7px;border-top:1px solid var(--line);font-size:11px;color:var(--secondary)}
+.right-dock .panel-host[data-panel=character] .ps-native-char-advanced summary{cursor:pointer;min-height:22px;line-height:22px}
+.right-dock .panel-host[data-panel=character] .ps-native-char-advanced .character-native-typography{display:grid;gap:4px}
 .layer-native-lock-row{display:flex;align-items:center;gap:5px;min-height:28px;padding:2px 0;border-top:1px solid var(--line);font-size:var(--text-tiny);color:var(--secondary)}
 .layer-native-lock-row button{display:flex;align-items:center;gap:5px;min-height:24px;padding:2px 7px;border:1px solid var(--line);background:var(--surface);color:var(--primary)}
 .layer-native-lock-row button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
@@ -177,6 +194,51 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .right-dock .panel-host[data-panel=swatches] .swatch-grid{grid-template-columns:repeat(auto-fill,minmax(18px,1fr));gap:1px}
 .right-dock .panel-host[data-panel=character] .character-font-row{margin-bottom:5px}
 .right-dock .panel-host[data-panel=paragraph] .icon-choices{gap:2px;margin-bottom:6px}
+
+/* R2.10 Brushes uses the existing Native tool.option + tool.preset.apply.
+   Reference-only preset silhouettes are never active commands. */
+.right-dock .panel-host[data-panel=brushes]{display:flex;flex-direction:column;overflow:hidden}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brushes{height:100%;min-height:0;display:flex;flex-direction:column}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-size-top{display:flex;align-items:center;gap:4px;min-height:25px;padding-bottom:2px;color:var(--secondary);font-size:11px}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-size-top output{display:grid;place-items:center;min-width:60px;height:21px;border:1px solid var(--border);background:var(--surface);color:var(--primary)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-size-top button{width:24px;min-width:24px;height:22px;min-height:22px;padding:0}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-size-track .range-row{display:flex;min-height:18px}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-size-track .range-row>span,.right-dock .panel-host[data-panel=brushes] .ps-native-brush-size-track .range-row>output{display:none}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-size-track .shared-slider{height:18px}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-heads{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;min-height:43px;padding:3px 0 5px;border-bottom:1px solid var(--line)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-head{display:grid;place-items:center;height:34px;min-height:34px;padding:0;background:var(--surface);border:1px solid var(--line);opacity:1}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-head span{display:block;border-radius:50%;width:15px;height:15px;background:var(--primary);box-shadow:0 0 4px var(--secondary)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-head.head-0 span{filter:blur(2px)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-head.head-2 span{width:18px;height:8px;border-radius:40%}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-head.head-3 span{border-radius:0}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-head.head-4 span{height:9px;width:9px;border-radius:2px;transform:rotate(30deg)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-scroll{min-height:0;flex:1;overflow:auto;scrollbar-width:thin}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-folder{display:flex;align-items:center;gap:4px;height:24px;color:var(--secondary);font-size:11px}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-preset{display:flex;align-items:center;width:100%;min-height:29px;height:29px;gap:9px;text-align:left;padding:0 6px;border:0;border-radius:0;background:var(--surface);font-size:11px;color:var(--primary)}
+.right-dock .panel-host[data-panel=brushes] div.ps-native-brush-preset{color:var(--secondary)}
+.right-dock .panel-host[data-panel=brushes] button.ps-native-brush-preset[aria-pressed=true]{background:var(--accent-soft)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-stroke{display:block;flex:0 0 54px;height:8px;border-radius:50%;background:var(--primary);filter:blur(.5px);transform:scaleY(var(--brush-preview-scale,1))}
+.right-dock .panel-host[data-panel=brushes] .brush-ref-0 .ps-native-brush-stroke,.right-dock .panel-host[data-panel=brushes] .brush-ref-2 .ps-native-brush-stroke{filter:blur(2px)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-settings summary{min-height:22px;cursor:pointer;color:var(--secondary);font-size:11px}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-preview-slider{flex:0 0 28px;min-height:28px;border-top:1px solid var(--line)}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-preview-slider .range-row{grid-template-columns:54px minmax(0,1fr) 30px;font-size:10px;gap:3px}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-footer{flex:0 0 29px;min-height:29px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:2px}
+.right-dock .panel-host[data-panel=brushes] .ps-native-brush-footer button{width:28px;min-width:28px;min-height:26px;padding:0;border:0;background:transparent;opacity:1;color:var(--secondary)}
+/* R2.10 Layers: reference filter and fill slots remain disabled.
+   Existing blend/opacity/lock, list and Native layer commands remain owned by Layers. */
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-filters{display:flex;align-items:center;gap:2px;min-height:25px;height:25px}
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-filters select{flex:1;min-width:0;height:22px;opacity:1;font-size:11px;padding:0 3px}
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-filters button{min-width:19px;width:19px;height:22px;min-height:22px;padding:0;border:0;border-radius:0;opacity:1;font-size:13px;color:var(--secondary)}
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-lock-references{display:flex;gap:1px}
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-lock-references button{width:20px;min-width:20px;padding:0;border:0;opacity:1;font-size:12px}
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-fill{display:flex;align-items:center;gap:3px;white-space:nowrap;font-size:11px;color:var(--secondary);margin-left:auto}
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-fill input{width:45px;min-width:45px;height:22px;opacity:1;font-size:11px;padding:0 3px}
+/* R2.10 240px Layer footer reflow: ten slots remain visible, with native actions intact. */
+.right-dock .panel-host[data-panel=layers] .layer-footer{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:2px;justify-content:stretch;width:100%;min-width:0}
+.right-dock .panel-host[data-panel=layers] .layer-footer button{min-width:0;width:100%;min-height:24px;height:24px;padding:0}
+.right-dock .panel-host[data-panel=layers] .layer-native-lock-row{flex-wrap:wrap;gap:2px 4px}
+.right-dock .panel-host[data-panel=layers] .ps-native-layer-lock-references{flex:0 0 auto}
+
 .right-dock .panel-host[data-panel=brushes] .brush-settings{gap:4px}
 .right-dock .panel-host[data-panel=brushes] .brush-presets{grid-template-columns:minmax(0,1fr)}
 .right-dock .panel-host[data-panel=adjustments] .adjustment-icons{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
@@ -215,14 +277,24 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .right-dock .panel-host[data-panel=paths] .ps-paths-footer button:disabled{opacity:.42}
 
 /* UR3 PS panel body geometry: Color and Adjustments */
-.right-dock .panel-host[data-panel=color] .ps-color-visual-row{display:grid;grid-template-columns:31px minmax(0,1fr);gap:5px;height:clamp(160px,23vh,250px);min-height:0;margin-bottom:5px}
+
+/* UR3 R2.10 Native Color: Photoshop compact foreground/background plus saturation
+   plane and a real vertical hue slider; no permanently exposed HEX or swap/reset. */
+.right-dock .panel-host[data-panel=color] .ps-color-visual-row{display:grid;grid-template-columns:34px minmax(0,1fr);gap:5px;padding:2px 11px 0 0;height:min(273px,100%);min-height:0;overflow:hidden}
 .right-dock .panel-host[data-panel=color] .ps-color-chips{position:relative;min-width:0}
-.right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips{position:relative;width:30px;height:43px}
-.right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips input[type=color]{width:21px;height:22px;padding:0;border:1px solid #888;border-radius:0}
-.right-dock .panel-host[data-panel=color] .ps-color-chips [aria-label=Background]{left:9px;top:10px}
+.right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips{position:relative;width:34px;height:44px}
+.right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips input[type=color]{position:absolute;width:21px;height:22px;min-height:0;padding:0;border:1px solid var(--secondary);border-radius:0;opacity:1}
+.right-dock .panel-host[data-panel=color] .ps-color-chips [aria-label=Background]{left:10px;top:11px}
 .right-dock .panel-host[data-panel=color] .ps-color-chips [aria-label=Foreground]{left:0;top:0}
-.right-dock .panel-host[data-panel=color] .ps-color-visual-row .color-picker{height:100%;margin:0;--picker-h:clamp(160px,23vh,250px);grid-template-columns:minmax(0,1fr) 22px}
-.right-dock .panel-host[data-panel=color] .color-values{padding-left:34px}
+.right-dock .panel-host[data-panel=color] .ps-native-color-gradient{display:grid;grid-template-columns:minmax(0,1fr) 19px;gap:17px;min-width:0;min-height:0;height:100%}
+.right-dock .panel-host[data-panel=color] .ps-native-color-gradient .color-plane{min-width:0;height:100%;min-height:0;border:0;border-radius:0;touch-action:none}
+.right-dock .panel-host[data-panel=color] .ps-native-color-gradient .color-plane-marker{width:9px;height:9px;border:1px solid white;box-shadow:0 0 1px #333}
+.right-dock .panel-host[data-panel=color] .ps-native-hue{position:relative;width:19px;height:100%;min-height:0;background:linear-gradient(to bottom,red,magenta,blue,cyan,lime,yellow,red);cursor:ns-resize;touch-action:none}
+.right-dock .panel-host[data-panel=color] .ps-native-hue-indicator{position:absolute;left:-12px;top:50%;width:13px;height:17px;transform:translateY(-50%);cursor:ns-resize;pointer-events:auto}
+.right-dock .panel-host[data-panel=color] .ps-native-hue-indicator:before,.right-dock .panel-host[data-panel=color] .ps-native-hue-indicator:after{content:'';position:absolute;clip-path:polygon(0 0,100% 50%,0 100%);pointer-events:none}
+.right-dock .panel-host[data-panel=color] .ps-native-hue-indicator:before{left:2px;top:3px;width:10px;height:11px;background:var(--primary)}
+.right-dock .panel-host[data-panel=color] .ps-native-hue-indicator:after{left:3px;top:4px;width:7px;height:9px;background:var(--surface)}
+.right-dock .panel-host[data-panel=color] .ps-native-hue:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .right-dock .panel-host[data-panel=adjustments] .ps-adjustment-caption{font-size:12px;line-height:20px;margin:0 0 6px 0;color:var(--ps-text)}
 .right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;align-content:start;flex:0 0 auto;margin:3px 8px 10px}
 .right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons .icon-button{height:24px;min-height:24px;width:100%;display:grid;place-items:center;padding:2px;border:0;background:transparent;border-radius:2px}
