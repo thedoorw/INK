@@ -4,15 +4,15 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "8bbad6c7e8e66559763d226b03bbef12e8a6031b",
-    "product_tree": "5234be5c537162322254742b8a2e1938575fc36b"
+    "exact_sha": "3ea3ae4ba75c5bff527501f9867aef7babc69d1f",
+    "product_tree": "439357c420c776076c17c6cd367f04af3152da5a"
   },
   "package": {
-    "manifest_sha256": "0fea03c41a2324b1b4b00e97812e56c575ca1e5fefb028e5d7e07dfcf256adac"
+    "manifest_sha256": "024dfec4690e833f9f953841b4540aca1f1c631ac51cc6362bddc7a44991b636"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "019be04f137dd3fc3b4d7d993ab9980631e47b94fb3d81f1c1cefe5c30c5549f",
+    "package_digest_sha256": "a40cced53309fc1f010b61d3e4b1b92e96703c19334e29bf4311c0a267142d4a",
     "file_count": 323,
     "files": [
       {
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "b7401357a7a1e4670f67c8cde9f17028ce941fab486d4205360b79ace7419c8c"
+        "sha256": "a3c8451ff536812f906376029ba283b490609ef0af9e681cb0ca5aa61b5cf7d1"
       },
       {
         "path": "dist/ink.compat.js",
@@ -47,13 +47,13 @@
       },
       {
         "path": "index-standalone.html",
-        "bytes": 3175,
-        "sha256": "ed83dc436073fa3152402eb96d0ad072b02f74c018614f279b2340119aafb213"
+        "bytes": 2584,
+        "sha256": "34ecbe0476c26dfe4fb58a569090f066fecc1292dc52a94e98748d1835fc8844"
       },
       {
         "path": "index.html",
-        "bytes": 3162,
-        "sha256": "989e4fefc0aba1fa8e6175c45b082e92a00c1be6abc557fc27534cec77e212d7"
+        "bytes": 2571,
+        "sha256": "274d9bedc6e0ea445972f5a1371dd5fed17b5addab6744a1c727475cedaaca4c"
       },
       {
         "path": "manifest-portable.webmanifest",
@@ -1387,8 +1387,8 @@
       },
       {
         "path": "src/ui/ink017/panels/adjustments.js",
-        "bytes": 7076,
-        "sha256": "638681d7a8de3efb02ef6020d7f3d0fac864679c7d603707d6898a5044a0d481"
+        "bytes": 7318,
+        "sha256": "f5b7101e92267688d66672a7d1a4a4758f754d129e5ad5e6b5d81f30de7adc26"
       },
       {
         "path": "src/ui/ink017/panels/brushes.js",
@@ -1407,13 +1407,13 @@
       },
       {
         "path": "src/ui/ink017/panels/color.js",
-        "bytes": 5050,
-        "sha256": "36b6d59f1dbcd5ea09fc80f05e9732408e449e370039372c3af3f6faca0d17ec"
+        "bytes": 5265,
+        "sha256": "805f471e1907d4b958d77a887d741c46d19e78569290fc4cd1609ab1398bd51c"
       },
       {
         "path": "src/ui/ink017/panels/history.js",
-        "bytes": 1788,
-        "sha256": "5438f7468edac2ec9b6b3ead78a9b4fe2bdf63b0e4c73a9e0e920f4dcc138459"
+        "bytes": 2323,
+        "sha256": "6bbcd9f45a14052a5bc69d7e35b9e21b9590343f7f96d09ce8ae2393cf497ae8"
       },
       {
         "path": "src/ui/ink017/panels/layers.js",
@@ -1427,18 +1427,18 @@
       },
       {
         "path": "src/ui/ink017/panels/navigator.js",
-        "bytes": 5217,
-        "sha256": "eb418c9d18ac00df08902190d9118f28885dbc27d1c95e3cd0285e6418987712"
+        "bytes": 5539,
+        "sha256": "668bfd2877584f8931f6404eb048e9bd1025bd9891f974845762b38c4b0f3f84"
       },
       {
         "path": "src/ui/ink017/panels/paragraph.js",
-        "bytes": 3383,
-        "sha256": "43e8a2f7b7cf31a931bb803d7aaf74f14c2a5eec4eb2dd9a93372206335acbf2"
+        "bytes": 3572,
+        "sha256": "c368aeb846fec5ff4ba414b471e91f950716cf0baefcd997ae2076695fbc561e"
       },
       {
         "path": "src/ui/ink017/panels/paths.js",
         "bytes": 2096,
-        "sha256": "4497940eb260cae24af33fd61ffce159caf2aff373e830066203f8fdfede9315"
+        "sha256": "76b8463ab88ddc81531eca9b60fe45937572b9e89539509fdcea25b1c5b1061e"
       },
       {
         "path": "src/ui/ink017/panels/properties.js",
@@ -1447,8 +1447,8 @@
       },
       {
         "path": "src/ui/ink017/panels/swatches.js",
-        "bytes": 3375,
-        "sha256": "8dfcae926838c2549306482801c5d94ce48f0c7f2f843374b715758e04a63c4c"
+        "bytes": 3780,
+        "sha256": "09480238157083ffdc40523933af38e023cc6093703bffde5b4bb9905c3de209"
       },
       {
         "path": "src/ui/ink017/right-dock.js",
@@ -1467,8 +1467,8 @@
       },
       {
         "path": "src/ui/ink017/tokens.css",
-        "bytes": 67570,
-        "sha256": "408341a4183d77e2d7ca51dfb5e75e012e8774735d9d235200d2d945590e91bc"
+        "bytes": 72002,
+        "sha256": "777d6325b92be87d9835a10dcc74bfa5ec6843a3ac04bb868871a5bea09912ab"
       },
       {
         "path": "src/ui/ink017/tool-slices/completion-overlay.js",
@@ -1622,8 +1622,8 @@
       },
       {
         "path": "stage-runtime.css",
-        "bytes": 15994,
-        "sha256": "de7104931178cd34f3f2fd88e30d8b668e17a0ae516189f912d8222d489265f9"
+        "bytes": 14520,
+        "sha256": "28d9e2ddbef267a4793a7c3a9ddbaecee1cdef56b4b609605a53385e3eaf79bd"
       },
       {
         "path": "ui/capability-raster-tools.js",
@@ -1634,20 +1634,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/451#issuecomment-6394141620"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/453#issuecomment-6400320982"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "306c1919e66b994db7df2311d8031ec54686f112",
+    "exact_sha": "7e0e4da62a9d1d91c6a82f5fd8d4881b9403fb7d",
     "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "e139a98e4cc0e6c003e7d0ec644cd8d03c547813",
-    "authority_record_sha256": "0118892268155c61043148bca5005d07bad7473eddf56cc2ab67114f02fc3f3a",
-    "publisher_sha": "306c1919e66b994db7df2311d8031ec54686f112",
-    "package_publisher_sha": "306c1919e66b994db7df2311d8031ec54686f112",
+    "previous_target_commit": "cd3dcff4cc54f4fa5a05a24652af24efd6179b2f",
+    "authority_record_sha256": "5ad8616cebf6348a8bd50d5f515308426ba51c37963d8c0a206456bfa1107079",
+    "publisher_sha": "7e0e4da62a9d1d91c6a82f5fd8d4881b9403fb7d",
+    "package_publisher_sha": "7e0e4da62a9d1d91c6a82f5fd8d4881b9403fb7d",
     "runtime_bytes_unchanged_from_package": true
   }
 }
