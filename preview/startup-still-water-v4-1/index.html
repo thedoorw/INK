@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>INK · 靜水一滴｜尺寸與位置微調 v4.1</title>
+  <style>
+    :root {
+      --bg: #f1f0ec;
+      --water: #748995;
+      --waterline: #9da9ae;
+      --text: #617883;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif; }
+    #inkBootGate {
+      position: fixed; inset: 0; min-height: 100vh; min-height: 100dvh;
+      display: grid; place-items: center; overflow: hidden;
+      background: var(--bg); isolation: isolate;
+    }
+    #inkBootGate::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 72% 65% at 46% 32%, rgba(255,255,255,.46), transparent 86%),
+        radial-gradient(ellipse 65% 63% at 75% 86%, rgba(172,189,190,.055), transparent 90%);
+    }
+    .scene {
+      position: relative; width: min(220px, 70vw); aspect-ratio: 120 / 96;
+      transform: translateY(-10px); pointer-events: none;
+    }
+    .scene svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    #waterDrop { fill: var(--water); opacity: 0; }
+    #waterline { fill: none; stroke: var(--waterline); stroke-width: 1.05; stroke-linecap: round; stroke-linejoin: round; }
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+      overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+    }
+    .error { display: none; padding: 18px; max-width: 23rem; color: #4f636b; text-align: center; font-size: 13px; line-height: 1.6; }
+    .tools {
+      position: fixed; left: 12px; right: 12px; bottom: max(26px, env(safe-area-inset-bottom));
+      display: flex; justify-content: center; align-items: center; gap: 12px; z-index: 3;
+    }
+    .label { color: #89969c; font-size: 11px; letter-spacing: .075em; }
+    .button {
+      appearance: none; cursor: pointer; border-radius: 99px;
+      border: 1px solid rgba(116,137,149,.33); background: rgba(255,255,255,.47);
+      padding: 9px 15px; font-size: 12px; color: var(--text); font-family: inherit;
+    }
+    .button:hover { background: rgba(255,255,255,.85); }
+    .button:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+    html[data-ink-shell-ready="true"] #inkBootGate { display: none; }
+    html[data-ink-shell-ready="error"] .scene,
+    html[data-ink-shell-ready="error"] .tools { display: none; }
+    html[data-ink-shell-ready="error"] .error { display: block; }
+    @media (max-width: 480px) {
+      .scene { width: min(190px, 72vw); }
+      .tools { gap: 9px; }
+      .label { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="inkBootGate" role="status" aria-label="INK 正在啟動" aria-live="off">
+    <div class="scene" aria-hidden="true">
+      <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" focusable="false">
+        <path id="waterDrop" d="M60 11 C59.5 12 59 13 59 14 C59 16 61 16 61 14 C61 13 60.5 12 60 11Z" />
+        <path id="waterline" d="M28 64H92" />
+      </svg>
+    </div>
+    <span class="visually-hidden">INK 正在啟動</span>
+    <p class="error" role="alert">INK 啟動時發生錯誤，請重新整理頁面。</p>
+    <div class="tools" aria-label="動畫預覽控制，正式產品不顯示">
+      <span class="label" id="phaseText">每 8 秒 · 一滴水</span>
+      <button class="button" id="replay" type="button">重新凝聚一滴</button>
+    </div>
+  </div>
+  <script>
+  /*
+   * INK Still Water v4: a self-contained SVG shape-morph timeline.
+   * Inspired by the morphing/keyframe principles used in MIT-licensed
+   * animation projects. Does not embed third-party code or require a CDN.
+   * This preview NEVER invents a Shell Ready event or modifies the app.
+   */
+  (() => {
+    'use strict';
+    const CYCLE = 8000;
+    const FORM_START = 1150;
+    const FORM_END = 2860;
+    const FALL_START = 3070;
+    const TOUCH = 3410;
+    const DISSOLVE_END = 3690;
+    const RIPPLE_END = 5350;
+    const DROP_TOP = 11;
+    const FULL_HEIGHT = 18.1;
+    const FULL_WIDTH = 11.8;
+    const DROP_TO_LINE = 64 - (DROP_TOP + FULL_HEIGHT); // End of drop exactly touches y=64.
+    const drop = document.getElementById('waterDrop');
+    const line = document.getElementById('waterline');
+    const label = document.getElementById('phaseText');
+    const replay = document.getElementById('replay');
+    const media = matchMedia('(prefers-reduced-motion: reduce)');
+    let manualMotion = false;
+    let animationHandle = 0;
+    let origin = performance.now();
+    let previousPath = '';
+    const clamp = x => Math.min(1, Math.max(0, x));
+    const smooth = t => { const p=clamp(t); return p*p*(3-2*p); };
+    const easeOutCubic = t => 1 - Math.pow(1-clamp(t),3);
+    const easeInCubic = t => Math.pow(clamp(t),3);
+    const fmt = n => n.toFixed(3);
+
+    // Dynamic cubic bezier path instead of CSS scale/squash: the bead gradually
+    // develops into a pointed drop, then spreads into a flattened contact shape.
+    function dropletPath(top, width, height, taper) {
+      const x=60, w=width/2, y=top, h=height;
+      const narrow = .12 + .21*clamp(taper);
+      const left=x-w, right=x+w, bottom=y+h;
+      return [
+        'M',fmt(x),fmt(y),
+        'C',fmt(x-w*narrow),fmt(y+h*.15),fmt(left),fmt(y+h*.40),fmt(left),fmt(y+h*.66),
+        'C',fmt(left),fmt(y+h*.88),fmt(x-w*.61),fmt(bottom),fmt(x),fmt(bottom),
+        'C',fmt(x+w*.61),fmt(bottom),fmt(right),fmt(y+h*.88),fmt(right),fmt(y+h*.66),
+        'C',fmt(right),fmt(y+h*.40),fmt(x+w*narrow),fmt(y+h*.15),fmt(x),fmt(y),'Z'
+      ].join(' ');
+    }
+
+    // Procedural bidirectional waterline wave. Displacement remains ~1.65 units.
+    function waterlinePath(t) {
+      const inContact = t >= TOUCH && t < DISSOLVE_END;
+      const isRipple = t >= DISSOLVE_END && t < RIPPLE_END;
+      if (!inContact && !isRipple) return 'M28 64H92';
+      const impact = inContact ? (t-TOUCH)/(DISSOLVE_END-TOUCH) : 1;
+      const progress = isRipple ? (t-DISSOLVE_END)/(RIPPLE_END-DISSOLVE_END) : 0;
+      const damping = Math.pow(1-progress, 1.8);
+      const front = 2.6 + progress*25;
+      let result='';
+      for(let i=0;i<=64;i++) {
+        const x=28+i;
+        const dist=Math.abs(x-60);
+        const centerDip=inContact ? 1.55*Math.sin(Math.PI*impact)*Math.exp(-Math.pow(dist/3.8,2)) : 0;
+        const crest=isRipple ? -1.65*damping*Math.exp(-Math.pow((dist-front)/4.1,2)) : 0;
+        const trough=isRipple ? .72*damping*Math.exp(-Math.pow((dist-front-6.2)/4.3,2)) : 0;
+        result += (i?' L':'M') + fmt(x) + ' ' + fmt(64+centerDip+crest+trough);
+      }
+      return result;
+    }
+
+    function paint(ms) {
+      const t = ((ms % CYCLE) + CYCLE) % CYCLE;
+      let opacity=0, width=0, height=0, top=DROP_TOP, taper=0;
+      let phase='靜候下一滴';
+      if(t >= FORM_START && t < FALL_START) {
+        const p=smooth((t-FORM_START)/(FORM_END-FORM_START));
+        width=.9 + (FULL_WIDTH-.9)*p;
+        height=1.4+(FULL_HEIGHT-1.4)*p;
+        taper=smooth((p-.25)/.75);
+        opacity=smooth((t-FORM_START)/220);
+        phase='水滴凝聚中';
+      } else if(t >= FALL_START && t < TOUCH) {
+        const p=(t-FALL_START)/(TOUCH-FALL_START);
+        width=FULL_WIDTH*(1-.06*Math.sin(Math.PI*p));
+        height=FULL_HEIGHT*(1+.10*Math.sin(Math.PI*p));
+        // Preserve line contact despite falling-shape stretch at mid-flight.
+        top=DROP_TOP+DROP_TO_LINE*easeInCubic(p);
+        taper=1;
+        opacity=1;
+        phase='水滴落下';
+      } else if(t >= TOUCH && t < DISSOLVE_END) {
+        const p=(t-TOUCH)/(DISSOLVE_END-TOUCH);
+        width=FULL_WIDTH+(18.5-FULL_WIDTH)*easeOutCubic(p);
+        height=FULL_HEIGHT-(FULL_HEIGHT-3.4)*easeOutCubic(p);
+        top=64-height;
+        taper=1-p;
+        opacity=1-smooth((p-.18)/.82);
+        phase='輕觸 · 消融';
+      } else if(t >= DISSOLVE_END && t < RIPPLE_END) {
+        phase='水紋消散';
+      }
+      const d=dropletPath(top,width||.9,height||1.4,taper);
+      drop.setAttribute('d',d);
+      drop.style.opacity=String(opacity);
+      const wave=waterlinePath(t);
+      if(wave!==previousPath) {
+        line.setAttribute('d',wave);
+        previousPath=wave;
+      }
+      label.textContent=phase;
+    }
+
+    function showReduced() {
+      drop.setAttribute('d',dropletPath(23, FULL_WIDTH, FULL_HEIGHT,1));
+      drop.style.opacity='1';
+      line.setAttribute('d','M28 64H92');
+      previousPath='M28 64H92';
+      label.textContent='減少動態模式 · 可手動播放';
+    }
+
+    function frame(now) {
+      if(media.matches && !manualMotion) {
+        showReduced(); animationHandle=0; return;
+      }
+      paint(now-origin);
+      animationHandle=requestAnimationFrame(frame);
+    }
+    function restart(userRequested) {
+      if(animationHandle) cancelAnimationFrame(animationHandle);
+      if(userRequested) manualMotion=true;
+      // Clicking replay starts at formation instead of adding 1.15 s silence.
+      origin=performance.now()-(userRequested?FORM_START:0);
+      frame(performance.now());
+    }
+    replay.addEventListener('click',()=>restart(true));
+    const motionChanged=()=>{manualMotion=false;restart(false);};
+    if(media.addEventListener) media.addEventListener('change',motionChanged);
+    else if(media.addListener) media.addListener(motionChanged);
+    // Isolated preview test hook. Not a production/startup state API.
+    window.__inkStillWaterPreview={
+      seek(ms){if(animationHandle)cancelAnimationFrame(animationHandle);animationHandle=0;paint(ms);},
+      geometry(){return {fall: DROP_TO_LINE, fullHeight: FULL_HEIGHT, cycle: CYCLE, touch: TOUCH};}
+    };
+    restart(false);
+  })();
+  </script>
+</body>
+</html>
