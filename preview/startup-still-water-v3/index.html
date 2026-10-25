@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>INK · 靜水一滴｜可播放原型 v3</title>
+  <style>
+    :root { --bg: #f1f0ec; --drop: #748995; --line: #9da9ae; --ink: #586c76; }
+    *, *::before, *::after { box-sizing:border-box; }
+    html, body { margin:0; width:100%; height:100%; }
+    body { font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif; }
+    #inkBootGate { position:fixed;inset:0;min-height:100dvh;display:grid;place-items:center;overflow:hidden;background:var(--bg);isolation:isolate; }
+    #inkBootGate::before { content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 65% 60% at 48% 36%,rgba(255,255,255,.42),transparent 85%),radial-gradient(ellipse 70% 66% at 75% 86%,rgba(180,192,193,.06),transparent 86%); }
+    .scene { position:relative;width:180px;height:144px;transform:translateY(2vh); }
+    .scene svg { width:100%;height:100%;overflow:visible;display:block; }
+    #waterDrop { fill:var(--drop);opacity:0; } /* Deliberately NO CSS transform: it would override the SVG transform attribute. */
+    #waterline { fill:none;stroke:var(--line);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round; }
+    .preview-tools { position:fixed;left:0;right:0;bottom:max(24px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:15px;z-index:3; }
+    .preview-note { color:#8c989e;font-size:11px;letter-spacing:.09em; }
+    .replay { appearance:none;border:1px solid rgba(116,137,149,.28);border-radius:50px;background:rgba(255,255,255,.36);padding:8px 13px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer; }
+    .replay:hover { background:rgba(255,255,255,.75); }
+    .replay:focus-visible { outline:2px solid var(--ink);outline-offset:3px; }
+    .visually-hidden { position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0; }
+    .error { display:none;max-width:24rem;padding:20px;text-align:center;color:#445660;font-size:13px;line-height:1.6; }
+    html[data-ink-shell-ready="true"] #inkBootGate { display:none; }
+    html[data-ink-shell-ready="error"] .scene, html[data-ink-shell-ready="error"] .preview-tools { display:none; }
+    html[data-ink-shell-ready="error"] .error { display:block; }
+    @media(max-width:480px){ .scene { width:160px;height:128px; } }
+  </style>
+</head>
+<body>
+  <div id="inkBootGate" role="status" aria-label="INK 正在啟動" aria-live="off">
+    <div class="scene" aria-hidden="true">
+      <svg viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" focusable="false">
+        <path id="waterDrop" d="M60 0 C56.5 4.5 53.8 9.5 53.8 13.2 A6.2 6.2 0 0 0 66.2 13.2 C66.2 9.5 63.5 4.5 60 0 Z" />
+        <path id="waterline" d="M30 64 H90" />
+      </svg>
+    </div>
+    <span class="visually-hidden">INK 正在啟動</span>
+    <p class="error" role="alert">INK 啟動時發生錯誤，請重新整理頁面。</p>
+    <div class="preview-tools" aria-label="獨立動畫預覽控制">
+      <span class="preview-note" id="previewNote">每 8 秒 · 一滴水</span>
+      <button class="replay" id="replay" type="button">播放／重播</button>
+    </div>
+  </div>
+  <script>
+  // Preview-only animation driver. The production Boot Gate must continue to
+  // use INK's existing true Shell-ready/error signals; this script never fakes them.
+  (() => {
+    'use strict';
+    const CYCLE = 8000;
+    const drop = document.getElementById('waterDrop');
+    const line = document.getElementById('waterline');
+    const replay = document.getElementById('replay');
+    const note = document.getElementById('previewNote');
+    const flat = 'M30 64 H90';
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let overrideMotion = false;
+    let origin = performance.now();
+    let raf = 0;
+    let lastShape = '';
+    const clamp = (v) => Math.max(0, Math.min(1, v));
+    const smooth = (v) => { const x = clamp(v); return x*x*(3-2*x); };
+    function pathForRipple(progress) {
+      const p = clamp(progress);
+      const fade = Math.pow(1-p, 1.3);
+      const waveAt = 4 + p*22;
+      let d = '';
+      for (let i=0; i<=40; i++) {
+        const x = 30+i*1.5;
+        const distance = Math.abs(x-60);
+        const dip = 1.8*Math.exp(-Math.pow(distance/3.4,2))*Math.exp(-p*19);
+        const crest = -2.0*fade*Math.exp(-Math.pow((distance-waveAt)/4.6,2));
+        const tail = 0.85*fade*Math.exp(-Math.pow((distance-waveAt-7)/4.6,2));
+        const y = 64+dip+crest+tail;
+        d += (i===0?'M':' L') + x.toFixed(1)+' '+y.toFixed(2);
+      }
+      return d;
+    }
+    function showStatic() {
+      drop.setAttribute('transform','translate(0 25)');
+      drop.style.opacity = '1';
+      line.setAttribute('d',flat);
+      lastShape = flat;
+    }
+    function showFrame(now) {
+      if (media.matches && !overrideMotion) {
+        showStatic();
+        note.textContent = '已依系統設定減少動態';
+        raf = 0;
+        return;
+      }
+      note.textContent = '每 8 秒 · 一滴水';
+      const t = ((now-origin)%CYCLE+CYCLE)%CYCLE;
+      let alpha = 0, y = 0;
+      // Eight seconds: 0-2 s silence, 2-4.2 s single slow fall,
+      // 4.2-4.32 s absorption, 4.32-5.92 s wave, 5.92-8 s silence.
+      // The droplet path bounds are y=0..19.4; 44.6 places its tip at y=64.
+      if (t >= 2000 && t < 4200) {
+        const p = (t-2000)/2200;
+        y = 44.6*smooth(p);
+        alpha = smooth((t-2000)/180);
+      } else if (t >= 4200 && t < 4320) {
+        alpha = 1-smooth((t-4200)/120);
+        y = 44.6;
+      } else if (t >= 4320) {
+        y = 44.6;
+      }
+      drop.setAttribute('transform', 'translate(0 '+y.toFixed(3)+')');
+      drop.style.opacity = String(alpha);
+      const shape = (t>=4200 && t<4320) ? pathForRipple(0)
+        : (t>=4320 && t<=5920) ? pathForRipple((t-4320)/1600) : flat;
+      if (shape!==lastShape) { line.setAttribute('d',shape);lastShape=shape; }
+      raf=window.requestAnimationFrame(showFrame);
+    }
+    function restart(forceMotion) {
+      if(forceMotion) overrideMotion=true; // direct user action opts into motion
+      if(raf) window.cancelAnimationFrame(raf);
+      origin=performance.now();
+      showFrame(origin);
+    }
+    replay.addEventListener('click',()=>restart(true));
+    const onMediaChange=()=> { overrideMotion=false;restart(false); };
+    if (media.addEventListener) media.addEventListener('change',onMediaChange);
+    else if (media.addListener) media.addListener(onMediaChange);
+    restart(false);
+  })();
+  </script>
+</body>
+</html>
