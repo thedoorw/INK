@@ -32,7 +32,7 @@ export default lifecycle('color',s=>{
  let pending=null,previewHue=initial.h;
  const patch=color=>h.dispatch({type:'paint.patch',patch:{foreground:color},source:'color'});
  const current=()=>hexToHsv(h.getSnapshot().paint.foreground,preferredHue);
- function updateHue(hue){previewHue=((hue%360)+360)%360;preferredHue=previewHue;plane.style.setProperty('--hue','hsl('+previewHue+' 100% 50%)');indicator.style.top=((1-previewHue/360)*100)+'%';track.setAttribute('aria-valuenow',String(Math.round(previewHue)));}
+ function updateHue(hue){previewHue=((hue%360)+360)%360;preferredHue=previewHue;plane.style.setProperty('--hue','hsl('+previewHue+' 100% 50%)');const height=track.getBoundingClientRect().height,indicatorHalf=indicator.getBoundingClientRect().height/2||8.5;indicator.style.top=height>0?(Math.min(indicatorHalf,height/2)+(1-previewHue/360)*Math.max(0,height-2*indicatorHalf))+'px':((1-previewHue/360)*100)+'%';track.setAttribute('aria-valuenow',String(Math.round(previewHue)));}
  function preview(s,v,color){pending=color;point.style.left=(s*100)+'%';point.style.top=((1-v)*100)+'%';point.style.background=color;const input=r.querySelector('[aria-label="Foreground"]');if(input)input.value=color;}
  function commitPending(){if(pending){const color=pending;pending=null;patch(color)}}
  updateHue(initial.h);

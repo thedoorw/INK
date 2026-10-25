@@ -9,7 +9,7 @@ export default lifecycle('paths',(s,h)=>{
  }).join('');
   const emptyMessage=paths.length?'':s.docs?.length?'<div class="ps-paths-empty" aria-label="目前沒有路徑"></div>':nativeToolEmptyState('No editable paths. The Pen tool draws strokes; activating it does not create an editable path.', 'pen', 'Use Pen tool', s);
  // The Photoshop footer is visible in an empty Paths panel; unsupported commands stay disabled.
- const footer=[['填滿路徑','●'],['描邊路徑','◯'],['路徑轉選取範圍','◌'],['選取範圍轉路徑','◎'],['新增路徑','＋'],['新增路徑遮色片','▧'],['刪除路徑','⌫']].map(([label,glyph])=>`<button type="button" disabled aria-label="${label}（未實作）" title="${label}（未實作）"><span aria-hidden="true">${glyph}</span></button>`).join('');
+ const footer=[['填滿路徑','●'],['描邊路徑','○'],['路徑轉選取範圍','◌'],['選取範圍轉路徑','◎'],['新增路徑遮色片','▣'],['新增路徑','＋'],['刪除路徑','⌫']].map(([label,glyph])=>`<button type="button" disabled aria-label="${label}（未實作）" title="${label}（未實作）"><span aria-hidden="true">${glyph}</span></button>`).join('');
  return `<div class="swatch-groups ps-path-list">${rows}${emptyMessage}</div><div class="ps-paths-footer" role="toolbar" aria-label="路徑工具">${footer}</div>`;
 },(r,h,signal)=>{
  wireNativeToolEmptyState(r,h,signal);

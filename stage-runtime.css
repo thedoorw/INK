@@ -4,19 +4,9 @@ html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#f4f4f4}
 button,input,select{font:inherit}
 button{border:1px solid #c8c8c8;background:#fff;color:#222;border-radius:3px;min-height:28px;padding:4px 8px;cursor:pointer}
 button:hover{background:#f0f0f0}button[aria-pressed="true"]{background:#dfe9f5;border-color:#7e9fbe}
-/* Noninteractive, immediately parsed Shell geometry; Native controls remain fully gated until ready. */
+/* Full-viewport neutral startup gate. Real INK Shell is revealed only after mount. */
 .ink-boot-gate{position:fixed;inset:0;z-index:9999;display:block;background:#e5e5e5;color:#555;font-size:12px}
-.ink-boot-frame{position:absolute;inset:0;display:grid;grid-template-columns:var(--rail-single,48px) minmax(0,1fr) var(--dock-width,240px);overflow:hidden;pointer-events:none}
-.ink-boot-rail{display:flex;flex-direction:column;align-items:center;gap:24px;padding-top:0;background:#fff;border-right:1px solid #d4d4d4}
-.ink-boot-logo{display:grid;place-items:center;width:100%;height:48px;font-size:13px;font-weight:600;color:#333}
-.ink-boot-rail-line{width:18px;height:2px;background:#e0e0e0}
-.ink-boot-workspace{min-width:0;background:#e5e5e5}
-.ink-boot-dock{display:grid;grid-template-rows:34fr 24fr 42fr;min-width:0;background:#fff;border-left:1px solid #d4d4d4}
-.ink-boot-zone{min-height:0;border-bottom:1px solid #d4d4d4;padding:0 8px}
-.ink-boot-zone:last-child{border-bottom:0}
-.ink-boot-tabs{display:block;height:36px;border-bottom:1px solid #ececec;background:linear-gradient(90deg,#dedede 0 24%,transparent 24% 29%,#e9e9e9 29% 52%,transparent 52% 100%) center/100% 2px no-repeat}
-.ink-boot-message{position:absolute;left:calc(var(--rail-single,48px) + 16px);bottom:16px;padding:5px 8px;background:rgba(255,255,255,.96);border:1px solid #e0e0e0;border-radius:4px;font-size:12px;line-height:16px;pointer-events:none}
-@media(max-width:760px){.ink-boot-frame{grid-template-columns:var(--rail-single,48px) minmax(0,1fr);grid-template-rows:52fr 48fr}.ink-boot-rail{grid-row:1/3;grid-column:1}.ink-boot-workspace{grid-column:2;grid-row:1}.ink-boot-dock{grid-column:2;grid-row:2;border-left:0;border-top:1px solid #d4d4d4}.ink-boot-message{left:calc(var(--rail-single,48px) + 12px);bottom:calc(48% + 12px)}}
+.ink-boot-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 html[data-ink-shell-ready="error"] .ink-boot-gate{display:grid;place-items:center;padding:20px;background:#f4f4f4;color:#8b2424;text-align:center;overflow-wrap:anywhere}
 
 html[data-ink-shell-ready="true"] .ink-boot-gate{display:none}
