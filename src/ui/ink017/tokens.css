@@ -144,3 +144,119 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .history-empty{padding:4px;color:var(--secondary)}
 .history-actions button{display:inline-flex;align-items:center;gap:4px}
 .history-actions button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;pointer-events:none}
+
+
+/* UR3_PS_REFERENCE_DOCK_R2_20261024 - User PS geometry + INK Figma light palette */
+/* Reference: Google Drive ChatGPT/INK/UI References, fixed 1280x1024 Photoshop screenshots.
+   Observed PS dock width about 274px; visible groups about 36.5%, 31.2%, remainder.
+   Keep the existing INK Figma-white surfaces and blue focus/selection, not PS dark grey.
+   Only Dock geometry is affected: no changes to the other URs' toolbar, menus or artboard. */
+.shell{--dock-width:274px;--zone-top:36.5%;--zone-middle:31.2%}
+.right-dock{--ps-panel:#fff;--ps-panel-soft:#f5f5f5;--ps-divider:#ededed;--ps-text:#242424;--ps-muted:#757575;--ps-hover:#f5f5f5;background:var(--ps-panel);color:var(--ps-text);border-left-color:#dadada}
+.right-dock .dock-zone{position:relative;background:var(--ps-panel);min-width:0}
+.right-dock .dock-zone .tab-row,.right-dock .dock-zone[data-zone='1'] .tab-row{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:stretch;gap:0;grid-template-columns:none;grid-template-rows:none;position:relative;width:100%;height:28px;min-height:28px;max-height:28px;flex:0 0 28px;padding:0 3px;overflow:hidden;border-bottom:1px solid var(--ps-divider);scrollbar-width:none}
+.right-dock .dock-zone .tab,.right-dock .dock-zone[data-zone='1'] .tab{display:flex;align-items:center;justify-content:center;flex:0 1 auto;width:auto;min-width:0;max-width:none;height:27px;min-height:27px;line-height:16px;padding:0 7px;font-size:12px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:clip;color:var(--ps-muted);background:transparent;border-radius:0;text-align:center;grid-area:auto}
+.right-dock .dock-zone .tab[aria-selected=true]{color:var(--ps-text);background:var(--ps-panel-soft);font-weight:600}
+.right-dock .dock-zone .tab:hover:not([aria-selected=true]){background:var(--ps-hover);color:var(--ps-text)}
+.right-dock .dock-zone .panel-menu-trigger{display:grid;place-items:center;flex:0 0 25px;width:25px;height:27px;min-height:27px;min-width:25px;margin-left:auto;padding:0;border:0;border-radius:0;background:var(--ps-panel);color:var(--ps-muted)}
+.right-dock .panel-menu-trigger svg{height:13px;width:13px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.right-dock .panel-menu-trigger:hover,.right-dock .panel-menu-trigger[aria-expanded=true]{background:var(--ps-hover);color:var(--ps-text)}
+.right-dock .panel-menu{position:absolute;z-index:70;top:27px;right:3px;width:196px;max-width:calc(100% - 6px);padding:4px;background:var(--ps-panel);border:1px solid #d8d8d8;box-shadow:0 5px 14px rgba(0,0,0,.13);border-radius:3px}
+.right-dock .panel-menu[hidden]{display:none}
+.right-dock .panel-menu-action{display:block;width:100%;height:27px;min-height:27px;padding:0 8px;text-align:left;background:transparent;border:0;border-radius:2px;font-size:12px}
+.right-dock .panel-menu-action:hover,.right-dock .panel-menu-action:focus-visible{background:var(--accent-soft)}
+.right-dock .panel-menu-note{display:block;border-top:1px solid var(--ps-divider);padding:5px 7px 3px;font-size:11px;color:var(--ps-muted)}
+.right-dock .zone-splitter{background:var(--ps-divider)}
+.right-dock .panel-host{padding:6px;min-width:0;font-size:12px;line-height:16px}
+.right-dock .panel-host .field-row{min-height:24px}
+.right-dock .panel-host input:not([type=range]),.right-dock .panel-host select{min-height:22px;height:22px}
+.right-dock .panel-host[data-panel=color] .color-picker{--picker-h:clamp(160px,23vh,250px);grid-template-columns:minmax(0,1fr) 22px;gap:7px}
+.right-dock .panel-host[data-panel=color] .color-plane{border-radius:0}
+.right-dock .panel-host[data-panel=color] .hue-control .range-row:before{width:18px}
+.right-dock .panel-host[data-panel=swatches] .swatch-group-toggle{min-height:27px;border-bottom:1px solid var(--ps-divider)}
+.right-dock .panel-host[data-panel=swatches] .swatch-grid{grid-template-columns:repeat(auto-fill,minmax(18px,1fr));gap:1px}
+.right-dock .panel-host[data-panel=character] .character-font-row{margin-bottom:5px}
+.right-dock .panel-host[data-panel=paragraph] .icon-choices{gap:2px;margin-bottom:6px}
+.right-dock .panel-host[data-panel=brushes] .brush-settings{gap:4px}
+.right-dock .panel-host[data-panel=brushes] .brush-presets{grid-template-columns:minmax(0,1fr)}
+.right-dock .panel-host[data-panel=adjustments] .adjustment-icons{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.right-dock .panel-host[data-panel=layers] .layer-row{height:35px;min-height:35px}
+.right-dock .panel-host[data-panel=history] .history-item{height:23px;min-height:23px}
+.right-dock .panel-host[data-panel=paths] .swatch-groups{min-height:0}
+@media (max-width:760px){.shell{--dock-width:clamp(200px,36vw,274px)}.right-dock .dock-zone .tab{font-size:11px;padding-inline:4px}}
+
+/* Navigator: centre a single undistorted document preview, without a full-workspace raster. */
+.right-dock .panel-host[data-panel=navigator] .navigator-preview-frame{display:flex;flex:1 1 auto;align-items:center;justify-content:center;min-height:0;overflow:hidden;background:var(--ps-panel);padding:3px 2px}
+.right-dock .panel-host[data-panel=navigator] .navigator-preview{flex:0 1 auto;min-width:0;min-height:0;margin:0;height:auto;max-width:100%;max-height:100%;border:1px solid var(--ps-divider);background:var(--ps-panel-soft)}
+.right-dock .panel-host[data-panel=navigator] .navigator-preview.empty-preview{border-color:transparent;background:transparent}
+#shell .right-dock .panel-host[data-panel=navigator] .navigator-preview img{width:100%;height:100%;object-fit:contain;display:block}
+.right-dock .panel-host[data-panel=navigator] .navigator-controls{flex:0 0 26px;margin-top:3px}
+.right-dock .panel-host[data-panel=navigator] .navigator-actions{flex:0 0 auto;margin-top:1px}
+
+/* UR3 PS panel-body fidelity: Swatches / Paragraph / Paths */
+.right-dock .panel-host[data-panel=swatches] .ps-swatches-quick{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:1px;flex:0 0 auto;padding:2px 0 6px}
+.right-dock .panel-host[data-panel=swatches] .ps-swatches-quick .chip{width:100%;min-width:0;height:16px;min-height:16px;border-radius:0}
+.right-dock .panel-host[data-panel=swatches] .ps-swatches .swatch-grid{grid-template-columns:repeat(13,minmax(0,1fr));gap:1px;padding:3px 4px 5px}
+.right-dock .panel-host[data-panel=swatches] .ps-swatches .swatch-grid .chip{width:100%;min-width:0;height:17px;min-height:17px;border-radius:0}
+.right-dock .panel-host[data-panel=swatches] .ps-swatches .swatch-group-toggle{padding-inline:4px}
+.right-dock .panel-host[data-panel=paragraph] .icon-choices{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;align-items:center}
+.right-dock .panel-host[data-panel=paragraph] .icon-choices button{width:100%;min-width:0;padding:1px}
+.right-dock .panel-host[data-panel=paragraph] .icon-choices button.ps-reference-only{border-color:transparent;background:transparent;color:var(--ps-muted)}
+.right-dock .panel-host[data-panel=paragraph] .ps-paragraph-visual-extras{display:grid;gap:3px;margin-top:5px}
+.right-dock .panel-host[data-panel=paragraph] .ps-paragraph-reference-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.right-dock .panel-host[data-panel=paragraph] .ps-paragraph-reference-fields .field-row{grid-template-columns:36px minmax(0,1fr);margin:0}
+.right-dock .panel-host[data-panel=paragraph] .ps-paragraph-visual-extras>.field-row{grid-template-columns:90px minmax(0,1fr);margin:0}
+.right-dock .panel-host[data-panel=paragraph] .ps-paragraph-reference-checkbox{display:flex;align-items:center;gap:5px;min-height:22px;font-size:11px;color:var(--ps-muted)}
+.right-dock .panel-host[data-panel=paths]{display:flex;flex-direction:column}
+.right-dock .panel-host[data-panel=paths] .ps-path-list{flex:1 1 auto;min-height:0}
+.right-dock .panel-host[data-panel=paths] .ps-paths-empty{flex:1;min-height:24px}
+.right-dock .panel-host[data-panel=paths] .ps-paths-footer{flex:0 0 29px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--ps-divider);gap:2px}
+.right-dock .panel-host[data-panel=paths] .ps-paths-footer button{flex:0 0 24px;width:24px;min-width:0;min-height:23px;height:23px;border:0;padding:0;color:var(--ps-muted);background:transparent}
+.right-dock .panel-host[data-panel=paths] .ps-paths-footer button:disabled{opacity:.42}
+
+/* UR3 PS panel body geometry: Color and Adjustments */
+.right-dock .panel-host[data-panel=color] .ps-color-visual-row{display:grid;grid-template-columns:31px minmax(0,1fr);gap:5px;height:clamp(160px,23vh,250px);min-height:0;margin-bottom:5px}
+.right-dock .panel-host[data-panel=color] .ps-color-chips{position:relative;min-width:0}
+.right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips{position:relative;width:30px;height:43px}
+.right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips input[type=color]{width:21px;height:22px;padding:0;border:1px solid #888;border-radius:0}
+.right-dock .panel-host[data-panel=color] .ps-color-chips [aria-label=Background]{left:9px;top:10px}
+.right-dock .panel-host[data-panel=color] .ps-color-chips [aria-label=Foreground]{left:0;top:0}
+.right-dock .panel-host[data-panel=color] .ps-color-visual-row .color-picker{height:100%;margin:0;--picker-h:clamp(160px,23vh,250px);grid-template-columns:minmax(0,1fr) 22px}
+.right-dock .panel-host[data-panel=color] .color-values{padding-left:34px}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-caption{font-size:12px;line-height:20px;margin:0 0 6px 0;color:var(--ps-text)}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;align-content:start;flex:0 0 auto;margin:3px 8px 10px}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons .icon-button{height:24px;min-height:24px;width:100%;display:grid;place-items:center;padding:2px;border:0;background:transparent;border-radius:2px}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons .icon-button:hover:not(:disabled){background:var(--ps-hover)}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons .icon-button[aria-pressed=true]{background:var(--accent-soft)}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons .ps-adjustment-unavailable{color:var(--ps-muted);opacity:.43}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-icons .ps-adjustment-unavailable span{font-size:17px;line-height:19px}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-native-details{flex:1 1 auto;min-height:0;overflow-y:auto;padding-top:3px;border-top:1px solid var(--ps-divider)}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-native-details>summary{min-height:24px;line-height:24px;cursor:pointer;color:var(--ps-muted)}
+.right-dock .panel-host[data-panel=adjustments] .ps-adjustment-native-details:not([open]){flex:0 0 24px;overflow:hidden}
+
+/* UR3 R2.10 product integration: protects unchanged earlier CSS, no Native owner changes. */
+:root{--dock-width:274px}
+#shell .right-dock{min-width:240px}
+#shell #dockResizer{cursor:ew-resize}
+#shell .right-dock .dock-zone[data-zone="1"] .tab-row{height:28px;min-height:28px;flex:0 0 28px;display:flex;grid-template-columns:none;grid-template-rows:none;gap:0;overflow-x:auto;overflow-y:hidden}
+#shell .right-dock .dock-zone[data-zone="1"] .tab{grid-area:auto;width:auto;min-width:0;text-align:center;justify-self:auto}
+#shell .right-dock .dock-zone[data-zone="1"] .panel-menu-trigger{grid-area:auto;position:sticky;right:0;align-self:center;height:28px;flex:0 0 22px;margin-left:auto}
+#shell .right-dock .tab-row{display:flex;flex-wrap:nowrap;height:28px;min-height:28px}
+#shell .right-dock .tab{cursor:grab;user-select:none;touch-action:pan-y}
+#shell .right-dock .tab:active,#shell .right-dock .tab-drag-source{cursor:grabbing}
+#shell .right-dock .tab-drag-source{opacity:.75;position:relative;z-index:6}
+#shell .right-dock .tab-drop-before{box-shadow:inset 2px 0 0 var(--accent)}
+#shell .right-dock .tab-drop-after{box-shadow:inset -2px 0 0 var(--accent)}
+#shell .right-dock .panel-menu-trigger{display:grid;place-items:center;min-width:22px;flex:0 0 22px;color:#606060}
+#shell .right-dock .ps-menu-four-bars{display:block;width:12px;height:1px;background:#606060;box-shadow:0 2px 0 #606060,0 4px 0 #606060,0 6px 0 #606060;transform:translateY(-3px);pointer-events:none}
+#shell .right-dock .panel-host[data-panel=navigator] .shared-slider,#shell .right-dock .panel-host[data-panel=navigator] .shared-slider:hover{cursor:default}
+#shell .right-dock .panel-host[data-panel=navigator] .shared-slider::-webkit-slider-thumb{cursor:default;width:11px;height:11px;margin-top:-4px;border:0;border-radius:0;background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M5.5 1L10 9.5H1Z' fill='white' stroke='%23555555' stroke-width='1'/%3E%3C/svg%3E") center/11px 11px no-repeat}
+#shell .right-dock .panel-host[data-panel=navigator] .shared-slider::-moz-range-thumb{cursor:default;width:11px;height:11px;border:0;border-radius:0;background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 11'%3E%3Cpath d='M5.5 1L10 9.5H1Z' fill='white' stroke='%23555555' stroke-width='1'/%3E%3C/svg%3E") center/11px 11px no-repeat}
+#shell .right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips{position:relative;width:32px;height:44px}
+#shell .right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips input[type=color]{width:20px;height:20px;box-sizing:border-box;padding:0;border:1px solid #555;border-radius:0}
+#shell .right-dock .panel-host[data-panel=color] .ps-color-chips [aria-label=Foreground]{left:3px;top:2px;z-index:2;box-shadow:inset 0 0 0 1px white}
+#shell .right-dock .panel-host[data-panel=color] .ps-color-chips [aria-label=Background]{left:13px;top:12px;z-index:1}
+#shell .right-dock .panel-host[data-panel=color] .hue-control .range-row:before{border:1px solid #626262}
+#shell .right-dock .panel-host[data-panel=color] .hue-control .shared-slider{cursor:ns-resize;touch-action:none}
+#shell .right-dock .panel-host[data-panel=color] .hue-control .shared-slider::-webkit-slider-thumb{width:9px;height:8px;border:0;border-radius:0;background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 8'%3E%3Cpath d='M1 7L4.5 1L8 7Z' fill='white' stroke='%23303030' stroke-width='1'/%3E%3C/svg%3E") center/9px 8px no-repeat}
+@media (max-width:1120px) and (min-width:761px){:root{--dock-width:240px}}
