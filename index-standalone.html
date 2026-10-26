@@ -12,6 +12,9 @@
   <title>INK v0.1 · Portable</title>
   <link rel="stylesheet" href="stage-runtime.css">
   <link rel="stylesheet" href="src/ui/ink017/tokens.css">
+  <link rel="modulepreload" href="dist/startup/ink-boot.mjs">
+  <link rel="modulepreload" href="dist/startup/ink-shell.mjs">
+  <link rel="preload" href="src/ui/ink017/markup.html" as="fetch" crossorigin="anonymous">
 </head>
 <body>
   <div id="inkBootGate" class="ink-boot-gate" role="status" aria-live="polite">
@@ -39,6 +42,6 @@
   <script src="src/ui/branding-settings.js" defer></script>
   <script src="build-identity.js"></script>
   <script src="dist/ink.compat.js"></script>
-  <script type="module" src="src/ui/ink017/entry.js"></script>
+  <script type="module" src="dist/startup/ink-shell.mjs"></script>
 </body>
 </html>
