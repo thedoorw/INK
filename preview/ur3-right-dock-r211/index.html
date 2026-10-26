@@ -242,7 +242,7 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .panel[data-panel=color] #previewHue{overflow:visible;touch-action:none;cursor:ns-resize;border:1px solid #626262;box-sizing:border-box}
 
 
-/* White-on-gray Photoshop reference controls; Figma light surfaces retained.
+/* White-on-gray Photoshop reference controls; Figma light surfaces retained. */
 /* Mountain endpoints are controls, not the draggable thumb. */
 .dock .panel[data-panel=navigator] .ps-nav-bottom .ps-mountain{font-size:0!important;transform:none!important;background-size:13px 10px;background-position:center;background-repeat:no-repeat}
 .dock .panel[data-panel=navigator] .ps-nav-bottom .ps-small-mountain{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2213%22%20height%3D%2210%22%20viewBox%3D%220%200%2013%2010%22%3E%3Cpath%20fill%3D%22%23888%22%20d%3D%22M0%208%20L3.6%203.2%20L5.1%205.1%20L7.4%202.4%20L13%208%20Z%22%2F%3E%3C%2Fsvg%3E")}
@@ -254,8 +254,8 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .hamburger::after{content:'';position:absolute;left:7px;top:10px;width:12px;height:1px;background:#424242;box-shadow:0 2px 0 #424242,0 4px 0 #424242,0 6px 0 #424242;transform:none;filter:none;pointer-events:none}
 /* In the PS 274px Color image: FG at ~x1016 and BG at ~x1026.
    Preserve two independent stacked squares, their offset, white inset FG keyline. */
-.dock .panel[data-panel=color] .colors-small::before{left:13px;top:12px;width:18px;height:18px;border:1px solid #444;box-shadow:none;background:#fff;box-sizing:content-box;z-index:1}
-.dock .panel[data-panel=color] .colors-small::after{left:3px;top:2px;width:18px;height:18px;border:1px solid #4b4b4b;box-shadow:inset 0 0 0 1px #fff;background:var(--swatch-picked,#a54a42);box-sizing:content-box;z-index:2}
+.dock .panel[data-panel=color] .colors-small::before{position:absolute;content:'';left:13px;top:12px;width:20px;height:20px;border:1px solid #444;box-shadow:none;background:#fff;box-sizing:border-box;z-index:1}
+.dock .panel[data-panel=color] .colors-small::after{position:absolute;content:'';left:3px;top:2px;width:20px;height:20px;border:1px solid #4b4b4b;box-shadow:inset 0 0 0 1px #fff;background:var(--swatch-picked,#a54a42);box-sizing:border-box;z-index:2}
 
 /* UR3 R2.10 — USER 4-point pre-release draft correction (2026-10-25).
    Minimum and default Dock width 240 in R2.11; menu bars 4×1px with 1px gaps.
@@ -299,6 +299,16 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .panel[data-panel=layers] .ps-layer-blend .r211-opacity-popup{position:absolute;right:0;top:calc(100% + 2px);z-index:30;width:157px;height:34px;min-height:34px;display:flex;align-items:center;padding:0 10px;background:white;border:1px solid #c9c9c9;box-shadow:0 3px 10px #0002}
 .dock .panel[data-panel=layers] .ps-layer-blend .r211-opacity-popup[hidden]{display:none!important}
 .dock .panel[data-panel=layers] .ps-layer-blend .r211-opacity-popup>.ps-range{flex:1 1 auto;width:100%;min-width:0;height:15px}
+
+/* R2.11 240px audit: preserve color-chip footprint, clipped-safe marker, and narrow panel fields. */
+.dock .panel[data-panel=color] .colors-small{position:relative;width:34px;min-width:34px;height:44px;min-height:44px}
+.dock .panel[data-panel=color] .ps-color-cursor{width:9px;height:9px;box-sizing:border-box}
+.dock .panel[data-panel=color] .ps-color-row{grid-template-columns:34px minmax(0,1fr);overflow:visible}
+.dock .panel[data-panel=color] .ps-color-gradient{grid-template-columns:minmax(0,1fr) 19px;min-width:0}
+.dock .panel[data-panel=layers] .ps-layer-blend{min-width:0;width:100%}
+.dock .panel[data-panel=layers] .ps-layer-blend .r211-layer-opacity{max-width:calc(100% - 86px)}
+.dock .panel[data-panel=layers] .r211-layer-opacity-popup{max-width:calc(100vw - 30px)}
+.dock .panel[data-panel=layers] .ps-layer-locks{min-width:0}
 .r211-new-overlay{position:fixed;z-index:1000;inset:0;background:rgba(0,0,0,.14);display:grid;place-items:center;padding:20px}
 .r211-new-overlay[hidden]{display:none!important}
 .r211-new-box{background:#fff;border:1px solid #d5d5d5;border-radius:9px;box-shadow:0 16px 44px #0003;width:min(448px,calc(100vw - 40px));overflow:hidden;font-family:system-ui,'Segoe UI',sans-serif;font-size:12px}
@@ -449,14 +459,16 @@ document.querySelectorAll('[data-preview-note]').forEach(b=>b.addEventListener('
  document.querySelectorAll('.ps-brush-preset').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.ps-brush-preset').forEach(x=>x.classList.toggle('selected',x===b));b.style.background='var(--accent-soft)'}));
  const hueEl=document.getElementById('previewHue'),hueIndicator=hueEl.querySelector('.ps-hue-indicator');
  let hueAngle=346,hueDragPointer=null,hueGrabOffset=0;
- function setHueRatio(n){n=Math.max(0,Math.min(1,n));hueAngle=Math.round(360*n);hueIndicator.style.top=(n*100)+'%';hueEl.setAttribute('aria-valuenow',String(hueAngle));const plane=document.getElementById('previewColorPlane');plane.style.background='linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl('+hueAngle+' 100% 50%)'}
- function setHueFromClientY(clientY){const r=hueEl.getBoundingClientRect();setHueRatio((clientY-hueGrabOffset-r.top)/r.height)}
+ function hueGeometry(){const r=hueEl.getBoundingClientRect(),half=Math.min(hueIndicator.offsetHeight/2||5.5,r.height/2);return{r,half,range:Math.max(0,r.height-2*half)}}
+ function hueY(n){const g=hueGeometry();return g.half+g.range*n}
+ function setHueRatio(n){n=Math.max(0,Math.min(1,n));hueAngle=Math.round(360*n);hueIndicator.style.top=hueY(n)+'px';hueEl.setAttribute('aria-valuenow',String(hueAngle));const plane=document.getElementById('previewColorPlane');plane.style.background='linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl('+hueAngle+' 100% 50%)'}
+ function setHueFromClientY(clientY){const {r,half,range}=hueGeometry();setHueRatio(range>0?(clientY-hueGrabOffset-r.top-half)/range:0)}
  hueEl.addEventListener('pointerdown',e=>{
    if(e.button!==0)return;
    // When starting on the visible outboard arrow, do not jump to the point on the strip.
    const arrow=e.target===hueIndicator||hueIndicator.contains(e.target);
    const r=hueEl.getBoundingClientRect();
-   hueGrabOffset=arrow?e.clientY-(r.top+r.height*hueAngle/360):0;
+   hueGrabOffset=arrow?e.clientY-(r.top+hueY(hueAngle/360)):0;
    hueDragPointer=e.pointerId;
    hueEl.setPointerCapture(e.pointerId);
    if(!arrow)setHueFromClientY(e.clientY);
@@ -467,6 +479,7 @@ document.querySelectorAll('[data-preview-note]').forEach(b=>b.addEventListener('
  hueEl.addEventListener('pointerup',finishHue);hueEl.addEventListener('pointercancel',finishHue);
  hueEl.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();if(e.key==='Home')setHueRatio(0);else if(e.key==='End')setHueRatio(1);else setHueRatio((hueAngle+(e.key==='ArrowDown'?5:-5)+360)%360/360)});
  setHueRatio(346/360);
+ window.addEventListener('resize',()=>setHueRatio(hueAngle/360));
  const plane=document.getElementById('previewColorPlane'),cursor=plane.querySelector('.ps-color-cursor');plane.addEventListener('pointerdown',e=>{const bb=plane.getBoundingClientRect();cursor.style.left=Math.max(5,Math.min(bb.width-5,e.clientX-bb.left))+'px';cursor.style.top=Math.max(5,Math.min(bb.height-5,e.clientY-bb.top))+'px'});
  document.querySelectorAll('.ps-align-button,.ps-style-icon,.ps-adjust-icon:not(:disabled)').forEach(b=>b.addEventListener('click',()=>{const group=b.closest('.ps-align-icons,.ps-style-grid,.ps-adjust-row');if(group)group.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true')}));
  document.querySelectorAll('[data-demo-select]').forEach(b=>b.addEventListener('click',()=>{const parent=b.parentElement;parent.querySelectorAll('[data-demo-select]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}));
