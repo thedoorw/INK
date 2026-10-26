@@ -41,6 +41,20 @@ export async function mountInk017(app){
  const ui=mountNativeShell(app,shell);app.renderer.resize();document.documentElement.classList.remove('ui017-loading');document.documentElement.dataset.inkShellReady='true';document.getElementById('inkBootGate')?.remove();globalThis.INK_UI017=ui;return ui;
 }
 if(typeof window!=='undefined'){
- const start=()=>{if(window.INK_APP)mountInk017(window.INK_APP).catch(error=>{console.error(error);document.documentElement.dataset.ui017Error=error.message;document.documentElement.dataset.inkShellReady='error';const gate=document.getElementById('inkBootGate');if(gate)gate.textContent='INK 啟動失敗：'+error.message});else setTimeout(start,30)};
+ const showBootError=error=>{
+  const message=error?.message||String(error);
+  console.error('INK_SHELL_BOOT_FAILED',error);
+  document.documentElement.dataset.ui017Error=message;
+  document.documentElement.dataset.inkShellReady='error';
+  const gate=document.getElementById('inkBootGate');
+  if(gate)gate.textContent='INK 啟動失敗：'+message+'。請重新載入頁面重試。';
+ };
+ const start=()=>{
+  // A constructor exception must end the startup polling loop, not leave the
+  // startup gate visible forever while INK_APP is permanently absent.
+  if(window.INK_BOOT_ERROR){showBootError(window.INK_BOOT_ERROR);return;}
+  if(window.INK_APP)mountInk017(window.INK_APP).catch(showBootError);
+  else setTimeout(start,30);
+ };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 }

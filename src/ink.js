@@ -22,7 +22,7 @@ import { clearStrokeSegmentStyle, deleteStrokeNodes, eraseStrokeWithCircle, inse
 import { PageSpatialIndex } from './spatial/index.js';
 import { addRulerGuide, applyObjectMatrices, applyWorldTransformBatch, assertFinitePathGeometry, cloneInitialMatrices, collapseTransformRoots, frameWorldGeometryBounds, groupWorldGeometryBounds, installChatBoundedEdit, installChatCreativePlan, installCreativeWorkspace, installExpressiveStroke, installPathEditing, installRepaintMaterial, inspectComposition, lassoCandidates, marqueeCandidates, moveRulerGuide, nonSingularScaleComponent, normalizeSnapSettings, polygonBounds, preflightObjectMatrices, regenerateCompositionIds, removeRulerGuide, resolveCompositionSelection, resolveSnappedRotation, resolveSnappedTranslation, resizeFrameGeometry, selectionWorldGeometryBounds, setRulerGuideLocked, setRulerGuideVisibility, setSnapCategory, setSnapEnabled } from './editor/index.js';
 import { LiveCanvasTileRenderer, NaturalMediaController, PersistentTileAtlas, TiledExportCancelledError, TiledExportJob, createTilePlan, paperProfileFingerprint, paperSampleAt, renderTiledCanvas } from './render/index.js';
-import { canvasToPdfBlob } from './export/index.js';
+
 import { ExternalValidationRecorder, RuntimeHealthMonitor, buildExternalDiagnosticBundle } from './release/index.js';
 import { installInkPublicCreativeApi } from './agent/index.js';
 import { installConfiguredRuntimeBridge } from './agent/runtime-bridge-startup.js';
@@ -422,13 +422,36 @@ function createFixedSessionView(app,session,host,target){
   });
 }
 
+// Delay first-install precache until the real editable Shell is ready.
+// Retain an eventual registration fallback if shell mounting fails or stalls.
+function registerServiceWorkerAfterShellReady(updates){
+  const root=document.documentElement;
+  let observer=null,timeout=null,started=false;
+  const register=()=>{
+    if(started)return;
+    started=true;
+    observer?.disconnect();
+    if(timeout!==null)clearTimeout(timeout);
+    // Yield to the finished Shell; no worker/install cache burst during mounting.
+    setTimeout(()=>{void updates.register();},0);
+  };
+  if(root.dataset.inkShellReady==='true')register();
+  else{
+    observer=new MutationObserver(()=>{
+      if(['true','error'].includes(root.dataset.inkShellReady))register();
+    });
+    observer.observe(root,{attributes:true,attributeFilter:['data-ink-shell-ready']});
+    timeout=setTimeout(register,30000);
+  }
+}
+
 class InkApp{
   constructor(){
     this.pngWorkerEncoder=new PNGWorkerEncoder();this.pngExportController=null;this.lastPNGExportReport=null;
     this.documentOpen=false;this.doc=defaultDocument();this.store=new InkStore({checkpointLimit:3});let savedHistoryLimit=30;try{savedHistoryLimit=Number(localStorage.getItem('ink-history-limit'))||30;}catch{}this.history=new HistoryManager(this,savedHistoryLimit);this.health=new RuntimeHealthMonitor();this.health.attach(window);this.externalValidation=new ExternalValidationRecorder();this.activeExportJob=null;this.exportRequestSequence=0;this.activeExportRequest=null;this.tileAtlas=null;this.updates=new ServiceWorkerUpdateManager({buildId:BUILD_ID,scriptURL:'./service-worker-runtime.js',deploymentIdentityURL:'./pages-build-identity.txt',reloadOnActivate:false,canReload:()=>!this.dirty&&!this.sessions?.list?.().some(item=>item.dirty)&&!this.sessions?.busy?.().length&&!this.history?.pending&&!this.activeExportRequest&&!this.activeExportJob,onStatusChange:status=>{if(status?.buildId&&window.INK_ARCHITECTURE)window.INK_ARCHITECTURE.serviceWorkerBuildId=status.buildId;this.refreshReleaseHealthUI?.(status)}});this.input=new InputArbiter();this.pointerMap=this.input.pointers;let savedPenProfile={};try{savedPenProfile=JSON.parse(localStorage.getItem('ink-pen-profile')||'{}');}catch{}this.penInput=new PenInputCalibrator(savedPenProfile);this.selection=[];this.draft=null;this.strokeEdit=null;this.hover=null;this.spatialIndex=new PageSpatialIndex();this.spatialDirty=true;this.spatialPending=new Set();this.dirty=false;this.autosaveTimer=null;this.persistenceGeneration=0;this.mutationEpoch=0;this.autosaveBoundaryPromise=Promise.resolve(true);this.toastTimer=null;this.zoomHudTimer=null;this.spaceDown=false;this.interaction=null;this.snapAngles=true;this.smartGuides=true;this.gridSnap=false;this.fingerDraw=false;this.aspectLock=true;this.selectionMode='contain';this.eraserMode='segment';this.shapeType='line';this.shapeFill=false;this.tool='pen';this.lastDrawTool='pen';this.brushPresetCatalog={};for(const presets of Object.values(BRUSH_PRESETS))for(const preset of presets)this.brushPresetCatalog[preset.id]=deepClone(preset);this.backgroundColor='#ffffff';this.toolSettings={};for(const [tool,presets]of Object.entries(BRUSH_PRESETS))this.toolSettings[tool]=deepClone(presets[0]);this.font={family:'system-ui',size:32};this.renderPreference='auto';try{this.renderPreference=localStorage.getItem('ink-render-engine')||'auto';}catch{}if(!['auto','gpu','canvas2d'].includes(this.renderPreference))this.renderPreference='auto';this.layoutViewportPreview=null;this.flora=installFloraActionLayer(this);
     this.el={app:$('#app'),canvas:$('#stage'),wrap:$('#stageWrap'),hint:$('#emptyHint'),toast:$('#toast'),zoomHud:$('#zoomHud')};
     this.uiComposition=createMinimalComposition(this);this.textEditorPresentation=this.uiComposition.textEditorPresentation;this.uiPresentation=this.uiComposition.presentation;
-    this.renderer=new Renderer(this,this.el.canvas,this.el.wrap);installCommandAuthority(this);installFunctionModuleComposition(this);this.bindInput();installStudioCore(this);bindTranslationFunctionProvider(this,this.studio?.programImporter);installExtraction(this);installChatReferenceHandoff(this);installPathEditing(this);installExpressiveStroke(this);installRepaintMaterial(this);installRevision(this,{store:this.store});installChatBoundedEdit(this);installInkPublicCreativeApi(this);this.runtimeBridgeStartup=installConfiguredRuntimeBridge(this);installChatCreativePlan(this);installCreativeWorkspace(this);this.sessions=new DocumentSessionRegistry(this,{makeHistory:limit=>new HistoryManager(this,limit),makeSpatialIndex:()=>new PageSpatialIndex()});this.multiDocument=installMultiDocumentController(this,{createSecondaryView:session=>createSecondaryDocumentView(this,session)});this.multiView=installMultiViewWorkspace(this,{createFixedView:(session,host,target)=>createFixedSessionView(this,session,host,target)});this.installMultiDocumentAsyncGuards();this.uiComposition.mount();this.uiShell=this.uiComposition.shell;this.uiPresentation=this.uiComposition.presentation;this.refreshAll();void this.restoreStartupDocument().finally(()=>this.sessions.sweepRecoveryCleanup().catch(error=>this.health.recordError(error,{source:'session-recovery-cleanup'})));if(location.protocol.startsWith('http'))this.updates.register();this.healthTimer=setInterval(()=>this.captureHealthSnapshot(),30000);
+    this.renderer=new Renderer(this,this.el.canvas,this.el.wrap);installCommandAuthority(this);installFunctionModuleComposition(this);this.bindInput();installStudioCore(this);bindTranslationFunctionProvider(this,this.studio?.programImporter);installExtraction(this);installChatReferenceHandoff(this);installPathEditing(this);installExpressiveStroke(this);installRepaintMaterial(this);installRevision(this,{store:this.store});installChatBoundedEdit(this);installInkPublicCreativeApi(this);this.runtimeBridgeStartup=installConfiguredRuntimeBridge(this);installChatCreativePlan(this);installCreativeWorkspace(this);this.sessions=new DocumentSessionRegistry(this,{makeHistory:limit=>new HistoryManager(this,limit),makeSpatialIndex:()=>new PageSpatialIndex()});this.multiDocument=installMultiDocumentController(this,{createSecondaryView:session=>createSecondaryDocumentView(this,session)});this.multiView=installMultiViewWorkspace(this,{createFixedView:(session,host,target)=>createFixedSessionView(this,session,host,target)});this.installMultiDocumentAsyncGuards();this.uiComposition.mount();this.uiShell=this.uiComposition.shell;this.uiPresentation=this.uiComposition.presentation;this.refreshAll();void this.restoreStartupDocument().finally(()=>this.sessions.sweepRecoveryCleanup().catch(error=>this.health.recordError(error,{source:'session-recovery-cleanup'})));if(location.protocol.startsWith('http'))registerServiceWorkerAfterShellReady(this.updates);this.healthTimer=setInterval(()=>this.captureHealthSnapshot(),30000);
   }
   page(){return activePage(this.doc)}
   layer(){return activeLayer(this.doc)}
@@ -830,7 +853,7 @@ class InkApp{
       this.lastPNGExportReport={...result.report,width:canvas.width,height:canvas.height,alphaPreserved:true,colorSpace:'sRGB',completedAt:nowISO()};return result.blob;
     }finally{if(this.pngExportController===controller)this.pngExportController=null;if(lifecycle.request?.handles.pngController===controller)lifecycle.request.handles.pngController=null;canvas.width=1;canvas.height=1;}
   }
-  async exportPDF(options={},lifecycle={}){const scope=options.scope||'artboard';if(scope!=='artboard')throw new Error('PDF 必須使用固定畫板範圍');const canvas=await this.renderExportCanvas({...options,scope:'artboard',background:true},lifecycle),physical=canvas.inkPhysical;try{if(!physical)throw new Error('PDF 缺少實體頁面尺寸');if(lifecycle.isCancelled?.())throw new TiledExportCancelledError('Export cancelled',null);const blob=await canvasToPdfBlob(canvas,{widthMm:physical.widthMm,heightMm:physical.heightMm,title:this.doc.title});if(lifecycle.isCancelled?.())throw new TiledExportCancelledError('Export cancelled',null);return blob;}finally{canvas.width=1;canvas.height=1;}}
+  async exportPDF(options={},lifecycle={}){const scope=options.scope||'artboard';if(scope!=='artboard')throw new Error('PDF 必須使用固定畫板範圍');const canvas=await this.renderExportCanvas({...options,scope:'artboard',background:true},lifecycle),physical=canvas.inkPhysical;try{if(!physical)throw new Error('PDF 缺少實體頁面尺寸');if(lifecycle.isCancelled?.())throw new TiledExportCancelledError('Export cancelled',null);const {canvasToPdfBlob}=await import('./export/index.js');const blob=await canvasToPdfBlob(canvas,{widthMm:physical.widthMm,heightMm:physical.heightMm,title:this.doc.title});if(lifecycle.isCancelled?.())throw new TiledExportCancelledError('Export cancelled',null);return blob;}finally{canvas.width=1;canvas.height=1;}}
   async printArtboard(options={},lifecycle={}){
     const printWindow=window.open('','INK_PRINT');if(!printWindow)throw new Error('瀏覽器阻擋列印視窗');
     let canvas=null,url=null,handedOff=false;
@@ -1057,7 +1080,16 @@ function signalRuntimeReady(app){
 
 function bootInk(){
   if(window.INK_APP)return window.INK_APP;
-  const app=new InkApp();
+  let app;
+  try {
+    app=new InkApp();
+  } catch(error) {
+    // Let the independently loaded Shell entry surface a recoverable failure
+    // even when InkApp construction fails before INK_APP can be installed.
+    window.INK_BOOT_ERROR=error;
+    console.error('INK_BOOT_FAILED',error);
+    return null;
+  }
   window.INK_APP=app;
   if(qaBridgeRequested()){
     window.INK_QA_BRIDGE_READY=loadRuntimeQaBridge(app).finally(()=>signalRuntimeReady(app));

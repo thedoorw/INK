@@ -1,4 +1,5 @@
 importScripts('./build-identity.js');
+importScripts('./dist/startup/asset-inventory.js');
 
 const PRODUCT_VERSION = '0.1';
 const WORKER_URL = new URL(self.location.href);
@@ -14,6 +15,8 @@ const RUNTIME_CACHE = `${CACHE_PREFIX}${BUILD_ID}-runtime`;
 // Keep this inventory synchronized with product/source/src; INK-CLOUD-016
 // adds a deterministic source/static harness that fails on drift.
 const SOURCE_SHELL = Object.freeze([
+  './dist/startup/asset-inventory.js',
+  ...self.INK_STARTUP_ASSETS,
   './src/ui/ink017/entry.js',
   './src/ui/ink017/markup.html',
   './src/ui/ink017/native-host.js',
@@ -234,6 +237,7 @@ const SOURCE_SHELL = Object.freeze([
   './src/vendor/bezier-js-6.1.4/poly-bezier.js',
   './src/vendor/bezier-js-6.1.4/utils.js',
   './src/vendor/imagetracer-1.2.6.js',
+  './src/vendor/clipper2-ts-2.0.1/clipper2.min.mjs',
   './src/vendor/polygon-clipping.umd.min.js'
 ]);
 

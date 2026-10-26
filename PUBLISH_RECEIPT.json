@@ -1,16 +1,16 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "7e0e4da62a9d1d91c6a82f5fd8d4881b9403fb7d",
-  "package_publisher_sha": "7e0e4da62a9d1d91c6a82f5fd8d4881b9403fb7d",
-  "authority_record_sha256": "5ad8616cebf6348a8bd50d5f515308426ba51c37963d8c0a206456bfa1107079",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/453#issuecomment-6400320982",
-  "source_sha": "3ea3ae4ba75c5bff527501f9867aef7babc69d1f",
-  "source_tree": "439357c420c776076c17c6cd367f04af3152da5a",
-  "runtime_digest_sha256": "a40cced53309fc1f010b61d3e4b1b92e96703c19334e29bf4311c0a267142d4a",
-  "package_manifest_sha256": "024dfec4690e833f9f953841b4540aca1f1c631ac51cc6362bddc7a44991b636",
-  "allowlist_digest_sha256": "3cba5a8f2b9fffe7284214da358940b58e1f5f26ef288478753ddc5e86969b54",
-  "previous_target_commit": "cd3dcff4cc54f4fa5a05a24652af24efd6179b2f",
+  "publisher_sha": "2e59db7b585cb5a27c4be92c9a4a7a8e331fda01",
+  "package_publisher_sha": "2e59db7b585cb5a27c4be92c9a4a7a8e331fda01",
+  "authority_record_sha256": "86adaf990b4961a21dc9b64e19830b08e50c9d4a703a1f013005dfe630e401ba",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/461#issuecomment-6416414574",
+  "source_sha": "258706cd3f23654fdc1fa4877e85dad24345f65d",
+  "source_tree": "6c2f86aad4fa63018f2ec0da6e79996582f856c3",
+  "runtime_digest_sha256": "5f028629aa91a6d5ed7685992f3a38f8bd3f20088ba83008da1b3fbe8263c0fa",
+  "package_manifest_sha256": "3739515c73610c8200db10194bf5803460a834dcb3ed66f8eec62151dfa94ef2",
+  "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
+  "previous_target_commit": "74121dc3aed912c490fdecb8ad4f325161036a46",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,33 +38,87 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "6d7bac5859c7d949e80f5a92b3f1703e4cba5a67",
-      "sha256": "d82ce0accbe23938fe9a8e1841a4893d995a17674fe40ab1396104d18cb4e6dc",
-      "bytes": 58975
+      "git_blob_sha": "10f79b9db3d6fdf3d3e1f0c30a30e48ada91bba3",
+      "sha256": "cf6e7fb742a24930e343db876039ec05b81c005849ca1e50a6bee79d8b70bac7",
+      "bytes": 60614
     },
     {
       "path": "build-identity.js",
-      "git_blob_sha": "0cc9487383fa979cf263efdff9c9d3c8456fe3c4",
-      "sha256": "a3c8451ff536812f906376029ba283b490609ef0af9e681cb0ca5aa61b5cf7d1",
+      "git_blob_sha": "234f524bc86e2dd6f2d4e70a3225118106896aa1",
+      "sha256": "a83373c73787110f4a21b86cf5d25ccee48574b796e2ccd8d4dc5a817bd605b0",
       "bytes": 193
     },
     {
       "path": "dist/ink.compat.js",
-      "git_blob_sha": "440c83dbc3ce991f1e056a1317a4dc0fbf7dfe19",
-      "sha256": "9365c3694f744238210c06150a8cb8666881415bc3a2631e660e0667386f475a",
-      "bytes": 262
+      "git_blob_sha": "4386f722cb0aab49dbf2ace837a1a0aed7dd41cf",
+      "sha256": "8b238db3c512aa0cea683310930e6fd2e70f5d4b5229fc9ebcbb5e05fd19c479",
+      "bytes": 271
+    },
+    {
+      "path": "dist/startup/asset-inventory.js",
+      "git_blob_sha": "7cc019aa4e6f5c42304767b4505b28925cd9b203",
+      "sha256": "af116e1d083920c762383f5db8d1a2cf6e278c30656993bb714f79c5414cb879",
+      "bytes": 480
+    },
+    {
+      "path": "dist/startup/chunks/chunk-342G2AIU.mjs",
+      "git_blob_sha": "bd43b2754f4afe7ab5c734e3f2a16e723bdca042",
+      "sha256": "ee7d7b6c7f008c3b3c339255e641019d2d88ba34594ec35cd3bd73db5647a5d7",
+      "bytes": 912
+    },
+    {
+      "path": "dist/startup/chunks/chunk-4ZYAK5J3.mjs",
+      "git_blob_sha": "985b1d55a49e2a7d6a23ccdc573a9c735dedcbde",
+      "sha256": "b510781bf3268a0edaebdf555588853c8fdf1c78cb6b40083bd27c3d7b148fa3",
+      "bytes": 358550
+    },
+    {
+      "path": "dist/startup/chunks/chunk-Q5BEQ6KW.mjs",
+      "git_blob_sha": "480dc2904b0cbfc83718088917849256cfc4d9b4",
+      "sha256": "34ab67f9b11e297c76ec8916fa3759acbf7f8e76757b7dc30bb790b32908ece6",
+      "bytes": 452686
+    },
+    {
+      "path": "dist/startup/chunks/chunk-QOELMQN4.mjs",
+      "git_blob_sha": "0098ef1bd5a4919efbcc54d7bd7a07b7556c645d",
+      "sha256": "bb3fdbb6353a638fbc8703b165321a57ae2f83d78a9d3548f801b7565c3b9a20",
+      "bytes": 58851
+    },
+    {
+      "path": "dist/startup/chunks/export-3NJAKKKA.mjs",
+      "git_blob_sha": "5f78a72ad1f27480b36eedfc6b52408633f8a040",
+      "sha256": "e87aa01e4334f6cfbe04c9e8f3e235939c6f48f0e363145f4a950a87d1bcdbf5",
+      "bytes": 3156
+    },
+    {
+      "path": "dist/startup/chunks/runtime-test-bridge-7H7OEBJI.mjs",
+      "git_blob_sha": "fbe61c06c1c934c694f50b1c73f1d91d2f39c480",
+      "sha256": "8298d705713807a700a09ae68bab05f0574470d15ed3541d34114b46b110ac38",
+      "bytes": 15864
+    },
+    {
+      "path": "dist/startup/ink-boot.mjs",
+      "git_blob_sha": "c0b2c075a0066f4b32c2fe7f0076bdc2427a044a",
+      "sha256": "e03990d9c834e3f95cdf6f10982d359b2005821f86c990d628ff9b2302ad55a9",
+      "bytes": 2095264
+    },
+    {
+      "path": "dist/startup/ink-shell.mjs",
+      "git_blob_sha": "16976f6996c73b93315d8660930bf322ee5d8be9",
+      "sha256": "654f4fdb875b6d2da3e92651cea8446a59d63cee3fbe22aeeb8f0ea2d164456a",
+      "bytes": 257753
     },
     {
       "path": "index-standalone.html",
-      "git_blob_sha": "b02288d2c32364ba883e4c6a020aaf2333557ae1",
-      "sha256": "34ecbe0476c26dfe4fb58a569090f066fecc1292dc52a94e98748d1835fc8844",
-      "bytes": 2584
+      "git_blob_sha": "a2b2050020c93e81a264602219f7300038e806de",
+      "sha256": "4f0745e432716b5f7dd88968c4352a0034a7457c692120c1e4b4915996c4963c",
+      "bytes": 2804
     },
     {
       "path": "index.html",
-      "git_blob_sha": "54e4a63c8c8e7dc5615a99b732d47d29acfe7a01",
-      "sha256": "274d9bedc6e0ea445972f5a1371dd5fed17b5addab6744a1c727475cedaaca4c",
-      "bytes": 2571
+      "git_blob_sha": "2fc88db3bf7a828595c2b4164dbc67920413ad0a",
+      "sha256": "c1f7eccdee7352feb786f3e1b13edf306dfb1c85f781adb093b1b1c5bd63911f",
+      "bytes": 2806
     },
     {
       "path": "manifest-portable.webmanifest",
@@ -92,9 +146,9 @@
     },
     {
       "path": "service-worker-runtime.js",
-      "git_blob_sha": "06400463914623eab6726af39193c3c0681d1635",
-      "sha256": "41785b86000180820f05c9e7d1227818ddb6126bcdbc5eb6c001e9ef19ac419d",
-      "bytes": 13578
+      "git_blob_sha": "f47bb6d8a124e49c33cab27931e636f30ecef7c3",
+      "sha256": "01a728a5e30eb3d491c448d30bf477080dd400fab8b09d3f26cd924d325c4b81",
+      "bytes": 13752
     },
     {
       "path": "service-worker.js",
@@ -1058,9 +1112,9 @@
     },
     {
       "path": "src/ink.js",
-      "git_blob_sha": "c0173e66c8d79ff7edd8097f78b302fdeec01a60",
-      "sha256": "32f6f1fb6a9f1a31e9e6f35962e9cd3fd5617bdea51538ec1c9189df5284f356",
-      "bytes": 178916
+      "git_blob_sha": "f4050a7e78b6a65daa90925e227379016e18a5b7",
+      "sha256": "b02005538098d37719e5a6591b1de3ca94d6f6687b6f39a96f5ca6feac9b5f98",
+      "bytes": 180122
     },
     {
       "path": "src/input/device-validation.js",
@@ -1634,9 +1688,9 @@
     },
     {
       "path": "src/ui/ink017/entry.js",
-      "git_blob_sha": "fc5c157e298bca28cfc9ea51c69c0a360f89e6a0",
-      "sha256": "299a5e1a79ebce9d1583c494791185c3d09c450b37734e7b904d40dab1796b46",
-      "bytes": 3339
+      "git_blob_sha": "6c885f32f074ac3b4a68ee6b6d222e64911f9312",
+      "sha256": "4fcf2b383ebf9b1822947e4377fcd9bdb874aab8b23b7805ff0a38f1363463c8",
+      "bytes": 3720
     },
     {
       "path": "src/ui/ink017/markup.html",
