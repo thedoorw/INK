@@ -2,7 +2,17 @@
   "schema": "INK_PUBLIC_RELEASE_POLICY_V1",
   "repository": "thedoorw/INK",
   "min_runtime_files": 200,
-  "signers": [],
+  "signers": [
+    {
+      "id": "ink-startup-20261026",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAywYaNMOP6Rsstbs4ywIOlVLborIITrhJordE34Qi2xI=\n-----END PUBLIC KEY-----\n",
+      "scope": {
+        "source_tree": "6c2f86aad4fa63018f2ec0da6e79996582f856c3",
+        "runtime_digest_sha256": "5f028629aa91a6d5ed7685992f3a38f8bd3f20088ba83008da1b3fbe8263c0fa",
+        "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
+      }
+    }
+  ],
   "allowed_exact": [
     "build-identity.js",
     "dist/ink.compat.js",
@@ -20,7 +30,8 @@
     "schemas/",
     "src/",
     "ui/",
-    "vendor/"
+    "vendor/",
+    "dist/startup/"
   ],
   "forbidden_exact": [
     "ASSET_MANIFEST.json",
@@ -45,5 +56,5 @@
     "working/",
     "release/"
   ],
-  "notes": "FAIL-CLOSED until an authorized public Ed25519 signer is pinned here by reviewed control-plane PR; no real credentials, secret keys or publication authority in this file."
+  "notes": "Scoped bootstrap for independently verified startup Runtime only. Trusted BASE verifier and strict signed manifest remain required. Private key is not committed; USER exact PUBLIC release authorization remains separate."
 }
