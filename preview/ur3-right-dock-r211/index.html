@@ -29,11 +29,6 @@ header.apphead{height:40px;display:flex;align-items:center;padding:0 13px 0 11px
 
 /* UR3 R2.3: PS screenshot geometry; Figma light palette preserved. */
 .zone-body{overflow:hidden}.panel{min-height:0}.panel[data-panel=swatches],.panel[data-panel=brushes],.panel[data-panel=layers],.panel[data-panel=history],.panel[data-panel=paths]{overflow:hidden}
-.ps-range{appearance:none;-webkit-appearance:none;border:0!important;background:transparent;cursor:pointer;accent-color:var(--accent);height:15px;min-height:15px;min-width:0;margin:0;padding:0;vertical-align:middle}
-.ps-range::-webkit-slider-runnable-track{height:2px;background:#adb1b6;border:0;border-radius:0}
-.ps-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid #fff;filter:drop-shadow(0 0 1px #555);margin-top:-2px}
-.ps-range::-moz-range-track{height:2px;background:#adb1b6;border:0;border-radius:0}
-.ps-range::-moz-range-thumb{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid #fff;border-radius:0;background:transparent}
 .ps-navframe{align-items:center;justify-content:center;padding:4px 1px 1px;min-height:0}
 .ps-nav-document{width:min(232px,98%);height:auto;aspect-ratio:1.5;max-height:95%;display:block;background:#fff}
 .ps-nav-art{width:100%;height:100%;display:grid;place-items:center;position:relative;border:0;background:linear-gradient(145deg,#fafafa,#dce7f0 45%,#cbd5dc);font-size:17px;color:#8796a1;letter-spacing:3px}
@@ -50,7 +45,6 @@ header.apphead{height:40px;display:flex;align-items:center;padding:0 13px 0 11px
 .ps-color-gradient .color-plane:after{display:none}
 .ps-color-cursor{position:absolute;top:64%;left:38%;border:1px solid #fff;box-shadow:0 0 1px #333;border-radius:50%;width:9px;height:9px;transform:translate(-50%,-50%);pointer-events:none}
 .ps-color-gradient .hue-line{position:relative;min-height:0;cursor:crosshair}
-.ps-hue-indicator{position:absolute;left:-7px;top:96%;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:6px solid #fff;filter:drop-shadow(0 0 1px #333);transform:translateY(-50%);pointer-events:none}
 .panel[data-panel=swatches] .swatches-top{flex:0 0 auto;padding:3px 0 8px}
 .panel[data-panel=swatches] .swgroup-head{display:flex;width:100%;min-width:100%;align-items:center;text-align:left;white-space:nowrap;border-left:0;border-right:0;height:26px;justify-content:flex-start;gap:8px}
 .panel[data-panel=swatches] .swgroup-head:focus-visible{outline:1px solid var(--accent);outline-offset:-2px}
@@ -245,30 +239,14 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .panel .ps-char-select-shell:after{width:14px;border-left:1px solid #bcbcbc;background-position:center center;background-size:10px 10px}
 .dock .panel .ps-char-select-shell select{padding-right:16px}
 .dock .panel[data-panel=navigator] .ps-navframe{justify-content:center!important}
-/* Sharper white triangular Navigator thumb with PS dark contour; track unchanged. */
-.dock .panel[data-panel=navigator] #navZoom::-webkit-slider-thumb{width:16px;height:13px;border:0;filter:none;box-shadow:none;transform:none;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2013%22%20width%3D%2216%22%20height%3D%2213%22%3E%3Cpath%20d%3D%22M8%201%20L15%2012%20H1%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23515151%22%20stroke-width%3D%221.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E");background-size:16px 13px;background-position:center;background-repeat:no-repeat;margin-top:-5px}
-.dock .panel[data-panel=navigator] #navZoom::-moz-range-thumb{width:16px;height:13px;border:0;filter:none;border-radius:0;background:transparent url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2013%22%20width%3D%2216%22%20height%3D%2213%22%3E%3Cpath%20d%3D%22M8%201%20L15%2012%20H1%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23515151%22%20stroke-width%3D%221.4%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center / 16px 13px no-repeat}
-/* Hue thumb is draggable itself, not only the colored track. Keep PS edge-anchored white/black arrow. */
 .dock .panel[data-panel=color] #previewHue{overflow:visible;touch-action:none;cursor:ns-resize;border:1px solid #626262;box-sizing:border-box}
-.dock .panel[data-panel=color] .ps-hue-indicator{left:-12px;top:96%;width:13px;height:17px;border:0;transform:translateY(-50%);filter:none;background:transparent;pointer-events:auto;cursor:ns-resize;touch-action:none;z-index:4}
-.dock .panel[data-panel=color] .ps-hue-indicator::before{content:'';position:absolute;inset:0;background:#272727;clip-path:polygon(0 50%,100% 0,100% 100%);pointer-events:none}
-.dock .panel[data-panel=color] .ps-hue-indicator::after{content:'';position:absolute;inset:2px 1px 2px 3px;background:white;clip-path:polygon(0 50%,100% 0,100% 100%);pointer-events:none}
 
 
-/* UR3_R29_PS_GLYPH_GEOMETRY_PROOF_20261025 */
 /* White-on-gray Photoshop reference controls; Figma light surfaces retained.
-   PS navigator range thumb: 11x11px upright pointed-roof / flat-bottom shape. */
-.dock .panel[data-panel=navigator] #navZoom::-webkit-slider-thumb{width:11px;height:11px;margin-top:-4px;border:0;border-radius:0;filter:none;box-shadow:none;transform:none;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2211%22%20height%3D%2211%22%20viewBox%3D%220%200%2011%2011%22%3E%3Cpath%20d%3D%22M5.5%200.8%20L10%205.7%20L10%209.6%20L1%209.6%20L1%205.7%20Z%22%20fill%3D%22white%22%20stroke%3D%22%23303030%22%20stroke-width%3D%221%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center / 11px 11px no-repeat;cursor:ew-resize}
-.dock .panel[data-panel=navigator] #navZoom::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:0;filter:none;box-shadow:none;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2211%22%20height%3D%2211%22%20viewBox%3D%220%200%2011%2011%22%3E%3Cpath%20d%3D%22M5.5%200.8%20L10%205.7%20L10%209.6%20L1%209.6%20L1%205.7%20Z%22%20fill%3D%22white%22%20stroke%3D%22%23303030%22%20stroke-width%3D%221%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center / 11px 11px no-repeat;cursor:ew-resize}
 /* Mountain endpoints are controls, not the draggable thumb. */
 .dock .panel[data-panel=navigator] .ps-nav-bottom .ps-mountain{font-size:0!important;transform:none!important;background-size:13px 10px;background-position:center;background-repeat:no-repeat}
 .dock .panel[data-panel=navigator] .ps-nav-bottom .ps-small-mountain{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2213%22%20height%3D%2210%22%20viewBox%3D%220%200%2013%2010%22%3E%3Cpath%20fill%3D%22%23888%22%20d%3D%22M0%208%20L3.6%203.2%20L5.1%205.1%20L7.4%202.4%20L13%208%20Z%22%2F%3E%3C%2Fsvg%3E")}
 .dock .panel[data-panel=navigator] .ps-nav-bottom .ps-big-mountain{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2213%22%20height%3D%2210%22%20viewBox%3D%220%200%2013%2010%22%3E%3Cpath%20fill%3D%22%23777%22%20d%3D%22M0%209%20L4.1%202.6%20L5.8%204%20L7.9%201%20L13%209%20Z%22%2F%3E%3C%2Fsvg%3E")}
-/* Photoshop screenshot: hue thumb points RIGHT into the vertical hue strip,
-   NOT leftward. Keep the larger transparent 13x17 hit target and pointer capture. */
-.dock .panel[data-panel=color] .ps-hue-indicator{left:-12px;width:13px;height:17px;cursor:ns-resize;touch-action:none}
-.dock .panel[data-panel=color] .ps-hue-indicator::before{inset:auto;left:2px;top:3px;width:10px;height:11px;clip-path:polygon(0 0,100% 50%,0 100%);background:#303030;filter:none}
-.dock .panel[data-panel=color] .ps-hue-indicator::after{inset:auto;left:3px;top:4px;width:7px;height:9px;clip-path:polygon(0 0,100% 50%,0 100%);background:#fff;filter:none}
 /* 12x1 physical-pixel horizontal bars, separated by exact 4px y offsets.
    No fractional SVG positioning, hairline stroke, CSS scaling or blur. */
 .dock .hamburger{position:relative}
@@ -288,19 +266,25 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .panel[data-panel=navigator] #navZoom,
 .dock .panel[data-panel=navigator] #navZoom:hover,
 .dock .panel[data-panel=navigator] #navZoom:active{cursor:default!important}
-.dock .panel[data-panel=navigator] #navZoom::-webkit-slider-thumb{cursor:default!important}
-.dock .panel[data-panel=navigator] #navZoom::-moz-range-thumb{cursor:default!important}
 
-/* R2.11 DRAFT — scoped visual proposal only; no Native product changes. */
-:root{--dock:240px}
+/* R2.11 DRAFT — ONE 11x11 PS pentagonal indicator for ALL controls.
+   11x11 is the smallest original R2.10 Navigator shape. Runtime unaffected. */
+:root{--dock:240px;--r211-slider-thumb:11px;--r211-track:2px;--r211-scrollbar:6px}
 .dock{min-width:240px}
-.ps-range,.dock .ps-range{height:18px;min-height:18px;cursor:pointer}
-.ps-range::-webkit-slider-runnable-track{height:2px;background:#aeb3b8;border:0;border-radius:0}
-.ps-range::-moz-range-track{height:2px;background:#aeb3b8;border:0;border-radius:0}
-.ps-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:14px;height:16px;border:0;border-radius:0;background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2216%22%20viewBox%3D%220%200%2014%2016%22%3E%3Cpath%20d%3D%22M1%201H13V8L7%2014L1%208Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23404040%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/14px 16px no-repeat;filter:none;box-shadow:none;margin-top:-7px;cursor:ew-resize}
-.ps-range::-moz-range-thumb{box-sizing:border-box;width:14px;height:16px;border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2216%22%20viewBox%3D%220%200%2014%2016%22%3E%3Cpath%20d%3D%22M1%201H13V8L7%2014L1%208Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23404040%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/14px 16px no-repeat;filter:none;box-shadow:none;cursor:ew-resize}
-.dock .panel[data-panel=color] .ps-hue-indicator{left:-12px;top:96%;width:14px;height:16px;border:0;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2216%22%20viewBox%3D%220%200%2014%2016%22%3E%3Cpath%20d%3D%22M1%201H8L13%208L8%2015H1Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23404040%22%20stroke-width%3D%221.25%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/14px 16px no-repeat;transform:translateY(-50%);filter:none}
-.dock .panel[data-panel=color] .ps-hue-indicator::before,.dock .panel[data-panel=color] .ps-hue-indicator::after{content:none!important;clip-path:none!important}
+.ps-range,.dock .ps-range{appearance:none;-webkit-appearance:none;box-sizing:border-box;height:15px;min-height:15px;min-width:0;margin:0;padding:0;border:0!important;background:transparent;cursor:pointer}
+.ps-range::-webkit-slider-runnable-track{height:var(--r211-track);border:0;border-radius:0;background:#adb1b6}
+.ps-range::-moz-range-track{height:var(--r211-track);border:0;border-radius:0;background:#adb1b6}
+.ps-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:var(--r211-slider-thumb);height:var(--r211-slider-thumb);margin-top:-4.5px;border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2011%2011%22%3E%3Cpath%20d%3D%22M5.5%20.8L10%205.7V9.6H1V5.7Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23303030%22%20stroke-width%3D%221%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/11px 11px no-repeat;filter:none;box-shadow:none;transform:none}
+.ps-range::-moz-range-thumb{box-sizing:border-box;width:var(--r211-slider-thumb);height:var(--r211-slider-thumb);border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2011%2011%22%3E%3Cpath%20d%3D%22M5.5%20.8L10%205.7V9.6H1V5.7Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23303030%22%20stroke-width%3D%221%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/11px 11px no-repeat;filter:none;box-shadow:none;transform:none}
+/* Hue: same footprint and stroke, right-pointing arrow toward color strip. */
+.dock .panel[data-panel=color] .ps-hue-indicator{left:-10px;top:96%;width:var(--r211-slider-thumb);height:var(--r211-slider-thumb);border:0;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2011%2011%22%3E%3Cpath%20d%3D%22M1%201.1H5.3L10.2%205.5L5.3%209.9H1Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23303030%22%20stroke-width%3D%221%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/11px 11px no-repeat;filter:none;box-shadow:none;pointer-events:auto;cursor:ns-resize;touch-action:none;z-index:4}
+.dock .panel[data-panel=color] .ps-hue-indicator::before,.dock .panel[data-panel=color] .ps-hue-indicator::after{content:none!important;display:none!important;clip-path:none!important}
+/* All Chrome scrollbar tracks are 6px. Thumb LENGTH follows document content. */
+.dock *,.r211-new-box *{scrollbar-width:auto;scrollbar-color:#bfc0c2 #f6f6f6}
+.dock *::-webkit-scrollbar,.r211-new-box *::-webkit-scrollbar{width:var(--r211-scrollbar);height:var(--r211-scrollbar)}
+.dock *::-webkit-scrollbar-track,.r211-new-box *::-webkit-scrollbar-track{background:#f6f6f6}
+.dock *::-webkit-scrollbar-thumb,.r211-new-box *::-webkit-scrollbar-thumb{border-radius:3px;background:#bfc0c2}
+.dock *::-webkit-scrollbar-button,.r211-new-box *::-webkit-scrollbar-button{display:none;width:0;height:0}
 .r211-opacity-preview{display:flex;align-items:center;gap:5px;height:25px;min-height:25px;font-size:10px;color:#777;padding:0 3px}
 .r211-opacity-preview>span{white-space:nowrap}
 .r211-opacity-preview>.ps-range{flex:1 1 auto;width:auto;min-width:45px}
