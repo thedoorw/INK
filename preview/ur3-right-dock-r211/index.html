@@ -461,7 +461,7 @@ document.querySelectorAll('[data-preview-note]').forEach(b=>b.addEventListener('
  let hueAngle=346,hueDragPointer=null,hueGrabOffset=0;
  function hueGeometry(){const r=hueEl.getBoundingClientRect(),half=Math.min(hueIndicator.offsetHeight/2||5.5,r.height/2);return{r,half,range:Math.max(0,r.height-2*half)}}
  function hueY(n){const g=hueGeometry();return g.half+g.range*n}
- function setHueRatio(n){n=Math.max(0,Math.min(1,n));hueAngle=Math.round(360*n);hueIndicator.style.top=hueY(n)+'px';hueEl.setAttribute('aria-valuenow',String(hueAngle));const plane=document.getElementById('previewColorPlane');plane.style.background='linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl('+hueAngle+' 100% 50%)'}
+ function setHueRatio(n){n=Math.max(0,Math.min(1,n));hueAngle=Math.round(360*n);hueIndicator.style.top='calc('+(n*100).toFixed(4)+'% + '+(5.5*(1-2*n)).toFixed(3)+'px)';hueEl.setAttribute('aria-valuenow',String(hueAngle));const plane=document.getElementById('previewColorPlane');plane.style.background='linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,transparent),hsl('+hueAngle+' 100% 50%)'}
  function setHueFromClientY(clientY){const {r,half,range}=hueGeometry();setHueRatio(range>0?(clientY-hueGrabOffset-r.top-half)/range:0)}
  hueEl.addEventListener('pointerdown',e=>{
    if(e.button!==0)return;
