@@ -159,3 +159,16 @@ test('N12: README-only PR passes metadata classification without Runtime release
     ['release/CANDIDATE.json','release/CANDIDATE.sig']
   ])assert.equal(classifyPublicPRChange(paths),'SIGNED_RELEASE_REQUIRED',paths.join(','));
 });
+
+test('P02/N13: scoped signer accepts only its pinned source tree, Runtime and allowlist',async t=>{
+ const f=await fixture(t);
+ const scope={source_tree:source.tree,runtime_digest_sha256:packageId.runtime_digest_sha256,allowlist_digest_sha256:packageId.allowlist_digest_sha256};
+ const scoped={...policy,signers:[{...policy.signers[0],scope}]};
+ assert.equal((await verifyReleaseCandidate({...f.args,policy:scoped})).status,'PASS');
+ for(const [field,error] of [['source_tree',/SIGNER_SOURCE_TREE_SCOPE_MISMATCH/],['runtime_digest_sha256',/SIGNER_RUNTIME_SCOPE_MISMATCH/],['allowlist_digest_sha256',/SIGNER_ALLOWLIST_SCOPE_MISMATCH/]]){
+  const invalid={...scoped,signers:[{...scoped.signers[0],scope:{...scope,[field]:hex('9',field==='source_tree'?40:64)}}]};
+  await assert.rejects(()=>verifyReleaseCandidate({...f.args,policy:invalid}),error);
+ }
+ await assert.rejects(()=>verifyReleaseCandidate({...f.args,policy:{...scoped,signers:[{...scoped.signers[0],scope:{}}]}}),/SIGNER_SCOPE_INVALID/);
+});
+
