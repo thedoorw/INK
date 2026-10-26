@@ -66,7 +66,7 @@ header.apphead{height:40px;display:flex;align-items:center;padding:0 13px 0 11px
 .ps-brush-head[aria-pressed=true]{border-color:#8baac2;background:#e8f4ff}
 .ps-brush-head span{display:block;width:23px;height:23px;border-radius:50%;background:#fff;box-shadow:0 0 5px 4px #999;filter:blur(1px)}
 .ps-brush-head.h1 span{filter:none;box-shadow:0 0 0 1px #aaa}.ps-brush-head.h2 span{width:14px;height:14px}.ps-brush-head.h3 span{width:14px;height:14px;filter:blur(2px)}.ps-brush-head.h4 span{width:11px;height:25px;border-radius:18px;transform:rotate(30deg)}
-.ps-brush-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.ps-brush-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:auto}
 .ps-brush-folder{height:27px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #eee;padding:0 3px;font-size:11px;color:#666}
 .ps-brush-preset{display:block;width:100%;min-height:44px;padding:1px 9px 1px 13px;text-align:left;border:0;border-bottom:1px solid #e6e6e6;background:linear-gradient(90deg,#fafafa,#f4f4f4);position:relative;overflow:hidden}
 .ps-stroke-preview{height:22px;max-width:170px;width:100%;display:block;position:relative}
@@ -134,7 +134,7 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .panel .ps-adjust-icon,.dock .panel .ps-style-icon{font-size:15px}
 .dock .panel .ps-history-ico{font-size:13px}
 .dock .panel .ps-layer-blend input,.dock .panel .ps-layer-locks input{font-size:var(--ps-label-text)}
-.dock .zone[data-zone='1'] .zone-body:has(.ps-character-v25:not([hidden])){overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+.dock .zone[data-zone='1'] .zone-body:has(.ps-character-v25:not([hidden])){overflow-y:auto;overflow-x:hidden;scrollbar-width:auto}
 .dock .panel .ps-char-main{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
 .dock .panel .ps-char-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px;min-height:24px;align-items:center}
 .dock .panel .ps-char-family{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);margin:2px 0 4px}
@@ -195,7 +195,7 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .swgroup-head{width:100%;display:flex;align-items:center;justify-content:flex-start;gap:4px;padding:0 6px;text-align:left;min-height:27px;box-sizing:border-box}
 .dock .swgroup-head .triangle{flex:0 0 9px;min-width:9px;font-size:11px}
 .dock .swgroup-head::before{content:'';display:block;flex:0 0 14px;width:14px;height:12px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='12' viewBox='0 0 14 12'%3E%3Cpath d='M1 3V1.5h5l1.5 2H13V11H1Z' fill='none' stroke='%23777' stroke-width='1.1' stroke-linejoin='round'/%3E%3C/svg%3E");background-position:center;background-size:14px 12px;background-repeat:no-repeat}
-.dock .panel[data-panel=swatches] .ps-swatches-scroll{scrollbar-width:thin}
+.dock .panel[data-panel=swatches] .ps-swatches-scroll{scrollbar-width:auto}
 /* Character: PS controls use compact adjacent 2-column fields, glyphs separate from labels. */
 .dock .panel[data-panel=character] .ps-char-main{gap:1px}
 .dock .panel[data-panel=character] .ps-char-pair{min-height:23px;gap:5px}
