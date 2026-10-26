@@ -75,6 +75,12 @@ function trustPolicy(policy){
 function verifySignature(manifest,signature,policy){
   const signer=policy.signers.find(s=>s.id===manifest.signer_id);
   assert.ok(signer && signer.public_key_pem && signer.public_key_pem.includes('PUBLIC KEY'),'UNREGISTERED_SIGNER');
+  if(signer.scope){
+    assert.ok(SHA40.test(signer.scope.source_tree)&&SHA256.test(signer.scope.runtime_digest_sha256)&&SHA256.test(signer.scope.allowlist_digest_sha256),'SIGNER_SCOPE_INVALID');
+    assert.equal(manifest.source?.tree,signer.scope.source_tree,'SIGNER_SOURCE_TREE_SCOPE_MISMATCH');
+    assert.equal(manifest.package?.runtime_digest_sha256,signer.scope.runtime_digest_sha256,'SIGNER_RUNTIME_SCOPE_MISMATCH');
+    assert.equal(manifest.package?.allowlist_digest_sha256,signer.scope.allowlist_digest_sha256,'SIGNER_ALLOWLIST_SCOPE_MISMATCH');
+  }
   assert.ok(typeof signature==='string'&&/^[a-zA-Z0-9+/]+={0,2}$/.test(signature.trim()),'SIGNATURE_ENCODING_INVALID');
   const bytes=Buffer.from(signature.trim(),'base64');
   assert.ok(bytes.length===64,'SIGNATURE_LENGTH_INVALID');
@@ -201,3 +207,4 @@ export async function main(argv=process.argv.slice(2),env=process.env){
 if(process.argv[1] && import.meta.url === new URL('file://'+resolve(process.argv[1])).href){
   main().catch(err=>{console.error('PUBLIC_RELEASE_VERIFIER_REJECT:',err?.message||err);process.exitCode=1;});
 }
+
