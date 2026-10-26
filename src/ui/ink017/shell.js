@@ -71,7 +71,10 @@ export function mountNativeShell(app,root){
  }
  const command=async key=>{
   menuUi?.close(menu.contains(document.activeElement));const s=host.getSnapshot();
-  if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;panel.querySelector('button')?.focus();return}
+  if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;(panel.querySelector('[data-recovery-key]')||panel.querySelector('button'))?.focus();return}
+  if(key==='recover')return command('native-tools');
+  if(/^view:[124]$/.test(key))return run('session.view.layout.v1',{layout:Number(key.slice(5))});
+  if(key.startsWith('session:'))return run('session.activate.v1',{sessionId:key.slice(8)});
   if(key==='undo'||key==='redo')return run('history.'+key+'.v1');
   if(key==='new')return openSizeRoute('new');
   if(key==='open')return $('#openFile').click();if(key==='import-image'){importTarget={target:host.target(),layerId:s.docs[0]?.selection};return $('#importImageFile').click()}
@@ -80,9 +83,15 @@ export function mountNativeShell(app,root){
   if(key==='copy'||key==='paste')return run('session.'+key+'.v1');
   if(key==='branding'){globalThis.dispatchEvent(new Event('ink:branding-open'));return}
   if(key==='ppi'||key==='artwork'||key==='canvas-size')return openSizeRoute(key==='canvas-size'?'canvas':key);
+  if(key==='fit-artboard')return run('view.fit.artboard.v1');
+  if(key==='zoom-in'||key==='zoom-out')return run('view.zoom.by.v1',{factor:key==='zoom-in'?1.2:1/1.2});
   if(key==='fit')return run('view.fit.content.v1');if(key==='100')return run('view.zoom.set.v1',{scale:1});
+  if(key==='200')return run('view.zoom.set.v1',{scale:2});
+  if(key==='view:snap'){const enabled=host.app.page?.()?.snap?.enabled!==false;return run('page.snap.set.v1',{key:'enabled',value:!enabled});}
+  if(key.startsWith('view:snap:')){const category=key.slice(10);if(!['guides','edges','centers','equalDistance'].includes(category))return;const enabled=host.app.page?.()?.snap?.categories?.[category]===true;return run('page.snap.set.v1',{key:category,value:!enabled});}
   if(key==='adjustments')return dock.activate('adjustments');
   if(['image-size','crop'].includes(key))return imageDialog(key);
+  if(key.startsWith('image-mode:')||key.startsWith('image-depth:')){const target=host.target(),info=host.provider.image.selectedInfo();if(!info){feedback('Select an unlocked raster image');return}const mode=key.startsWith('image-mode:');const value=mode?key.slice(11):Number(key.slice(12));if(mode?info.colorMode===value:info.bitDepth===value)return{ok:true,changed:false};return run(mode?'ui017.image.mode.v1':'ui017.image.depth.v1',{target,...(mode?{mode:value}:{depth:value})});}
   if(key==='transform'){host.dispatch({type:'tool.set',value:'select',source:'menu.transform'});contextToolbar.expand(true);return}
   if(key==='duplicate'||key==='delete')return host.dispatch({type:'layer.'+key,object:true,target:host.target(),source:'context'});
   if(key==='align'){const t=host.target();if(t.refs.length<2){feedback('Select at least two objects');return}return dialog('Align',field('mode','Align','left','text',['left','centerX','right','top','centerY','bottom','distributeX','distributeY']),a=>{host.provider.requireSelection(t);return run('object.align.v1',{...a,targetRefs:t.refs.map(r=>({...r,pageId:t.pageId}))})})}

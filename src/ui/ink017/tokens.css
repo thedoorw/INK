@@ -29,24 +29,25 @@
 .completion-preview,.completion-handle{stroke:var(--accent);stroke-width:1.5}
 .completion-preview{stroke-dasharray:4 3}
 .completion-anchor{fill:var(--surface);stroke:var(--accent);stroke-width:1}
-.main-menu{position:absolute;z-index:80;left:var(--rail-width);top:8px;width:280px;max-width:calc(100% - var(--rail-width) - 8px);padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002;color:var(--primary)}
-.menu-grid{display:grid;grid-template-columns:76px minmax(0,1fr);gap:6px;align-items:start}
+.main-menu{position:absolute;z-index:80;left:6px;top:48px;width:280px;max-width:calc(100% - var(--rail-width) - 8px);padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002;color:var(--primary)}
+.menu-grid{display:grid;grid-template-columns:55px minmax(0,1fr);gap:6px;align-items:start}
 .menu-categories{display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line);padding-right:6px}
 .menu-category,.menu-row{border:0;border-radius:var(--radius);background:transparent;min-height:0;font-size:var(--text);font-weight:var(--weight);color:var(--primary)}
-.menu-category{display:block;height:28px;width:100%;padding:0 8px;text-align:left}
+ .menu-category{display:block;height:28px;width:100%;padding:0 6px;text-align:left}
 .menu-category.active{background:var(--soft);color:var(--primary)}
 .menu-category:hover,.menu-row:hover:not(:disabled){background:var(--soft)}
 .menu-panes{min-width:0}
-.menu-pane{max-height:calc(100dvh - 40px);overflow:visible}
+.menu-pane{max-height:calc(100dvh - 66px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
 .menu-group+.menu-group{border-top:1px solid var(--line);padding-top:3px;margin-top:3px}
 .menu-item-host{position:relative}
 .menu-row{width:100%;height:28px;display:flex;align-items:center;gap:4px;text-align:left;padding:0 6px;white-space:nowrap}
 .menu-row:disabled{opacity:1;color:var(--secondary);cursor:default}.menu-row:disabled .menu-shortcut,.menu-row:disabled .menu-chevron{color:var(--secondary)}.menu-row[data-command^="export:"]:not(:disabled) .menu-label{font-weight:var(--weight-strong)}
-.menu-label{flex:1 1 auto;min-width:0;overflow:visible;text-overflow:clip;white-space:nowrap}
+.menu-label{flex:0 1 auto;min-width:0;overflow-wrap:anywhere;white-space:normal}
 .menu-shortcut{font-size:var(--text-tiny);color:var(--secondary);margin-left:auto;flex-shrink:0}
-.menu-chevron{font-size:16px;color:var(--secondary);line-height:1;margin-left:auto}
-.menu-submenu{position:absolute;left:calc(100% - 1px);top:-6px;z-index:85;width:184px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002}
+.menu-chevron{font-size:15px;color:var(--secondary);line-height:1;margin-left:3px;flex-shrink:0}
+.menu-submenu{position:relative;left:auto;top:auto;z-index:auto;width:auto;max-width:100%;margin-left:7px;padding:3px 0 3px 5px;background:var(--surface);border:0;border-left:2px solid var(--line);border-radius:0;box-shadow:none}
 .menu-category:focus-visible,.menu-row:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
+.menu-row.menu-row-core{color:var(--secondary)}.menu-row.menu-row-core:disabled{color:var(--disabled);opacity:.75}.menu-row.menu-row-core[aria-haspopup="menu"]{cursor:pointer}.menu-submenu .menu-row{min-height:26px;height:auto;padding-block:4px}
 .overlay{position:absolute;z-index:90;inset:0;display:grid;place-items:center;background:#0002}.dialog{position:relative;width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 30px #0003;display:flex;flex-direction:column;overflow:hidden}.dialog-header{height:var(--dialog-header-height);flex:0 0 var(--dialog-header-height);padding:0 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);font-size:var(--text-dialog);font-weight:var(--weight-strong);touch-action:none;cursor:move}.dialog-close{height:28px;min-height:28px;width:28px;flex:0 0 28px;border:0;padding:0;display:grid;place-items:center;background:transparent;color:var(--secondary)}.dialog-body{padding:var(--dialog-body-padding);overflow:auto;min-height:0}.dialog-footer{height:var(--dialog-footer-height);flex:0 0 var(--dialog-footer-height);display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 12px;border-top:1px solid var(--line)}.dialog-footer button{min-height:var(--action-height);min-width:var(--action-min-width);padding:0 10px}.dialog-footer button.primary{background:var(--primary);color:var(--surface);border-color:var(--primary);font-weight:var(--weight-strong)}.dialog-footer button.primary:hover{background:#111}.dialog-footer [data-cancel],.dialog-footer [data-close-choice="cancel"],.dialog-footer [data-size-cancel]{background:var(--surface);color:var(--secondary);border-color:var(--border)}.primary{background:var(--accent);color:white;border-color:var(--accent)}.pref-tabs{display:flex;gap:4px;margin-bottom:16px}.pref-tabs .active{background:var(--accent-soft)}.branding-preview{height:56px;display:flex;align-items:center;gap:8px}.branding-preview img{max-width:48px;max-height:48px}.logo-image{width:24px;height:24px;object-fit:contain}.file-row{margin:8px 0}.file-row input{height:auto}.dialog .field-row{grid-template-columns:120px minmax(0,1fr)}.dialog-body input:not([type=checkbox]):not([type=radio]),.dialog-body select{height:var(--action-height);min-height:var(--action-height)}#toast{position:absolute;z-index:100;bottom:72px;left:50%;transform:translateX(-50%);max-width:90%;padding:8px 12px;border-radius:6px;background:var(--primary);color:white;pointer-events:none}#toast:empty{display:none}
 .layer-row [data-visible] svg,.layer-row [data-lock] svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.layer-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.panel-host[data-panel=history]{display:flex;flex-direction:column}.history-list{flex:1 1 auto;min-height:72px;overflow:auto;scrollbar-width:thin}.history-actions{flex-shrink:0}.dock-zone .panel-host{overscroll-behavior:contain}.zone-expand:hover{background:var(--soft)}.zone-expand:focus-visible{outline:2px solid var(--accent)}.layer-footer button,.swatch-footer button{min-width:26px}.color-plane:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* The Photoshop-style single column fits all 20 groups at the desktop viewport.
@@ -114,6 +115,13 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .native-function-dialog.size-route-active>.native-function-close{display:none}
 .native-function-dialog.size-route-active .native-function-module>[data-slot]:not([data-slot="state"]){display:none}
 .native-function-dialog.size-route-active [data-module-slot="state"]>:not(dialog){display:none}
+/* New/Canvas size routes show only the native top-layer dialog. The legacy
+   diagnostic state's grid cell otherwise leaves a padded background strip
+   above the workspace while its sibling controls are hidden. */
+.native-function-dialog.size-route-active .native-function-module{display:block;gap:0;clear:none}
+.native-function-dialog.size-route-active .native-function-module>[data-slot="state"]{display:block;grid-column:auto;grid-row:auto;position:static;width:0;height:0;min-height:0;padding:0;border:0;background:transparent;overflow:visible}
+.native-function-dialog.size-route-active [data-module-slot="state"]{display:block;width:0;height:0;padding:0;border:0;background:transparent;overflow:visible}
+
 .native-function-dialog.size-route-active dialog[open]{pointer-events:auto}
 .native-function-dialog{position:fixed;inset:5vh 5vw;z-index:1200;background:var(--surface,#f4f4f4);color:#222;border:1px solid #aaa;border-radius:6px;overflow:auto;padding:16px;box-shadow:0 8px 40px #0004}
 .native-function-dialog[hidden]{display:none}
