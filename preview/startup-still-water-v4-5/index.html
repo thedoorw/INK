@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>INK · 靜水一滴｜比例構成測試 v4.5</title>
+  <style>
+    :root {
+      --bg: #f1f0ec;
+      --water: #748995;
+      --waterline: #9da9ae;
+      --text: #617883;
+      --panel: rgba(255,255,255,.58);
+      --panel-border: rgba(116,137,149,.26);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; }
+    body { font-family: system-ui, -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif; background: var(--bg); }
+    #inkBootGate {
+      position: fixed;
+      inset: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      isolation: isolate;
+      background: var(--bg);
+    }
+    #inkBootGate::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 72% 65% at 46% 32%, rgba(255,255,255,.46), transparent 86%),
+        radial-gradient(ellipse 65% 63% at 75% 86%, rgba(172,189,190,.055), transparent 90%);
+    }
+    svg.scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+    #waterDrop { fill: var(--water); opacity: 0; }
+    #waterline {
+      fill: none;
+      stroke: var(--waterline);
+      stroke-width: 1.45;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border: 0;
+    }
+    .error { display:none; }
+    .tools {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      z-index: 3;
+      pointer-events: auto;
+    }
+    .label {
+      color: #89969c;
+      font-size: 11px;
+      letter-spacing: .05em;
+    }
+    .button {
+      appearance: none;
+      cursor: pointer;
+      border-radius: 99px;
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 9px 15px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .button:hover { background: rgba(255,255,255,.82); }
+    .button:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+    .meta {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 10px;
+      border-radius: 99px;
+      border: 1px solid var(--panel-border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 11px;
+      letter-spacing: .035em;
+      z-index: 3;
+      pointer-events: none;
+    }
+    @media (max-width: 640px) {
+      .tools { gap: 8px; }
+      .label { font-size: 10px; }
+      .button { padding: 8px 13px; }
+      .meta { font-size: 10px; }
+    }
+    html[data-ink-shell-ready="true"] #inkBootGate { display:none; }
+  </style>
+</head>
+<body>
+  <div id="inkBootGate" role="status" aria-label="INK 正在啟動" aria-live="off">
+    <svg class="scene" id="scene" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path id="waterDrop" d="" />
+      <path id="waterline" d="" />
+    </svg>
+    <span class="visually-hidden">INK 正在啟動</span>
+    <div class="meta" id="metaText">三角形高度 = 畫面高度 1/8 · 水滴最大高度 = 三角形高度 1/3</div>
+    <div class="tools" aria-label="動畫預覽控制，正式產品不顯示">
+      <span class="label" id="phaseText">比例構成測試 v4.5</span>
+      <button class="button" id="replay" type="button">重播</button>
+    </div>
+  </div>
+  <script>
+  (() => {
+    'use strict';
+    const scene = document.getElementById('scene');
+    const drop = document.getElementById('waterDrop');
+    const line = document.getElementById('waterline');
+    const replay = document.getElementById('replay');
+    const label = document.getElementById('phaseText');
+    const metaText = document.getElementById('metaText');
+
+    const CYCLE = 6000;
+    const FORM_START = 1200;
+    const FORM_END = 2500;
+    const FALL_START = 2620;
+    const TOUCH = 2860;
+    const DISSOLVE_END = 3090;
+    const RIPPLE_END = 4550;
+
+    let geometry = null;
+    let manualOrigin = performance.now();
+    let raf = 0;
+    let previousLine = '';
+
+    const clamp = x => Math.min(1, Math.max(0, x));
+    const smooth = t => { const p = clamp(t); return p*p*(3 - 2*p); };
+    const easeOutCubic = t => 1 - Math.pow(1 - clamp(t), 3);
+    const easeInCubic = t => Math.pow(clamp(t), 3);
+    const fmt = n => Number(n).toFixed(3);
+
+    function buildGeometry() {
+      const w = window.innerWidth || 1280;
+      const h = window.innerHeight || 720;
+      const triangleHeight = h / 8;
+      const dropMaxHeight = triangleHeight / 3;
+      const centerX = w / 2;
+      const centerY = h / 2;
+      const apexY = centerY - (2 * triangleHeight / 3);
+      const baseY = apexY + triangleHeight;
+      const halfBase = triangleHeight / Math.sqrt(3);
+      const lineStartX = centerX - halfBase;
+      const lineEndX = centerX + halfBase;
+      const dropWidth = dropMaxHeight * 0.56;
+      const touchTravel = baseY - apexY - dropMaxHeight;
+      scene.setAttribute('viewBox', `0 0 ${fmt(w)} ${fmt(h)}`);
+      metaText.textContent = `三角形高度 = 畫面高度 1/8 · 水滴最大高度 = 三角形高度 1/3 · 目前約 ${Math.round(triangleHeight)}px / ${Math.round(dropMaxHeight)}px`;
+      return { w, h, centerX, centerY, triangleHeight, dropMaxHeight, dropWidth, apexY, baseY, halfBase, lineStartX, lineEndX, touchTravel };
+    }
+
+    // Teardrop with tapered point and a true round base.
+    function dropletPath(cx, top, width, height, tension, flatten=0) {
+      const halfWidth = width / 2;
+      const bottom = top + height;
+      const kappa = 0.5522847498;
+      const lowerRadiusY = Math.min(halfWidth, height * 0.46);
+      const equator = bottom - lowerRadiusY;
+      return [
+        'M', fmt(cx), fmt(top),
+        'C', fmt(cx - halfWidth * 0.12), fmt(top + height * 0.18),
+             fmt(cx - halfWidth), fmt(top + height * 0.43),
+             fmt(cx - halfWidth), fmt(equator),
+        'C', fmt(cx - halfWidth), fmt(equator + lowerRadiusY * kappa),
+             fmt(cx - halfWidth * kappa), fmt(bottom),
+             fmt(cx), fmt(bottom),
+        'C', fmt(cx + halfWidth * kappa), fmt(bottom),
+             fmt(cx + halfWidth), fmt(equator + lowerRadiusY * kappa),
+             fmt(cx + halfWidth), fmt(equator),
+        'C', fmt(cx + halfWidth), fmt(top + height * 0.43),
+             fmt(cx + halfWidth * 0.12), fmt(top + height * 0.18),
+             fmt(cx), fmt(top), 'Z'
+      ].join(' ');
+    }
+
+    function flatLinePath() {
+      return `M ${fmt(geometry.lineStartX)} ${fmt(geometry.baseY)} L ${fmt(geometry.lineEndX)} ${fmt(geometry.baseY)}`;
+    }
+
+    function waterlinePath(time) {
+      if (time < TOUCH) return flatLinePath();
+      const impacting = time >= TOUCH && time < DISSOLVE_END;
+      const rippling = time >= DISSOLVE_END && time < RIPPLE_END;
+      if (!impacting && !rippling) return flatLinePath();
+      const progressImpact = impacting ? (time - TOUCH) / (DISSOLVE_END - TOUCH) : 1;
+      const progressRipple = rippling ? (time - DISSOLVE_END) / (RIPPLE_END - DISSOLVE_END) : 0;
+      const damping = Math.pow(1 - progressRipple, 1.7);
+      const halfSpan = geometry.halfBase;
+      const front = 6 + progressRipple * (halfSpan * 0.80);
+      const wavelength = halfSpan * 0.58;
+      let d = '';
+      const samples = 84;
+      for (let i = 0; i <= samples; i++) {
+        const x = geometry.lineStartX + (i / samples) * (geometry.lineEndX - geometry.lineStartX);
+        const dist = Math.abs(x - geometry.centerX);
+        const centerDip = impacting ? 1.9 * Math.sin(Math.PI * progressImpact) * Math.exp(-Math.pow(dist / (halfSpan * 0.13), 2)) : 0;
+        let gentleWave = 0;
+        if (rippling) {
+          const envelope = Math.exp(-Math.pow((dist - front) / (halfSpan * 0.28), 2));
+          const phase = ((dist - front) / wavelength) * Math.PI * 1.15;
+          gentleWave = -1.15 * damping * envelope * Math.sin(phase);
+        }
+        const y = geometry.baseY + centerDip + gentleWave;
+        d += (i ? ' L ' : 'M ') + fmt(x) + ' ' + fmt(y);
+      }
+      return d;
+    }
+
+    function paint(ms) {
+      const t = ((ms % CYCLE) + CYCLE) % CYCLE;
+      let top = geometry.apexY;
+      let width = geometry.dropWidth * 0.08;
+      let height = geometry.dropMaxHeight * 0.08;
+      let opacity = 0;
+      let tension = 0;
+      let flatten = 0;
+      let phase = '靜止';
+
+      if (t >= FORM_START && t < FALL_START) {
+        const p = smooth((t - FORM_START) / (FORM_END - FORM_START));
+        width = geometry.dropWidth * (0.10 + 0.90 * p);
+        height = geometry.dropMaxHeight * (0.12 + 0.88 * p);
+        opacity = smooth((t - FORM_START) / 180);
+        tension = p;
+        phase = '水滴凝聚';
+      } else if (t >= FALL_START && t < TOUCH) {
+        const p = (t - FALL_START) / (TOUCH - FALL_START);
+        top = geometry.apexY + geometry.touchTravel * easeInCubic(p);
+        width = geometry.dropWidth * (1 - 0.05 * Math.sin(Math.PI * p));
+        height = geometry.dropMaxHeight * (1 + 0.08 * Math.sin(Math.PI * p));
+        opacity = 1;
+        tension = 1;
+        phase = '快速下落';
+      } else if (t >= TOUCH && t < DISSOLVE_END) {
+        const p = (t - TOUCH) / (DISSOLVE_END - TOUCH);
+        height = geometry.dropMaxHeight * (1 - 0.74 * easeOutCubic(p));
+        width = geometry.dropWidth * (1 + 0.92 * easeOutCubic(p));
+        top = geometry.baseY - height;
+        opacity = 1 - smooth((p - 0.1) / 0.9);
+        tension = 1 - p;
+        flatten = p;
+        phase = '觸線 · 消融';
+      }
+
+      if (opacity <= 0.001) {
+        drop.style.opacity = '0';
+      } else {
+        drop.setAttribute('d', dropletPath(geometry.centerX, top, width, height, tension, flatten));
+        drop.style.opacity = String(opacity);
+      }
+
+      const nextLine = waterlinePath(t);
+      if (nextLine !== previousLine) {
+        line.setAttribute('d', nextLine);
+        previousLine = nextLine;
+      }
+
+      if (t >= DISSOLVE_END && t < RIPPLE_END) phase = '緩波消散';
+      else if (t < FORM_START) phase = '靜止';
+      else if (t >= RIPPLE_END) phase = '靜止';
+      label.textContent = phase;
+    }
+
+    function resize() {
+      geometry = buildGeometry();
+      previousLine = '';
+      line.setAttribute('d', flatLinePath());
+      paint(performance.now() - manualOrigin);
+    }
+
+    function frame(now) {
+      paint(now - manualOrigin);
+      raf = requestAnimationFrame(frame);
+    }
+
+    function restart(skipSilence) {
+      if (raf) cancelAnimationFrame(raf);
+      manualOrigin = performance.now() - (skipSilence ? FORM_START : 0);
+      frame(performance.now());
+    }
+
+    window.addEventListener('resize', resize, { passive: true });
+    replay.addEventListener('click', () => restart(true));
+    window.__inkStillWaterPreview = {
+      geometry() { return geometry; },
+      seek(ms) { if (raf) cancelAnimationFrame(raf); raf = 0; paint(ms); },
+    };
+
+    resize();
+    restart(false);
+  })();
+  </script>
+</body>
+</html>
