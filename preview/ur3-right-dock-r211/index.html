@@ -258,7 +258,7 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .panel[data-panel=color] .colors-small::after{left:3px;top:2px;width:18px;height:18px;border:1px solid #4b4b4b;box-shadow:inset 0 0 0 1px #fff;background:var(--swatch-picked,#a54a42);box-sizing:content-box;z-index:2}
 
 /* UR3 R2.10 — USER 4-point pre-release draft correction (2026-10-25).
-   Minimum Dock width 240 (default stays 274); menu bars 4×1px with 1px gaps.
+   Minimum and default Dock width 240 in R2.11; menu bars 4×1px with 1px gaps.
    Use Chromium's native bidirectional resize cursor on the Dock left boundary only;
    the Navigator range track/thumb deliberately use the ordinary pointer arrow.
    Prior R2.9 rules remain historical; these rules are the live CSS overrides. */
@@ -280,7 +280,7 @@ body:has(#btnNoDoc.active) .panel[data-panel=navigator] .ps-navframe{flex:1 1 au
 .dock .panel[data-panel=color] .ps-hue-indicator{left:-10px;top:96%;width:var(--r211-slider-thumb);height:var(--r211-slider-thumb);border:0;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2011%2011%22%3E%3Cpath%20d%3D%22M1%201.1H5.3L10.2%205.5L5.3%209.9H1Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23303030%22%20stroke-width%3D%221%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E") center/11px 11px no-repeat;filter:none;box-shadow:none;pointer-events:auto;cursor:ns-resize;touch-action:none;z-index:4}
 .dock .panel[data-panel=color] .ps-hue-indicator::before,.dock .panel[data-panel=color] .ps-hue-indicator::after{content:none!important;display:none!important;clip-path:none!important}
 /* All Chrome scrollbar tracks are 6px. Thumb LENGTH follows document content. */
-.dock *,.r211-new-box *{scrollbar-width:auto;scrollbar-color:#bfc0c2 #f6f6f6}
+.dock *,.r211-new-box *{scrollbar-width:auto;scrollbar-color:auto}
 .dock *::-webkit-scrollbar,.r211-new-box *::-webkit-scrollbar{width:var(--r211-scrollbar);height:var(--r211-scrollbar)}
 .dock *::-webkit-scrollbar-track,.r211-new-box *::-webkit-scrollbar-track{background:#f6f6f6}
 .dock *::-webkit-scrollbar-thumb,.r211-new-box *::-webkit-scrollbar-thumb{border-radius:3px;background:#bfc0c2}
