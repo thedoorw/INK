@@ -40,6 +40,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Reject Draft before checkout or dependency setup
+        env:
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          if [ "$PR_DRAFT" != "false" ]; then
+            echo 'PUBLIC_RELEASE_VERIFIER_REJECT: DRAFT_CANDIDATE' >&2
+            exit 1
+          fi
       - name: Checkout ONLY the trusted public base verifier and policy
         uses: actions/checkout@v4
         with:
