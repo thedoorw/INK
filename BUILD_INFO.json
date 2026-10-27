@@ -4,16 +4,16 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "654701c004c241f0543a5a15e2328b515ffba29a",
-    "product_tree": "bff1e84f60b57d491aad9562d3eef1c3842f56b2"
+    "exact_sha": "ad0e047281cdfa373316c9d9ccaee635ab8c8cc6",
+    "product_tree": "6e6d15aec07f88472cddc1690574d376fb642cd9"
   },
   "package": {
-    "manifest_sha256": "0b3eb595810b6c59a8d5e1b2a3971e575a037f0c86ef1651e016a97261bf6168"
+    "manifest_sha256": "51ab8d16c43e1a20d9452c4017dc0e900caef3a846a7e45abc48ca2d04f69ead"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "6c49dbbf1841f681f53bc1963289a53fbe3b0e3969f283bc90dd5edcf0dd5a9e",
-    "file_count": 332,
+    "package_digest_sha256": "d94026427025969e40f7195351f06503378cb8a8b95c662d062d8aa27d5de829",
+    "file_count": 333,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "2bcdfc85c2697dee22a88824e1dcff2294aa14ed4e064c1b853bd59648b7bf32"
+        "sha256": "a711a0dc03f20ea8358ff7ef99010bebe51ad4ec1c59fe7c280e79022a174725"
       },
       {
         "path": "dist/ink.compat.js",
@@ -87,8 +87,8 @@
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 273074,
-        "sha256": "2323cefaffae38f34cb518a354e55ec9d5319062cd122173f4615ecb9dd323df"
+        "bytes": 281402,
+        "sha256": "8bfaec81e83a8179d8b393ad530f52abac95ed3069f9dec51bd6ba029a480401"
       },
       {
         "path": "index-standalone.html",
@@ -1541,9 +1541,14 @@
         "sha256": "f40ba631f8b67911e619fd23f2aba3f54569f4f45149b0622e88f05f849e588f"
       },
       {
+        "path": "src/ui/ink017/tool-slices/dev2/crop-interaction.js",
+        "bytes": 8701,
+        "sha256": "be41c96e0ee4cbc38693762bcae90eab612f208f3f06f575c50d58d4baa2b190"
+      },
+      {
         "path": "src/ui/ink017/tool-slices/dev2/index.mjs",
-        "bytes": 23784,
-        "sha256": "a10be801cbd71a22900cfab87764659d7dadb60e9adac98ff37ac3fec84b4e6f"
+        "bytes": 24298,
+        "sha256": "d2b9d40ca5daa6198cbf1b74d0cf4fc587be6a03172887a961b6c85ce9aa8c1b"
       },
       {
         "path": "src/ui/ink017/tool-slices/dev3/tools-context-dev3.mjs",
@@ -1679,20 +1684,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/422#issuecomment-6430874082"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/465#issuecomment-6432347934"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "66345211271f5eb28e38672c11894c069067360b",
+    "exact_sha": "609e9dd535acded43b308771deae28975dd1e344",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "f0d7b114173a8ac4fcf427b76ca72b8650e1a616",
-    "authority_record_sha256": "24d24348fc606f651643d3e21544b1881181ea4966317a84a34f5ce61f7ea4c8",
-    "publisher_sha": "66345211271f5eb28e38672c11894c069067360b",
-    "package_publisher_sha": "66345211271f5eb28e38672c11894c069067360b",
+    "previous_target_commit": "93b49ade416eb015994553168118fcc6f2d3d497",
+    "authority_record_sha256": "8569a266e313bf51dc5c73365c91aed8733c0e9aa86f34ffaf99f71a072341c4",
+    "publisher_sha": "609e9dd535acded43b308771deae28975dd1e344",
+    "package_publisher_sha": "609e9dd535acded43b308771deae28975dd1e344",
     "runtime_bytes_unchanged_from_package": true
   }
 }

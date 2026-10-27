@@ -3,6 +3,7 @@
 // UR2 owns rail grouping, activation delegation and assembled context presentation.
 import {esc,field} from '../../shared-controls.js';
 import {UI_B_RASTER_TOOL_IDS} from '../../../../../ui/capability-raster-tools.js';
+import {mountDev2CropInteraction} from './crop-interaction.js';
 
 export const DEV2_SUBTOOL_ICONS=Object.freeze({
  crop:'<path d="M7 3v14a2 2 0 0 0 2 2h12M3 7h14a2 2 0 0 1 2 2v12"/>',
@@ -45,7 +46,7 @@ export const DEV2_TOOL_GROUPS=Object.freeze([
  ])
 ]);
 export const DEV2_GAPS=Object.freeze([
- {row:5,id:'crop-preview',reason:'Native ui017.image.crop.v1 is a numeric commit; there is no drag crop bounds, viewport preview or interactive crop handles.'},
+ {row:5,id:'crop-preview',reason:'UI direct-crop overlay candidate is present, but Chrome Web/Portable, target lease and History verification remains outstanding.'},
  {row:6,id:'all-layers-sampling',reason:'Raster eyedropper samples only the selected 8-bit RGB image, not a composited all-layers surface.'},
  {row:11,id:'gradient-stops',reason:'Raster gradient controller uses exactly two endpoint colors and pointer drag; arbitrary color-stop editing and preview are absent.'},
  {row:13,id:'tone-range',reason:'Dodge and Burn do not expose independent Shadows/Midtones/Highlights ranges or exposure parameters.'},
@@ -292,7 +293,7 @@ export function dev2OptionsMarkup(host,id){
  const values=id==='crop'?{x:0,y:0,w:s.width||1,h:s.height||1}:opts;
  const html=(DEV2_FIELD_SCHEMAS[id]||[]).map(spec=>formField(spec,values[spec.key])).join('');
  const explain=({
-  crop:'數值裁切，尚無畫布框選預覽。Apply 會建立 Native History；Cancel 不修改文件。',
+  crop:'在畫布上拖曳建立裁切框，拖曳八點控制柄或移動框；Apply 經原生裁切與 History，Cancel 不修改文件。',
   eyedropper:'從選取影像取色（不支援合成所有圖層）。',
   healingBrush:'Alt/Option 點擊影像設定來源，再在目標處刷過。',
   patch:'先建立像素選區，從選區內拖曳到來源區域；放開後修補。',
@@ -307,7 +308,7 @@ export function dev2OptionsMarkup(host,id){
   smudge:'按住拖曳將顏色推向移動方向；遵從目前像素選區。',
   sponge:'在影像刷過增加或降低飽和度。'
  })[id]||'按目前已安裝的 Raster 互動操作。';
- const controls=id==='crop'?'<button type="button" data-dev2-action="apply">Apply</button><button type="button" data-dev2-action="cancel">Cancel</button>':'';
+ const controls=id==='crop'?'<button type="button" data-dev2-action="crop-reset">重新框選</button><button type="button" data-dev2-action="apply">Apply</button><button type="button" data-dev2-action="cancel">Cancel</button>':'';
  const pattern=id==='patternStamp'?'<label class="field-row"><span>圖樣影像</span><input type="file" data-dev2-pattern accept="image/*" aria-label="載入圖樣影像"></label><span class="context-readout">'+esc(rt?.patternInfo?.().name||'尚未載入圖樣')+'</span>':'';
  const source=['cloneStamp','healingBrush'].includes(id)?'<span class="context-readout">來源 '+esc(rt?.sourceInfo?.()?Math.round(rt.sourceInfo().x)+', '+Math.round(rt.sourceInfo().y):'尚未取樣')+'</span><button type="button" data-dev2-action="source-clear">清除來源</button>':'';
  const readout=id==='eyedropper'?'<span class="context-readout">前景色 '+esc(current(host).paint?.foreground||'—')+'</span>':'';
@@ -333,9 +334,9 @@ async function loadPattern(host,file,token,isDisposed){
 }
 export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{},onApplied=()=>{},subscribeUpdates=true}={}){
  if(!root?.addEventListener||!TOOL_IDS.has(id))throw Error('DEV2_MOUNT_INVALID');
- let disposed=false,busy=false;
+ let disposed=false,busy=false,crop=null;
  const abort=new AbortController(),{signal}=abort;
- const paint=()=>{if(disposed)return;root.innerHTML=dev2OptionsMarkup(host,id);root.dataset.nativeTarget=JSON.stringify(host.target())};
+ const paint=()=>{if(disposed)return;root.innerHTML=dev2OptionsMarkup(host,id);root.dataset.nativeTarget=JSON.stringify(host.target());crop?.syncForm()};
  const notify=error=>onFeedback(error?.message||String(error));
  const change=async event=>{
   if(disposed||busy)return;
@@ -347,7 +348,8 @@ export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{}
    finally{busy=false}
    return;
   }
-  if(!el?.dataset?.key||id==='crop')return;
+  if(!el?.dataset?.key)return;
+  if(id==='crop'){crop?.updateFromForm();return;}
   const value=el.value;
   const result=setDev2Option(host,id,el.dataset.key,value,{target:token});
   if(!result.ok)notify(result.error);
@@ -360,6 +362,7 @@ export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{}
   event.preventDefault();
   if(action==='source-clear'){runtime(host)?.resetRasterSource?.();paint();return;}
   if(id!=='crop')return;
+  if(action==='crop-reset'){crop?.reset();return;}
   if(action==='cancel'){onCancel();if(!disposed)root.replaceChildren();return}
   const values={};
   for(const el of root.querySelectorAll('[data-key]'))values[el.dataset.key]=el.value;
@@ -371,5 +374,7 @@ export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{}
  root.addEventListener('change',change,{signal});root.addEventListener('click',click,{signal});
  const unsubscribe=subscribeUpdates?(host.subscribe?.(()=>{if(!busy)paint()})||(()=>{})):(()=>{});
  paint();
- return {render:paint,dispose(){if(disposed)return;disposed=true;abort.abort();unsubscribe();root.replaceChildren()}};
+ if(id==='crop'&&dev2Availability(host,'crop').available)try{crop=mountDev2CropInteraction(root,host,{onFeedback:notify})}
+ catch(error){notify(error)} // Numeric crop remains usable if no interactive canvas.
+ return {render:paint,dispose(){if(disposed)return;disposed=true;abort.abort();crop?.dispose();unsubscribe();root.replaceChildren()}};
 }
