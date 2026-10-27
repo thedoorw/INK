@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f1f0ec">
+  <title>INK｜靜水一滴 v5.0 — HEY MY INK</title>
+  <style>
+    :root{--bg:#f1f0ec;--drop:#69BFE3;--line:#69BFE3;--type:#246F97;--muted:#738b98;--border:rgba(36,111,151,.2)}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:system-ui,-apple-system,'Segoe UI','Noto Sans TC',sans-serif}
+    #inkWorkspace,#inkBootGate{position:fixed;inset:0;overflow:hidden;background:var(--bg)}
+    #inkWorkspace{z-index:0}
+    #inkBootGate{z-index:2}
+    #inkBootGate::before,#inkWorkspace::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 72% 65% at 46% 32%,rgba(255,255,255,.46),transparent 86%),radial-gradient(ellipse 65% 63% at 75% 86%,rgba(172,189,190,.055),transparent 90%)}
+    svg.scene{position:absolute;inset:0;width:100%;height:100%;display:block}
+    #waterDrop{fill:var(--drop);opacity:0}
+    #waterline,#workspaceLine{fill:none;stroke:var(--line);stroke-width:1.45;stroke-linecap:round;stroke-linejoin:round}
+    #waterline{stroke-opacity:.76}
+    #workspaceLine{stroke-opacity:.76;opacity:1;transition:opacity .40s ease-in-out}
+    #wordmark{fill:var(--type);opacity:0;transition:opacity .40s ease-in-out}
+    html.ink-ready #inkBootGate{display:none}
+    html.ink-ready #workspaceLine{opacity:0}
+    html.ink-ready #wordmark{opacity:1}
+    html.has-document #wordmark{opacity:0}
+    .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    .preview-tools{position:fixed;bottom:max(18px,env(safe-area-inset-bottom));left:12px;right:12px;z-index:4;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px}
+    .preview-pill,.preview-btn{font-size:12px;line-height:1.3;letter-spacing:.01em;color:#517b90;background:rgba(255,255,255,.83);border:1px solid var(--border);border-radius:99px;padding:9px 13px;font-family:inherit}
+    .preview-pill{color:var(--muted);pointer-events:none}
+    .preview-btn{cursor:pointer}
+    .preview-btn:hover{background:#fff}
+    .preview-btn:focus-visible{outline:2px solid var(--type);outline-offset:3px}
+    .preview-btn[aria-pressed=true]{background:#e2f3fa;border-color:rgba(36,111,151,.32)}
+    .preview-note{position:fixed;top:16px;left:16px;z-index:4;padding:7px 11px;font-size:11px;line-height:1.5;color:var(--muted);background:rgba(255,255,255,.52);border-radius:9px;pointer-events:none}
+    @media(max-width:520px){.preview-tools{gap:6px;bottom:14px}.preview-pill,.preview-btn{font-size:10px;padding:8px 10px}.preview-note{font-size:10px}}
+    @media(prefers-reduced-motion:reduce){#workspaceLine,#wordmark{transition-duration:0s}}
+  </style>
+</head>
+<body>
+  <div id="inkWorkspace" role="region" aria-label="INK 空白工作區">
+    <svg id="workspaceScene" class="scene" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path id="workspaceLine" d=""/>
+      <g id="wordmark" aria-label="HEY MY INK"></g>
+    </svg>
+    <span class="visually-hidden">HEY MY INK</span>
+  </div>
+  <div id="inkBootGate" role="status" aria-label="INK 正在啟動" aria-live="off">
+    <svg id="bootScene" class="scene" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path id="waterDrop" d=""/>
+      <path id="waterline" d=""/>
+    </svg>
+    <span class="visually-hidden">INK 正在啟動</span>
+  </div>
+  <aside class="preview-note" id="previewNote">v5.0 · 預覽模式｜預設模擬 3.2 秒開機</aside>
+  <nav class="preview-tools" aria-label="開機速度模擬；正式版不顯示">
+    <span class="preview-pill" id="phaseLabel">轉場：水滴凝聚</span>
+    <button class="preview-btn" data-boot-delay="300" type="button">重播 · 快速 0.3s</button>
+    <button class="preview-btn" data-boot-delay="1500" type="button">重播 · 中速 1.5s</button>
+    <button class="preview-btn" data-boot-delay="3200" type="button" aria-pressed="true">重播 · 慢速 3.2s</button>
+  </nav>
+  <script>
+    (() => {
+      'use strict';
+      // v5.0 remains an isolated preview. It does not modify INK production boot code.
+      // The production adapter need only call window.inkStillWaterShellReady()
+      // on real Shell Ready. This preview simulates the event at selected delays.
+      const bootScene=document.getElementById('bootScene');
+      const workspaceScene=document.getElementById('workspaceScene');
+      const bootGate=document.getElementById('inkBootGate');
+      const drop=document.getElementById('waterDrop');
+      const line=document.getElementById('waterline');
+      const workspaceLine=document.getElementById('workspaceLine');
+      const wordmark=document.getElementById('wordmark');
+      const phaseLabel=document.getElementById('phaseLabel');
+      const previewNote=document.getElementById('previewNote');
+      const sourceGlyphs={"I":{"d":"M202 1349H1025V1193H709V156H1025V0H202V156H518V1193H202Z","left":202,"right":1025},"H":{"d":"M875 0V623H353V0H162V1349H353V783H875V1349H1066V0Z","left":162,"right":1066},"E":{"d":"M162 0V1349H1081V1193H353V771H1021V617H353V156H1122V0Z","left":162,"right":1122},"Y":{"d":"M708 584V0H520V584L36 1349H241L615 738L987 1349H1192Z","left":36,"right":1192},"K":{"d":"M1003 0 516 638 353 469V0H162V1349H353V676L925 1349H1150L646 777L1227 0Z","left":162,"right":1227},"M":{"d":"M937 0V868Q937 1003 940 1069L943 1169Q879 963 848 878L684 440H547L381 878Q363 924 285 1169L289 868V0H129V1349H366L551 860Q572 807 619 629L645 719L689 859L874 1349H1099V0Z","left":129,"right":1099},"N":{"d":"M836 0 316 1130Q332 958 332 876V0H162V1349H384L912 211Q894 355 894 485V1349H1066V0Z","left":162,"right":1066}};
+      // Exact visible outlines of "HEY MY INK" are from Liberation Mono Regular.
+      // Only the seven required glyph outlines are embedded — no font file, CDN or fallback substitution.
+      const PHRASE='HEY MY INK';
+      const FORM_END=1100;
+      const FALL_START=1170;
+      const TOUCH=1420;
+      const DISSOLVE_END=1640;
+      const RIPPLE_END=2750;
+      const clamp=x=>Math.max(0,Math.min(1,x));
+      const smooth=t=>{const x=clamp(t);return x*x*(3-2*x)};
+      const easeOutCubic=t=>1-Math.pow(1-clamp(t),3);
+      const easeInCubic=t=>Math.pow(clamp(t),3);
+      const fmt=n=>Number(n).toFixed(3);
+      let geometry=null;
+      let timer=null;
+      let raf=0;
+      let bootStart=performance.now();
+      let lastPath='';
+      let bootReady=false;
+      let currentDelay=3200;
+
+      function geometryForWindow(){
+        const w=innerWidth||1280,h=innerHeight||720;
+        const triangleHeight=h/9;
+        const centerX=w/2,centerY=h/2;
+        const apexY=centerY-2*triangleHeight/3;
+        const baseY=apexY+triangleHeight;
+        const halfBase=triangleHeight/Math.sqrt(3);
+        const dropMaxHeight=triangleHeight/3;
+        return {w,h,triangleHeight,centerX,centerY,apexY,baseY,halfBase,
+          lineStartX:centerX-halfBase,lineEndX:centerX+halfBase,
+          dropMaxHeight,dropWidth:dropMaxHeight*.56,
+          touchTravel:baseY-apexY-dropMaxHeight};
+      }
+      function flatLine(){return `M ${fmt(geometry.lineStartX)} ${fmt(geometry.baseY)} L ${fmt(geometry.lineEndX)} ${fmt(geometry.baseY)}`}
+      function dropletPath(cx,top,width,height){
+        const halfWidth=width/2;
+        const bottom=top+height;
+        const k=0.5522847498;
+        const radiusY=Math.min(halfWidth,height*.46);
+        const equator=bottom-radiusY;
+        return [
+          'M',fmt(cx),fmt(top),
+          'C',fmt(cx-halfWidth*.12),fmt(top+height*.18),fmt(cx-halfWidth),fmt(top+height*.43),fmt(cx-halfWidth),fmt(equator),
+          'C',fmt(cx-halfWidth),fmt(equator+radiusY*k),fmt(cx-halfWidth*k),fmt(bottom),fmt(cx),fmt(bottom),
+          'C',fmt(cx+halfWidth*k),fmt(bottom),fmt(cx+halfWidth),fmt(equator+radiusY*k),fmt(cx+halfWidth),fmt(equator),
+          'C',fmt(cx+halfWidth),fmt(top+height*.43),fmt(cx+halfWidth*.12),fmt(top+height*.18),fmt(cx),fmt(top),'Z'
+        ].join(' ');
+      }
+      function symmetricSineWave(u){
+        if(u<=0||u>=1)return 0;
+        const edge=.04;
+        if(u>=edge&&u<=1-edge)return -Math.sin(3*Math.PI*u);
+        const q=Math.min(u,1-u),t=q/edge;
+        const y1=-Math.sin(3*Math.PI*edge);
+        const slope1=-3*Math.PI*Math.cos(3*Math.PI*edge);
+        const h01=-2*t*t*t+3*t*t;
+        const h11=t*t*t-t*t;
+        return h01*y1+h11*edge*slope1;
+      }
+      function waterlinePath(time){
+        if(time<TOUCH||time>=RIPPLE_END)return flatLine();
+        const progress=clamp((time-TOUCH)/(RIPPLE_END-TOUCH));
+        const width=geometry.lineEndX-geometry.lineStartX;
+        const waveWidth=width*.8,left=geometry.centerX-waveWidth/2;
+        const A=Math.max(1.5,geometry.triangleHeight*.0225);
+        const amplitude=A*smooth(progress/.17)*(1-smooth((progress-.66)/.34));
+        if(amplitude<=.00001)return flatLine();
+        let d='';
+        for(let i=0;i<=384;i++){
+          const x=geometry.lineStartX+i/384*width;
+          const u=(x-left)/waveWidth;
+          const y=geometry.baseY+amplitude*symmetricSineWave(u);
+          d+=(i?' L ':'M ')+fmt(x)+' '+fmt(y);
+        }
+        return d;
+      }
+      // Remove glyph sidebearings, keep 1.1 font-unit-proportional glyph gaps and
+      // ordinary word spaces. Scale visible outlines precisely to original line length.
+      function renderWordmark(){
+        const letterGap=115,wordGap=530;
+        let advance=0;
+        const layout=[];
+        for(let i=0;i<PHRASE.length;i++){
+          const c=PHRASE[i];
+          if(c===' '){advance+=wordGap;continue}
+          const glyph=sourceGlyphs[c];
+          layout.push({c,x:advance-glyph.left});
+          advance+=(glyph.right-glyph.left);
+          if(i+1<PHRASE.length && PHRASE[i+1]!==' ')advance+=letterGap;
+        }
+        const expectedWidth=geometry.lineEndX-geometry.lineStartX;
+        const scale=expectedWidth/advance;
+        // All capitals have visible y coordinates 0..1349.
+        const baseline=geometry.baseY+1349*scale/2;
+        wordmark.textContent='';
+        for(const item of layout){
+          const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+          path.setAttribute('d',sourceGlyphs[item.c].d);
+          path.setAttribute('transform',`translate(${item.x} 0)`);
+          wordmark.appendChild(path);
+        }
+        wordmark.setAttribute('transform',`translate(${fmt(geometry.lineStartX)} ${fmt(baseline)}) scale(${scale.toPrecision(14)} ${(-scale).toPrecision(14)})`);
+        wordmark.dataset.visibleWidth=fmt(expectedWidth);
+        wordmark.dataset.lineWidth=fmt(expectedWidth);
+        wordmark.dataset.centerX=fmt(geometry.centerX);
+      }
+      function layout(){
+        geometry=geometryForWindow();
+        const vb=`0 0 ${fmt(geometry.w)} ${fmt(geometry.h)}`;
+        bootScene.setAttribute('viewBox',vb);
+        workspaceScene.setAttribute('viewBox',vb);
+        workspaceLine.setAttribute('d',flatLine());
+        lastPath='';
+        line.setAttribute('d',flatLine());
+        renderWordmark();
+        if(!bootReady)paintBoot(performance.now()-bootStart);
+      }
+      function paintBoot(ms){
+        const t=Math.max(0,ms);
+        let top=geometry.apexY;
+        let width=geometry.dropWidth*.08;
+        let height=geometry.dropMaxHeight*.08;
+        let opacity=0;
+        let phase='轉場：水滴凝聚';
+        if(t<FALL_START){
+          const p=smooth(t/FORM_END);
+          width=geometry.dropWidth*(.10+.90*p);
+          height=geometry.dropMaxHeight*(.12+.88*p);
+          opacity=smooth(t/110);
+        }else if(t<TOUCH){
+          const p=(t-FALL_START)/(TOUCH-FALL_START);
+          top=geometry.apexY+geometry.touchTravel*easeInCubic(p);
+          width=geometry.dropWidth*(1-.05*Math.sin(Math.PI*p));
+          height=geometry.dropMaxHeight*(1+.08*Math.sin(Math.PI*p));
+          opacity=1;
+          phase='轉場：水滴墜落';
+        }else if(t<DISSOLVE_END){
+          const p=(t-TOUCH)/(DISSOLVE_END-TOUCH);
+          height=geometry.dropMaxHeight*(1-.74*easeOutCubic(p));
+          width=geometry.dropWidth*(1+.92*easeOutCubic(p));
+          top=geometry.baseY-height;
+          opacity=1-smooth((p-.1)/.9);
+          phase='轉場：入水消融';
+        }else if(t<RIPPLE_END){
+          phase='轉場：對稱緩波';
+        }else{
+          phase='轉場：水平面靜止';
+        }
+        if(opacity<=.001){drop.style.opacity='0'}
+        else{drop.setAttribute('d',dropletPath(geometry.centerX,top,width,height));drop.style.opacity=String(opacity)}
+        const nextPath=waterlinePath(t);
+        if(lastPath!==nextPath){line.setAttribute('d',nextPath);lastPath=nextPath}
+        phaseLabel.textContent=phase;
+      }
+      function animate(now){
+        if(bootReady)return;
+        paintBoot(now-bootStart);
+        raf=requestAnimationFrame(animate);
+      }
+      function shellReady(){
+        if(bootReady)return;
+        bootReady=true;
+        if(timer!==null){clearTimeout(timer);timer=null}
+        cancelAnimationFrame(raf);
+        phaseLabel.textContent='進場：水平線 → HEY MY INK';
+        // Reset to an actual line frame before starting the crossfade.
+        document.documentElement.classList.add('ink-ready');
+        // Preview stays on the vacant workspace; open documents can set has-document.
+        document.getElementById('inkWorkspace').dataset.state='idle';
+      }
+      function restart(ms=3200){
+        currentDelay=ms;
+        if(timer!==null)clearTimeout(timer);
+        cancelAnimationFrame(raf);
+        bootReady=false;
+        document.documentElement.classList.remove('ink-ready','has-document');
+        // Force styles to settle; ready transitions restart from an opaque line.
+        void workspaceLine.getBoundingClientRect();
+        bootStart=performance.now();
+        previewNote.textContent=`v5.0 · 預覽模式｜模擬 ${ms/1000} 秒開機`;
+        for(const btn of document.querySelectorAll('[data-boot-delay]')){
+          btn.setAttribute('aria-pressed',btn.dataset.bootDelay===String(ms)?'true':'false');
+        }
+        layout();
+        raf=requestAnimationFrame(animate);
+        timer=setTimeout(shellReady,ms);
+      }
+      window.inkStillWaterShellReady=shellReady;
+      window.addEventListener('ink:shell-ready',shellReady);
+      window.__inkStillWaterPreview={
+        replay:restart,ready:shellReady,
+        geometry:()=>geometry,
+        state:()=>({ready:bootReady,delay:currentDelay,visibleWidth:wordmark.dataset.visibleWidth,lineWidth:wordmark.dataset.lineWidth,
+          bootVisible:getComputedStyle(bootGate).display!=='none',wordmarkOpacity:getComputedStyle(wordmark).opacity}),
+        seekBoot:ms=>{if(bootReady)restart(3600000);cancelAnimationFrame(raf);paintBoot(ms)},
+        waveFunction:symmetricSineWave,
+        setDocumentOpen(open){document.documentElement.classList.toggle('has-document',Boolean(open))}
+      };
+      addEventListener('resize',layout,{passive:true});
+      for(const btn of document.querySelectorAll('[data-boot-delay]')){
+        btn.addEventListener('click',()=>restart(Number(btn.dataset.bootDelay)));
+      }
+      // Start immediately, without the 1.2s silence in v4.9.
+      restart(3200);
+    })();
+  </script>
+</body>
+</html>
