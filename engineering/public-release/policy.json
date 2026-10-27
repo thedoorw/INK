@@ -11,6 +11,15 @@
         "runtime_digest_sha256": "5f028629aa91a6d5ed7685992f3a38f8bd3f20088ba83008da1b3fbe8263c0fa",
         "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
       }
+    },
+    {
+      "id": "ink-ur3-r211-20261027",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAndGwEByx9nikhw9g3CCsrsZIrotWKOBh11/br8loZQY=\n-----END PUBLIC KEY-----\n",
+      "scope": {
+        "source_tree": "427169df8571a4f1ebf59be0b34a0ffada810e24",
+        "runtime_digest_sha256": "9a8a43ae4a1fa06c7f23009542c39ff9a8d404b7a8eb97960b8e5e34a2f41628",
+        "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
+      }
     }
   ],
   "allowed_exact": [
@@ -56,5 +65,5 @@
     "working/",
     "release/"
   ],
-  "notes": "Scoped bootstrap for independently verified startup Runtime only. Trusted BASE verifier and strict signed manifest remain required. Private key is not committed; USER exact PUBLIC release authorization remains separate."
+  "notes": "Existing startup trust unchanged. Proposed additional signer ink-ur3-r211-20261027 is scoped exclusively to accepted R2.11 Native ten-panel source tree/runtime digest/allowlist digest. Public/private release signing keys must never be committed. Trusted-base Gate001, required checks, owner review and exact USER release approval remain mandatory."
 }
