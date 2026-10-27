@@ -113,9 +113,20 @@ export class DocumentSessionRegistry {
   admitFor(target,owner,{active=false}={}){
     if(this.closingId)fail('INK_SESSION_CLOSING');
     if(target)this.assertTarget(target,{active});
-    const ticket=Object.freeze({id:++this.sequence,owner:String(owner),target});
+    let complete;
+    const completed=new Promise(resolve=>{complete=resolve;});
+    const ticket=Object.freeze({id:++this.sequence,owner:String(owner),target,completed});
     this.operations.set(ticket.id,ticket);
-    return Object.freeze({id:ticket.id,target,assertCurrent:()=>target?this.assertTarget(target,{active}):!this.activeId,release:()=>this.operations.delete(ticket.id)});
+    return Object.freeze({id:ticket.id,target,assertCurrent:()=>target?this.assertTarget(target,{active}):!this.activeId,release:()=>{const removed=this.operations.delete(ticket.id);complete();return removed;}});
+  }
+  async waitForAutosaves(){
+    // Wait for the existing persistence owner to finish; never waive assertIdle
+    // or cancel a save. Recheck to include saves admitted while one is settling.
+    for(;;){
+      const saves=[...this.operations.values()].filter(ticket=>ticket.owner.startsWith('autosave:'));
+      if(!saves.length)return;
+      await Promise.all(saves.map(ticket=>ticket.completed));
+    }
   }
   busy(exceptLease=null){
     const exemptId=typeof exceptLease==='object'&&exceptLease?.id!=null&&this.operations.has(exceptLease.id)?exceptLease.id:null;
@@ -443,3 +454,4 @@ export class DocumentSessionRegistry {
     }
   }
 }
+

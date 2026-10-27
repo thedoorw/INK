@@ -29,24 +29,25 @@
 .completion-preview,.completion-handle{stroke:var(--accent);stroke-width:1.5}
 .completion-preview{stroke-dasharray:4 3}
 .completion-anchor{fill:var(--surface);stroke:var(--accent);stroke-width:1}
-.main-menu{position:absolute;z-index:80;left:var(--rail-width);top:8px;width:280px;max-width:calc(100% - var(--rail-width) - 8px);padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002;color:var(--primary)}
-.menu-grid{display:grid;grid-template-columns:76px minmax(0,1fr);gap:6px;align-items:start}
+.main-menu{position:absolute;z-index:80;left:6px;top:48px;width:280px;max-width:calc(100% - var(--rail-width) - 8px);padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002;color:var(--primary)}
+.menu-grid{display:grid;grid-template-columns:55px minmax(0,1fr);gap:6px;align-items:start}
 .menu-categories{display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line);padding-right:6px}
 .menu-category,.menu-row{border:0;border-radius:var(--radius);background:transparent;min-height:0;font-size:var(--text);font-weight:var(--weight);color:var(--primary)}
-.menu-category{display:block;height:28px;width:100%;padding:0 8px;text-align:left}
+ .menu-category{display:block;height:28px;width:100%;padding:0 6px;text-align:left}
 .menu-category.active{background:var(--soft);color:var(--primary)}
 .menu-category:hover,.menu-row:hover:not(:disabled){background:var(--soft)}
 .menu-panes{min-width:0}
-.menu-pane{max-height:calc(100dvh - 40px);overflow:visible}
+.menu-pane{max-height:calc(100dvh - 66px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
 .menu-group+.menu-group{border-top:1px solid var(--line);padding-top:3px;margin-top:3px}
 .menu-item-host{position:relative}
 .menu-row{width:100%;height:28px;display:flex;align-items:center;gap:4px;text-align:left;padding:0 6px;white-space:nowrap}
 .menu-row:disabled{opacity:1;color:var(--secondary);cursor:default}.menu-row:disabled .menu-shortcut,.menu-row:disabled .menu-chevron{color:var(--secondary)}.menu-row[data-command^="export:"]:not(:disabled) .menu-label{font-weight:var(--weight-strong)}
-.menu-label{flex:1 1 auto;min-width:0;overflow:visible;text-overflow:clip;white-space:nowrap}
+.menu-label{flex:0 1 auto;min-width:0;overflow-wrap:anywhere;white-space:normal}
 .menu-shortcut{font-size:var(--text-tiny);color:var(--secondary);margin-left:auto;flex-shrink:0}
-.menu-chevron{font-size:16px;color:var(--secondary);line-height:1;margin-left:auto}
-.menu-submenu{position:absolute;left:calc(100% - 1px);top:-6px;z-index:85;width:184px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002}
+.menu-chevron{font-size:15px;color:var(--secondary);line-height:1;margin-left:3px;flex-shrink:0}
+.menu-submenu{position:relative;left:auto;top:auto;z-index:auto;width:auto;max-width:100%;margin-left:7px;padding:3px 0 3px 5px;background:var(--surface);border:0;border-left:2px solid var(--line);border-radius:0;box-shadow:none}
 .menu-category:focus-visible,.menu-row:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
+.menu-row.menu-row-core{color:var(--secondary)}.menu-row.menu-row-core:disabled{color:var(--disabled);opacity:.75}.menu-row.menu-row-core[aria-haspopup="menu"]{cursor:pointer}.menu-submenu .menu-row{min-height:26px;height:auto;padding-block:4px}
 .overlay{position:absolute;z-index:90;inset:0;display:grid;place-items:center;background:#0002}.dialog{position:relative;width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 30px #0003;display:flex;flex-direction:column;overflow:hidden}.dialog-header{height:var(--dialog-header-height);flex:0 0 var(--dialog-header-height);padding:0 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);font-size:var(--text-dialog);font-weight:var(--weight-strong);touch-action:none;cursor:move}.dialog-close{height:28px;min-height:28px;width:28px;flex:0 0 28px;border:0;padding:0;display:grid;place-items:center;background:transparent;color:var(--secondary)}.dialog-body{padding:var(--dialog-body-padding);overflow:auto;min-height:0}.dialog-footer{height:var(--dialog-footer-height);flex:0 0 var(--dialog-footer-height);display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 12px;border-top:1px solid var(--line)}.dialog-footer button{min-height:var(--action-height);min-width:var(--action-min-width);padding:0 10px}.dialog-footer button.primary{background:var(--primary);color:var(--surface);border-color:var(--primary);font-weight:var(--weight-strong)}.dialog-footer button.primary:hover{background:#111}.dialog-footer [data-cancel],.dialog-footer [data-close-choice="cancel"],.dialog-footer [data-size-cancel]{background:var(--surface);color:var(--secondary);border-color:var(--border)}.primary{background:var(--accent);color:white;border-color:var(--accent)}.pref-tabs{display:flex;gap:4px;margin-bottom:16px}.pref-tabs .active{background:var(--accent-soft)}.branding-preview{height:56px;display:flex;align-items:center;gap:8px}.branding-preview img{max-width:48px;max-height:48px}.logo-image{width:24px;height:24px;object-fit:contain}.file-row{margin:8px 0}.file-row input{height:auto}.dialog .field-row{grid-template-columns:120px minmax(0,1fr)}.dialog-body input:not([type=checkbox]):not([type=radio]),.dialog-body select{height:var(--action-height);min-height:var(--action-height)}#toast{position:absolute;z-index:100;bottom:72px;left:50%;transform:translateX(-50%);max-width:90%;padding:8px 12px;border-radius:6px;background:var(--primary);color:white;pointer-events:none}#toast:empty{display:none}
 .layer-row [data-visible] svg,.layer-row [data-lock] svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.layer-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.panel-host[data-panel=history]{display:flex;flex-direction:column}.history-list{flex:1 1 auto;min-height:72px;overflow:auto;scrollbar-width:thin}.history-actions{flex-shrink:0}.dock-zone .panel-host{overscroll-behavior:contain}.zone-expand:hover{background:var(--soft)}.zone-expand:focus-visible{outline:2px solid var(--accent)}.layer-footer button,.swatch-footer button{min-width:26px}.color-plane:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* The Photoshop-style single column fits all 20 groups at the desktop viewport.
@@ -110,18 +111,42 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .dialog.dialog-compact:has([data-key="historyLimit"]){width:min(344px,calc(100vw - 32px))}
 .dialog-copy{font-size:var(--text-small);color:var(--secondary);margin:0 0 10px}
 .dialog-copy strong{color:var(--primary)}
-.native-function-dialog.size-route-active{inset:0;padding:0;background:transparent;border:0;box-shadow:none;overflow:visible;pointer-events:none}
-.native-function-dialog.size-route-active>.native-function-close{display:none}
+.dialog-status{margin:0;padding:0 16px 8px;font-size:var(--text-small);color:var(--secondary)}
+.dialog-status:empty{display:none}
+:is(.dialog,.ink-size-dialog,.native-function-dialog,.ink-branding-panel) button:disabled{opacity:1;color:var(--secondary);background:var(--soft);border-color:var(--line);cursor:default}
+.native-function-dialog.size-route-active{inset:0;width:auto;max-height:none;transform:none;padding:0;background:transparent;border:0;box-shadow:none;overflow:visible;pointer-events:none}
+.native-function-dialog.size-route-active>.dialog-header{display:none}
 .native-function-dialog.size-route-active .native-function-module>[data-slot]:not([data-slot="state"]){display:none}
 .native-function-dialog.size-route-active [data-module-slot="state"]>:not(dialog){display:none}
+/* New/Canvas size routes show only the native top-layer dialog. The legacy
+   diagnostic state's grid cell otherwise leaves a padded background strip
+   above the workspace while its sibling controls are hidden. */
+.native-function-dialog.size-route-active .native-function-module{display:block;gap:0;clear:none}
+.native-function-dialog.size-route-active .native-function-module>[data-slot="state"]{display:block;grid-column:auto;grid-row:auto;position:static;width:0;height:0;min-height:0;padding:0;border:0;background:transparent;overflow:visible}
+.native-function-dialog.size-route-active [data-module-slot="state"]{display:block;width:0;height:0;padding:0;border:0;background:transparent;overflow:visible}
+
 .native-function-dialog.size-route-active dialog[open]{pointer-events:auto}
-.native-function-dialog{position:fixed;inset:5vh 5vw;z-index:1200;background:var(--surface,#f4f4f4);color:#222;border:1px solid #aaa;border-radius:6px;overflow:auto;padding:16px;box-shadow:0 8px 40px #0004}
+/* Document management surface; existing Native module/command owners are retained. */
+.native-function-dialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(600px,calc(100vw - 32px));max-height:calc(100dvh - 32px);z-index:1200;background:var(--surface);color:var(--primary);border:1px solid var(--border);border-radius:8px;overflow:auto;padding:0;box-shadow:0 8px 30px #0003}
 .native-function-dialog[hidden]{display:none}
-.native-function-close{position:sticky;top:0;float:right;z-index:1}
-.native-function-module{display:grid;gap:12px;clear:both}
-.native-function-module [data-slot]{display:flex;flex-wrap:wrap;gap:8px;position:static;overflow:visible;max-height:none}
-.native-function-module .ink-control-group{display:flex;flex-wrap:wrap;gap:5px;padding:6px;border:1px solid #ccc}
-.native-function-module input,.native-function-module select,.native-function-module button{font:inherit;max-width:100%;min-height:28px}
+.native-function-dialog>.dialog-header{position:sticky;top:0;z-index:1;background:var(--surface);cursor:default}
+.native-function-dialog>.dialog-header h2{margin:0;font-size:var(--text-dialog)}
+.native-function-module{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:12px 16px}
+.native-function-module [data-slot]{display:block;grid-column:1;grid-row:auto;min-width:0;position:static;overflow:visible;max-height:none;padding:0;border:0;background:transparent}
+.native-function-module [data-slot="status"]{display:none}
+.native-function-module .ink-control-group{display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;border:0}
+.native-function-module input,.native-function-module select,.native-function-module button{font:inherit;max-width:100%;min-height:var(--action-height)}
+.ink-tools-group{margin-bottom:12px}
+.ink-tools-group h2{margin:0 0 6px;font-size:var(--text-small);font-weight:var(--weight)}
+.ink-tools-action-row{display:flex;align-items:center;gap:6px}
+.ink-tools-action-row select{min-width:0;flex:1}
+.ink-tools-diagnostics{margin-top:8px}
+.ink-tools-diagnostics>summary{cursor:pointer;color:var(--secondary);font-size:var(--text-small);padding:6px 0}
+.ink-tools-specialist{display:flex;flex-wrap:wrap;gap:6px}
+.native-function-module .ink-state-section{border:0;border-radius:0;margin:0 0 10px}
+.native-function-module .ink-state-section>h2{padding:0 0 6px;border:0;background:transparent;font-size:var(--text-small);font-weight:var(--weight)}
+.native-function-module .ink-state-body{padding:0}
+.native-function-dialog.size-route-active .native-function-module{padding:0}
 
 /* UR3 R2.10 Native Character: same dense two-column geometry as the frozen visual,
    with Native text.patch as the only edit owner. */
@@ -364,3 +389,62 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .right-dock .panel-host[data-panel=history] .ps-native-history-footer button{height:24px;min-height:24px;flex:1 1 0;min-width:0;padding:0;border:0;background:transparent;color:var(--ps-muted);opacity:.43}
 .right-dock .panel-host[data-panel=history] .ps-native-history-commands{font-size:10px;color:var(--ps-muted);flex:0 0 auto}
 .right-dock .panel-host[data-panel=history] .ps-native-history-commands summary{cursor:pointer;list-style-position:inside;min-height:14px}
+
+/* UR3 R2.11 LOCKSTEP: exact Native geometry tokens mapped from USER's R2.11 draft.
+   This is deliberately limited to right Dock; not a copy of standalone HTML.
+   The Native modules, actions, document state and IndexedDB remain authoritative. */
+#shell.shell{--dock-width:240px;--dock-min-width:240px;--r211-thumb:11px;--r211-rail:2px;--r211-scroll:6px}
+@media (max-width:760px){#shell.shell{--dock-width:clamp(200px,36vw,274px)}}
+#shell .right-dock{min-width:var(--dock-min-width)}
+/* Keep a centered 14px grabbing zone on the SAME boundary at every Dock width,
+   including exactly 240px. It is above the panel and below the modal overlay. */
+#shell #dockResizer{position:absolute;right:calc(var(--dock-width) - 7px);width:14px;min-width:14px;z-index:40;cursor:ew-resize;pointer-events:auto;touch-action:none;background:transparent}
+#shell #dockResizer::after{content:'';position:absolute;top:0;bottom:0;left:6px;width:2px;background:transparent;pointer-events:none}
+#shell #dockResizer:hover::after,#shell #dockResizer:focus-visible::after{background:#9ca3af}
+#shell #dockResizer:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
+#shell .right-dock .panel-host,#shell .right-dock .panel-host *{scrollbar-width:auto}
+#shell .right-dock .panel-host::-webkit-scrollbar,#shell .right-dock .panel-host *::-webkit-scrollbar{width:var(--r211-scroll);height:var(--r211-scroll)}
+#shell .right-dock .panel-host::-webkit-scrollbar-track,#shell .right-dock .panel-host *::-webkit-scrollbar-track{background:#f6f6f6}
+#shell .right-dock .panel-host::-webkit-scrollbar-thumb,#shell .right-dock .panel-host *::-webkit-scrollbar-thumb{background:#bfc0c2;border-radius:3px}
+#shell .right-dock .panel-host::-webkit-scrollbar-button,#shell .right-dock .panel-host *::-webkit-scrollbar-button{display:none}
+/* Native shared range; all horizontal thumbs 11px pentagons, except Dock resize. */
+#shell .right-dock .panel-host input.shared-slider[type=range]{-webkit-appearance:none;appearance:none;height:15px;min-height:15px;border:0;background:transparent}
+#shell .right-dock .panel-host input.shared-slider[type=range]::-webkit-slider-runnable-track{height:var(--r211-rail);border:0;border-radius:0;background:#adb1b6}
+#shell .right-dock .panel-host input.shared-slider[type=range]::-moz-range-track{height:var(--r211-rail);border:0;border-radius:0;background:#adb1b6}
+#shell .right-dock .panel-host input.shared-slider[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:var(--r211-thumb);height:var(--r211-thumb);box-sizing:border-box;border:0;border-radius:0;margin-top:-4.5px;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2011%2011'%3E%3Cpath%20d%3D'M5.5%20.8L10%205.7V9.6H1V5.7Z'%20fill%3D'white'%20stroke%3D'%23303030'%20stroke-width%3D'1'%20stroke-linejoin%3D'round'%2F%3E%3C%2Fsvg%3E") center/11px 11px no-repeat;filter:none;box-shadow:none;transform:none}
+#shell .right-dock .panel-host input.shared-slider[type=range]::-moz-range-thumb{width:var(--r211-thumb);height:var(--r211-thumb);box-sizing:border-box;border:0;border-radius:0;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2011%2011'%3E%3Cpath%20d%3D'M5.5%20.8L10%205.7V9.6H1V5.7Z'%20fill%3D'white'%20stroke%3D'%23303030'%20stroke-width%3D'1'%20stroke-linejoin%3D'round'%2F%3E%3C%2Fsvg%3E") center/11px 11px no-repeat;filter:none;box-shadow:none;transform:none}
+#shell .right-dock .panel-host[data-panel=navigator] .shared-slider,#shell .right-dock .panel-host[data-panel=navigator] .shared-slider::-webkit-slider-thumb{cursor:default}
+#shell #dockResizer{cursor:ew-resize}
+/* Pure-color Photoshop foreground/background squares, visible above transparent native color inputs. */
+#shell .right-dock .panel-host[data-panel=color] .ps-color-chips .panel-color-chips{width:34px;height:44px;position:relative}
+#shell .right-dock .panel-host[data-panel=color] .ps-native-color-chip{position:absolute;display:block;width:20px;height:20px;box-sizing:border-box;border:1px solid #444;border-radius:0;box-shadow:none}
+#shell .right-dock .panel-host[data-panel=color] .ps-native-color-chip-background{left:13px;top:12px;z-index:1}
+#shell .right-dock .panel-host[data-panel=color] .ps-native-color-chip-foreground{left:3px;top:2px;z-index:2;box-shadow:inset 0 0 0 1px #fff}
+#shell .right-dock .panel-host[data-panel=color] .ps-native-color-chip input[type=color]{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}
+#shell .right-dock .panel-host[data-panel=color] .ps-native-color-chip:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:1px}
+#shell .right-dock .panel-host[data-panel=color] .color-plane-marker{width:9px;height:9px;box-sizing:border-box}
+/* Color hue indicator matches the horizontal shape's footprint, rotated to point right. */
+#shell .right-dock .panel-host[data-panel=color] .ps-native-hue-indicator{position:absolute;display:block;left:-10px;width:11px;height:11px;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2011%2011'%3E%3Cpath%20d%3D'M1%201.1H5.3L10.2%205.5L5.3%209.9H1Z'%20fill%3D'white'%20stroke%3D'%23303030'%20stroke-width%3D'1'%20stroke-linejoin%3D'round'%2F%3E%3C%2Fsvg%3E") center/11px 11px no-repeat;pointer-events:auto;touch-action:none;cursor:ns-resize}
+#shell .right-dock .panel-host[data-panel=color] .ps-native-hue-indicator:before,#shell .right-dock .panel-host[data-panel=color] .ps-native-hue-indicator:after{content:none!important;display:none!important}
+/* Photoshop Layers: blend left, opacity number at right; range is a popover, not a permanent crowded row. */
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls{position:relative;min-width:0}
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls>label.field-row{min-width:0;flex:1 1 auto}
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls>fieldset{position:relative;flex:0 0 auto;min-width:0}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-row{display:flex;align-items:center;justify-content:flex-end;gap:2px;white-space:nowrap;font-size:10px}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-row input[type=number]{width:32px;min-width:32px;height:20px;min-height:20px;padding:0 2px;text-align:right;appearance:textfield;-moz-appearance:textfield}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-row input::-webkit-inner-spin-button,#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-row input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-row button{width:14px;min-width:14px;height:20px;min-height:20px;padding:0;border:0;background:#f7f7f7;color:#555}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-popup{position:absolute;right:0;top:calc(100% + 2px);width:158px;height:34px;z-index:80;border:1px solid #c9c9c9;background:#fff;box-shadow:0 3px 10px #0002;padding:0 10px;display:flex;align-items:center}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-popup[hidden]{display:none!important}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-popup .range-row{width:100%;min-width:0;display:block;margin:0}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-popup .range-row>span,#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-popup .range-row>output{display:none}
+#shell .right-dock .panel-host[data-panel=layers] .ps-native-layer-opacity-popup input.shared-slider{display:block;width:100%;margin:0}
+
+/* R2.11 correction: Native Layers blends/opacity are a single compact PS row; locks remain below. */
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls{display:grid;grid-template-columns:minmax(77px,1fr) auto;gap:3px 5px;align-items:center}
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls>.field-row{display:flex;gap:0;min-width:0;margin:0}
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls>.field-row>span{display:none}
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls>.field-row select{flex:1 1 auto;width:100%;min-width:0}
+#shell .right-dock .panel-host[data-panel=layers] .layer-controls>fieldset{display:block;border:0;padding:0;margin:0;min-width:0}
+#shell .right-dock .panel-host[data-panel=layers] .layer-native-lock-row{grid-column:1 / -1}
+

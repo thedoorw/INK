@@ -4,15 +4,15 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "258706cd3f23654fdc1fa4877e85dad24345f65d",
-    "product_tree": "6c2f86aad4fa63018f2ec0da6e79996582f856c3"
+    "exact_sha": "654701c004c241f0543a5a15e2328b515ffba29a",
+    "product_tree": "bff1e84f60b57d491aad9562d3eef1c3842f56b2"
   },
   "package": {
-    "manifest_sha256": "3739515c73610c8200db10194bf5803460a834dcb3ed66f8eec62151dfa94ef2"
+    "manifest_sha256": "0b3eb595810b6c59a8d5e1b2a3971e575a037f0c86ef1651e016a97261bf6168"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "5f028629aa91a6d5ed7685992f3a38f8bd3f20088ba83008da1b3fbe8263c0fa",
+    "package_digest_sha256": "6c49dbbf1841f681f53bc1963289a53fbe3b0e3969f283bc90dd5edcf0dd5a9e",
     "file_count": 332,
     "files": [
       {
@@ -32,13 +32,13 @@
       },
       {
         "path": "assets/ink-mark.svg",
-        "bytes": 9811,
-        "sha256": "af20f98fbdb17631bbc3915f8df25416f44437b290aed53c350850d2688cfd4e"
+        "bytes": 250,
+        "sha256": "ecb0035c520b84bc1ce3a0f0a4b4241fa4254ea5d5d680b0076daae75de2b470"
       },
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "a83373c73787110f4a21b86cf5d25ccee48574b796e2ccd8d4dc5a817bd605b0"
+        "sha256": "2bcdfc85c2697dee22a88824e1dcff2294aa14ed4e064c1b853bd59648b7bf32"
       },
       {
         "path": "dist/ink.compat.js",
@@ -48,7 +48,7 @@
       {
         "path": "dist/startup/asset-inventory.js",
         "bytes": 480,
-        "sha256": "af116e1d083920c762383f5db8d1a2cf6e278c30656993bb714f79c5414cb879"
+        "sha256": "6b1f2994a862f698d6d76510ea578fb96be9bcf0868c7295df6cace527004a4b"
       },
       {
         "path": "dist/startup/chunks/chunk-342G2AIU.mjs",
@@ -61,14 +61,14 @@
         "sha256": "b510781bf3268a0edaebdf555588853c8fdf1c78cb6b40083bd27c3d7b148fa3"
       },
       {
+        "path": "dist/startup/chunks/chunk-KJJTBFEB.mjs",
+        "bytes": 61579,
+        "sha256": "fc13f18d5b88a9b43df97026ca1b63def4b226285afa126526ac5f72fd5ba88f"
+      },
+      {
         "path": "dist/startup/chunks/chunk-Q5BEQ6KW.mjs",
         "bytes": 452686,
         "sha256": "34ab67f9b11e297c76ec8916fa3759acbf7f8e76757b7dc30bb790b32908ece6"
-      },
-      {
-        "path": "dist/startup/chunks/chunk-QOELMQN4.mjs",
-        "bytes": 58851,
-        "sha256": "bb3fdbb6353a638fbc8703b165321a57ae2f83d78a9d3548f801b7565c3b9a20"
       },
       {
         "path": "dist/startup/chunks/export-3NJAKKKA.mjs",
@@ -82,13 +82,13 @@
       },
       {
         "path": "dist/startup/ink-boot.mjs",
-        "bytes": 2095264,
-        "sha256": "e03990d9c834e3f95cdf6f10982d359b2005821f86c990d628ff9b2302ad55a9"
+        "bytes": 2095670,
+        "sha256": "360a38e3432308b3485ae3d949d40afc3aab9f3ca0e129ed19f8f1bcb117b422"
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 257753,
-        "sha256": "654f4fdb875b6d2da3e92651cea8446a59d63cee3fbe22aeeb8f0ea2d164456a"
+        "bytes": 273074,
+        "sha256": "2323cefaffae38f34cb518a354e55ec9d5319062cd122173f4615ecb9dd323df"
       },
       {
         "path": "index-standalone.html",
@@ -342,8 +342,8 @@
       },
       {
         "path": "src/document/document-session-registry.js",
-        "bytes": 26557,
-        "sha256": "bdb9d620e418bae467f78cbeb1289fe13695d5820c7b2ecd0805fa28dc870324"
+        "bytes": 27101,
+        "sha256": "42ff226b5df8e4274c88a46b7f03c2ecc89255919df4000f2b7a6a90414efe04"
       },
       {
         "path": "src/document/file-envelope.js",
@@ -927,8 +927,8 @@
       },
       {
         "path": "src/ink.js",
-        "bytes": 180122,
-        "sha256": "b02005538098d37719e5a6591b1de3ca94d6f6687b6f39a96f5ca6feac9b5f98"
+        "bytes": 180198,
+        "sha256": "504c96d7b2bab605818a9dd64b9e043f8abcbed4da7005cc6719ed275d1dec6e"
       },
       {
         "path": "src/input/device-validation.js",
@@ -1402,13 +1402,13 @@
       },
       {
         "path": "src/ui/branding-settings.js",
-        "bytes": 7188,
-        "sha256": "f8676117fba939b546c2327dc375358d88e34cb30f379fac144f3c740ade50c2"
+        "bytes": 7047,
+        "sha256": "4a5ae988bf57d812c1fec4c695cdd24256aa696cb45269f8e41cb1bf7118b48b"
       },
       {
         "path": "src/ui/ink017/entry.js",
-        "bytes": 3720,
-        "sha256": "4fcf2b383ebf9b1822947e4377fcd9bdb874aab8b23b7805ff0a38f1363463c8"
+        "bytes": 4654,
+        "sha256": "7280f625440bee8bfe27570985de9e7e53afaec2ab47bb4621b4a01d2a5800f2"
       },
       {
         "path": "src/ui/ink017/markup.html",
@@ -1417,8 +1417,8 @@
       },
       {
         "path": "src/ui/ink017/menu-ui.js",
-        "bytes": 7978,
-        "sha256": "e468a13ca7b63d4f6204b7e471dbc86040e140acfdc6d45a0ecb9b2c8994ccc3"
+        "bytes": 17911,
+        "sha256": "e41d60e0b7769919872e152b5af87500c44f948f83f609bca1450f558da5c34d"
       },
       {
         "path": "src/ui/ink017/native-host.js",
@@ -1427,8 +1427,8 @@
       },
       {
         "path": "src/ui/ink017/native-provider.js",
-        "bytes": 13316,
-        "sha256": "b70344856798e35b7a0c9679e5aea7af88a88856ac670aa03499b2d6f9570fc3"
+        "bytes": 13516,
+        "sha256": "16ae3b177a4b71ff3e363461e1b9482c26f841e0d939f18df6acf6c1caab0d55"
       },
       {
         "path": "src/ui/ink017/panels/adjustments.js",
@@ -1452,8 +1452,8 @@
       },
       {
         "path": "src/ui/ink017/panels/color.js",
-        "bytes": 5265,
-        "sha256": "805f471e1907d4b958d77a887d741c46d19e78569290fc4cd1609ab1398bd51c"
+        "bytes": 5547,
+        "sha256": "1e9addf6c8407e9cd7c4954bc8bb9867b5e70a5aaa0ef8e3479a2845c4dea980"
       },
       {
         "path": "src/ui/ink017/panels/history.js",
@@ -1462,8 +1462,8 @@
       },
       {
         "path": "src/ui/ink017/panels/layers.js",
-        "bytes": 8691,
-        "sha256": "c3552ef827a20fe53556fdb82a4f51a7105e2073d8c728de8c45a1d55dfadb70"
+        "bytes": 9960,
+        "sha256": "88291ffb2f15e5cd4ccb3a7f694f9f47bdd6bf708fac142b91e3392e0a95850a"
       },
       {
         "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
@@ -1497,8 +1497,8 @@
       },
       {
         "path": "src/ui/ink017/right-dock.js",
-        "bytes": 9721,
-        "sha256": "ccd4406cbf83417bec7ab6e3b87f4c7ab6a5fd6fa7d4f02c34f5660aaec5edd5"
+        "bytes": 9891,
+        "sha256": "f432d4360dcff46917e7d035499e8ac222a6f96bfe141b423982df221f43157e"
       },
       {
         "path": "src/ui/ink017/shared-controls.js",
@@ -1507,13 +1507,13 @@
       },
       {
         "path": "src/ui/ink017/shell.js",
-        "bytes": 12183,
-        "sha256": "4cf7d0de2d06406c6d20e112de38968be0359b70367b829c112cdc39f6fe7d55"
+        "bytes": 16748,
+        "sha256": "a47b27b6132640989c38eea35d774db4dd7c4d5b150f10a803b6ff89931d6ac5"
       },
       {
         "path": "src/ui/ink017/tokens.css",
-        "bytes": 72002,
-        "sha256": "777d6325b92be87d9835a10dcc74bfa5ec6843a3ac04bb868871a5bea09912ab"
+        "bytes": 83371,
+        "sha256": "aaf4bef106ebe7ee51a6dfa4d810611a35e6d02ef32e897a3c8a7f382426d9a9"
       },
       {
         "path": "src/ui/ink017/tool-slices/completion-overlay.js",
@@ -1577,8 +1577,8 @@
       },
       {
         "path": "src/ui/minimal-test-shell/modules.js",
-        "bytes": 30345,
-        "sha256": "2e1e09c353f7aa4f6aea4188c5ec8156aed893f1c539f39641f693d337395696"
+        "bytes": 33289,
+        "sha256": "190fb2e355b9c4767aadc2a9642edd103f9767bd8ca4d8f240ac6914c672b821"
       },
       {
         "path": "src/ui/modular-ui/module-host.js",
@@ -1667,8 +1667,8 @@
       },
       {
         "path": "stage-runtime.css",
-        "bytes": 14520,
-        "sha256": "28d9e2ddbef267a4793a7c3a9ddbaecee1cdef56b4b609605a53385e3eaf79bd"
+        "bytes": 17315,
+        "sha256": "b5d61962870907db9f3b63d89a952aa52ab86644bb1f3aaf710190fb3c225769"
       },
       {
         "path": "ui/capability-raster-tools.js",
@@ -1679,20 +1679,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/461#issuecomment-6416414574"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/422#issuecomment-6430874082"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "2e59db7b585cb5a27c4be92c9a4a7a8e331fda01",
+    "exact_sha": "66345211271f5eb28e38672c11894c069067360b",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "74121dc3aed912c490fdecb8ad4f325161036a46",
-    "authority_record_sha256": "86adaf990b4961a21dc9b64e19830b08e50c9d4a703a1f013005dfe630e401ba",
-    "publisher_sha": "2e59db7b585cb5a27c4be92c9a4a7a8e331fda01",
-    "package_publisher_sha": "2e59db7b585cb5a27c4be92c9a4a7a8e331fda01",
+    "previous_target_commit": "f2fcfe1453564ecdf2580f684a0def0271810116",
+    "authority_record_sha256": "24d24348fc606f651643d3e21544b1881181ea4966317a84a34f5ce61f7ea4c8",
+    "publisher_sha": "66345211271f5eb28e38672c11894c069067360b",
+    "package_publisher_sha": "66345211271f5eb28e38672c11894c069067360b",
     "runtime_bytes_unchanged_from_package": true
   }
 }

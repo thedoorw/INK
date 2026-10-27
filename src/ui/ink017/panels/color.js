@@ -21,8 +21,8 @@ export default lifecycle('color',s=>{
  const hue=Math.round(c.h),enabled=available?'':' disabled';
  return '<div class="ps-color-visual-row" aria-label="顏色">' +
   '<div class="ps-color-chips"><div class="panel-color-chips">' +
-  '<input type="color" aria-label="Background" title="背景色" value="'+s.paint.background+'"'+(s.capabilities?.background?'':' disabled')+'>' +
-  '<input type="color" aria-label="Foreground" title="前景色" value="'+s.paint.foreground+'"'+enabled+'></div></div>' +
+  '<span class="ps-native-color-chip ps-native-color-chip-background" style="background-color:'+s.paint.background+'"><input type="color" aria-label="Background" title="背景色" value="'+s.paint.background+'"'+(s.capabilities?.background?'':' disabled')+'></span>' +
+  '<span class="ps-native-color-chip ps-native-color-chip-foreground" style="background-color:'+s.paint.foreground+'"><input type="color" aria-label="Foreground" title="前景色" value="'+s.paint.foreground+'"'+enabled+'></span></div></div>' +
   '<div class="ps-native-color-gradient"><div class="color-plane" role="group" tabindex="'+(available?0:-1)+'" aria-disabled="'+(!available)+'" aria-label="Color spectrum saturation and value" aria-description="左右調整飽和度，上下調整明度"><span class="color-plane-marker" aria-hidden="true"></span></div>' +
   '<div class="ps-native-hue" role="slider" tabindex="'+(available?0:-1)+'" aria-disabled="'+(!available)+'" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="360" aria-valuenow="'+hue+'" aria-label="Hue" title="拖曳色相箭頭或色條"><span class="ps-native-hue-indicator" aria-hidden="true"></span></div></div></div>';
 },(r,h,signal)=>{
@@ -32,8 +32,8 @@ export default lifecycle('color',s=>{
  let pending=null,previewHue=initial.h;
  const patch=color=>h.dispatch({type:'paint.patch',patch:{foreground:color},source:'color'});
  const current=()=>hexToHsv(h.getSnapshot().paint.foreground,preferredHue);
- function updateHue(hue){previewHue=((hue%360)+360)%360;preferredHue=previewHue;plane.style.setProperty('--hue','hsl('+previewHue+' 100% 50%)');const height=track.getBoundingClientRect().height,indicatorHalf=indicator.getBoundingClientRect().height/2||8.5;indicator.style.top=height>0?(Math.min(indicatorHalf,height/2)+(1-previewHue/360)*Math.max(0,height-2*indicatorHalf))+'px':((1-previewHue/360)*100)+'%';track.setAttribute('aria-valuenow',String(Math.round(previewHue)));}
- function preview(s,v,color){pending=color;point.style.left=(s*100)+'%';point.style.top=((1-v)*100)+'%';point.style.background=color;const input=r.querySelector('[aria-label="Foreground"]');if(input)input.value=color;}
+ function updateHue(hue){previewHue=((hue%360)+360)%360;preferredHue=previewHue;plane.style.setProperty('--hue','hsl('+previewHue+' 100% 50%)');const position=1-previewHue/360;indicator.style.top='calc('+(position*100).toFixed(4)+'% + '+(5.5-position*11).toFixed(3)+'px)';track.setAttribute('aria-valuenow',String(Math.round(previewHue)));}
+ function preview(s,v,color){pending=color;point.style.left='clamp(4.5px,'+(s*100)+'%,calc(100% - 4.5px))';point.style.top='clamp(4.5px,'+((1-v)*100)+'%,calc(100% - 4.5px))';point.style.background=color;const input=r.querySelector('[aria-label="Foreground"]');if(input)input.value=color;const chip=r.querySelector('.ps-native-color-chip-foreground');if(chip)chip.style.backgroundColor=color;}
  function commitPending(){if(pending){const color=pending;pending=null;patch(color)}}
  updateHue(initial.h);
  preview(initial.s,initial.v,h.getSnapshot().paint.foreground);
