@@ -114,6 +114,7 @@ export function defaultDocument() {
     referencePackages: [],
     strokeSessions: [],
     brushPackages: [],
+    rasterPatternLibrary: { format: 'INK-RASTER-PATTERN-LIBRARY', version: 1, patterns: [], activeId: null },
     vectorBrushLibrary: { format: 'INK-VECTOR-BRUSH-LIBRARY', version: '1.0', materials: [] },
     handDrawingReports: [],
     deviceCalibrationProfiles: [],

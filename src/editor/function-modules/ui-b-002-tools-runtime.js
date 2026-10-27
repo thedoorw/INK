@@ -77,8 +77,10 @@ export function createUiB002ToolRuntime(app,{raster,isRasterTool=()=>false,comma
   const setRasterOption=(key,value)=>{raster.setOption?.(key,value);return raster.options?.()||{};};
   const setTextDirection=value=>{if(!TEXT_DIRECTIONS.has(value))throw new TypeError('INK_UI_B_002_TEXT_DIRECTION_INVALID');app.uiBTextMode=value;announce('text-direction');return value;};
   const setPatternImage=(imageData,name='Pattern')=>{raster.setPattern?.(imageData,name);announce('pattern-image');return{loaded:true,name,width:imageData?.width||0,height:imageData?.height||0};};
-  const patternInfo=()=>({loaded:Boolean(raster.state?.patternImage),name:raster.state?.patternName||null});
+  const patternInfo=()=>raster.patternInfo?.()||{loaded:false,name:null,activeId:null,patterns:[]};
+  const selectPattern=id=>{const info=raster.selectPattern?.(id);announce('pattern-select');return info;};
+  const deletePattern=id=>{const info=raster.deletePattern?.(id);announce('pattern-delete');return info;};
   const subscribe=listener=>{if(typeof listener!=='function')return()=>false;listeners.add(listener);return()=>listeners.delete(listener);};
   const dispose=()=>{if(disposed)return false;disposed=true;try{offCommands?.();}catch{};try{raster.cancelActiveInteraction?.({restore:true,reason:'dispose'});}catch{};try{raster.clearTool?.({restore:false,reason:'dispose'});}catch{};listeners.clear();return true;};
-  return Object.freeze({schema:'INK-UI-B-002-TOOL-RUNTIME',version:2,activeTool,activate,reconcile,drawingTool,rasterOptions:()=>raster.options?.()||{},setRasterOption,textDirection:()=>app.uiBTextMode||'horizontal-tb',setTextDirection,colors,setBackgroundColor,swapColors,resetColors,setPatternImage,patternInfo,subscribe,dispose});
+  return Object.freeze({schema:'INK-UI-B-002-TOOL-RUNTIME',version:2,activeTool,activate,reconcile,drawingTool,rasterOptions:()=>raster.options?.()||{},setRasterOption,textDirection:()=>app.uiBTextMode||'horizontal-tb',setTextDirection,colors,setBackgroundColor,swapColors,resetColors,setPatternImage,patternInfo,selectPattern,deletePattern,subscribe,dispose});
 }
