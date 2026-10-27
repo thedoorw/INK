@@ -503,7 +503,7 @@ window.INK_UI_MASTER_DRAFT={version:'0.1',status:'MERGED_HANDOFF_PENDING_SECTION
  root.querySelector('#mobileSheetClose').addEventListener('click',()=>setView('canvas'));
  scrim.addEventListener('click',()=>setView('canvas'));
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&mobile.matches&&view!=='canvas'){setView('canvas');nav.querySelector('[data-mobile="canvas"]')?.focus()}});
- root.querySelector('.tool-area')?.addEventListener('click',()=>{if(mobile.matches&&view==='tools')setView('canvas')});
+ /* Keep tool drawer open while choosing a grouped subtool. Close with Canvas or scrim. */
  mobile.addEventListener('change',()=>{if(!mobile.matches){setView('canvas')}});
  setView('canvas');
 })();
