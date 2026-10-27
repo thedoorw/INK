@@ -194,12 +194,17 @@ export function patchRaster(imageData, { sourceRegion, targetRegion, opacity = 1
 
 function luminance(rgb) { return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722; }
 
-function tonalTool(imageData, { targetPoint, radius = 1, region = null, mask = null, strength = 0.5, hardness = 1 } = {}, mode) {
+function tonalTool(imageData, { targetPoint, radius = 1, region = null, mask = null, strength = 0.5, hardness = 1, toneRange = 'all' } = {}, mode) {
   const { width, height } = assertImageData(imageData);
   const localMask = createLocalRetouchMask(width, height, { targetPoint, radius, region, mask, hardness });
   strength = normalizeUnit(strength, 0.5);
+  if(!['all','shadows','midtones','highlights'].includes(toneRange))throw Error('INK_RETOUCH_TONE_RANGE_INVALID');
   return applyMaskedPixels(imageData, localMask, ({ target, local }) => {
-    const amount = strength * local;
+    const light=luminance(target)/255;
+    const weight=toneRange==='shadows'?clamp((.68-light)/.52,0,1)
+      :toneRange==='midtones'?Math.max(0,1-Math.abs(light-.5)/.4)
+      :toneRange==='highlights'?clamp((light-.32)/.52,0,1):1;
+    const amount = strength * local * weight;
     const rgb = target.slice(0, 3).map(value => mode === 'dodge' ? byte(value + (255 - value) * amount) : byte(value * (1 - amount)));
     return [...rgb, target[3]];
   });

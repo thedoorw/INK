@@ -15,6 +15,7 @@ const fail = (code, details = {}) => { throw Object.assign(new Error(code), { co
 export function declaredDocumentExtensions(document) {
   const found = new Set();
   if (document?.components !== undefined) found.add('ink.components.v1');
+  if (document?.rasterPatternLibrary?.patterns?.length) found.add('ink.raster-pattern-library.v1');
   for (const page of document?.pages || []) {
     const objects = walkPageObjects(page);
     if (objects.some(({ object }) => object.layout !== undefined || object.layoutItem !== undefined)) found.add('ink.layout.v1');

@@ -7,6 +7,7 @@ import { migrateStrokeSession } from '../paint/stroke-session.js';
 import { createBrushPackage } from '../paint/brush-engine.js';
 import { migrateSemanticDocument } from '../semantic/semantic-migration.js';
 import { migrateDocumentAssetManifest } from '../assets/asset-migration.js';
+import { normalizeRasterPatternLibrary } from '../image/raster-pattern-library.js';
 import { normalizeRulerGuide, normalizeSnapSettings } from '../editor/precision-layout.js';
 
 export function migrateDocument(raw) {
@@ -22,6 +23,7 @@ export function migrateDocument(raw) {
   document.formatVersion = FORMAT_VERSION;
   document.appVersion = INK_VERSION;
   document.colorState = normalizeDocumentColorState(document.colorState || {});
+  document.rasterPatternLibrary = normalizeRasterPatternLibrary(document.rasterPatternLibrary);
   document.programAssets = Array.isArray(document.programAssets)
     ? document.programAssets.filter(asset => asset && typeof asset === 'object' && asset.id).map(asset => deepClone(asset))
     : [];

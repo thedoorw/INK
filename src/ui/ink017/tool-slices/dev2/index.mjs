@@ -47,9 +47,7 @@ export const DEV2_TOOL_GROUPS=Object.freeze([
 ]);
 export const DEV2_GAPS=Object.freeze([
  {row:5,id:'crop-preview',reason:'UI direct-crop overlay candidate is present, but Chrome Web/Portable, target lease and History verification remains outstanding.'},
- {row:6,id:'all-layers-sampling',reason:'Raster eyedropper samples only the selected 8-bit RGB image, not a composited all-layers surface.'},
- {row:11,id:'gradient-stops',reason:'Raster gradient controller uses exactly two endpoint colors and pointer drag; arbitrary color-stop editing and preview are absent.'},
- {row:13,id:'tone-range',reason:'Dodge and Burn do not expose independent Shadows/Midtones/Highlights ranges or exposure parameters.'},
+ // Native multistop gradients and Dodge/Burn tone ranges are no longer gaps.
 ]);
 
 // Source modes use the controller-owned target lease and explicit source reset.
@@ -66,16 +64,16 @@ const color=(key,label)=>({key,label,type:'color'});
 const brushFields=[num('radius','半徑（物件單位）',1,300),pct('opacity','不透明度 %'),pct('hardness','硬度 %')];
 export const DEV2_FIELD_SCHEMAS=Object.freeze({
  crop:[num('x','X px',0,8191),num('y','Y px',0,8191),num('w','寬度 px',1,8192),num('h','高度 px',1,8192)],
- eyedropper:[num('sampleRadius','取樣半徑 px',0,32)],
+ eyedropper:[choice('sampleSource','取樣來源',['all','selected']),num('sampleRadius','取樣半徑 px',0,32)],
  spotHealing:brushFields,healingBrush:brushFields,patch:[pct('opacity','不透明度 %'),num('feather','邊緣羽化 px',0,100)],
  smudge:[num('radius','半徑（物件單位）',1,300),pct('strength','強度 %'),pct('hardness','硬度 %')],
- cloneStamp:brushFields,patternStamp:brushFields,
+ cloneStamp:[...brushFields,choice('cloneAligned','跨筆畫對齊',['On','Off'])],patternStamp:brushFields,
  gradient:[choice('gradientType','類型',['linear','radial']),color('gradientStart','起始色'),color('gradientEnd','結束色'),pct('opacity','不透明度 %')],
  paintBucket:[num('tolerance','容差',0,255),choice('contiguous','相鄰區域',['On','Off']),pct('opacity','不透明度 %')],
  localBlur:[num('radius','半徑（物件單位）',1,300),pct('strength','強度 %'),pct('hardness','硬度 %')],
  localSharpen:[num('radius','半徑（物件單位）',1,300),pct('strength','強度 %'),pct('hardness','硬度 %')],
- dodge:[num('radius','半徑（物件單位）',1,300),pct('strength','強度 %'),pct('hardness','硬度 %')],
- burn:[num('radius','半徑（物件單位）',1,300),pct('strength','強度 %'),pct('hardness','硬度 %')],
+ dodge:[num('radius','半徑（物件單位）',1,300),pct('strength','曝光 %'),pct('hardness','硬度 %'),choice('toneRange','影調範圍',['all','shadows','midtones','highlights'])],
+ burn:[num('radius','半徑（物件單位）',1,300),pct('strength','曝光 %'),pct('hardness','硬度 %'),choice('toneRange','影調範圍',['all','shadows','midtones','highlights'])],
  sponge:[num('radius','半徑（物件單位）',1,300),pct('strength','強度 %'),pct('hardness','硬度 %'),choice('spongeMode','飽和度模式',['saturate','desaturate'])]
 });
 const runtime=host=>host?.app?.uiComposition?.rasterTools||null;
@@ -238,7 +236,7 @@ export function activateDev2Tool(host,id,{target=host?.target?.()}={}){
 function specFor(id,key){return DEV2_FIELD_SCHEMAS[id]?.find(x=>x.key===key)||null}
 function normalize(spec,value){
  if(spec.type==='choice'){
-  if(spec.key==='contiguous'){if(value!=='On'&&value!=='Off')fail('SETTING_OUT_OF_RANGE');return value==='On'}
+  if(['contiguous','cloneAligned'].includes(spec.key)){if(value!=='On'&&value!=='Off')fail('SETTING_OUT_OF_RANGE');return value==='On'}
   if(!spec.values.includes(value))fail('SETTING_OUT_OF_RANGE');return value;
  }
  if(spec.type==='color'){if(!/^#[0-9a-f]{6}$/i.test(String(value)))fail('SETTING_OUT_OF_RANGE');return String(value).toLowerCase()}
@@ -282,7 +280,7 @@ export async function applyDev2Crop(host,draft,{target=host?.target?.()}={}){
  }catch(error){return {ok:false,changed:false,error:{code:error.code||'CAPABILITY_UNAVAILABLE',message:error.message}}}
 }
 function formField(spec,value){
- const displayed=spec.type==='choice'&&spec.key==='contiguous'?(value?'On':'Off'):spec.scale?Math.round(Number(value||0)*spec.scale):value;
+ const displayed=spec.type==='choice'&&['contiguous','cloneAligned'].includes(spec.key)?(value?'On':'Off'):spec.scale?Math.round(Number(value||0)*spec.scale):value;
  if(spec.type==='choice')return field(spec.key,spec.label,displayed,'text',spec.values);
  if(spec.type==='color')return field(spec.key,spec.label,displayed||'#000000','color');
  return field(spec.key,spec.label,displayed??spec.min,'number').replace('step="any"','step="'+(spec.step||1)+'" min="'+spec.min+'" max="'+spec.max+'"');
@@ -294,25 +292,34 @@ export function dev2OptionsMarkup(host,id){
  const html=(DEV2_FIELD_SCHEMAS[id]||[]).map(spec=>formField(spec,values[spec.key])).join('');
  const explain=({
   crop:'在畫布上拖曳建立裁切框，拖曳八點控制柄或移動框；Apply 經原生裁切與 History，Cancel 不修改文件。',
-  eyedropper:'從選取影像取色（不支援合成所有圖層）。',
+  eyedropper:'All 取樣目前文件中可見圖層的 Native 合成結果；Selected 只讀取目前影像。',
   healingBrush:'Alt/Option 點擊影像設定來源，再在目標處刷過。',
   patch:'先建立像素選區，從選區內拖曳到來源區域；放開後修補。',
-  cloneStamp:'Alt/Option 點擊來源，再刷至目標；來源綁定目前影像，切換後需重新取樣。',
-  patternStamp:'先載入圖樣，再在目標影像刷過；圖樣尚未寫入文件。',
-  gradient:'在影像上拖曳起點與終點；目前只有兩個色標。',
+  cloneStamp:'Alt/Option 設定來源；跨筆畫對齊 On 延續位移，Off 每次新筆畫重置來源偏移。',
+  patternStamp:'匯入圖樣會寫入目前 INK 作品與 History；Save、Open 及 F5 都保留已儲存的圖樣。',
+  gradient:'編輯 2–8 個色標的顏色與位置，拖曳影像起訖點；填入像素選區。',
   paintBucket:'點擊影像色域填色；顏色來自現有前景色。',
   localBlur:'在影像刷過模糊；遵從目前像素選區。',
   localSharpen:'在影像刷過銳化；遵從目前像素選區。',
-  dodge:'在影像刷過加亮；尚無高光／中間調／陰影範圍。',
-  burn:'在影像刷過加深；尚無高光／中間調／陰影範圍。',
+  dodge:'依所選陰影、中間調或亮部曝光加亮；適用像素選區。',
+  burn:'依所選陰影、中間調或亮部曝光加深；適用像素選區。',
   smudge:'按住拖曳將顏色推向移動方向；遵從目前像素選區。',
   sponge:'在影像刷過增加或降低飽和度。'
  })[id]||'按目前已安裝的 Raster 互動操作。';
  const controls=id==='crop'?'<button type="button" data-dev2-action="crop-reset">重新框選</button><button type="button" data-dev2-action="apply">Apply</button><button type="button" data-dev2-action="cancel">Cancel</button>':'';
- const pattern=id==='patternStamp'?'<label class="field-row"><span>圖樣影像</span><input type="file" data-dev2-pattern accept="image/*" aria-label="載入圖樣影像"></label><span class="context-readout">'+esc(rt?.patternInfo?.().name||'尚未載入圖樣')+'</span>':'';
+ const info=id==='patternStamp'?rt?.patternInfo?.():null;
+ const pattern=id==='patternStamp'?'<label class="field-row"><span>加入圖樣到作品</span><input type="file" data-dev2-pattern accept="image/*" aria-label="加入圖樣，與 INK 作品一同儲存"></label>'
+   +'<label class="field-row"><span>作品圖樣庫</span><select data-dev2-pattern-choice aria-label="從作品開啟圖樣">'
+   +(info?.patterns?.length?info.patterns.map(p=>'<option value="'+esc(p.id)+'"'+(p.id===info.activeId?' selected':'')+'>'+esc(p.name)+'</option>').join(''):'<option value="">尚無圖樣</option>')+'</select></label>'
+   +(info?.activeId?'<button type="button" data-dev2-action="pattern-delete">移除目前圖樣</button>':''):'';
  const source=['cloneStamp','healingBrush'].includes(id)?'<span class="context-readout">來源 '+esc(rt?.sourceInfo?.()?Math.round(rt.sourceInfo().x)+', '+Math.round(rt.sourceInfo().y):'尚未取樣')+'</span><button type="button" data-dev2-action="source-clear">清除來源</button>':'';
  const readout=id==='eyedropper'?'<span class="context-readout">前景色 '+esc(current(host).paint?.foreground||'—')+'</span>':'';
- return '<div data-dev2-options="'+esc(id)+'" class="context-parameter-group" role="group" aria-label="'+esc(item.label)+' 選項"><fieldset'+(availability.available?'':' disabled')+'>'+html+source+pattern+readout+controls+'</fieldset><span class="capability-empty">'+esc(availability.available?explain:availability.reason)+'</span></div>';
+ const stopFields=id==='gradient'?(opts.gradientStops||[]).map((stop,i)=>
+  '<label class="field-row"><span>色標 '+(i+1)+'</span><input type="number" min="0" max="100" step="any" data-dev2-stop-offset="'+i+'" value="'+Number((stop.offset*100).toFixed(2))+'"'+(i===0||i===opts.gradientStops.length-1?' disabled':'')+' aria-label="色標位置 %"><input type="color" data-dev2-stop-color="'+i+'" value="'+esc(stop.color)+'" aria-label="色標顏色 '+(i+1)+'"></label>'
+ ).join('')+(opts.gradientStops?.length<8?'<button type="button" data-dev2-stop-action="add">增加色標</button>':'')
+   +(opts.gradientStops?.length>2?'<button type="button" data-dev2-stop-action="remove">移除中間色標</button>':''):'';
+
+ return '<div data-dev2-options="'+esc(id)+'" class="context-parameter-group" role="group" aria-label="'+esc(item.label)+' 選項"><fieldset'+(availability.available?'':' disabled')+'>'+html+stopFields+source+pattern+readout+controls+'</fieldset><span class="capability-empty">'+esc(availability.available?explain:availability.reason)+'</span></div>';
 }
 async function loadPattern(host,file,token,isDisposed){
  if(!file||!String(file.type||'').startsWith('image/')||file.size>16777216)fail('PATTERN_FILE_INVALID');
@@ -348,6 +355,25 @@ export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{}
    finally{busy=false}
    return;
   }
+  if(id==='patternStamp'&&el?.hasAttribute?.('data-dev2-pattern-choice')){
+   try{requireTarget(host,id,token);if(runtime(host)?.activeTool?.()!=='patternStamp')fail('TOOL_NOT_ACTIVE');runtime(host)?.selectPattern?.(el.value)}
+   catch(error){notify(error)}
+   paint();return;
+  }
+  if(id==='gradient'&&(el?.hasAttribute?.('data-dev2-stop-offset')||el?.hasAttribute?.('data-dev2-stop-color'))){
+   const index=Number(el.dataset.dev2StopOffset??el.dataset.dev2StopColor);
+   const stops=runtime(host)?.rasterOptions?.().gradientStops?.map(stop=>({...stop}))||[];
+   if(!Number.isInteger(index)||!stops[index])return;
+   if(el.hasAttribute('data-dev2-stop-offset')){
+    const offset=Number(el.value)/100;
+    if(!Number.isFinite(offset)||index===0||index===stops.length-1||offset<=stops[index-1].offset||offset>=stops[index+1].offset){
+     notify({message:'色標位置必須介於相鄰兩個色標之間'});paint();return;
+    }
+    stops[index].offset=offset;
+   }else stops[index].color=el.value;
+   try{runtime(host).setRasterOption('gradientStops',stops)}catch(error){notify(error)}
+   paint();return;
+  }
   if(!el?.dataset?.key)return;
   if(id==='crop'){crop?.updateFromForm();return;}
   const value=el.value;
@@ -358,9 +384,29 @@ export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{}
  const click=async event=>{
   if(disposed||busy)return;
   const action=event.target?.closest?.('[data-dev2-action]')?.dataset.dev2Action;
+  if(id==='gradient'){
+   const stopAction=event.target?.closest?.('[data-dev2-stop-action]')?.dataset.dev2StopAction;
+   if(stopAction){
+    event.preventDefault();
+    const stops=runtime(host)?.rasterOptions?.().gradientStops?.map(stop=>({...stop}))||[];
+    if(stopAction==='add'&&stops.length>=2&&stops.length<8){
+     const index=stops.findIndex((stop,i)=>i<stops.length-1&&stops[i+1].offset-stop.offset>.0001);
+     if(index>=0){const offset=(stops[index].offset+stops[index+1].offset)/2;stops.splice(index+1,0,{offset,color:stops[index].color})}
+    }else if(stopAction==='remove'&&stops.length>2)stops.splice(stops.length-2,1);
+    try{runtime(host)?.setRasterOption?.('gradientStops',stops)}catch(error){notify(error)}
+    paint();return;
+   }
+  }
   if(!action)return;
   event.preventDefault();
   if(action==='source-clear'){runtime(host)?.resetRasterSource?.();paint();return;}
+  if(action==='pattern-delete'&&id==='patternStamp'){
+   const token=JSON.parse(root.dataset.nativeTarget||'null');
+   try{requireTarget(host,id,token);if(runtime(host)?.activeTool?.()!=='patternStamp')fail('TOOL_NOT_ACTIVE');
+     const current=runtime(host)?.patternInfo?.();if(current?.activeId)runtime(host)?.deletePattern?.(current.activeId)}
+   catch(error){notify(error)}
+   paint();return;
+  }
   if(id!=='crop')return;
   if(action==='crop-reset'){crop?.reset();return;}
   if(action==='cancel'){onCancel();if(!disposed)root.replaceChildren();return}
