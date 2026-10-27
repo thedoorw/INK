@@ -61,20 +61,16 @@
   const open=()=>{
     if(!backdrop)mount();
     previousFocus=document.activeElement;
-    apply(current);backdrop.hidden=false;backdrop.querySelector('[data-ink-brand-close]').focus();
-    setStatus('設定只保存在目前瀏覽器，不會修改 INK 文件或所有訪客的品牌圖示');
+    apply(current);backdrop.hidden=false;nameInput.focus();
+    setStatus('Changes save automatically in this browser.');
   };
   const mount=()=>{
     if(backdrop)return;
     backdrop=make('div',{class:'ink-branding-backdrop',hidden:''});
     const panel=make('section',{class:'ink-branding-panel',role:'dialog','aria-modal':'true','aria-label':'INK 品牌圖示'});
-    panel.append(make('h2',{},'Preferences'));
+    const header=make('header',{class:'dialog-header'});header.append(make('h2',{},'Branding'));const dismiss=make('button',{type:'button',class:'dialog-close','aria-label':'Close Branding'},'×');dismiss.addEventListener('click',close);header.append(dismiss);panel.append(header);
     const body=make('div',{class:'ink-branding-pref-body'});
-    const nav=make('nav',{class:'ink-branding-pref-nav','aria-label':'Preferences sections'});
-    nav.append(make('span',{class:'active'},'Branding'));
     const content=make('div',{class:'ink-branding-pref-content'});
-    content.append(make('h3',{},'Branding'));
-    content.append(make('p',{class:'ink-branding-help'},'Customize the application identity in this browser.'));
     const fields=make('div',{class:'ink-branding-fields'});
     const addText=(key,label,max)=>{
       const l=make('label',{for:'inkBrand'+key},label);
@@ -91,15 +87,15 @@
     preview.append(logo,fav);content.append(preview);
     makeFile(content,'inkBrandLogoFile','Choose Logo','logo');
     makeFile(content,'inkBrandFaviconFile','Choose Favicon','favicon');
-    body.append(nav,content);panel.append(body);
-    const actions=make('div',{class:'ink-branding-actions'});
-    const reset=make('button',{type:'button'},'恢復產品預設');
+    body.append(content);panel.append(body);
+    const actions=make('div',{class:'dialog-footer ink-branding-actions'});
+    const reset=make('button',{type:'button'},'Reset defaults');
     reset.addEventListener('click',()=>{if(save(DEFAULT))setStatus('已恢復產品預設');});
-    const closeBtn=make('button',{type:'button','data-ink-brand-close':''},'關閉');
+    const closeBtn=make('button',{type:'button',class:'primary','data-ink-brand-close':''},'Done');
     closeBtn.addEventListener('click',close);
     actions.append(reset,closeBtn);
     status=make('p',{class:'ink-branding-status',role:'status'});
-    panel.append(actions,status);backdrop.append(panel);document.body.append(backdrop);
+    panel.append(status,actions);backdrop.append(panel);document.body.append(backdrop);
     backdrop.addEventListener('click',event=>{if(event.target===backdrop)close();});
     backdrop.addEventListener('keydown',event=>{
       if(event.key==='Escape'){event.preventDefault();close();}
@@ -118,3 +114,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
 })();
+

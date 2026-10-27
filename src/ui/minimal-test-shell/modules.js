@@ -35,7 +35,7 @@ export function createMinimalControlsModule(){
       const compareToggle=comparison.secondary?'Compare off':compareCandidate?'Compare '+escapeText(compareCandidate.title||'B'):'Compare (open B)';
 
       const brandLogo=globalThis.INK_BRANDING?.getLogo?.() || 'assets/ink-mark.svg';
-      ctx.root.innerHTML=
+      const specialist=
         '<div class="ink-control-group ink-branding-launch"><img data-ink-brand-logo class="ink-branding-logo-toolbar" alt="INK LOGO" src="'+escapeText(brandLogo)+'">'+button('branding-open','品牌')+'</div>'+ 
         '<div class="ink-control-group">'+button('new-a4','New A4')+button('open','Open')+button('save','Save')+'</div>'+
          '<div class="ink-control-group ink-recovery-controls"><label>Recover <select data-recovery-key aria-label="Recover existing document">'+recoveryOptions+'</select></label>'+button('session-restore','Restore')+'</div>'+
@@ -44,6 +44,11 @@ export function createMinimalControlsModule(){
         '<div class="ink-control-group">'+button('undo','Undo',false)+(button('redo','Redo',false))+button('fit','Fit')+button('zoom100','100%')+'</div>'+
         '<div class="ink-control-group">'+button('preview','Preview',ctx.services.isPreviewVisible())+button('export-png','PNG')+button('export-svg','SVG')+button('export-pdf','PDF')+'</div>'+
         '<span class="ink-control-spacer"></span><span class="ink-state-meta">'+escapeText(doc.open?(doc.dirty?'dirty':'saved'):'no document')+' · '+(history.applied||0)+' history</span>';
+      ctx.root.innerHTML=document.documentElement?.dataset?.ui==='ink017'
+        ?'<section class="ink-tools-group"><h2>Recover saved document</h2><div class="ink-tools-action-row"><select data-recovery-key aria-label="Recover existing document">'+recoveryOptions+'</select>'+button('session-restore','Restore')+'</div></section>'+
+         '<section class="ink-tools-group"><h2>Open documents</h2><div class="ink-session-buttons">'+(sessionButtons||'<span class="ink-state-meta">No open documents</span>')+'</div></section>'+
+         '<details class="ink-tools-diagnostics"><summary>Document preview</summary><div class="ink-tools-specialist">'+button('preview','Preview',ctx.services.isPreviewVisible())+'</div></details>'
+        :specialist;
     };
     let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;render();});};
     render();
@@ -96,8 +101,18 @@ export function createMinimalStateModule(){
     const activeSession=()=>{const list=ctx.selectors.get('session.list')||[];return list.find(item=>item.active)||null;};
     const loadPresets=()=>{try{const value=JSON.parse(localStorage.getItem(presetKey)||'[]');return Array.isArray(value)?value.slice(0,24):[];}catch{return[];}};
     const savePresets=value=>{try{localStorage.setItem(presetKey,JSON.stringify(value.slice(0,24)));return true;}catch{return false;}};
-    const anchorOptions=()=>['top-left','top','top-right','left','center','right','bottom-left','bottom','bottom-right']
-      .map(value=>'<label class="ink-anchor-cell"><input type="radio" name="size-anchor" value="'+value+'"'+(value==='center'?' checked':'')+'><span>'+value+'</span></label>').join('');
+    // A single nine-position control; each radio keeps its native keyboard semantics.
+    const artworkAnchorOptions=()=>[
+      ['top-left','Top left'],['top','Top'],['top-right','Top right'],
+      ['left','Left'],['center','Center'],['right','Right'],
+      ['bottom-left','Bottom left'],['bottom','Bottom'],['bottom-right','Bottom right']
+    ].map(([value,name])=>
+      '<label class="ink-artwork-anchor-cell" title="'+name+'"><input type="radio" name="size-anchor" value="'+value+'" aria-label="'+name+'"'+(value==='center'?' checked':'')+'><span class="ink-artwork-anchor-face" aria-hidden="true"><span class="ink-artwork-anchor-dot">'+({'top-left':'↖',top:'↑','top-right':'↗',left:'←',center:'•',right:'→','bottom-left':'↙',bottom:'↓','bottom-right':'↘'}[value])+'</span><span class="ink-artwork-anchor-check">✓</span></span></label>'
+    ).join('');
+    const syncArtworkAnchorLabel=dialog=>{
+      const label=dialog.querySelector('[data-artwork-anchor-label]');
+      if(label)label.textContent=dialog.querySelector('input[name="size-anchor"]:checked')?.getAttribute('aria-label')||'Center';
+    };
     const dialogOpen=()=>ctx.root.querySelector('dialog[open]');
     const bindTarget=dialog=>{
       const session=activeSession(),page=ctx.selectors.get('page.active')||{};
@@ -129,7 +144,7 @@ export function createMinimalStateModule(){
           relative:input(dialog,'mode')?.value==='relative',units:unit(dialog),width:number(dialog,'width'),height:number(dialog,'height'),anchor:selectedAnchor(dialog)
         });
         const node=dialog.querySelector('[data-size-preview]');
-        node.textContent=preview.before.widthMm+' × '+preview.before.heightMm+' mm → '+preview.after.widthMm+' × '+preview.after.heightMm+' mm · outside content preserved / clipped at bounds';
+        node.textContent=preview.before.widthMm+' × '+preview.before.heightMm+' mm → '+preview.after.widthMm+' × '+preview.after.heightMm+' mm';
         const before=dialog.querySelector('.ink-canvas-before'),after=dialog.querySelector('.ink-canvas-after');
         if(before&&after){const max=Math.max(preview.before.widthMm,preview.before.heightMm,preview.after.widthMm,preview.after.heightMm);before.style.width=(preview.before.widthMm/max*100)+'%';before.style.height=(preview.before.heightMm/max*100)+'%';after.style.width=(preview.after.widthMm/max*100)+'%';after.style.height=(preview.after.heightMm/max*100)+'%';}
       }catch(error){dialog.querySelector('[data-size-preview]').textContent=error?.message||String(error);}
@@ -140,24 +155,25 @@ export function createMinimalStateModule(){
       if(kind==='new'){input(dialog,'units').value='mm';input(dialog,'width').value=210;input(dialog,'height').value=297;input(dialog,'ppi').value=300;dialog.dataset.ratio=String(210/297);updateNewPreview(dialog);}
       else if(kind==='canvas'){input(dialog,'units').value=art.unit||'mm';input(dialog,'mode').value='absolute';input(dialog,'width').value=mmToDimension(art.widthMm,unit(dialog),art.ppi);input(dialog,'height').value=mmToDimension(art.heightMm,unit(dialog),art.ppi);updateCanvasPreview(dialog);}
       else if(kind==='ppi'){input(dialog,'ppi').value=art.ppi||300;dialog.querySelector('[data-size-preview]').textContent='Current '+art.widthMm+' × '+art.heightMm+' mm';}
-      else if(kind==='artwork'){input(dialog,'units').value=art.unit||'mm';input(dialog,'width').value=mmToDimension(art.widthMm,unit(dialog),art.ppi);input(dialog,'height').value=mmToDimension(art.heightMm,unit(dialog),art.ppi);dialog.dataset.ratio=String(art.widthMm/art.heightMm);dialog.querySelector('[data-size-preview]').textContent='Canvas and root artwork scale together; raster source pixels remain unchanged.';}
-      dialog.dataset.units=unit(dialog)||'mm';dialog.showModal();setTimeout(()=>{const first=dialog.querySelector('[data-size-field]')||dialog.querySelector('[data-size-preset]')||dialog.querySelector('[data-size-cancel]');first?.focus()},0);
+      else if(kind==='artwork'){input(dialog,'units').value=art.unit||'mm';input(dialog,'width').value=mmToDimension(art.widthMm,unit(dialog),art.ppi);input(dialog,'height').value=mmToDimension(art.heightMm,unit(dialog),art.ppi);dialog.dataset.ratio=String(art.widthMm/art.heightMm);dialog.querySelector('[data-size-preview]').textContent='';}
+      dialog.dataset.units=unit(dialog)||'mm';if(kind==='artwork'||kind==='canvas')syncArtworkAnchorLabel(dialog);dialog.showModal();setTimeout(()=>{const first=dialog.querySelector('[data-size-field]')||dialog.querySelector('[data-size-preset]')||dialog.querySelector('[data-size-cancel]');first?.focus()},0);
     };
     const render=()=>{
       const doc=ctx.selectors.get('document.current')||{},page=ctx.selectors.get('page.active')||{},layers=ctx.selectors.get('layer.list')||[],history=ctx.selectors.get('history.summary')||{entries:[],applied:0};
       const preview=ctx.services.isPreviewVisible()?ctx.selectors.get('page.preview',{width:240,height:160}):null;
       const layerRows=layers.slice().reverse().map(layer=>'<div class="ink-state-row"><button type="button" class="'+(layer.active?'active':'')+'" data-layer-id="'+escapeText(layer.id)+'">'+escapeText(layer.name)+'</button><span class="ink-state-meta">'+layer.objectCount+'</span></div>').join('');
       const historyRows=(history.entries||[]).map((entry,index)=>'<button type="button" class="ink-history-row'+(history.applied===index+1?' active':'')+'" data-history-applied="'+(index+1)+'"><span>'+escapeText(entry.label)+'</span><span>'+(entry.applied?'✓':'↺')+'</span></button>').join('');
+      const inspect=document.documentElement?.dataset?.ui==='ink017';
       const presetOptions=loadPresets().map((item,index)=>'<option value="'+index+'">'+escapeText(item.name||('Preset '+(index+1)))+'</option>').join('');
       ctx.root.innerHTML=
         '<section class="ink-state-section"><h2>Document</h2><div class="ink-state-body"><div>'+escapeText(doc.open?(doc.title||'Untitled'):'No document')+'</div><div class="ink-state-meta">'+(doc.open?escapeText(page.name||'')+' · '+(doc.dirty?'dirty':'clean'):'New, Open or Recover a saved document')+'</div><div class="ink-size-actions"><button type="button" data-size-open="new">New…</button><button data-size-open="canvas"'+(doc.open?'':' disabled')+'>Canvas Size…</button><button data-size-open="ppi"'+(doc.open?'':' disabled')+'>Output PPI…</button><button data-size-open="artwork"'+(doc.open?'':' disabled')+'>Resize Artwork…</button></div></div></section>'+
-        '<section class="ink-state-section"><h2>Layers</h2><div class="ink-state-body">'+layerRows+'<button type="button" data-layer-add class="ink-block-action">+ Layer</button></div></section>'+
+        (inspect?'<details class="ink-tools-diagnostics"><summary>Inspect layers and history</summary>':'')+'<section class="ink-state-section"><h2>Layers</h2><div class="ink-state-body">'+layerRows+'<button type="button" data-layer-add class="ink-block-action">+ Layer</button></div></section>'+
         '<section class="ink-state-section"><h2>History</h2><div class="ink-state-body">'+historyRows+'</div></section>'+
-        (ctx.services.isPreviewVisible()?'<section class="ink-state-section"><h2>Preview</h2><div class="ink-state-body">'+(preview?.dataUrl?'<img class="ink-preview" alt="Current page preview" src="'+preview.dataUrl+'">':'<div class="ink-state-meta">No preview</div>')+'</div></section>':'')+
+        (inspect?'</details>':'')+(ctx.services.isPreviewVisible()?'<section class="ink-state-section"><h2>Preview</h2><div class="ink-state-body">'+(preview?.dataUrl?'<img class="ink-preview" alt="Current page preview" src="'+preview.dataUrl+'">':'<div class="ink-state-meta">No preview</div>')+'</div></section>':'')+
         '<dialog class="ink-size-dialog" data-size-dialog="new" aria-labelledby="ink-new-title"><header class="dialog-header"><h2 id="ink-new-title">New Document</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close New Document">×</button></header><div class="dialog-body"><div class="ink-new-size-groups"><div class="ink-new-size-pair" role="group" aria-label="Width and height"><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label></div><div class="ink-new-size-pair ink-new-size-metadata" role="group" aria-label="Units and resolution"><label>Units<select data-size-field="units"><option>px</option><option selected>mm</option><option>cm</option><option>in</option></select></label><label>PPI<input data-size-field="ppi" type="number" min="'+ARTBOARD_PPI_MIN+'" max="'+ARTBOARD_PPI_MAX+'" step="1"></label></div><div class="ink-new-orientation" role="group" aria-label="Orientation and proportions"><label><input data-size-field="lock" type="checkbox" checked> Lock proportions</label><button data-size-swap type="button">Swap orientation</button></div><div class="ink-new-presets"><select data-size-preset><option value="">Local preset…</option>'+presetOptions+'</select><button data-size-save-preset type="button">Save preset</button></div></div><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Create</button></footer></dialog>'+
-        '<dialog class="ink-size-dialog" data-size-dialog="canvas" aria-labelledby="ink-canvas-title"><header class="dialog-header"><h2 id="ink-canvas-title">Canvas Size</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Canvas Size">×</button></header><div class="dialog-body"><div class="ink-size-grid"><label>Mode<select data-size-field="mode"><option value="absolute">Absolute</option><option value="relative">Relative</option></select></label><label>Units<select data-size-field="units"><option>px</option><option>mm</option><option>cm</option><option>in</option></select></label><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label></div><fieldset class="ink-anchor-grid"><legend>Anchor</legend>'+anchorOptions()+'</fieldset><div class="ink-canvas-preview" aria-hidden="true"><span class="ink-canvas-before"></span><span class="ink-canvas-after"></span></div><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>'+
-        '<dialog class="ink-size-dialog" data-size-dialog="ppi" aria-labelledby="ink-ppi-title"><header class="dialog-header"><h2 id="ink-ppi-title">Output Resolution</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Output Resolution">×</button></header><div class="dialog-body"><label>PPI<input data-size-field="ppi" type="number" min="'+ARTBOARD_PPI_MIN+'" max="'+ARTBOARD_PPI_MAX+'" step="1"></label><div class="ink-size-preview" data-size-preview></div><p class="ink-state-meta">Geometry and raster source pixels are preserved.</p></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>'+
-        '<dialog class="ink-size-dialog" data-size-dialog="artwork" aria-labelledby="ink-artwork-title"><header class="dialog-header"><h2 id="ink-artwork-title">Resize Whole Artwork</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Resize Whole Artwork">×</button></header><div class="dialog-body"><div class="ink-size-grid"><label>Units<select data-size-field="units"><option>px</option><option>mm</option><option>cm</option><option>in</option></select></label><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label></div><label><input data-size-field="lock" type="checkbox" checked> Lock proportions</label><fieldset class="ink-anchor-grid"><legend>Anchor</legend>'+anchorOptions()+'</fieldset><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>';
+        '<dialog class="ink-size-dialog" data-size-dialog="canvas" aria-labelledby="ink-canvas-title"><header class="dialog-header"><h2 id="ink-canvas-title">Canvas Size</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Canvas Size">×</button></header><div class="dialog-body"><div class="ink-size-grid"><label>Mode<select data-size-field="mode"><option value="absolute">Absolute</option><option value="relative">Relative</option></select></label><label>Units<select data-size-field="units"><option>px</option><option>mm</option><option>cm</option><option>in</option></select></label><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label></div><fieldset class="ink-artwork-anchor-grid"><legend>Anchor</legend><div class="ink-artwork-anchor-cells">'+artworkAnchorOptions()+'</div><span class="ink-artwork-anchor-current"><span data-artwork-anchor-label aria-live="polite">Center</span></span></fieldset><div class="ink-canvas-preview" aria-hidden="true"><span class="ink-canvas-before"></span><span class="ink-canvas-after"></span></div><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>'+
+        '<dialog class="ink-size-dialog" data-size-dialog="ppi" aria-labelledby="ink-ppi-title"><header class="dialog-header"><h2 id="ink-ppi-title">Output Resolution</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Output Resolution">×</button></header><div class="dialog-body"><label>PPI<input data-size-field="ppi" type="number" min="'+ARTBOARD_PPI_MIN+'" max="'+ARTBOARD_PPI_MAX+'" step="1"></label><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>'+
+        '<dialog class="ink-size-dialog" data-size-dialog="artwork" aria-labelledby="ink-artwork-title"><header class="dialog-header"><h2 id="ink-artwork-title">Resize Whole Artwork</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Resize Whole Artwork">×</button></header><div class="dialog-body"><div class="ink-artwork-layout"><section class="ink-artwork-result" aria-label="Resulting artwork size"><div class="ink-artwork-size-line" role="group" aria-label="Resulting width height and units"><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label><label>Units<select data-size-field="units"><option>px</option><option>mm</option><option>cm</option><option>in</option></select></label></div><div class="ink-artwork-options"><label class="ink-artwork-lock"><input data-size-field="lock" type="checkbox" checked> Lock proportions</label><span class="ink-artwork-info" tabindex="0" role="img" aria-label="Canvas and root artwork scale together; raster source pixels remain unchanged." title="Canvas and root artwork scale together; raster source pixels remain unchanged.">ⓘ</span></div><div class="ink-size-preview" data-size-preview role="status"></div></section><fieldset class="ink-artwork-anchor-grid"><legend>Anchor</legend><div class="ink-artwork-anchor-cells">'+artworkAnchorOptions()+'</div><span class="ink-artwork-anchor-current"><span data-artwork-anchor-label aria-live="polite">Center</span></span></fieldset></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>';
       const appRoot=document.getElementById('app');if(appRoot)appRoot.dataset.documentActive=String(Boolean(doc.open));
     };
     let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;const open=dialogOpen();if(open){if(open.dataset.sizeDialog==='new'&&open.dataset.applying==='true')return;if(!targetCurrent(open)){open.close();ctx.services.report('Document changed while size dialog was open');render();}return;}render();});};
@@ -182,7 +198,10 @@ export function createMinimalStateModule(){
           const expected=kind==='new'?normalizeNewDocumentSizeRequest(args):null;
           dialog.dataset.applying='true';if(applyButton)applyButton.disabled=true;
           const receipt=await run(ctx,id,args);
-          if(receipt?.ok!==true)return; // a null/failed command receipt cannot close the dialog
+          if(receipt?.ok!==true){
+            if(kind!=='new')dialog.querySelector('[data-size-preview]').textContent=receipt?.error?.message||'Unable to apply size. Check the values and try again.';
+            return; // a null/failed command receipt cannot close the dialog
+          }
           if(kind==='new'){
             const actual=ctx.selectors.get('page.active')?.artboard,document=ctx.selectors.get('document.current');
             const wanted=expected.artboard;
@@ -192,7 +211,7 @@ export function createMinimalStateModule(){
             if(receipt.changed!==true||!matches){ctx.services.report('New document not confirmed at requested size; check Native state');return;}
           }
           dialog.close();
-        }catch(error){ctx.services.report(error?.message||String(error));}
+        }catch(error){if(kind!=='new')dialog.querySelector('[data-size-preview]').textContent=error?.message||String(error);ctx.services.report(error?.message||String(error));}
         finally{delete dialog.dataset.applying;if(applyButton)applyButton.disabled=false;if(kind==='new'&&dialog.open&&!targetCurrent(dialog))dialog.close();}
         return;
       }
@@ -209,6 +228,7 @@ export function createMinimalStateModule(){
     },true);
     ctx.listen(ctx.root,'input',event=>{
       const dialog=event.target.closest('dialog[data-size-dialog]');if(!dialog)return;
+      if(event.target.matches('input[name="size-anchor"]')){syncArtworkAnchorLabel(dialog);if(dialog.dataset.sizeDialog==='canvas')updateCanvasPreview(dialog);return;}
       const changed=event.target.dataset.sizeField;
       if(event.target.matches('[data-size-preset]')){const chosen=event.target.value;if(chosen!==''){const preset=loadPresets()[Number(chosen)];if(preset){input(dialog,'units').value=preset.units;input(dialog,'width').value=preset.width;input(dialog,'height').value=preset.height;input(dialog,'ppi').value=preset.ppi;dialog.dataset.units=preset.units;syncRatio(dialog);updateNewPreview(dialog);}}return;}
       if(changed==='mode'&&dialog.dataset.sizeDialog==='canvas'){const relative=input(dialog,'mode').value==='relative',page=ctx.selectors.get('page.active')||{},art=page.artboard||{};for(const name of ['width','height'])input(dialog,name).value=relative?'0':String(mmToDimension(art[name==='width'?'widthMm':'heightMm'],unit(dialog),art.ppi));updateCanvasPreview(dialog);return;}
@@ -243,3 +263,4 @@ export function createMinimalStatusModule(){
     render();ctx.selectors.subscribe(schedule);ctx.cleanup(()=>{if(frame)cancelAnimationFrame(frame);});
   }});
 }
+

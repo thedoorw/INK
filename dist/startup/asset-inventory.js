@@ -2,8 +2,8 @@
 self.INK_STARTUP_ASSETS = Object.freeze([
   "./dist/startup/chunks/chunk-342G2AIU.mjs",
   "./dist/startup/chunks/chunk-4ZYAK5J3.mjs",
+  "./dist/startup/chunks/chunk-KJJTBFEB.mjs",
   "./dist/startup/chunks/chunk-Q5BEQ6KW.mjs",
-  "./dist/startup/chunks/chunk-QOELMQN4.mjs",
   "./dist/startup/chunks/export-3NJAKKKA.mjs",
   "./dist/startup/chunks/runtime-test-bridge-7H7OEBJI.mjs",
   "./dist/startup/ink-boot.mjs",
