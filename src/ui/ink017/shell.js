@@ -33,7 +33,7 @@ export function mountNativeShell(app,root){
   const returnFocus=document.activeElement;
   panel.hidden=false;panel.classList.add('size-route-active');
   const detach=()=>{modal.removeEventListener('close',finish);if(sizeRouteCleanup===detach)sizeRouteCleanup=null};
-  const finish=()=>{if(modal.open)return;detach();if(panel.querySelector('dialog[open]'))return;panel.classList.remove('size-route-active');panel.hidden=true;returnFocus?.focus?.()};
+  const finish=()=>{if(modal.open)return;detach();if(panel.querySelector('dialog[open]'))return;panel.classList.remove('size-route-active');panel.hidden=true;returnFocus?.focus?.({preventScroll:true})};
   sizeRouteCleanup=detach;
   modal.addEventListener('close',finish);
   opener.click();
@@ -71,7 +71,10 @@ export function mountNativeShell(app,root){
  }
  const command=async key=>{
   menuUi?.close(menu.contains(document.activeElement));const s=host.getSnapshot();
-  if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;panel.querySelector('button')?.focus();return}
+  if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;(panel.querySelector('[data-recovery-key]')||panel.querySelector('button'))?.focus();return}
+  if(key==='recover')return command('native-tools');
+  if(/^view:[124]$/.test(key))return run('session.view.layout.v1',{layout:Number(key.slice(5))});
+  if(key.startsWith('session:'))return run('session.activate.v1',{sessionId:key.slice(8)});
   if(key==='undo'||key==='redo')return run('history.'+key+'.v1');
   if(key==='new')return openSizeRoute('new');
   if(key==='open')return $('#openFile').click();if(key==='import-image'){importTarget={target:host.target(),layerId:s.docs[0]?.selection};return $('#importImageFile').click()}
@@ -80,9 +83,15 @@ export function mountNativeShell(app,root){
   if(key==='copy'||key==='paste')return run('session.'+key+'.v1');
   if(key==='branding'){globalThis.dispatchEvent(new Event('ink:branding-open'));return}
   if(key==='ppi'||key==='artwork'||key==='canvas-size')return openSizeRoute(key==='canvas-size'?'canvas':key);
+  if(key==='fit-artboard')return run('view.fit.artboard.v1');
+  if(key==='zoom-in'||key==='zoom-out')return run('view.zoom.by.v1',{factor:key==='zoom-in'?1.2:1/1.2});
   if(key==='fit')return run('view.fit.content.v1');if(key==='100')return run('view.zoom.set.v1',{scale:1});
+  if(key==='200')return run('view.zoom.set.v1',{scale:2});
+  if(key==='view:snap'){const enabled=host.app.page?.()?.snap?.enabled!==false;return run('page.snap.set.v1',{key:'enabled',value:!enabled});}
+  if(key.startsWith('view:snap:')){const category=key.slice(10);if(!['guides','edges','centers','equalDistance'].includes(category))return;const enabled=host.app.page?.()?.snap?.categories?.[category]===true;return run('page.snap.set.v1',{key:category,value:!enabled});}
   if(key==='adjustments')return dock.activate('adjustments');
   if(['image-size','crop'].includes(key))return imageDialog(key);
+  if(key.startsWith('image-mode:')||key.startsWith('image-depth:')){const target=host.target(),info=host.provider.image.selectedInfo();if(!info){feedback('Select an unlocked raster image');return}const mode=key.startsWith('image-mode:');const value=mode?key.slice(11):Number(key.slice(12));if(mode?info.colorMode===value:info.bitDepth===value)return{ok:true,changed:false};return run(mode?'ui017.image.mode.v1':'ui017.image.depth.v1',{target,...(mode?{mode:value}:{depth:value})});}
   if(key==='transform'){host.dispatch({type:'tool.set',value:'select',source:'menu.transform'});contextToolbar.expand(true);return}
   if(key==='duplicate'||key==='delete')return host.dispatch({type:'layer.'+key,object:true,target:host.target(),source:'context'});
   if(key==='align'){const t=host.target();if(t.refs.length<2){feedback('Select at least two objects');return}return dialog('Align',field('mode','Align','left','text',['left','centerX','right','top','centerY','bottom','distributeX','distributeY']),a=>{host.provider.requireSelection(t);return run('object.align.v1',{...a,targetRefs:t.refs.map(r=>({...r,pageId:t.pageId}))})})}
@@ -96,7 +105,26 @@ export function mountNativeShell(app,root){
  $('#openFile').accept='.ink,.json';$('#openFile').addEventListener('change',e=>{const file=e.target.files[0];if(file)run('document.open.v1',{file});e.target.value=''},{signal});
  $('#importImageFile').addEventListener('change',e=>{const file=e.target.files[0],s=host.getSnapshot();if(file)run('ui017.image.import.v1',{file,...importTarget});e.target.value=''},{signal});
  root.addEventListener('keydown',e=>{if(e.key==='Escape'&&(!overlay.hidden||!menu.hidden)){e.preventDefault();e.stopPropagation();close();if(!menu.hidden)menuUi.close(true)}if(e.target.matches('input,textarea,select'))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.stopPropagation();command(e.shiftKey?'redo':'undo')}},{signal});
- drag($('#dockResizer'),e=>root.style.setProperty('--dock-width',Math.max(210,Math.min(400,innerWidth-e.clientX))+'px'),()=>{},signal);
+ // One geometry authority: the visible Dock width and resize hit-area track the same CSS variable.
+ const dockResizer=$('#dockResizer');
+ const dockMinWidth=Number.parseFloat(getComputedStyle(root).getPropertyValue('--dock-min-width'))||240;
+ const dockMaxWidth=400;
+ const clampDockWidth=width=>Math.max(dockMinWidth,Math.min(dockMaxWidth,width));
+ const setDockWidth=width=>{
+  const next=clampDockWidth(width);
+  root.style.setProperty('--dock-width',next+'px');
+  dockResizer.setAttribute('aria-valuenow',String(next));
+ };
+ dockResizer.setAttribute('aria-valuemin',String(dockMinWidth));
+ dockResizer.setAttribute('aria-valuemax',String(dockMaxWidth));
+ dockResizer.setAttribute('aria-valuenow',String(clampDockWidth(Number.parseFloat(getComputedStyle(root).getPropertyValue('--dock-width'))||dockMinWidth)));
+ drag(dockResizer,e=>setDockWidth(root.getBoundingClientRect().right-e.clientX),()=>{},signal);
+ dockResizer.addEventListener('keydown',e=>{
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+  e.preventDefault();
+  const current=Number.parseFloat(getComputedStyle(root).getPropertyValue('--dock-width'))||dockMinWidth;
+  setDockWidth(e.key==='Home'?dockMinWidth:e.key==='End'?dockMaxWidth:current+(e.key==='ArrowLeft'?8:-8));
+ },{signal});
  function render(s){const h=host.getHistory(),o=s.object;$('#quickUndo').disabled=h.index===0;$('#quickRedo').disabled=h.index===h.entries.length-1;
   $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
   contextToolbar.render(s);
