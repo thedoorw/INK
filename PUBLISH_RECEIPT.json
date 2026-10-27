@@ -1,16 +1,16 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "publisher_sha": "609e9dd535acded43b308771deae28975dd1e344",
-  "package_publisher_sha": "609e9dd535acded43b308771deae28975dd1e344",
-  "authority_record_sha256": "8569a266e313bf51dc5c73365c91aed8733c0e9aa86f34ffaf99f71a072341c4",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/465#issuecomment-6432347934",
-  "source_sha": "ad0e047281cdfa373316c9d9ccaee635ab8c8cc6",
-  "source_tree": "6e6d15aec07f88472cddc1690574d376fb642cd9",
-  "runtime_digest_sha256": "d94026427025969e40f7195351f06503378cb8a8b95c662d062d8aa27d5de829",
-  "package_manifest_sha256": "51ab8d16c43e1a20d9452c4017dc0e900caef3a846a7e45abc48ca2d04f69ead",
+  "publisher_sha": "d61881fbc538ef3ed337d3561cb2eb7a0bf99f4e",
+  "package_publisher_sha": "d61881fbc538ef3ed337d3561cb2eb7a0bf99f4e",
+  "authority_record_sha256": "68083ef10025841acaa43cd37f8504817f54828f0e45939618b06c55191e14bd",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/467#issuecomment-6433492641",
+  "source_sha": "75bc0697475ff44cc1c31ec1412eb733032f64fc",
+  "source_tree": "0fecbbff8cba9fd9683e6115bccd99dc3a326a65",
+  "runtime_digest_sha256": "94a96885446260ff5fefc9669c18df4e78a211fc0e3c18d2e287f837999f1ed8",
+  "package_manifest_sha256": "35e8100e5a29ac4bb1745e889807994c383589a8044285f759a478aac6c64495",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "93b49ade416eb015994553168118fcc6f2d3d497",
+  "previous_target_commit": "147cddb4094d1fde50435a5da803f5cbd2f7e25d",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,14 +38,14 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "0280d235b097fccfd9fe5d56a06d20973da2d5df",
-      "sha256": "125bf4ec2bb3f2466cb8a1aa03f0c969e1f14995cbed5a54739aea5a692325fc",
+      "git_blob_sha": "ee2e0d33994be6c174b882213deccbbd938264fd",
+      "sha256": "6df9fc5e0461a8559860fff9412e72ea6ae64f937b804e65e0a82b30deb4acb9",
       "bytes": 60809
     },
     {
       "path": "build-identity.js",
-      "git_blob_sha": "994b789091240cfd7f4f42ce75e99e3989490db8",
-      "sha256": "a711a0dc03f20ea8358ff7ef99010bebe51ad4ec1c59fe7c280e79022a174725",
+      "git_blob_sha": "38d4549e8bdfb3d8898e66584375b781e60c510e",
+      "sha256": "7cc1295a2c94a188311c72f35ddb72a9e2c6bd57de7c78b900d98ab027ac422d",
       "bytes": 193
     },
     {
@@ -1814,9 +1814,9 @@
     },
     {
       "path": "src/ui/ink017/tokens.css",
-      "git_blob_sha": "f4de81cf8e0568ec5763bbb5004701597faa3864",
-      "sha256": "aaf4bef106ebe7ee51a6dfa4d810611a35e6d02ef32e897a3c8a7f382426d9a9",
-      "bytes": 83371
+      "git_blob_sha": "85cf0af229bcf57b592d425cfb72ed3ba734b188",
+      "sha256": "533e26621e41e485e1baaa16ed18058cbb2319e2e59f5941cc648fea2d7a6b9f",
+      "bytes": 83338
     },
     {
       "path": "src/ui/ink017/tool-slices/completion-overlay.js",
