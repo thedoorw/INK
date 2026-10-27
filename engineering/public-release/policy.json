@@ -23,7 +23,7 @@
     },
     {
       "id": "ink-ur3-dock-hover-467-20261027",
-      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAsAjB6G1caCBjsRbWh4H1UZ0r99EdlqSUEsgNyNnnqCQ=\n-----END PUBLIC KEY-----\n",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAy7oYp8NDUYVun7V6dow2HpCcMBYgJyseVXKv7IbkVFY=\n-----END PUBLIC KEY-----\n",
       "scope": {
         "source_tree": "0fecbbff8cba9fd9683e6115bccd99dc3a326a65",
         "runtime_digest_sha256": "94a96885446260ff5fefc9669c18df4e78a211fc0e3c18d2e287f837999f1ed8",
