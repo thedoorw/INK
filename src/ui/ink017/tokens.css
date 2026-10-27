@@ -400,7 +400,7 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
    including exactly 240px. It is above the panel and below the modal overlay. */
 #shell #dockResizer{position:absolute;right:calc(var(--dock-width) - 7px);width:14px;min-width:14px;z-index:40;cursor:ew-resize;pointer-events:auto;touch-action:none;background:transparent}
 #shell #dockResizer::after{content:'';position:absolute;top:0;bottom:0;left:6px;width:2px;background:transparent;pointer-events:none}
-#shell #dockResizer:hover::after,#shell #dockResizer:focus-visible::after{background:#9ca3af}
+#shell #dockResizer:focus-visible::after{background:#9ca3af}
 #shell #dockResizer:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
 #shell .right-dock .panel-host,#shell .right-dock .panel-host *{scrollbar-width:auto}
 #shell .right-dock .panel-host::-webkit-scrollbar,#shell .right-dock .panel-host *::-webkit-scrollbar{width:var(--r211-scroll);height:var(--r211-scroll)}
