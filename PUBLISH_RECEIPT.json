@@ -10,7 +10,7 @@
   "runtime_digest_sha256": "38362530244ac6175d2b82d6b45499ec94b30aaff0ab3d49c519eb4b1f576a80",
   "package_manifest_sha256": "3006b1d1eede53f080d218a3ad7b3b3ee8129341f2e7b5377812136c2d4f93aa",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "d481bc11f384fc7699cb2d5bedb02dcdfee84daa",
+  "previous_target_commit": "bce0fa2f48bbc5d5da77f3f59b1a8896e1c65b43",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -38,8 +38,8 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "git_blob_sha": "22a1640bf3f5438b2dc21516a9f99c1d6ae3ea9d",
-      "sha256": "78b02bceec0480770f2681b66a1169fbab9f72adab1728770c9cb0271bead16b",
+      "git_blob_sha": "8fa30050c51efdea534d142b913e525da14805fa",
+      "sha256": "2438a2d0f73821d028a912e3a0a56b25226eb0a99ad194d742478410177cb861",
       "bytes": 61172
     },
     {
