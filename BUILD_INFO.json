@@ -4,15 +4,15 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "ad0e047281cdfa373316c9d9ccaee635ab8c8cc6",
-    "product_tree": "6e6d15aec07f88472cddc1690574d376fb642cd9"
+    "exact_sha": "439e8400712debd1b657062de99d572a9fdea97c",
+    "product_tree": "0fecbbff8cba9fd9683e6115bccd99dc3a326a65"
   },
   "package": {
-    "manifest_sha256": "51ab8d16c43e1a20d9452c4017dc0e900caef3a846a7e45abc48ca2d04f69ead"
+    "manifest_sha256": "ee181eedf2a395989b225816592a2fff9f95c0da80c70366eca4ac1596c6427c"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "d94026427025969e40f7195351f06503378cb8a8b95c662d062d8aa27d5de829",
+    "package_digest_sha256": "94a96885446260ff5fefc9669c18df4e78a211fc0e3c18d2e287f837999f1ed8",
     "file_count": 333,
     "files": [
       {
@@ -38,7 +38,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "a711a0dc03f20ea8358ff7ef99010bebe51ad4ec1c59fe7c280e79022a174725"
+        "sha256": "7cc1295a2c94a188311c72f35ddb72a9e2c6bd57de7c78b900d98ab027ac422d"
       },
       {
         "path": "dist/ink.compat.js",
@@ -1512,8 +1512,8 @@
       },
       {
         "path": "src/ui/ink017/tokens.css",
-        "bytes": 83371,
-        "sha256": "aaf4bef106ebe7ee51a6dfa4d810611a35e6d02ef32e897a3c8a7f382426d9a9"
+        "bytes": 83338,
+        "sha256": "533e26621e41e485e1baaa16ed18058cbb2319e2e59f5941cc648fea2d7a6b9f"
       },
       {
         "path": "src/ui/ink017/tool-slices/completion-overlay.js",
@@ -1684,20 +1684,20 @@
   },
   "qualification": {
     "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/465#issuecomment-6432347934"
+    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/467#issuecomment-6433492641"
   },
   "publisher": {
     "pipeline": "runtime-publish-001",
-    "exact_sha": "609e9dd535acded43b308771deae28975dd1e344",
+    "exact_sha": "6f1ee71559515d57e788986c38c82b3e72d2344f",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
     "mode": "candidate-package"
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "93b49ade416eb015994553168118fcc6f2d3d497",
-    "authority_record_sha256": "8569a266e313bf51dc5c73365c91aed8733c0e9aa86f34ffaf99f71a072341c4",
-    "publisher_sha": "609e9dd535acded43b308771deae28975dd1e344",
-    "package_publisher_sha": "609e9dd535acded43b308771deae28975dd1e344",
+    "previous_target_commit": "ef831bb2d28267c72f8b0ef95a8811d3d7b58b7b",
+    "authority_record_sha256": "5e8110c0c20358eb374bf25d4b6519996724c462e1ab5e2fa49b7dacd790b28e",
+    "publisher_sha": "6f1ee71559515d57e788986c38c82b3e72d2344f",
+    "package_publisher_sha": "6f1ee71559515d57e788986c38c82b3e72d2344f",
     "runtime_bytes_unchanged_from_package": true
   }
 }
