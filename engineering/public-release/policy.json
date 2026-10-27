@@ -20,6 +20,15 @@
         "runtime_digest_sha256": "6c49dbbf1841f681f53bc1963289a53fbe3b0e3969f283bc90dd5edcf0dd5a9e",
         "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
       }
+    },
+    {
+      "id": "ink-ur3-dock-hover-467-20261027",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAsAjB6G1caCBjsRbWh4H1UZ0r99EdlqSUEsgNyNnnqCQ=\n-----END PUBLIC KEY-----\n",
+      "scope": {
+        "source_tree": "0fecbbff8cba9fd9683e6115bccd99dc3a326a65",
+        "runtime_digest_sha256": "94a96885446260ff5fefc9669c18df4e78a211fc0e3c18d2e287f837999f1ed8",
+        "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
+      }
     }
   ],
   "allowed_exact": [
