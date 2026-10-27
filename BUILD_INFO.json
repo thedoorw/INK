@@ -1704,7 +1704,7 @@
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "d481bc11f384fc7699cb2d5bedb02dcdfee84daa",
+    "previous_target_commit": "bce0fa2f48bbc5d5da77f3f59b1a8896e1c65b43",
     "authority_record_sha256": "066505a6159b3d449607b6693536cb2ba439c2fc1ea9a75dd9fbc7db74ca7a68",
     "publisher_sha": "2e2f5eb9c0d8e70e5afaa6fe063c5cf6b94d7762",
     "package_publisher_sha": "2e2f5eb9c0d8e70e5afaa6fe063c5cf6b94d7762",
