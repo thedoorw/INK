@@ -29,6 +29,15 @@
         "runtime_digest_sha256": "94a96885446260ff5fefc9669c18df4e78a211fc0e3c18d2e287f837999f1ed8",
         "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
       }
+    },
+    {
+      "id": "ink-ur2-p2p4-468-20261027",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAcW35aNRvMT7daVs2ueGMNX5+fvocagH+DdZUWWtvHY8=\n-----END PUBLIC KEY-----\n",
+      "scope": {
+        "source_tree": "95ba7673ba9b1e4772eb9b9feb4042b3824e0288",
+        "runtime_digest_sha256": "38362530244ac6175d2b82d6b45499ec94b30aaff0ab3d49c519eb4b1f576a80",
+        "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
+      }
     }
   ],
   "allowed_exact": [
