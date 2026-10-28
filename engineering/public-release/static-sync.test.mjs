@@ -31,3 +31,5 @@ test('control maintenance permits only exact verifier paths, never Runtime or hi
   assert.equal(isControlOnly(['engineering/public-release/verify-static-sync.mjs',path]),false);
  assert.equal(isControlOnly([]),false);
 });
+
+// Nonproduct Ready-event context proof for Private #477; never merge this probe.
