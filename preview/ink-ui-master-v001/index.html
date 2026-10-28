@@ -275,6 +275,7 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #mobileQuickStrip button{flex:0 0 44px;min-width:44px;width:44px;height:48px;min-height:44px;padding:2px 1px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:10px;line-height:13px;color:#393c40}
 #mobileQuickStrip button[data-quick=size]{flex-basis:48px;width:48px}
 #mobileQuickStrip .ink-q-icon{display:flex;align-items:center;justify-content:center;width:26px;height:23px;font-size:20px;line-height:22px;font-weight:500}
+#mobileQuickStrip .ink-q-icon svg,#mobilePreviewBar .glyph svg{display:block;width:20px;height:20px;stroke:currentColor;flex:0 0 20px}
 #mobileQuickStrip [data-quick=size] .ink-q-icon{font-size:15px;font-variant-numeric:tabular-nums;font-weight:650}
 #mobileQuickStrip .ink-q-label{font-size:10px;white-space:nowrap}
 #mobileQuickStrip button[aria-pressed=true]{background:#e7f2ff;color:#1264a0}
@@ -567,8 +568,21 @@ root.insertAdjacentHTML("beforeend","<header id='mobileTopbar' aria-label='手�
 root.insertAdjacentHTML("beforeend","<div id='mobileStrokeCursor' data-size='擦 5' aria-hidden='true' hidden></div>");
 const get=id=>document.getElementById(id),ink=get("mobileArtworkInk"),picture=get("mobileArtworkPhoto"),hint=get("mobileCanvasHint"),scrim=get("mobileScrim"),ctx=ink.getContext("2d"),cursor=get("mobileStrokeCursor"),quickStrip=get("mobileQuickStrip"),quickMenu=get("mobileQuickMenu");
 let quickPage="home",demoTool="brush";
+const mobileIconPaths={
+ brush:'<path d="m14 4 6 6-9 9-6-6z"/><path d="M6 14c-2 0-3 2-3 4s-1 3-2 3c3 1 7 0 8-3"/>',
+ eraser:'<path d="m20 16-7 6H8l-5-5a2 2 0 0 1 0-3L13 4a2 2 0 0 1 3 0l5 5a2 2 0 0 1 0 3l-4 4"/><path d="m9 10 7 7"/>',
+ selection:'<path d="M4 9V4h5M15 4h5v5M4 15v5h5M20 15v5h-5"/><path d="m9 9 7 7"/>',
+ shape:'<rect x="4" y="4" width="16" height="16" rx="2"/>',
+ text:'<path d="M4 8V4h16v4M12 4v16M8 20h8"/>',
+ more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+ home:'<path d="m15 18-6-6 6-6"/>',
+ color:'<circle cx="12" cy="12" r="9"/>',
+ tools:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7m-3.5-3.5v7"/>',
+ layers:'<path d="m12 3 9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/>'
+};
+const mobileSvg=k=>'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+mobileIconPaths[k]+'</svg>';
 function renderQuick(){
- const action=(name,glyph,label,pressed=false)=>'<button type="button" data-quick="'+name+'" aria-label="'+label+'" aria-pressed="'+pressed+'"><span class="ink-q-icon" aria-hidden="true">'+glyph+'</span><span class="ink-q-label">'+label+'</span></button>';
+ const action=(name,glyph,label,pressed=false)=>'<button type="button" data-quick="'+name+'" aria-label="'+label+'" aria-pressed="'+pressed+'"><span class="ink-q-icon" aria-hidden="true">'+(mobileIconPaths[name]?mobileSvg(name):glyph)+'</span><span class="ink-q-label">'+label+'</span></button>';
  const items=quickPage==="home"?
   [action("brush","✎","畫筆",demoTool==="brush"),action("eraser","◇","橡皮",demoTool==="eraser"),action("selection","↖","選取"),action("shape","▢","形狀"),action("text","T","文字"),action("more","⋯","更多")]:
   [action("home","‹","返回"),action("brush","✎","畫筆",demoTool==="brush"),action("eraser","◇","橡皮",demoTool==="eraser"),action("size",String(size),"筆徑"),action("color","●","色彩"),action("more","⋯","更多")];
@@ -584,6 +598,8 @@ function focusCatalogGroup(index){
 function setDemoTool(name){
  demoTool=name;eraser=name==="eraser";cursor.hidden=true;quickPage="drawing";closeQuickMenu();viewState("canvas");renderQuick();quickStrip.scrollLeft=0;
 }
+get('mobilePreviewBar').querySelector('[data-mobile=tools] .glyph').innerHTML=mobileSvg('tools');
+get('mobilePreviewBar').querySelector('[data-mobile=panels] .glyph').innerHTML=mobileSvg('layers');
 const mobileToolLabels=["選取","選框","套索","魔棒","裁切","滴管","繪圖","修復","印章","橡皮","填色","模糊","明暗","鋼筆","文字","節點","形狀","參考","平移","縮放"];
 rail.insertAdjacentHTML("afterbegin",'<div id="mobileToolSheetHead"><strong>工具庫</strong><small>20 組 · 41 子工具</small><button id="mobileToolSheetClose" type="button" aria-label="關閉工具庫">×</button></div>');
 const catalogArea=rail.querySelector(".tool-area");
