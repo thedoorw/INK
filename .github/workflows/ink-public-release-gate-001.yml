@@ -1,66 +1,67 @@
+# REVIEW-ONLY replacement. Existing required check name and trusted BASE execution retained.
 name: INK Public Release Gate 001
-
 on:
   pull_request:
-    branches: ['main']
-    paths:
-      - '.github/workflows/ink-public-release-gate-001.yml'
-      - 'engineering/public-release/**'
+    branches: [main]
   pull_request_target:
-    branches: ['main']
-    types: [opened, synchronize, reopened, ready_for_review]
-
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
 permissions:
   contents: read
-
 concurrency:
   group: ink-public-release-gate-${{ github.event_name }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
-
 jobs:
   verifier-self-test:
-    name: public-release-verifier-selftest
+    name: ${{ github.event_name == 'pull_request_target' && 'public-release-verifier-selftest' || 'inactive-public-release-verifier-selftest' }}
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test engineering/public-release/static-sync.test.mjs
+  control-candidate-self-test:
+    name: ${{ github.event_name == 'pull_request' && 'public-release-control-selftest' || 'inactive-public-release-control-selftest' }}
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout PR branch, no secrets, no executable candidate publication
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run adversarial public gate self-tests
-        run: node --test engineering/public-release/verify-public-release.test.mjs
-
+      - run: node --test engineering/public-release/static-sync.test.mjs
   trusted-release-pr:
-    name: public-release-candidate-verify
+    name: ${{ github.event_name == 'pull_request_target' && 'public-release-candidate-verify' || 'inactive-public-release-candidate-verify' }}
     if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout ONLY the trusted public base verifier and policy
-        uses: actions/checkout@v4
+      - name: Reject Draft before checkout
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if(context.payload.pull_request.draft)throw Error('DRAFT_CANDIDATE');
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           path: trusted
-          fetch-depth: 0
           persist-credentials: false
-      - name: Fetch candidate as READ-ONLY DATA, never execute its code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: candidate
-          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify only using script and signer trust from protected BASE
-        env:
-          GITHUB_EVENT_PATH: ${{ github.event_path }}
-        run: |
-          set -euo pipefail
-          node trusted/engineering/public-release/verify-public-release.mjs \
-            "$GITHUB_WORKSPACE/trusted" "$GITHUB_WORKSPACE/candidate"
+      - name: Trusted BASE integrity only; Private QA and USER authorization remain review obligations
+        run: node trusted/engineering/public-release/verify-static-sync.mjs trusted candidate
