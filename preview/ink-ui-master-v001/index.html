@@ -529,7 +529,25 @@ dock.insertAdjacentHTML("afterbegin","<button id='mobileSheetClose' type='button
 board.insertAdjacentHTML("beforeend","<img id='mobileArtworkPhoto' alt='手機照片背景' hidden><canvas id='mobileArtworkInk' aria-label='手機畫布草稿'></canvas><div id='mobileCanvasHint'><strong>開始一件作品</strong><span>選擇照片作背景，或直接使用空白滿版畫布</span></div>");
 root.insertAdjacentHTML("beforeend","<header id='mobileTopbar' aria-label='手機標題工具'><button id='mobileInkMenu' type='button'>INK</button><button id='mobileTemplateButton' type='button' aria-expanded='false'>相片滿版　⌄</button><button id='mobileUndo' type='button' aria-label='復原'>↶</button><button id='mobileRedo' type='button' aria-label='重做'>↷</button><button id='mobileFullscreenToggle' type='button' aria-label='進入全螢幕' aria-pressed='false' title='進入全螢幕'>⛶</button></header><section id='mobileTemplateMenu' hidden><button type='button' data-template='photo' aria-pressed='true'>相片滿版 — 照片背景模板</button><button type='button' data-template='blank' aria-pressed='false'>空白滿版 — 自由繪畫模板</button></section><input id='mobilePhotoInput' type='file' accept='image/*' hidden><button id='mobileScrim' type='button' hidden aria-label='關閉面板'></button><nav id='mobilePreviewBar' aria-label='手機工作工具列'><button type='button' data-mobile='tools' aria-label='開啟完整工具庫' aria-pressed='false'><span class='glyph'>▦</span>工具</button><div id='mobileQuickStrip' role='group' aria-label='常用與情境工具' tabindex='0'></div><button type='button' data-mobile='panels' aria-label='開啟圖層與十面板' aria-pressed='false'><span class='glyph'>▤</span>圖層</button></nav><section id='mobileQuickMenu' aria-label='其他工作操作' hidden><button type='button' data-more='photo'>載入照片</button><button type='button' data-more='export'>匯出預覽 PNG</button><button type='button' data-more='blank'>空白滿版</button><button type='button' data-more='photo-template'>照片滿版</button></section>");
 root.insertAdjacentHTML("beforeend","<div id='mobileStrokeCursor' data-size='擦 5' aria-hidden='true' hidden></div>");
-const get=id=>document.getElementById(id),ink=get("mobileArtworkInk"),picture=get("mobileArtworkPhoto"),hint=get("mobileCanvasHint"),scrim=get("mobileScrim"),ctx=ink.getContext("2d"),cursor=get("mobileStrokeCursor");
+const get=id=>document.getElementById(id),ink=get("mobileArtworkInk"),picture=get("mobileArtworkPhoto"),hint=get("mobileCanvasHint"),scrim=get("mobileScrim"),ctx=ink.getContext("2d"),cursor=get("mobileStrokeCursor"),quickStrip=get("mobileQuickStrip"),quickMenu=get("mobileQuickMenu");
+let quickPage="home",demoTool="brush";
+function renderQuick(){
+ const action=(name,label,pressed=false)=>'<button type="button" data-quick="'+name+'" aria-pressed="'+pressed+'">'+label+'</button>';
+ const items=quickPage==="home"?
+  [action("brush","✎ 畫筆",demoTool==="brush"),action("eraser","◇ 橡皮",demoTool==="eraser"),action("selection","↖ 選取"),action("shape","▢ 形狀"),action("text","T 文字"),action("more","⋯ 更多")]:
+  [action("home","‹ 常用"),action("brush","✎ 畫筆",demoTool==="brush"),action("eraser","◇ 橡皮",demoTool==="eraser"),action("size","筆徑 "+size),action("color","● 色彩"),action("more","⋯ 更多")];
+ quickStrip.innerHTML=items.join("");
+ const col=quickStrip.querySelector('[data-quick="color"]');if(col)col.style.color=colors[color];
+}
+function closeQuickMenu(){quickMenu.hidden=true;quickStrip.querySelector('[data-quick="more"]')?.setAttribute("aria-expanded","false")}
+function focusCatalogGroup(index){
+ // INK UI2 20-group preview source: opening this drawer is not evidence of a Native mobile tool receiver.
+ demoTool="catalog";eraser=false;cursor.hidden=true;quickPage="home";renderQuick();closeQuickMenu();closeMenu();viewState("tools");
+ const b=rail.querySelector('.tool-button[data-group="'+index+'"]');if(b){b.click();b.scrollIntoView({block:"nearest",behavior:"smooth"});}
+}
+function setDemoTool(name){
+ demoTool=name;eraser=name==="eraser";cursor.hidden=true;quickPage="drawing";closeQuickMenu();viewState("canvas");renderQuick();quickStrip.scrollLeft=0;
+}
 const box=()=>ink.getBoundingClientRect();
 const pt=e=>{const r=box();return{x:Math.max(0,Math.min(1,(e.clientX-r.left)/Math.max(r.width,1))),y:Math.max(0,Math.min(1,(e.clientY-r.top)/Math.max(r.height,1)))}};
 function paint(){
@@ -542,7 +560,7 @@ if(path.points.length===1){const p=path.points[0];ctx.arc(p.x*w,p.y*h,Math.max(1
 }
 function hintState(){hint.hidden=(mode==="photo"&&!!photo)||!!strokes.length||!!active}
 function template(name){if(!TEMPLATES[name])return;mode=name;picture.hidden=name!=="photo"||!photo;get("mobileTemplateButton").textContent=TEMPLATES[name].label+"　⌄";get("mobileTemplateMenu").hidden=true;get("mobileTemplateButton").setAttribute("aria-expanded","false");root.querySelectorAll("[data-template]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.template===name)));hintState()}
-function viewState(name){view=name;root.dataset.mobileView=name;if(name!=="canvas")cursor.hidden=true;scrim.hidden=!media.matches||name==="canvas";get("mobilePreviewBar").querySelectorAll("[data-mobile]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mobile===name)))}
+function viewState(name){view=name;root.dataset.mobileView=name;if(name!=="canvas"){cursor.hidden=true;quickMenu.hidden=true}scrim.hidden=!media.matches||name==="canvas";get("mobilePreviewBar").querySelectorAll("[data-mobile]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mobile===name)))}
 function closeMenu(){if(!menu.hidden)get("logoButton")?.click()}
 function output(){
 const r=box();if(!r.width||!r.height)return;
@@ -551,10 +569,34 @@ if(mode==="photo"&&photo){const scale=Math.max(canvas.width/photo.naturalWidth,c
 g.drawImage(ink,0,0,canvas.width,canvas.height);
 canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="INK-Mobile-preview.png";a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)},"image/png")
 }
-get("mobilePreviewBar").addEventListener("click",e=>{const b=e.target.closest("[data-mobile]");if(!b)return;const name=b.dataset.mobile;
-if(name==="photo"){viewState("canvas");closeMenu();get("mobilePhotoInput").click();return}
-if(name==="export"){viewState("canvas");closeMenu();output();return}
-closeMenu();viewState(view===name?"canvas":name)});
+get("mobilePreviewBar").addEventListener("click",e=>{
+ const b=e.target.closest("[data-mobile]");if(!b)return;
+ closeQuickMenu();closeMenu();const name=b.dataset.mobile;
+ viewState(view===name?"canvas":name);
+});
+quickStrip.addEventListener("click",e=>{
+ const button=e.target.closest("[data-quick]");if(!button)return;
+ const action=button.dataset.quick;
+ if(action==="home"){quickPage="home";renderQuick();quickStrip.scrollLeft=0;closeQuickMenu();return}
+ if(action==="brush"||action==="eraser"){setDemoTool(action);return}
+ if(action==="size"){size=size===5?12:size===12?24:5;cursor.hidden=true;renderQuick();return}
+ if(action==="color"){color=(color+1)%colors.length;setDemoTool("brush");return}
+ if(action==="selection"){focusCatalogGroup(0);return}
+ if(action==="shape"){focusCatalogGroup(16);return}
+ if(action==="text"){focusCatalogGroup(14);return}
+ if(action==="more"){const next=quickMenu.hidden;quickMenu.hidden=!next;button.setAttribute("aria-expanded",String(next));return}
+});
+quickMenu.addEventListener("click",e=>{
+ const b=e.target.closest("[data-more]");if(!b)return;
+ const action=b.dataset.more;closeQuickMenu();viewState("canvas");closeMenu();
+ if(action==="photo")get("mobilePhotoInput").click();
+ if(action==="export")output();
+ if(action==="blank")template("blank");
+ if(action==="photo-template")template("photo");
+});
+document.addEventListener("pointerdown",e=>{
+ if(!quickMenu.hidden&&!e.target.closest("#mobileQuickMenu, #mobileQuickStrip"))closeQuickMenu();
+});
 get("mobileInkMenu").addEventListener("click",()=>{get("mobileTemplateMenu").hidden=true;get("logoButton").click();viewState("canvas")});
 get("mobileTemplateButton").addEventListener("click",()=>{const p=get("mobileTemplateMenu"),open=p.hidden;p.hidden=!open;get("mobileTemplateButton").setAttribute("aria-expanded",String(open))});
 get("mobileTemplateMenu").addEventListener("click",e=>{const b=e.target.closest("[data-template]");if(b)template(b.dataset.template)});
@@ -568,12 +610,9 @@ function showCursor(e){
   cursor.dataset.size="擦 "+size;cursor.hidden=false;
 }
 function hideCursor(){cursor.hidden=true}
-get("mobileBrushSize").addEventListener("click",()=>{size=size===5?12:size===12?24:5;get("mobileBrushSize").textContent="筆 "+size;hideCursor()});
-get("mobileBrushColor").addEventListener("click",()=>{color=(color+1)%colors.length;eraser=false;hideCursor();get("mobileErase").setAttribute("aria-pressed","false");get("mobileBrushColor").style.color=colors[color]});
-get("mobileErase").addEventListener("click",()=>{eraser=!eraser;hideCursor();get("mobileErase").setAttribute("aria-pressed",String(eraser))});
 get("mobileUndo").addEventListener("click",()=>{if(strokes.length)redo.push(strokes.pop());paint();hintState()});
 get("mobileRedo").addEventListener("click",()=>{if(redo.length)strokes.push(redo.pop());paint();hintState()});
-ink.addEventListener("pointerdown",e=>{if(!media.matches||view!=="canvas"||active||e.button>0)return;if(e.pointerType==="touch"&&e.isPrimary===false)return;e.preventDefault();active={points:[pt(e)],color:colors[color],size,eraser};showCursor(e);ink.setPointerCapture?.(e.pointerId);hintState()});
+ink.addEventListener("pointerdown",e=>{if(!media.matches||view!=="canvas"||demoTool==="catalog"||active||e.button>0)return;if(e.pointerType==="touch"&&e.isPrimary===false)return;e.preventDefault();active={points:[pt(e)],color:colors[color],size,eraser};showCursor(e);ink.setPointerCapture?.(e.pointerId);hintState()});
 ink.addEventListener("pointermove",e=>{if(!active){if(e.pointerType!=="touch")showCursor(e);return}if(!ink.hasPointerCapture?.(e.pointerId))return;e.preventDefault();showCursor(e);active.points.push(pt(e));paint()});
 ink.addEventListener("pointerleave",()=>{if(!active)hideCursor()});
 function up(e,cancel){if(!active||!ink.hasPointerCapture?.(e.pointerId))return;if(!cancel){active.points.push(pt(e));strokes.push(active);redo=[]}active=null;if(cancel||e.pointerType==="touch")hideCursor();paint();hintState()}
@@ -658,6 +697,8 @@ window.INK_MOBILE_V04=Object.freeze({getState(){
     template:mode};
 }});
 syncFullscreenUI();
-get("mobileBrushColor").style.color=colors[color];template("photo");viewState("canvas");requestAnimationFrame(paint);
+renderQuick();template("photo");viewState("canvas");
+window.INK_MOBILE_V06=Object.freeze({getState:()=>({quickPage,demoTool,eraser,brushSize:size,quickMenuOpen:!quickMenu.hidden,barCount:2,orientationDeferred:true,previewOnly:true})});
+requestAnimationFrame(paint);
 })();
 </script></body></html>
