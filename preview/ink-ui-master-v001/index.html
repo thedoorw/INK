@@ -510,7 +510,7 @@ window.INK_UI_MASTER_DRAFT={version:'0.1',status:'MERGED_HANDOFF_PENDING_SECTION
 };
 })();
 </script><script>
-/* INK Mobile v0.3 — preview-only photo, brush, template and export modules. */
+/* INK Mobile v0.5 — canvas-first mobile preview with bottom-strip brush options and eraser cursor. */
 (()=>{
 "use strict";
 const root=document.getElementById("shell"),rail=root?.querySelector(".left-rail"),dock=root?.querySelector("#rightDock"),menu=root?.querySelector("#mainMenu"),board=root?.querySelector("#artboardStage .artboard");
@@ -523,9 +523,10 @@ const colors=["#222222","#ce3d4d","#147eb4","#efad27","#ffffff"];
 rail.id="mobileToolDrawer";
 dock.insertAdjacentHTML("afterbegin","<button id='mobileSheetClose' type='button'>圖層與十面板　×</button>");
 board.insertAdjacentHTML("beforeend","<img id='mobileArtworkPhoto' alt='手機照片背景' hidden><canvas id='mobileArtworkInk' aria-label='手機畫布草稿'></canvas><div id='mobileCanvasHint'><strong>開始一件作品</strong><span>選擇照片作背景，或直接使用空白滿版畫布</span></div>");
-root.querySelector(".context-float")?.insertAdjacentHTML("beforeend","<div id='mobileBrushContext'><button id='mobileBrushSize' type='button'>筆 5</button><button id='mobileBrushColor' title='色彩' type='button'>●</button><button id='mobileErase' type='button' aria-pressed='false'>橡皮</button></div>");
 root.insertAdjacentHTML("beforeend","<header id='mobileTopbar' aria-label='手機標題工具'><button id='mobileInkMenu' type='button'>INK</button><button id='mobileTemplateButton' type='button' aria-expanded='false'>相片滿版　⌄</button><button id='mobileUndo' type='button' aria-label='復原'>↶</button><button id='mobileRedo' type='button' aria-label='重做'>↷</button><button id='mobileFullscreenToggle' type='button' aria-label='進入全螢幕' aria-pressed='false' title='進入全螢幕'>⛶</button></header><section id='mobileTemplateMenu' hidden><button type='button' data-template='photo' aria-pressed='true'>相片滿版 — 照片背景模板</button><button type='button' data-template='blank' aria-pressed='false'>空白滿版 — 自由繪畫模板</button></section><input id='mobilePhotoInput' type='file' accept='image/*' hidden><button id='mobileScrim' type='button' hidden aria-label='關閉面板'></button><nav id='mobilePreviewBar' aria-label='手機操作'><button type='button' data-mobile='tools'><span class='glyph'>✎</span>工具</button><button type='button' data-mobile='photo'><span class='glyph'>▧</span>照片</button><button type='button' data-mobile='canvas' aria-pressed='true'><span class='glyph'>▢</span>畫布</button><button type='button' data-mobile='panels'><span class='glyph'>▤</span>圖層</button><button type='button' data-mobile='export'><span class='glyph'>⇧</span>輸出</button></nav>");
-const get=id=>document.getElementById(id),ink=get("mobileArtworkInk"),picture=get("mobileArtworkPhoto"),hint=get("mobileCanvasHint"),scrim=get("mobileScrim"),ctx=ink.getContext("2d");
+root.querySelector("#mobilePreviewBar")?.insertAdjacentHTML("beforeend","<div id='mobileBrushContext' aria-label='繪畫情境操作'><button id='mobileBrushSize' type='button'>筆 5</button><button id='mobileBrushColor' title='色彩' type='button'>●</button><button id='mobileErase' type='button' aria-pressed='false'>橡皮</button></div>");
+root.insertAdjacentHTML("beforeend","<div id='mobileStrokeCursor' data-size='擦 5' aria-hidden='true' hidden></div>");
+const get=id=>document.getElementById(id),ink=get("mobileArtworkInk"),picture=get("mobileArtworkPhoto"),hint=get("mobileCanvasHint"),scrim=get("mobileScrim"),ctx=ink.getContext("2d"),cursor=get("mobileStrokeCursor");
 const box=()=>ink.getBoundingClientRect();
 const pt=e=>{const r=box();return{x:Math.max(0,Math.min(1,(e.clientX-r.left)/Math.max(r.width,1))),y:Math.max(0,Math.min(1,(e.clientY-r.top)/Math.max(r.height,1)))}};
 function paint(){
@@ -538,7 +539,7 @@ if(path.points.length===1){const p=path.points[0];ctx.arc(p.x*w,p.y*h,Math.max(1
 }
 function hintState(){hint.hidden=(mode==="photo"&&!!photo)||!!strokes.length||!!active}
 function template(name){if(!TEMPLATES[name])return;mode=name;picture.hidden=name!=="photo"||!photo;get("mobileTemplateButton").textContent=TEMPLATES[name].label+"　⌄";get("mobileTemplateMenu").hidden=true;get("mobileTemplateButton").setAttribute("aria-expanded","false");root.querySelectorAll("[data-template]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.template===name)));hintState()}
-function viewState(name){view=name;root.dataset.mobileView=name;scrim.hidden=!media.matches||name==="canvas";get("mobilePreviewBar").querySelectorAll("[data-mobile]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mobile===name)))}
+function viewState(name){view=name;root.dataset.mobileView=name;if(name!=="canvas")cursor.hidden=true;scrim.hidden=!media.matches||name==="canvas";get("mobilePreviewBar").querySelectorAll("[data-mobile]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mobile===name)))}
 function closeMenu(){if(!menu.hidden)get("logoButton")?.click()}
 function output(){
 const r=box();if(!r.width||!r.height)return;
@@ -557,14 +558,22 @@ get("mobileTemplateMenu").addEventListener("click",e=>{const b=e.target.closest(
 get("mobileSheetClose").addEventListener("click",()=>viewState("canvas"));scrim.addEventListener("click",()=>viewState("canvas"));
 get("mobilePhotoInput").addEventListener("change",e=>{const file=e.target.files[0];if(!file||!file.type.startsWith("image/"))return;const url=URL.createObjectURL(file),img=new Image();
 img.onload=()=>{if(photoURL)URL.revokeObjectURL(photoURL);photoURL=url;photo=img;picture.src=url;template("photo")};img.onerror=()=>{URL.revokeObjectURL(url);alert("這張相片無法預覽")};img.src=url;e.target.value=""});
-get("mobileBrushSize").addEventListener("click",()=>{size=size===5?12:size===12?24:5;get("mobileBrushSize").textContent="筆 "+size});
-get("mobileBrushColor").addEventListener("click",()=>{color=(color+1)%colors.length;eraser=false;get("mobileErase").setAttribute("aria-pressed","false");get("mobileBrushColor").style.color=colors[color]});
-get("mobileErase").addEventListener("click",()=>{eraser=!eraser;get("mobileErase").setAttribute("aria-pressed",String(eraser))});
+function showCursor(e){
+  if(!eraser||!media.matches||view!=="canvas"){cursor.hidden=true;return}
+  cursor.style.setProperty("--cursor-size",size+"px");
+  cursor.style.left=e.clientX+"px";cursor.style.top=e.clientY+"px";
+  cursor.dataset.size="擦 "+size;cursor.hidden=false;
+}
+function hideCursor(){cursor.hidden=true}
+get("mobileBrushSize").addEventListener("click",()=>{size=size===5?12:size===12?24:5;get("mobileBrushSize").textContent="筆 "+size;hideCursor()});
+get("mobileBrushColor").addEventListener("click",()=>{color=(color+1)%colors.length;eraser=false;hideCursor();get("mobileErase").setAttribute("aria-pressed","false");get("mobileBrushColor").style.color=colors[color]});
+get("mobileErase").addEventListener("click",()=>{eraser=!eraser;hideCursor();get("mobileErase").setAttribute("aria-pressed",String(eraser))});
 get("mobileUndo").addEventListener("click",()=>{if(strokes.length)redo.push(strokes.pop());paint();hintState()});
 get("mobileRedo").addEventListener("click",()=>{if(redo.length)strokes.push(redo.pop());paint();hintState()});
-ink.addEventListener("pointerdown",e=>{if(!media.matches||view!=="canvas"||active||e.button>0)return;if(e.pointerType==="touch"&&e.isPrimary===false)return;e.preventDefault();active={points:[pt(e)],color:colors[color],size,eraser};ink.setPointerCapture?.(e.pointerId);hintState()});
-ink.addEventListener("pointermove",e=>{if(!active||!ink.hasPointerCapture?.(e.pointerId))return;e.preventDefault();active.points.push(pt(e));paint()});
-function up(e,cancel){if(!active||!ink.hasPointerCapture?.(e.pointerId))return;if(!cancel){active.points.push(pt(e));strokes.push(active);redo=[]}active=null;paint();hintState()}
+ink.addEventListener("pointerdown",e=>{if(!media.matches||view!=="canvas"||active||e.button>0)return;if(e.pointerType==="touch"&&e.isPrimary===false)return;e.preventDefault();active={points:[pt(e)],color:colors[color],size,eraser};showCursor(e);ink.setPointerCapture?.(e.pointerId);hintState()});
+ink.addEventListener("pointermove",e=>{if(!active){if(e.pointerType!=="touch")showCursor(e);return}if(!ink.hasPointerCapture?.(e.pointerId))return;e.preventDefault();showCursor(e);active.points.push(pt(e));paint()});
+ink.addEventListener("pointerleave",()=>{if(!active)hideCursor()});
+function up(e,cancel){if(!active||!ink.hasPointerCapture?.(e.pointerId))return;if(!cancel){active.points.push(pt(e));strokes.push(active);redo=[]}active=null;if(cancel||e.pointerType==="touch")hideCursor();paint();hintState()}
 ink.addEventListener("pointerup",e=>up(e,false));ink.addEventListener("pointercancel",e=>up(e,true));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&media.matches&&view!=="canvas")viewState("canvas")});
 media.addEventListener("change",()=>{if(!media.matches)viewState("canvas");requestAnimationFrame(paint)});
