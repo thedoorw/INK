@@ -282,6 +282,12 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #mobileQuickMenu:not([hidden]){left:50%;right:auto;width:min(300px,calc(100vw - 24px));transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));padding:6px;gap:5px;grid-template-columns:repeat(2,minmax(0,1fr));border-radius:12px;box-shadow:0 9px 26px #0002}
 #mobileQuickMenu button{min-height:42px;height:42px;border-radius:7px;white-space:nowrap;background:#f3f5f7;font-size:12px;font-weight:500}
 #shell .left-rail{padding:0 8px 8px;max-height:min(70dvh,600px);overflow:hidden;border-radius:14px;box-shadow:0 12px 30px #0002}
+/* UI1 eight short category labels use a 4x2 mobile grid instead of eight tall rows. */
+#shell #mainMenu .menu-grid{grid-template-columns:minmax(0,1fr);gap:7px}
+#shell #mainMenu .menu-categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;border:0;border-bottom:1px solid #e9ecf0;padding:0 0 7px}
+#shell #mainMenu .menu-category{display:flex;justify-content:center;align-items:center;min-width:0;height:36px;min-height:36px;padding:0 3px;text-align:center;font-size:12px;font-weight:550}
+#shell #mainMenu .menu-pane{max-height:52dvh;overflow-y:auto;overflow-x:hidden}
+#shell #mainMenu .menu-row{height:36px;min-height:36px;padding:0 8px;font-size:12px}
 #mobileToolSheetHead{height:44px;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 2px;border-bottom:1px solid #e7e9ee}
 #mobileToolSheetHead strong{font-size:13px;font-weight:650}
 #mobileToolSheetHead small{font-size:10px;color:#747980;flex:1}
