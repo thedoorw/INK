@@ -4,12 +4,12 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "4080ae954ca55a98b9bc763683658374697e4058",
-    "product_tree": "a7dfbadf94115d29a735f7a23de3db7763e27cdd"
+    "exact_sha": "5401505318efa796ad067dd4eab8f624e47669d4",
+    "product_tree": "33a539b3b4bb04bea209f550ff9f6cc9cf50d8d4"
   },
   "runtime": {
     "root": "/INK/",
-    "file_count": 337,
+    "file_count": 338,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "0f6f347e063ddde76fed656c91d29eba75c872a2f5626cd2cc613783b6b012ff"
+        "sha256": "db111c352259242e2dffc5f3678f4301fc196cbbbb96cd3334c8641c36524b78"
       },
       {
         "path": "dist/ink.compat.js",
@@ -44,7 +44,7 @@
       {
         "path": "dist/startup/asset-inventory.js",
         "bytes": 547,
-        "sha256": "d876a693eeeeb824c3f6d91b855f50203f590421bfb8ba6556110df2d467cb54"
+        "sha256": "1fec9f7e455765d6a482bb9052b5774a0e6ad8411b7bd04a19891bbb21766479"
       },
       {
         "path": "dist/startup/chunks/chunk-342G2AIU.mjs",
@@ -52,19 +52,19 @@
         "sha256": "ee7d7b6c7f008c3b3c339255e641019d2d88ba34594ec35cd3bd73db5647a5d7"
       },
       {
-        "path": "dist/startup/chunks/chunk-DPXQNBUZ.mjs",
+        "path": "dist/startup/chunks/chunk-QJVBLZAR.mjs",
         "bytes": 453000,
-        "sha256": "d1062f052e70105d6de897b4a5808702ec0162391acff6d9a58230f364350ad7"
+        "sha256": "8d915e48d7b5674b7c04d4d262b26b49c505ec7a744ee5391b44bba705cde225"
       },
       {
-        "path": "dist/startup/chunks/chunk-FMSPHL5H.mjs",
-        "bytes": 362130,
-        "sha256": "473ae08fc6e0981113034c46afba36a201b3fbf4283870297b18a925b5c5f4ca"
-      },
-      {
-        "path": "dist/startup/chunks/chunk-QXNHQZLJ.mjs",
+        "path": "dist/startup/chunks/chunk-WOYAYXJK.mjs",
         "bytes": 67471,
-        "sha256": "8811b84a56ed573e38f466b55ace39b00c57debabf6e6578f412b133e048ba9b"
+        "sha256": "768767f2348369ef637c757295e37a87f96b413c2575a458d7ce31a367045f96"
+      },
+      {
+        "path": "dist/startup/chunks/chunk-ZMY6Y7MB.mjs",
+        "bytes": 362138,
+        "sha256": "263278417783bbe534aaaa98ff3337d2287077482b1c8dc74497d8742364bcb9"
       },
       {
         "path": "dist/startup/chunks/export-3NJAKKKA.mjs",
@@ -72,9 +72,9 @@
         "sha256": "e87aa01e4334f6cfbe04c9e8f3e235939c6f48f0e363145f4a950a87d1bcdbf5"
       },
       {
-        "path": "dist/startup/chunks/runtime-test-bridge-DSLIBMJH.mjs",
+        "path": "dist/startup/chunks/runtime-test-bridge-LCQT6YPB.mjs",
         "bytes": 15864,
-        "sha256": "c6b6b56994aa56fbe8675e68c7753c0a65b1438972d20d187fd7f2cbfb8e58e0"
+        "sha256": "cefdd97b39fc105b0d62ea1f980ab85638e90fbe764ac8a8c65d38649baf4855"
       },
       {
         "path": "dist/startup/chunks/work-runtime-read-controls-HY6A6NUB.mjs",
@@ -83,13 +83,13 @@
       },
       {
         "path": "dist/startup/ink-boot.mjs",
-        "bytes": 2095670,
-        "sha256": "c54b04f772c8b40acd30e3265514b637c682eca5caa8083462929272c2558a9a"
+        "bytes": 2097007,
+        "sha256": "8776eeaa0fe08735e0f999dfa44208ce08b3c432e60e4bc8d3497dc96fd6d389"
       },
       {
         "path": "dist/startup/ink-shell.mjs",
         "bytes": 285622,
-        "sha256": "5100853c17599283655f9d38304a472a93f345d17ef0c41b4769ed05b0acac6e"
+        "sha256": "54fe722be64fac1b7a90f0349bc8bf24b7e20848307353083af02e2ee0052e34"
       },
       {
         "path": "index-standalone.html",
@@ -1053,8 +1053,8 @@
       },
       {
         "path": "src/program-import/compiler.js",
-        "bytes": 19214,
-        "sha256": "9c0bc51b02b3b58d4b6b98b3ff35337f42fc7c620ae1d215308ec78a324cdeb9"
+        "bytes": 19903,
+        "sha256": "6897bad557c0768cfd2bea25942c60af721ada9b3755bf2de0197a7be1651d00"
       },
       {
         "path": "src/program-import/coverage-engine.js",
@@ -1153,8 +1153,8 @@
       },
       {
         "path": "src/program-import/translation-modules/illustrator-jsx.js",
-        "bytes": 64797,
-        "sha256": "84f4f3ab7427ca4e6e2ecdb8b8dac2176638f35bf41a116c5fc1f383f0bb67c8"
+        "bytes": 65248,
+        "sha256": "12b1f2bbf84caf5d8b5f62441c6d6da768dd5ef70292842d67fc3039e91de65d"
       },
       {
         "path": "src/program-import/translation-modules/index.js",
@@ -1192,14 +1192,19 @@
         "sha256": "edeb44ef07c59ef59e09bede1cb8f53357dc07b29c59f4d2df91ece136c350ee"
       },
       {
+        "path": "src/recipe/import-coordinates.js",
+        "bytes": 999,
+        "sha256": "479679264db2fcb32f659f58a562c9e58e525d7fe337ec0ef40c866101bbf0a7"
+      },
+      {
         "path": "src/recipe/recipe-asset.js",
         "bytes": 4248,
         "sha256": "a6803519274db77588c1a423834d24a89f103667a8ad713f553cf9f47dcf1c7c"
       },
       {
         "path": "src/recipe/recipe-engine.js",
-        "bytes": 46540,
-        "sha256": "b4e497c13e83993639023e9f5e2aa1640dfbd67becebf2c820a5ac213fb8977e"
+        "bytes": 46734,
+        "sha256": "5054930ee946e86fd25852d9293f5d9510f196250bc1f62aa7694768a9fae3ea"
       },
       {
         "path": "src/recipe/recipe-io.js",
@@ -1697,32 +1702,32 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "59294f5ecf60c8c38e75984c662e3634730caad8e644a884ecd21a52589ca7d4"
+    "package_digest_sha256": "62cf62256a799454e343d47e2755f62b0e3dbbad9ef9860f1488e0a1b3ffb8ad"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "8a2d38624dd7c2662ba31059e66bd9c5575ef497",
+    "exact_sha": "3ca3c2d64178bb55f3da5766088d338676495a42",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
-    "manifest_sha256": "9e9d0cc9266a65ae5672d641ef9d42c3dab3afcc7f2d84ee0e140f9771f239dd"
+    "manifest_sha256": "0ccdef67fb984d8c664a1f94bf563a8fd2931e13f6d2fe354dd1faf960c24518"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "a7dfbadf94115d29a735f7a23de3db7763e27cdd",
+    "source_tree": "33a539b3b4bb04bea209f550ff9f6cc9cf50d8d4",
     "runs": [
       {
-        "profile": "ink-six-translations-windows-native-v1",
-        "id": 40887752435,
-        "workflow_path": ".github/workflows/ink-six-translations-release-qa.yml",
-        "workflow_blob": "f00616c83acca1dec18d482adaa1fdfc5f10cae4",
-        "head_sha": "51c8c21874454af7565c57cda0d4d1aaf0aabb0a"
+        "profile": "ink-w024b-492-real-windows-native-v1",
+        "id": 40904604659,
+        "workflow_path": ".github/workflows/ink-w024b-pr492-chrome-20261029.yml",
+        "workflow_blob": "0275f56d1575293e2689ae57f1791a415b6db25b",
+        "head_sha": "d7b801058a25507940419c277a68864635e97a8c"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "bd68912f3b5217ff89b723e810cd5f1130d0394a",
+    "previous_target_commit": "ecd456b5eb19ce5fde73b394c82a669a107c52d2",
     "runtime_bytes_unchanged_from_package": true
   }
 }

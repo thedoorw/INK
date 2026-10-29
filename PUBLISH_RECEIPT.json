@@ -1,13 +1,13 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "4080ae954ca55a98b9bc763683658374697e4058",
-  "source_tree": "a7dfbadf94115d29a735f7a23de3db7763e27cdd",
-  "runtime_digest_sha256": "59294f5ecf60c8c38e75984c662e3634730caad8e644a884ecd21a52589ca7d4",
-  "package_manifest_sha256": "9e9d0cc9266a65ae5672d641ef9d42c3dab3afcc7f2d84ee0e140f9771f239dd",
+  "source_sha": "5401505318efa796ad067dd4eab8f624e47669d4",
+  "source_tree": "33a539b3b4bb04bea209f550ff9f6cc9cf50d8d4",
+  "runtime_digest_sha256": "62cf62256a799454e343d47e2755f62b0e3dbbad9ef9860f1488e0a1b3ffb8ad",
+  "package_manifest_sha256": "0ccdef67fb984d8c664a1f94bf563a8fd2931e13f6d2fe354dd1faf960c24518",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "bd68912f3b5217ff89b723e810cd5f1130d0394a",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/365#issuecomment-6498897292",
+  "previous_target_commit": "ecd456b5eb19ce5fde73b394c82a669a107c52d2",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/492#issuecomment-6501409357",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -35,15 +35,15 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "bytes": 61600,
-      "sha256": "9819bbd53ebe9fec462a617beac8465f8c375f63cd4c661443f77f6fc37b6250",
-      "git_blob_sha": "b518b3e25772ce733e5dffa4a676dbccec68b2fd"
+      "bytes": 61774,
+      "sha256": "cacae73df093e5409393a45989d30b5a4632409e90f1fab54e53293596dda9fe",
+      "git_blob_sha": "8a7cf608bb180122b29654dd96d5799825f70327"
     },
     {
       "path": "build-identity.js",
       "bytes": 193,
-      "sha256": "0f6f347e063ddde76fed656c91d29eba75c872a2f5626cd2cc613783b6b012ff",
-      "git_blob_sha": "2bfd54265b7ceea65574f2868bebf593e64d38ef"
+      "sha256": "db111c352259242e2dffc5f3678f4301fc196cbbbb96cd3334c8641c36524b78",
+      "git_blob_sha": "ea8b0099eb70cce27f6803c1ed1f896e562e284b"
     },
     {
       "path": "dist/ink.compat.js",
@@ -54,8 +54,8 @@
     {
       "path": "dist/startup/asset-inventory.js",
       "bytes": 547,
-      "sha256": "d876a693eeeeb824c3f6d91b855f50203f590421bfb8ba6556110df2d467cb54",
-      "git_blob_sha": "5e4ea43def26842cc90198c9f5362355154fbfe3"
+      "sha256": "1fec9f7e455765d6a482bb9052b5774a0e6ad8411b7bd04a19891bbb21766479",
+      "git_blob_sha": "feb8b8921efb1871792aafdb492d6104e3c27d47"
     },
     {
       "path": "dist/startup/chunks/chunk-342G2AIU.mjs",
@@ -64,22 +64,22 @@
       "git_blob_sha": "bd43b2754f4afe7ab5c734e3f2a16e723bdca042"
     },
     {
-      "path": "dist/startup/chunks/chunk-DPXQNBUZ.mjs",
+      "path": "dist/startup/chunks/chunk-QJVBLZAR.mjs",
       "bytes": 453000,
-      "sha256": "d1062f052e70105d6de897b4a5808702ec0162391acff6d9a58230f364350ad7",
-      "git_blob_sha": "02c8f15a23d4a3c327cfdd7dc7ed377f2bdca734"
+      "sha256": "8d915e48d7b5674b7c04d4d262b26b49c505ec7a744ee5391b44bba705cde225",
+      "git_blob_sha": "1dba72a291fb291834b938e7a3f4ffd200ec9eed"
     },
     {
-      "path": "dist/startup/chunks/chunk-FMSPHL5H.mjs",
-      "bytes": 362130,
-      "sha256": "473ae08fc6e0981113034c46afba36a201b3fbf4283870297b18a925b5c5f4ca",
-      "git_blob_sha": "7ac3d6b8a3bf86f9fb3831fb3ff781a4f2cb940a"
-    },
-    {
-      "path": "dist/startup/chunks/chunk-QXNHQZLJ.mjs",
+      "path": "dist/startup/chunks/chunk-WOYAYXJK.mjs",
       "bytes": 67471,
-      "sha256": "8811b84a56ed573e38f466b55ace39b00c57debabf6e6578f412b133e048ba9b",
-      "git_blob_sha": "c1018895bfd8c7ccc6b48f8a6b90c524822403dd"
+      "sha256": "768767f2348369ef637c757295e37a87f96b413c2575a458d7ce31a367045f96",
+      "git_blob_sha": "4aa9713d05408bb5682321cacb299c811c399ea2"
+    },
+    {
+      "path": "dist/startup/chunks/chunk-ZMY6Y7MB.mjs",
+      "bytes": 362138,
+      "sha256": "263278417783bbe534aaaa98ff3337d2287077482b1c8dc74497d8742364bcb9",
+      "git_blob_sha": "4430d25641f628612462b140947ebfa49d662558"
     },
     {
       "path": "dist/startup/chunks/export-3NJAKKKA.mjs",
@@ -88,10 +88,10 @@
       "git_blob_sha": "5f78a72ad1f27480b36eedfc6b52408633f8a040"
     },
     {
-      "path": "dist/startup/chunks/runtime-test-bridge-DSLIBMJH.mjs",
+      "path": "dist/startup/chunks/runtime-test-bridge-LCQT6YPB.mjs",
       "bytes": 15864,
-      "sha256": "c6b6b56994aa56fbe8675e68c7753c0a65b1438972d20d187fd7f2cbfb8e58e0",
-      "git_blob_sha": "38d2b6ebdc900610509004b6a551b192e595d3b5"
+      "sha256": "cefdd97b39fc105b0d62ea1f980ab85638e90fbe764ac8a8c65d38649baf4855",
+      "git_blob_sha": "91dd276a51cb6eed25c3c6e60bf7ad2c2f5942e4"
     },
     {
       "path": "dist/startup/chunks/work-runtime-read-controls-HY6A6NUB.mjs",
@@ -101,15 +101,15 @@
     },
     {
       "path": "dist/startup/ink-boot.mjs",
-      "bytes": 2095670,
-      "sha256": "c54b04f772c8b40acd30e3265514b637c682eca5caa8083462929272c2558a9a",
-      "git_blob_sha": "30d453bfee43239c8a9846aeaee800a06d1459cb"
+      "bytes": 2097007,
+      "sha256": "8776eeaa0fe08735e0f999dfa44208ce08b3c432e60e4bc8d3497dc96fd6d389",
+      "git_blob_sha": "634da27fe5ecfdc96eb21f08bd054b8489a1777b"
     },
     {
       "path": "dist/startup/ink-shell.mjs",
       "bytes": 285622,
-      "sha256": "5100853c17599283655f9d38304a472a93f345d17ef0c41b4769ed05b0acac6e",
-      "git_blob_sha": "cccaa1c581979852afc051d2b51267ab941aba80"
+      "sha256": "54fe722be64fac1b7a90f0349bc8bf24b7e20848307353083af02e2ee0052e34",
+      "git_blob_sha": "636e056e0f2f735c838b348fb1a1ac3814b007f7"
     },
     {
       "path": "index-standalone.html",
@@ -1265,9 +1265,9 @@
     },
     {
       "path": "src/program-import/compiler.js",
-      "bytes": 19214,
-      "sha256": "9c0bc51b02b3b58d4b6b98b3ff35337f42fc7c620ae1d215308ec78a324cdeb9",
-      "git_blob_sha": "324405fdac96d39ba0dd14460162fecad7afa450"
+      "bytes": 19903,
+      "sha256": "6897bad557c0768cfd2bea25942c60af721ada9b3755bf2de0197a7be1651d00",
+      "git_blob_sha": "a8c9c6fff626b66eb0a063acf1ec5f6c866b1296"
     },
     {
       "path": "src/program-import/coverage-engine.js",
@@ -1385,9 +1385,9 @@
     },
     {
       "path": "src/program-import/translation-modules/illustrator-jsx.js",
-      "bytes": 64797,
-      "sha256": "84f4f3ab7427ca4e6e2ecdb8b8dac2176638f35bf41a116c5fc1f383f0bb67c8",
-      "git_blob_sha": "5771f548a596d4da6482ea0fa331e26307c6888f"
+      "bytes": 65248,
+      "sha256": "12b1f2bbf84caf5d8b5f62441c6d6da768dd5ef70292842d67fc3039e91de65d",
+      "git_blob_sha": "5c50874c9ffa886ae13af3e8f973b840d569ec08"
     },
     {
       "path": "src/program-import/translation-modules/index.js",
@@ -1432,6 +1432,12 @@
       "git_blob_sha": "f0915291f06b1d92dcf7b579937a52c247289e82"
     },
     {
+      "path": "src/recipe/import-coordinates.js",
+      "bytes": 999,
+      "sha256": "479679264db2fcb32f659f58a562c9e58e525d7fe337ec0ef40c866101bbf0a7",
+      "git_blob_sha": "9ca1c3ee35570cda953b5e6bc3fe43178d1b79ca"
+    },
+    {
       "path": "src/recipe/recipe-asset.js",
       "bytes": 4248,
       "sha256": "a6803519274db77588c1a423834d24a89f103667a8ad713f553cf9f47dcf1c7c",
@@ -1439,9 +1445,9 @@
     },
     {
       "path": "src/recipe/recipe-engine.js",
-      "bytes": 46540,
-      "sha256": "b4e497c13e83993639023e9f5e2aa1640dfbd67becebf2c820a5ac213fb8977e",
-      "git_blob_sha": "59d92822a466a388c00843f5bb6eeebc3884b56c"
+      "bytes": 46734,
+      "sha256": "5054930ee946e86fd25852d9293f5d9510f196250bc1f62aa7694768a9fae3ea",
+      "git_blob_sha": "9346a40c8cb3c84d4039dbfdaaf96fb9b9bdcfdf"
     },
     {
       "path": "src/recipe/recipe-io.js",
