@@ -137,6 +137,20 @@ export class ActionRecipeCompiler {
       mapping.translationStatus = toUserTranslationStatus(mapping.status, { gapCategory: mapping.gapCategory });
       if (mapping.step && sourceWorkflow) mapping.step.sourceWorkflow = clone({ order: sourceWorkflow.order, condition: sourceWorkflow.condition, repeat: sourceWorkflow.repeat, dependency: sourceWorkflow.dependency, input: sourceWorkflow.input, output: sourceWorkflow.output, unsupportedStep: sourceWorkflow.unsupportedStep });
     }
+    // Adapters declare coordinate frames explicitly; unmarked geometry and
+    // external target roles retain their existing Native world coordinates.
+    const importedBindings = new Map();
+    for (const { step } of mappings) {
+      const frame = step?.op === 'path' ? step.params?.attributes?.coordinateFrame : null;
+      if (frame) {
+        step.params.coordinateFrame = frame;
+        if (step.produces?.key) importedBindings.set(step.produces.key, frame);
+      }
+    }
+    for (const { step } of mappings) {
+      if (step?.op === 'transform' && importedBindings.has(step.targetFrom?.key))
+        step.params.coordinateFrame = importedBindings.get(step.targetFrom.key);
+    }
     const steps = mappings.filter(mapping => mapping.step).map(mapping => mapping.step);
     steps.push({ id: 'import-checkpoint', enabled: true, op: 'checkpoint', checkpoint: true, params: {} });
     const statuses = Object.fromEntries(['DIRECT', 'EQUIVALENT', 'APPROXIMATED', 'PARTIAL', 'MANUAL STEP REQUIRED', 'EXTERNAL EXECUTION REQUIRED', 'REJECTED'].map(status => [status, mappings.filter(mapping => mapping.status === status).length]));

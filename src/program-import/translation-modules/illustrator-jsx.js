@@ -1,3 +1,4 @@
+import { ARTBOARD_LOCAL_PT_FRAME } from '../../recipe/import-coordinates.js';
 import { createWorkflowIR } from '../workflow-ir.js';
 import {
   SOURCE_ADAPTER_CONTRACT,
@@ -38,6 +39,9 @@ export const ILLUSTRATOR_JSX_CANDIDATE_MATRIX = Object.freeze([
 const lineAt = (text, offset) => text.slice(0, Math.max(0, offset)).split(/\r?\n/).length;
 const pseudoMatch = (text, start, end) => ({ index:start, 0:text.slice(start,end) });
 const evidenceAt = (text, match, label='Illustrator JSX') => [{ label, line: lineAt(text, match?.index || 0), excerpt: String(match?.[0] || '').trim().slice(0, 220) }];
+// New source paths use this subset's declared top/left artboard-local frame.
+const sourceCoordinates = (op, parameters) => /^path\./.test(op) && parameters?.unit === 'pt'
+  ? {...clone(parameters), coordinateFrame:ARTBOARD_LOCAL_PT_FRAME} : clone(parameters);
 const operation = ({ text, match, operation, category, parameters={}, target={}, dependency=[], conversionStatus='DIRECT', deterministic=true, unsupportedReason=null, fallbackCandidate=null, sourceCommand=null, input={}, output={}, confidence=null, approvedApproximation=false }) => ({
   _offset: match?.index || 0,
   sourceSoftware: SOURCE_SOFTWARE,
@@ -45,7 +49,7 @@ const operation = ({ text, match, operation, category, parameters={}, target={},
   operation,
   category,
   target: clone(target),
-  parameters: clone(parameters),
+  parameters: sourceCoordinates(operation, parameters),
   dependency: clone(dependency),
   input: clone(input),
   output: clone(output),
@@ -555,7 +559,7 @@ function parseWholeProgram({name,text,metadata={},staticIncludes=[],programEntry
   });
   if(!result.operations.length)throw Object.assign(new Error('INK_PROGRAM_NO_DRAWING_INTENTS'),{code:'INK_PROGRAM_NO_DRAWING_INTENTS'});
   const operations=result.operations.map((item,index)=>({
-    ...item,sourceCommand:item.sourceCommand,
+    ...item,parameters:sourceCoordinates(item.operation || item.canonicalOperation, item.parameters),sourceCommand:item.sourceCommand,
     evidence:[{label:'bounded Program IR',line:1,excerpt:graph.sourceName+': operation '+(index+1)}]
   }));
   const diagnostics=result.diagnostics.map(x=>({
