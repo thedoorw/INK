@@ -191,7 +191,7 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #masterDialog .note{grid-column:1/-1;color:#888;font-size:11px}
 
 /* INK Mobile v0.5 — edge-docked two bars; legacy UI2 context retained but hidden on mobile. */
-#mobileTopbar,#mobileTemplateMenu,#mobileArtworkPhoto,#mobileArtworkInk,#mobileCanvasHint,#mobileBrushContext,#mobilePreviewBar,#mobileScrim,#mobileSheetClose,#mobileFullscreenNotice,#mobileStrokeCursor,#mobileQuickMenu,#mobilePanelHead,#mobilePanelStrip{display:none}
+#mobileTopbar,#mobileTemplateMenu,#mobileArtworkPhoto,#mobileArtworkInk,#mobileCanvasHint,#mobileBrushContext,#mobilePreviewBar,#mobileScrim,#mobileSheetClose,#mobileFullscreenNotice,#mobileStrokeCursor,#mobilePanelHead,#mobilePanelStrip{display:none}
 /* A desktop exit must remain available when a narrow PC window enters fullscreen and changes breakpoint. */
 #mobileDesktopFullscreenExit{position:fixed;z-index:200;top:calc(8px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));height:44px;min-height:44px;padding:0 15px;align-items:center;justify-content:center;gap:6px;border:1px solid #d4d4d4;border-radius:10px;background:#fff;color:#222;font-size:13px;box-shadow:0 4px 16px #0002}
 #mobileDesktopFullscreenExit[hidden]{display:none}
@@ -274,8 +274,8 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #mobilePreviewBar button[data-mobile]{flex:0 0 48px;min-width:48px;height:51px;font-size:10px;gap:1px}
 #mobilePreviewBar button .glyph{font-size:19px;line-height:22px}
 #mobileQuickStrip{height:51px;gap:2px}
-#mobileQuickStrip button{flex:0 0 44px;min-width:44px;width:44px;height:48px;min-height:44px;padding:2px 1px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:10px;line-height:13px;color:#393c40}
-#mobileQuickStrip button[data-quick=size]{flex-basis:48px;width:48px}
+#mobileQuickStrip button{flex:1 0 44px;min-width:44px;width:auto;height:48px;min-height:44px;padding:2px 1px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:10px;line-height:13px;color:#393c40}
+#mobileQuickStrip button[data-quick=size]{flex-basis:44px;width:auto}
 #mobileQuickStrip .ink-q-icon{display:flex;align-items:center;justify-content:center;width:26px;height:23px;font-size:20px;line-height:22px;font-weight:500}
 #mobileQuickStrip .ink-q-icon svg,#mobilePreviewBar .glyph svg{display:block;width:20px;height:20px;stroke:currentColor;flex:0 0 20px}
 #mobileQuickStrip [data-quick=size] .ink-q-icon{font-size:15px;font-variant-numeric:tabular-nums;font-weight:650}
@@ -602,9 +602,9 @@ let mode="photo",view="canvas",photoURL=null,photo=null,active=null,strokes=[],r
 const colors=["#222222","#ce3d4d","#147eb4","#efad27","#ffffff"];
 rail.id="mobileToolDrawer";
 board.insertAdjacentHTML("beforeend","<img id='mobileArtworkPhoto' alt='手機照片背景' hidden><canvas id='mobileArtworkInk' aria-label='手機畫布草稿'></canvas><div id='mobileCanvasHint'><strong>開始一件作品</strong><span>選擇照片作背景，或直接使用空白滿版畫布</span></div>");
-root.insertAdjacentHTML("beforeend","<header id='mobileTopbar' aria-label='手機標題工具'><button id='mobileInkMenu' type='button'>INK</button><span id='mobileTemplateButton' aria-live='polite'>空白滿版</span><button id='mobileUndo' type='button' aria-label='復原'>↶</button><button id='mobileRedo' type='button' aria-label='重做'>↷</button><button id='mobileFullscreenToggle' type='button' aria-label='進入全螢幕' aria-pressed='false' title='進入全螢幕'>⛶</button></header><section id='mobileProjectMenu' aria-label='作品操作' hidden><div class='ink-project-head'><strong>作品</strong><small>手機預覽</small><button class='ink-project-close' type='button' aria-label='關閉作品選單'>×</button></div><div class='ink-project-actions'><button type='button' data-project-action='blank' aria-label='建立空白畫布'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 4h10l4 4v12H5z'/><path d='M15 4v4h4'/><path d='M8 14h8M12 10v8'/></svg><span>新空白</span></button><button type='button' data-project-action='photo' aria-label='匯入照片底圖'><svg viewBox='0 0 24 24' aria-hidden='true'><rect x='3' y='4' width='18' height='16' rx='2'/><circle cx='8' cy='9' r='1.5'/><path d='m4 18 6-6 4 3 3-4 4 5'/></svg><span>照片底圖</span></button><button type='button' data-project-action='export' aria-label='下載預覽 PNG'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3v12m-4-4 4 4 4-4'/><path d='M4 16v4h16v-4'/></svg><span>輸出 PNG</span></button></div></section><section id='mobileTemplateMenu' hidden><button type='button' data-template='photo' aria-pressed='true'>相片底圖</button><button type='button' data-template='blank' aria-pressed='false'>空白背景</button></section><input id='mobilePhotoInput' type='file' accept='image/*' hidden><button id='mobileScrim' type='button' hidden aria-label='關閉面板'></button><nav id='mobilePreviewBar' aria-label='手機工作工具列'><button type='button' data-mobile='tools' aria-label='開啟完整工具庫' aria-pressed='false'><span class='glyph'>▦</span>工具</button><div id='mobileQuickStrip' role='group' aria-label='常用與情境工具' tabindex='0'></div></nav><section id='mobileQuickMenu' aria-label='其他工作操作' hidden><button type='button' data-more='photo'>載入照片</button><button type='button' data-more='export'>匯出預覽 PNG</button><button type='button' data-more='blank'>空白滿版</button><button type='button' data-more='photo-template'>照片滿版</button></section>");
+root.insertAdjacentHTML("beforeend","<header id='mobileTopbar' aria-label='手機標題工具'><button id='mobileInkMenu' type='button'>INK</button><span id='mobileTemplateButton' aria-live='polite'>空白滿版</span><button id='mobileUndo' type='button' aria-label='復原'>↶</button><button id='mobileRedo' type='button' aria-label='重做'>↷</button><button id='mobileFullscreenToggle' type='button' aria-label='進入全螢幕' aria-pressed='false' title='進入全螢幕'>⛶</button></header><section id='mobileProjectMenu' aria-label='作品操作' hidden><div class='ink-project-head'><strong>作品</strong><small>手機預覽</small><button class='ink-project-close' type='button' aria-label='關閉作品選單'>×</button></div><div class='ink-project-actions'><button type='button' data-project-action='blank' aria-label='建立空白畫布'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M5 4h10l4 4v12H5z'/><path d='M15 4v4h4'/><path d='M8 14h8M12 10v8'/></svg><span>新空白</span></button><button type='button' data-project-action='photo' aria-label='匯入照片底圖'><svg viewBox='0 0 24 24' aria-hidden='true'><rect x='3' y='4' width='18' height='16' rx='2'/><circle cx='8' cy='9' r='1.5'/><path d='m4 18 6-6 4 3 3-4 4 5'/></svg><span>照片底圖</span></button><button type='button' data-project-action='export' aria-label='下載預覽 PNG'><svg viewBox='0 0 24 24' aria-hidden='true'><path d='M12 3v12m-4-4 4 4 4-4'/><path d='M4 16v4h16v-4'/></svg><span>輸出 PNG</span></button></div></section><section id='mobileTemplateMenu' hidden><button type='button' data-template='photo' aria-pressed='true'>相片底圖</button><button type='button' data-template='blank' aria-pressed='false'>空白背景</button></section><input id='mobilePhotoInput' type='file' accept='image/*' hidden><button id='mobileScrim' type='button' hidden aria-label='關閉面板'></button><nav id='mobilePreviewBar' aria-label='手機工作工具列'><button type='button' data-mobile='tools' aria-label='開啟完整工具庫' aria-pressed='false'><span class='glyph'>▦</span>工具</button><div id='mobileQuickStrip' role='group' aria-label='常用與情境工具' tabindex='0'></div></nav>");
 root.insertAdjacentHTML("beforeend","<div id='mobileStrokeCursor' data-size='擦 5' aria-hidden='true' hidden></div>");
-const get=id=>document.getElementById(id),ink=get("mobileArtworkInk"),picture=get("mobileArtworkPhoto"),hint=get("mobileCanvasHint"),scrim=get("mobileScrim"),ctx=ink.getContext("2d"),cursor=get("mobileStrokeCursor"),quickStrip=get("mobileQuickStrip"),quickMenu=get("mobileQuickMenu"),projectMenu=get("mobileProjectMenu"),projectButton=get("mobileInkMenu");
+const get=id=>document.getElementById(id),ink=get("mobileArtworkInk"),picture=get("mobileArtworkPhoto"),hint=get("mobileCanvasHint"),scrim=get("mobileScrim"),ctx=ink.getContext("2d"),cursor=get("mobileStrokeCursor"),quickStrip=get("mobileQuickStrip"),projectMenu=get("mobileProjectMenu"),projectButton=get("mobileInkMenu");
 let quickPage="home",demoTool="brush";
 const mobileIconPaths={
  brush:'<path d="m14 4 6 6-9 9-6-6z"/><path d="M6 14c-2 0-3 2-3 4s-1 3-2 3c3 1 7 0 8-3"/>',
@@ -622,19 +622,18 @@ const mobileSvg=k=>'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" 
 function renderQuick(){
  const action=(name,glyph,label,pressed=false)=>'<button type="button" data-quick="'+name+'" aria-label="'+label+'" aria-pressed="'+pressed+'"><span class="ink-q-icon" aria-hidden="true">'+(mobileIconPaths[name]?mobileSvg(name):glyph)+'</span><span class="ink-q-label">'+label+'</span></button>';
  const items=quickPage==="home"?
-  [action("brush","✎","畫筆",demoTool==="brush"),action("eraser","◇","橡皮",demoTool==="eraser"),action("selection","↖","選取"),action("shape","▢","形狀"),action("text","T","文字"),action("more","⋯","更多")]:
-  [action("home","‹","返回"),action("brush","✎","畫筆",demoTool==="brush"),action("eraser","◇","橡皮",demoTool==="eraser"),action("size",String(size),"筆徑"),action("color","●","色彩"),action("more","⋯","更多")];
+  [action("brush","✎","畫筆",demoTool==="brush"),action("eraser","◇","橡皮",demoTool==="eraser"),action("selection","↖","選取"),action("shape","▢","形狀"),action("text","T","文字")]:
+  [action("home","‹","返回"),action("brush","✎","畫筆",demoTool==="brush"),action("eraser","◇","橡皮",demoTool==="eraser"),action("size",String(size),"筆徑"),action("color","●","色彩")];
  quickStrip.innerHTML=items.join("");
  const dot=quickStrip.querySelector('[data-quick="color"] .ink-q-icon');if(dot)dot.style.color=colors[color];
 }
-function closeQuickMenu(){quickMenu.hidden=true;quickStrip.querySelector('[data-quick="more"]')?.setAttribute("aria-expanded","false")}
 function focusCatalogGroup(index){
  // INK UI2 20-group preview source: opening this drawer is not evidence of a Native mobile tool receiver.
- demoTool="catalog";eraser=false;cursor.hidden=true;quickPage="home";renderQuick();closeQuickMenu();closeMenu();viewState("tools");
+ demoTool="catalog";eraser=false;cursor.hidden=true;quickPage="home";renderQuick();closeMenu();viewState("tools");
  const b=rail.querySelector('.tool-button[data-group="'+index+'"]');if(b){b.click();b.scrollIntoView({block:"nearest",behavior:"smooth"});}
 }
 function setDemoTool(name){
- demoTool=name;eraser=name==="eraser";cursor.hidden=true;quickPage="drawing";closeQuickMenu();viewState("canvas");renderQuick();quickStrip.scrollLeft=0;
+ demoTool=name;eraser=name==="eraser";cursor.hidden=true;quickPage="drawing";viewState("canvas");renderQuick();quickStrip.scrollLeft=0;
 }
 get('mobilePreviewBar').querySelector('[data-mobile=tools] .glyph').innerHTML=mobileSvg('tools');
 const mobileToolLabels=["選取","選框","套索","魔棒","裁切","滴管","繪圖","修復","印章","橡皮","填色","模糊","明暗","鋼筆","文字","節點","形狀","參考","平移","縮放"];
@@ -648,10 +647,6 @@ catalogArea?.addEventListener("click",e=>{
  if(!e.isTrusted||!e.target.closest(".tool-button[data-group]"))return;
  queueMicrotask(()=>{demoTool="catalog";eraser=false;cursor.hidden=true;quickPage="home";renderQuick();viewState("canvas")});
 });
-quickMenu.querySelector('[data-more="photo"]').textContent="▧ 匯入照片";
-quickMenu.querySelector('[data-more="export"]').textContent="⇧ 輸出 PNG";
-quickMenu.querySelector('[data-more="blank"]').textContent="▢ 空白模板";
-quickMenu.querySelector('[data-more="photo-template"]').textContent="▣ 照片模板";
 
 /* v0.8: legacy desktop R2.11 iframe is intentionally not adapted or activated on mobile.
    Mobile panels will be redesigned by task, dimensions and touch interaction before reintroduction. */
@@ -667,7 +662,7 @@ if(path.points.length===1){const p=path.points[0];ctx.arc(p.x*w,p.y*h,Math.max(1
 }
 function hintState(){hint.hidden=(mode==="photo"&&!!photo)||!!strokes.length||!!active}
 function template(name){if(!TEMPLATES[name])return;mode=name;picture.hidden=name!=="photo"||!photo;get("mobileTemplateButton").textContent=TEMPLATES[name].label;get("mobileTemplateMenu").hidden=true;get("mobileTemplateButton").setAttribute("aria-expanded","false");root.querySelectorAll("[data-template]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.template===name)));hintState()}
-function viewState(name){if(media.matches&&name==="panels")name="canvas";view=name;root.dataset.mobileView=name;if(name!=="canvas"){cursor.hidden=true;quickMenu.hidden=true}scrim.hidden=!media.matches||name==="canvas";get("mobilePreviewBar").querySelectorAll("[data-mobile]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mobile===name)))}
+function viewState(name){if(media.matches&&name==="panels")name="canvas";view=name;root.dataset.mobileView=name;if(name!=="canvas"){cursor.hidden=true}scrim.hidden=!media.matches||name==="canvas";get("mobilePreviewBar").querySelectorAll("[data-mobile]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mobile===name)))}
 function closeMenu(){if(!menu.hidden)get("logoButton")?.click()}
 function output(){
 const r=box();if(!r.width||!r.height)return;
@@ -678,39 +673,27 @@ canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=docum
 }
 get("mobilePreviewBar").addEventListener("click",e=>{
  const b=e.target.closest("[data-mobile]");if(!b)return;
- closeProjectMenu();closeQuickMenu();closeMenu();const name=b.dataset.mobile;
+ closeProjectMenu();closeMenu();const name=b.dataset.mobile;
  viewState(view===name?"canvas":name);
 });
 quickStrip.addEventListener("click",e=>{
  const button=e.target.closest("[data-quick]");if(!button)return;
  const action=button.dataset.quick;
- if(action==="home"){quickPage="home";renderQuick();quickStrip.scrollLeft=0;closeQuickMenu();return}
+ if(action==="home"){quickPage="home";renderQuick();quickStrip.scrollLeft=0;return}
  if(action==="brush"||action==="eraser"){setDemoTool(action);return}
  if(action==="size"){size=size===5?12:size===12?24:5;cursor.hidden=true;renderQuick();return}
  if(action==="color"){color=(color+1)%colors.length;setDemoTool("brush");return}
  if(action==="selection"){focusCatalogGroup(0);return}
  if(action==="shape"){focusCatalogGroup(16);return}
  if(action==="text"){focusCatalogGroup(14);return}
- if(action==="more"){const next=quickMenu.hidden;quickMenu.hidden=!next;button.setAttribute("aria-expanded",String(next));return}
-});
-quickMenu.addEventListener("click",e=>{
- const b=e.target.closest("[data-more]");if(!b)return;
- const action=b.dataset.more;closeQuickMenu();viewState("canvas");closeMenu();
- if(action==="photo")get("mobilePhotoInput").click();
- if(action==="export")output();
- if(action==="blank")template("blank");
- if(action==="photo-template")template("photo");
-});
-document.addEventListener("pointerdown",e=>{
- if(!quickMenu.hidden&&!e.target.closest("#mobileQuickMenu, #mobileQuickStrip"))closeQuickMenu();
-});
+ });
 function closeProjectMenu(){projectMenu.hidden=true;projectButton.setAttribute("aria-expanded","false")}
 projectButton.setAttribute("aria-controls","mobileProjectMenu");projectButton.setAttribute("aria-expanded","false");
 projectButton.setAttribute("aria-haspopup","true");
 projectButton.addEventListener("click",()=>{
  const opening=projectMenu.hidden;
  get("mobileTemplateMenu").hidden=true;get("mobileTemplateButton").setAttribute("aria-expanded","false");
- closeQuickMenu();viewState("canvas");
+ viewState("canvas");
  projectMenu.hidden=!opening;projectButton.setAttribute("aria-expanded",String(opening));
 });
 projectMenu.querySelector(".ink-project-close").addEventListener("click",closeProjectMenu);
@@ -832,7 +815,7 @@ window.INK_MOBILE_V04=Object.freeze({getState(){
 }});
 syncFullscreenUI();
 renderQuick();template("blank");viewState("canvas");
-window.INK_MOBILE_V06=Object.freeze({getState:()=>({quickPage,demoTool,eraser,brushSize:size,quickMenuOpen:!quickMenu.hidden,barCount:2,orientationDeferred:true,previewOnly:true,mobilePanels:false})});
+window.INK_MOBILE_V06=Object.freeze({getState:()=>({quickPage,demoTool,eraser,brushSize:size,bottomMoreRemoved:true,barCount:2,orientationDeferred:true,previewOnly:true,mobilePanels:false})});
 window.INK_MOBILE_V08=Object.freeze({getState:()=>({view,quickPage,demoTool,brushSize:size,eraser,panelsVisible:false,panelsAccessible:false,toolDrawerVisible:view==="tools",topPinned:true,bottomFloating:true,previewOnly:true})});
 window.INK_MOBILE_V09=Object.freeze({getState:()=>({mobileMenuType:"three-task-hub",projectMenuOpen:!projectMenu.hidden,previewActions:["blank","photo","export"],legacyEightCategoryMenuVisible:media.matches?false:null,desktopMenuPreserved:true,mobilePanels:false,view,previewOnly:true})});
 requestAnimationFrame(paint);
