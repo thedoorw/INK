@@ -539,27 +539,27 @@ const groups={
   [
    {
     "label": "Recipe 引擎",
-    "coreOnly": true
+    "key": "recipe-engine"
    },
    {
     "label": "Recipe 匯入與執行",
-    "coreOnly": true
+    "key": "recipe-workflow"
    },
    {
     "label": "轉譯 Photoshop Action",
-    "coreOnly": true
+    "key": "translate-photoshop"
    },
    {
     "label": "轉譯 Illustrator JSX",
-    "coreOnly": true
+    "key": "translate-illustrator"
    },
    {
     "label": "轉譯 Figma Skill",
-    "coreOnly": true
+    "key": "translate-figma"
    },
    {
     "label": "轉譯 Canva 資料集",
-    "coreOnly": true
+    "key": "translate-canva"
    }
   ]
  ],
@@ -619,6 +619,7 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
  };
  const enabled=(key,v)=>{
   if(!key)return false;
+  if(['recipe-workflow','recipe-engine','translate-photoshop','translate-illustrator','translate-figma','translate-canva'].includes(key))return typeof host.app?.inkPublicApi?.tools?.invoke==='function';
   if(['new','open','about','branding','native-tools','recover','history-limit'].includes(key)||key.startsWith('panel:'))return true;
   if(!v.hasDoc)return false;
   if(key.startsWith('session:'))return v.sessions.some(x=>x.sessionId===key.slice(8));
@@ -652,7 +653,14 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
   const tab=e.target.closest('[data-category]'),parent=e.target.closest('[data-submenu]'),command=e.target.closest('[data-command]');
   if(tab){selectCategory(tab.dataset.category);menu.querySelector('[data-category="'+category+'"]')?.focus();return;}
   if(parent&&!parent.disabled){const label=parent.dataset.submenu;submenu=submenu===label?null:label;render();menu.querySelector('[data-submenu="'+CSS.escape(label)+'"]')?.focus();return;}
-  if(command&&!command.disabled){const key=command.dataset.command;close();Promise.resolve(invoke(key)).catch(error=>host.app?.toast?.(error.message||String(error))); }
+  if(command&&!command.disabled){const key=command.dataset.command;close();Promise.resolve().then(async()=>{
+   if(['recipe-workflow','recipe-engine','translate-photoshop','translate-illustrator','translate-figma','translate-canva'].includes(key)){
+    if(globalThis.INK_APP!==host.app)throw Error('INK_WORK_RUNTIME_IDENTITY_MISMATCH');
+    const {mountWorkExtensionControls}=await import('../../agent/work-runtime-read-controls.mjs');
+    return mountWorkExtensionControls({entry:key,globalObject:globalThis,documentObject:document});
+   }
+   return invoke(key);
+  }).catch(error=>host.app?.toast?.(error.message||String(error))); }
  },{signal});
  menu.addEventListener('pointerover',e=>{
   const tab=e.target.closest('[data-category]');if(tab&&tab.dataset.category!==category){selectCategory(tab.dataset.category);return;}

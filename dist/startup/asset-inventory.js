@@ -6,6 +6,7 @@ self.INK_STARTUP_ASSETS = Object.freeze([
   "./dist/startup/chunks/chunk-QXNHQZLJ.mjs",
   "./dist/startup/chunks/export-3NJAKKKA.mjs",
   "./dist/startup/chunks/runtime-test-bridge-DSLIBMJH.mjs",
+  "./dist/startup/chunks/work-runtime-read-controls-HY6A6NUB.mjs",
   "./dist/startup/ink-boot.mjs",
   "./dist/startup/ink-shell.mjs"
 ]);
