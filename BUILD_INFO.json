@@ -4,16 +4,12 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "b779f2359a8ceee0fffea6d6c1d6d451dd5a4de2",
-    "product_tree": "95ba7673ba9b1e4772eb9b9feb4042b3824e0288"
-  },
-  "package": {
-    "manifest_sha256": "3006b1d1eede53f080d218a3ad7b3b3ee8129341f2e7b5377812136c2d4f93aa"
+    "exact_sha": "4080ae954ca55a98b9bc763683658374697e4058",
+    "product_tree": "a7dfbadf94115d29a735f7a23de3db7763e27cdd"
   },
   "runtime": {
     "root": "/INK/",
-    "package_digest_sha256": "38362530244ac6175d2b82d6b45499ec94b30aaff0ab3d49c519eb4b1f576a80",
-    "file_count": 335,
+    "file_count": 337,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -38,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "1e36ca74b93fad4cf41c5163090b3f39bb4df611111d099d713a22783ba41048"
+        "sha256": "0f6f347e063ddde76fed656c91d29eba75c872a2f5626cd2cc613783b6b012ff"
       },
       {
         "path": "dist/ink.compat.js",
@@ -47,8 +43,8 @@
       },
       {
         "path": "dist/startup/asset-inventory.js",
-        "bytes": 480,
-        "sha256": "e7b9a6d995199badcaff5f47d280cd14efa89cbe09fd16a3f2d8525707d114e6"
+        "bytes": 547,
+        "sha256": "d876a693eeeeb824c3f6d91b855f50203f590421bfb8ba6556110df2d467cb54"
       },
       {
         "path": "dist/startup/chunks/chunk-342G2AIU.mjs",
@@ -81,14 +77,19 @@
         "sha256": "c6b6b56994aa56fbe8675e68c7753c0a65b1438972d20d187fd7f2cbfb8e58e0"
       },
       {
+        "path": "dist/startup/chunks/work-runtime-read-controls-HY6A6NUB.mjs",
+        "bytes": 10208,
+        "sha256": "0ee4b38149d353251a8d8c6ca8573a8057a35e5382dcf2894975989bd37e0a0c"
+      },
+      {
         "path": "dist/startup/ink-boot.mjs",
         "bytes": 2095670,
         "sha256": "c54b04f772c8b40acd30e3265514b637c682eca5caa8083462929272c2558a9a"
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 284928,
-        "sha256": "2f2a3b760305227bf66735b0e06f51a818f010870ea24772371a7256ea06fae7"
+        "bytes": 285622,
+        "sha256": "5100853c17599283655f9d38304a472a93f345d17ef0c41b4769ed05b0acac6e"
       },
       {
         "path": "index-standalone.html",
@@ -189,6 +190,11 @@
         "path": "src/agent/visual-feedback.js",
         "bytes": 18350,
         "sha256": "5ea12b0d34abba3dfb186880df8e4b3c8a3cce5c511c689686526fe63ae2422f"
+      },
+      {
+        "path": "src/agent/work-runtime-read-controls.mjs",
+        "bytes": 12105,
+        "sha256": "4f38066813d636bddce5eac416d6fd9bc6a74820c38918fe4d5c2f8527e4d2af"
       },
       {
         "path": "src/ai/ai-core.js",
@@ -1427,8 +1433,8 @@
       },
       {
         "path": "src/ui/ink017/menu-ui.js",
-        "bytes": 17911,
-        "sha256": "e41d60e0b7769919872e152b5af87500c44f948f83f609bca1450f558da5c34d"
+        "bytes": 18635,
+        "sha256": "5e2b75cecca0b1ddfeb13d9c10f5600245c818e0b43f84d0e681745490be8f8c"
       },
       {
         "path": "src/ui/ink017/native-host.js",
@@ -1690,24 +1696,33 @@
         "bytes": 28173,
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
-    ]
-  },
-  "qualification": {
-    "status": "QUALIFIED",
-    "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/468#issuecomment-6435816589"
+    ],
+    "package_digest_sha256": "59294f5ecf60c8c38e75984c662e3634730caad8e644a884ecd21a52589ca7d4"
   },
   "publisher": {
-    "pipeline": "runtime-publish-001",
-    "exact_sha": "2e2f5eb9c0d8e70e5afaa6fe063c5cf6b94d7762",
-    "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-    "mode": "candidate-package"
+    "pipeline": "transport009-static-sync",
+    "exact_sha": "8a2d38624dd7c2662ba31059e66bd9c5575ef497",
+    "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
+  },
+  "package": {
+    "manifest_sha256": "9e9d0cc9266a65ae5672d641ef9d42c3dab3afcc7f2d84ee0e140f9771f239dd"
+  },
+  "qualification": {
+    "status": "REVIEW_REQUIRED",
+    "source_tree": "a7dfbadf94115d29a735f7a23de3db7763e27cdd",
+    "runs": [
+      {
+        "profile": "ink-six-translations-windows-native-v1",
+        "id": 40887752435,
+        "workflow_path": ".github/workflows/ink-six-translations-release-qa.yml",
+        "workflow_blob": "f00616c83acca1dec18d482adaa1fdfc5f10cae4",
+        "head_sha": "51c8c21874454af7565c57cda0d4d1aaf0aabb0a"
+      }
+    ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "bce0fa2f48bbc5d5da77f3f59b1a8896e1c65b43",
-    "authority_record_sha256": "066505a6159b3d449607b6693536cb2ba439c2fc1ea9a75dd9fbc7db74ca7a68",
-    "publisher_sha": "2e2f5eb9c0d8e70e5afaa6fe063c5cf6b94d7762",
-    "package_publisher_sha": "2e2f5eb9c0d8e70e5afaa6fe063c5cf6b94d7762",
+    "previous_target_commit": "bd68912f3b5217ff89b723e810cd5f1130d0394a",
     "runtime_bytes_unchanged_from_package": true
   }
 }
