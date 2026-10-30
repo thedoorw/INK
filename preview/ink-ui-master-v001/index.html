@@ -402,6 +402,35 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 }
 @media (prefers-reduced-motion:reduce){#mobileTopbar,#mobilePreviewBar{transition:none}}
 
+
+/* INK Mobile compact edge grip refinement after REAL Chrome screenshots 20261030. */
+@media (max-width:760px), (max-height:480px) and (pointer:coarse){
+ /* Preserve a physical 44px hitbox but expose only a quiet 26x4 grip. */
+ #mobileTopbar #mobileTopCollapse,#mobilePreviewBar #mobileBottomCollapse{
+  width:44px;height:44px;min-width:44px;min-height:44px;
+  background:transparent;box-shadow:none;border:0;border-radius:0;
+  font-size:0;display:flex;justify-content:center;align-items:center;
+ }
+ #mobileTopbar #mobileTopCollapse{top:calc(100% - 16px);right:auto;left:calc(50% - 22px)}
+ #mobilePreviewBar #mobileBottomCollapse{bottom:calc(100% - 16px);right:auto;left:calc(50% - 22px)}
+ #mobileTopbar #mobileTopCollapse::after,#mobilePreviewBar #mobileBottomCollapse::after{
+  content:"";display:block;width:26px;height:4px;border-radius:4px;
+  background:rgba(91,101,112,.65);box-shadow:0 0 0 1px rgba(255,255,255,.48);
+ }
+ #mobileTopEdgeHandle:not([hidden]),#mobileBottomEdgeHandle:not([hidden]){
+  border:0;background:transparent;box-shadow:none;backdrop-filter:none;
+  font-size:0;width:44px;height:44px;display:flex;justify-content:center;align-items:center;
+ }
+ #mobileTopEdgeHandle:not([hidden]){top:calc(env(safe-area-inset-top,0px));right:auto;left:calc(50% - 22px);border-radius:0}
+ #mobileBottomEdgeHandle:not([hidden]){bottom:calc(env(safe-area-inset-bottom,0px));left:calc(50% - 22px);border-radius:0}
+ #mobileTopEdgeHandle:not([hidden])::after,#mobileBottomEdgeHandle:not([hidden])::after{
+  content:"";display:block;width:26px;height:4px;border-radius:4px;background:rgba(91,101,112,.7);
+ }
+ /* Drawer and tool-recall handles never visually overlap. */
+ #shell[data-mobile-studio-open=true] #mobileBottomCollapse{visibility:hidden}
+ #shell:has(#mobileProjectMenu:not([hidden])) #mobileTopCollapse{visibility:hidden}
+}
+
 </style></head><body><div id="shell" class="shell"><aside class="left-rail"><button id="logoButton" aria-label="Application menu">INK</button><div class="tool-area" role="toolbar" aria-label="工具"></div><button type="button" id="railCustomize" aria-label="自訂工具列" title="自訂工具列">⋯</button><div class="rail-colors"><button id="resetColors" class="color-micro reset-colors" aria-label="Default colors (D)" title="Default colors (D)">◩</button><button id="swapColors" class="color-micro swap-colors" aria-label="Swap colors (X)" title="Swap colors (X)">⇄</button><button id="colorState" class="color-state" aria-label="Foreground and background colors"><span class="bg"></span><span class="fg"></span></button></div><div class="rail-spacer"></div><button id="quickUndo" aria-label="Undo" title="Undo (Ctrl+Z)">↶</button><button id="quickRedo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)">↷</button><button id="railToggle" aria-label="Toggle tool columns"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="6" height="14"/><rect x="14" y="5" width="6" height="14"/></svg></button></aside><main id="workspace" class="workspace" aria-label="Artwork workspace"><div id="artboardStage" class="artboard-stage"><div class="artboard-card active"><div class="artboard"><div class="artboard-margin"></div></div></div></div><div id="guideLayer" class="guide-layer"></div><span id="masterLabel">UI MASTER v0.3 · 手機滿版草稿</span><button type="button" id="masterDocSwitch" title="僅切換草稿示意，不建立文件">示意：有文件 ▾</button><button type="button" id="ur2ReviewButton" title="45 項功能缺口盤點（非 Native 功能）">UR2 待補／對照（45）</button></main><aside id="rightDock" class="right-dock" aria-label="UI3 R2.11 十面板整合設計草稿"><iframe id="masterDockFrame" title="UI3 R2.11 interactive preview" loading="eager"></iframe></aside><div id="dockResizer" role="separator" tabindex="0" aria-label="Resize right dock" aria-orientation="vertical"></div><div class="context-float"><button id="contextToggle" aria-label="Expand tool settings" aria-expanded="false" aria-controls="contextControls">⋯</button><span id="contextIdentity">Select</span><div id="contextControls"></div></div><div id="mainMenu" class="main-menu" hidden></div><div id="overlay" class="overlay" hidden></div><div id="toast" role="status" aria-live="polite"></div><input id="openFile" type="file" accept="application/json,.json" hidden><div id="toolGroupMenu" class="drawing-tool-menu" popover="manual" role="menu"></div></div>
 <div id="ur2Review" hidden role="complementary" aria-label="UR2 對照與待補檢視"><header><strong>UR2 對照：示意，非 Native</strong><button id="ur2ReviewClose" aria-label="關閉">×</button></header><div class="ur2-tabs"><button type="button" id="ur2TabCurrent" aria-pressed="true">目前工具</button><button type="button" id="ur2TabAll" aria-pressed="false">全部45項</button></div><div id="ur2ReviewBody"></div><footer><span id="ur2Totals"></span><button id="ur2GeometryExport" type="button" title="匯出預覽的 computed CSS 和 DOM 幾何，並非正式版證據">匯出量測</button><button id="ur2LiveMode" type="button">同視窗正式 INK</button><button id="ur2LiveLink" type="button">新分頁 ↗</button></footer></div><div id="ur2Notice" role="status" hidden></div><iframe id="ur2LiveFrame" title="正式已發布 INK：實際 Runtime，供相同視窗視覺對照" src="about:blank" hidden loading="lazy"></iframe><button id="ur2SwitchBack" type="button" hidden>返回 UR2 示意</button><script>
 const R=(label,desc)=>({label,desc,kind:'ready'}),P=(label,desc,rank='後續',confirmed=true,fields=[])=>({label,desc,rank,kind:'pending',confirmed,fields});
@@ -717,7 +746,7 @@ ink.addEventListener("pointerdown",e=>{
 root.style.setProperty("--mobile-drawer-alpha",".9");
 let drawerAlpha=90,drawerOptionsOpen=false;
 
-function closeStudio(){studio.hidden=true;studioMode=null;drawerOptionsOpen=false}
+function closeStudio(){studio.hidden=true;studioMode=null;drawerOptionsOpen=false;root.dataset.mobileStudioOpen="false"}
 function renderStudio(){
  if(!studioMode)return;
  const header=(name,secondary)=>'<div class="ink-studio-title"><strong>'+name+'</strong><small>'+secondary+'</small><button type="button" data-studio-alpha-toggle aria-expanded="'+drawerOptionsOpen+'" aria-label="調整抽屜背景不透明度">透</button><button type="button" data-studio-close aria-label="關閉快捷設定">×</button></div>';
@@ -741,7 +770,7 @@ function renderStudio(){
 }
 function openStudio(modeName){
  if(studioMode===modeName&&!studio.hidden){closeStudio();return}
- drawerOptionsOpen=false;studioMode=modeName;renderStudio();studio.hidden=false;closeProjectMenu();viewState("canvas");
+ drawerOptionsOpen=false;studioMode=modeName;renderStudio();studio.hidden=false;root.dataset.mobileStudioOpen="true";closeProjectMenu();viewState("canvas");
 }
 studio.addEventListener("input",e=>{
  const el=e.target.closest("[data-setting]");if(!el)return;
