@@ -380,7 +380,10 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #mobileTopEdgeHandle,#mobileBottomEdgeHandle{display:none}
 @media (max-width:760px), (max-height:480px) and (pointer:coarse){
  #mobileTopbar,#mobilePreviewBar{transition:transform .18s ease-out}
- #mobileTopbar #mobileTopCollapse,#mobilePreviewBar #mobileBottomCollapse{flex:0 0 44px;width:44px;min-width:44px;height:44px;min-height:44px;align-self:center;border:0;border-radius:9px;padding:0;background:transparent;color:#58636e;font-size:19px}
+ /* Fold grips sit OUTSIDE the five-slot flex layout; visible glyph is small, hitbox 44px. */
+ #mobileTopbar #mobileTopCollapse,#mobilePreviewBar #mobileBottomCollapse{position:absolute;z-index:2;flex:none;width:44px;min-width:44px;height:44px;min-height:44px;border:0;border-radius:12px;padding:0;background:rgb(250 251 252 / .92);border:1px solid #d9dee5;box-shadow:0 2px 8px #0002;color:#58636e;font-size:19px}
+ #mobileTopbar #mobileTopCollapse{top:calc(100% + 2px);right:8px}
+ #mobilePreviewBar #mobileBottomCollapse{bottom:calc(100% + 2px);right:1px}
  #mobilePreviewBar{gap:1px}
  #shell[data-mobile-top-collapsed="true"] #mobileTopbar{transform:translateY(-115%);pointer-events:none}
  #shell[data-mobile-bottom-collapsed="true"] #mobilePreviewBar{transform:translateY(125%);pointer-events:none}
@@ -393,6 +396,8 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
  #mobileProjectMenu:not([hidden]){background:rgb(251 251 252 / var(--mobile-drawer-alpha,.9))}
  #mobileStudioPopover .ink-studio-alpha{display:grid;grid-template-columns:64px minmax(0,1fr) 45px;align-items:center;gap:8px;min-height:44px;font-size:11px;border-top:1px solid #e5e9ee;margin-top:5px}
  #mobileStudioPopover .ink-studio-alpha input{min-width:0}
+ #mobileStudioPopover .ink-studio-alpha[hidden]{display:none}
+ #mobileStudioPopover .ink-studio-title button[data-studio-alpha-toggle]{font-size:12px;font-weight:600;letter-spacing:0}
  #mobileTopEdgeHandle:focus-visible,#mobileBottomEdgeHandle:focus-visible,#mobileTopbar #mobileTopCollapse:focus-visible,#mobilePreviewBar #mobileBottomCollapse:focus-visible{outline:2px solid #0968a6}
 }
 @media (prefers-reduced-motion:reduce){#mobileTopbar,#mobilePreviewBar{transition:none}}
@@ -710,12 +715,12 @@ ink.addEventListener("pointerdown",e=>{
  e.preventDefault();e.stopImmediatePropagation();closeStudio();closeProjectMenu();renderQuick();
 },true);
 root.style.setProperty("--mobile-drawer-alpha",".9");
-let drawerAlpha=90;
+let drawerAlpha=90,drawerOptionsOpen=false;
 
-function closeStudio(){studio.hidden=true;studioMode=null}
+function closeStudio(){studio.hidden=true;studioMode=null;drawerOptionsOpen=false}
 function renderStudio(){
  if(!studioMode)return;
- const header=(name,secondary)=>'<div class="ink-studio-title"><strong>'+name+'</strong><small>'+secondary+'</small><button type="button" data-studio-close aria-label="關閉快捷設定">×</button></div>';
+ const header=(name,secondary)=>'<div class="ink-studio-title"><strong>'+name+'</strong><small>'+secondary+'</small><button type="button" data-studio-alpha-toggle aria-expanded="'+drawerOptionsOpen+'" aria-label="調整抽屜背景不透明度">透</button><button type="button" data-studio-close aria-label="關閉快捷設定">×</button></div>';
  if(studioMode==="size"){
   studio.innerHTML=header("畫筆設定","預覽筆刷")+
   '<div class="ink-studio-controls"><label class="ink-studio-control"><span>筆徑</span><input type="range" data-setting="size" min="1" max="64" step="1" value="'+size+'"><output data-out=size>'+size+' px</output></label>'+
@@ -732,11 +737,11 @@ function renderStudio(){
   '<p class="ink-studio-note">PC R2.11 十面板仍完整隱藏；此處只控制照片／筆畫可見性。</p>';
  }
  studio.dataset.studioMode=studioMode;
- studio.insertAdjacentHTML("beforeend",'<label class="ink-studio-alpha"><span>抽屜背景</span><input type="range" data-setting="drawerAlpha" min="80" max="100" step="5" value="'+drawerAlpha+'" aria-label="抽屜背景不透明度"><output data-out="drawerAlpha">'+drawerAlpha+'%</output></label>');
+ studio.insertAdjacentHTML("beforeend",'<label class="ink-studio-alpha"'+(drawerOptionsOpen?'':' hidden')+'><span>抽屜背景</span><input type="range" data-setting="drawerAlpha" min="80" max="100" step="5" value="'+drawerAlpha+'" aria-label="抽屜背景不透明度"><output data-out="drawerAlpha">'+drawerAlpha+'%</output></label>');
 }
 function openStudio(modeName){
  if(studioMode===modeName&&!studio.hidden){closeStudio();return}
- studioMode=modeName;renderStudio();studio.hidden=false;closeProjectMenu();viewState("canvas");
+ drawerOptionsOpen=false;studioMode=modeName;renderStudio();studio.hidden=false;closeProjectMenu();viewState("canvas");
 }
 studio.addEventListener("input",e=>{
  const el=e.target.closest("[data-setting]");if(!el)return;
@@ -746,6 +751,7 @@ studio.addEventListener("input",e=>{
  renderQuick();
 });
 studio.addEventListener("click",e=>{
+ if(e.target.closest("[data-studio-alpha-toggle]")){drawerOptionsOpen=!drawerOptionsOpen;renderStudio();return}
  if(e.target.closest("[data-studio-close]")){closeStudio();return}
  const sw=e.target.closest("[data-swatch]");
  if(sw){color=Number(sw.dataset.swatch);renderQuick();renderStudio();return}
