@@ -137,9 +137,16 @@ export class DocumentSessionRegistry {
   assertIdle(exceptLease=null){const busy=this.busy(exceptLease);if(busy.length)fail('INK_SESSION_BUSY:'+busy.join(','));}
   add(doc,{lease=null,activate=true,historyLimit=30,dirty=false,recoverySourceKey=null}={}){
     this.assertIdle(lease);
+    const portable=doc?.inkSessionHistory;
+    const link=doc?.inkSessionLink;
+    if(link&&(!/^[A-Za-z0-9_-]{10,160}$/.test(link.fileId)||link.documentId!==doc.id||!/^[a-f0-9]{64}$/.test(link.sha256)||Object.keys(link).some(k=>!['fileId','documentId','sha256'].includes(k))))fail('INK_SESSION_LINK_INVALID');
+    if(portable||link){doc=deepClone(doc);delete doc.inkSessionHistory;delete doc.inkSessionLink;}
+    const history=this.makeHistory(historyLimit);
+    if(portable)history.restorePortable(portable,{document:doc});
     const entry=this.makeEntry(doc);
     entry.recoverySourceKey=recoverySourceKey;
-    entry.values={doc,documentOpen:true,history:this.makeHistory(historyLimit),dirty:Boolean(dirty),selection:[],spatialIndex:this.makeSpatialIndex(),spatialDirty:true,spatialPending:new Set(),persistenceGeneration:0,mutationEpoch:0,autosaveBoundaryPromise:Promise.resolve(true),layoutViewportPreview:null,strokeEdit:null,draft:null};
+    entry.values={doc,documentOpen:true,history,portableHistoryEnabled:Boolean(portable),dirty:Boolean(dirty),selection:[],spatialIndex:this.makeSpatialIndex(),spatialDirty:true,spatialPending:new Set(),persistenceGeneration:0,mutationEpoch:0,autosaveBoundaryPromise:Promise.resolve(true),layoutViewportPreview:null,strokeEdit:null,draft:null};
+    entry.values.driveLinkIdentity=link||null;
     for(const key of studioKeys)entry.studio[key]=null;
     entry.studio.programStep=0;
     this.records.set(entry.sessionId,entry);
@@ -232,9 +239,17 @@ export class DocumentSessionRegistry {
     const admission=this.app.autosaveAdmission();
     return this.persistAutosave(admission,deepClone(this.app.doc));
   }
+  projectPayload(document=this.app.doc,{history=false}={}){
+    const entry=this.active();
+    if(!entry||entry.doc!==document)return document;
+    if(!history&&!entry.values.portableHistoryEnabled)return document;
+    return{...document,inkSessionHistory:entry.values.history.exportPortable(document),...(entry.values.driveLinkIdentity?{inkSessionLink:entry.values.driveLinkIdentity}:{})};
+  }
   async persistAutosave(admission,snapshot){
     const entry=this.get(admission.target?.sessionId);
     if(!entry||entry.state!=='OPEN')fail('INK_SESSION_STALE_TARGET');
+    if(entry.values.portableHistoryEnabled)snapshot={...snapshot,inkSessionHistory:entry.values.history.exportPortable(snapshot)};
+    if(entry.values.driveLinkIdentity)snapshot={...snapshot,inkSessionLink:entry.values.driveLinkIdentity};
     if(entry.legacy)return this.app.store.save(admission.storageKey,snapshot);
     return this.queueRecoveryUpdate(async()=>{
       this.assertTarget(admission.target);
