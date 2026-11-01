@@ -1,6 +1,8 @@
 import { deepClone } from '../core/index.js';
 import { applyPatches, createPatchPair, patchByteSize, patchObjectIds } from './diff.js';
 import { collectLinkedRepeatDependencies, synchronizeLinkedRepeatDependencies } from './repeat-source-sync.js';
+import { inspectDocument, documentFingerprint } from '../document/integrity.js';
+import { sanitizeDocument } from '../document/migration.js';
 
 const cloneMaybe = value => value === undefined ? undefined : deepClone(value);
 
@@ -99,6 +101,55 @@ export class HistoryManager {
   normalizeLimit(limit) {
     const numeric = Number(limit);
     return [20, 30, 50].includes(numeric) ? numeric : 30;
+  }
+
+  exportPortable(document = this.app.doc) {
+    if (this.pending) throw new Error('INK_HISTORY_BUSY');
+    const clean = value => { const copy=deepClone(value);delete copy.inkSessionHistory;delete copy.inkSessionLink;return copy; };
+    let past=clean(document),future=clean(document);
+    const states=[past];
+    for(let i=this.undoStack.length-1;i>=0;i--){past=applyPatches(deepClone(past),this.undoStack[i].inverse);states.unshift(past);}
+    for(const entry of [...this.redoStack].reverse()){future=applyPatches(deepClone(future),entry.forward);states.push(future);}
+    const payload={schema:'INK_NATIVE_HISTORY_CHECKPOINTS_V1',documentId:document.id,applied:this.undoStack.length,
+      limit:this.limit,labels:this.timeline().entries.map(x=>String(x.label).slice(0,256)),states:states.map(sanitizeDocument)};
+    // Validate exports through the exact same bounded parser used for remote input.
+    this.portableEntries(payload,document);
+    return payload;
+  }
+
+  portableEntries(payload,document=this.app.doc) {
+    const fail=()=>{throw new Error('INK_HISTORY_CHECKPOINT_INVALID');};
+    if(!payload||new TextEncoder().encode(JSON.stringify(payload)).byteLength>8*1024*1024)fail();
+    let nodes=0;
+    const safe=(value,depth=0)=>{if(++nodes>200000||depth>64)fail();if(value&&typeof value==='object')for(const [key,item]of Object.entries(value)){if(['__proto__','prototype','constructor','inkSessionHistory'].includes(key))fail();safe(item,depth+1);}};
+    safe(payload);
+    const {states,labels,applied}=payload;
+    if(payload.schema!=='INK_NATIVE_HISTORY_CHECKPOINTS_V1'||payload.documentId!==document?.id||
+      ![20,30,50].includes(payload.limit)||!Array.isArray(states)||states.length<1||states.length>payload.limit+1||
+      !Array.isArray(labels)||labels.length!==states.length-1||labels.some(s=>typeof s!=='string'||s.length>256)||
+      !Number.isSafeInteger(applied)||applied<0||applied>=states.length)fail();
+    const normalized=states.map(value=>{if(value?.id!==document.id||!inspectDocument(value).passed)fail();return sanitizeDocument(value);});
+    const current=deepClone(document);delete current.inkSessionHistory;delete current.inkSessionLink;
+    if(documentFingerprint(normalized[applied])!==documentFingerprint(sanitizeDocument(current)))fail();
+    // Diff the current boundary against the actual live document shape. Migration
+    // may add derived semantic nodes absent in an older/raw current document.
+    normalized[applied]=current;
+    return normalized.slice(1).map((value,i)=>{
+      const pair=createPatchPair(normalized[i],value);
+      return{label:labels[i],...pair,captureMode:'full',capturedBytes:0,targetCount:1,patchCount:pair.forward.length,
+        storedBytes:patchByteSize(pair.forward)+patchByteSize(pair.inverse),objectIds:patchObjectIds([...pair.forward,...pair.inverse])};
+    });
+  }
+
+  restorePortable(payload,{document=this.app.doc}={}) {
+    if(this.pending)throw new Error('INK_HISTORY_BUSY');
+    const entries=this.portableEntries(payload,document);
+    // Only native-generated patches enter this HistoryManager, never remote patches.
+    this.undoStack=entries.slice(0,payload.applied);
+    this.redoStack=entries.slice(payload.applied).reverse();
+    this.limit=payload.limit;
+    this.app.updateHistoryUI?.();
+    return true;
   }
 
   timeline() {
