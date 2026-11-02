@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>INK｜中央等弦波獨立預覽 v1</title>
+<style>
+:root { --bg:#f1f0ec; --ink:#69bfe3; --muted:#627985; --hair:rgba(105,191,227,.22); --panel:rgba(255,255,255,.73); }
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%;width:100%}
+body{font:13px/1.5 system-ui,-apple-system,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--muted)}
+main { position:fixed;inset:0;min-height:100dvh;overflow:hidden;isolation:isolate;background:var(--bg); }
+main::before { content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 63% at 44% 28%,rgba(255,255,255,.52),transparent 89%),radial-gradient(ellipse 70% 61% at 76% 88%,rgba(150,184,198,.035),transparent 88%); }
+svg#inkWave { position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible; }
+#equalWave {fill:none;stroke:var(--ink);stroke-width:1.45;stroke-linejoin:round;stroke-linecap:round;}
+nav { position:fixed;left:12px;right:12px;bottom:max(18px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap; }
+button { appearance:none;cursor:pointer;background:var(--panel);border:1px solid rgba(105,191,227,.29);border-radius:18px;padding:8px 13px;font:inherit;color:#496776;}
+button:hover{background:#fff}button:focus-visible{outline:2px solid #69bfe3;outline-offset:3px;}
+small {color:#80959d;font-size:11px;}
+nav small {margin-right:6px}
+.info {position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:7px 12px;max-width:calc(100vw - 22px);border-radius:16px;background:rgba(255,255,255,.40);color:#78909d;font-size:11px;letter-spacing:.025em;text-align:center;white-space:normal;}
+@media(max-width:480px) {nav{gap:6px}button{font-size:12px;padding:7px 10px}nav small{flex-basis:100%;text-align:center;margin:0}}
+@media(prefers-reduced-motion:reduce){nav small::after{content:' · 可定格';}}
+</style>
+</head>
+<body>
+<main id="scene" role="img" aria-label="一條等弦波由畫面中心向左右對稱展開">
+  <svg id="inkWave" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path id="equalWave" d=""/>
+  </svg>
+  <div class="info" id="info">中央置中 · 左右對稱 · 雙等高波峰／中央波谷 · INK Favicon 藍</div>
+  <nav aria-label="獨立波形預覽控制（正式 INK 不顯示）">
+    <small id="status">中央生成 → 向左右展開</small>
+    <button type="button" id="replay">重播</button>
+    <button type="button" id="half">定格 50%</button>
+    <button type="button" id="full">定格完整波形</button>
+  </nav>
+</main>
+<script>
+(() => {
+  'use strict';
+  const svg=document.getElementById('inkWave');
+  const path=document.getElementById('equalWave');
+  const status=document.getElementById('status');
+  const DURATION=1500;
+  let geometry=null;
+  let startTime=performance.now();
+  let frameId=0;
+  let lastP=0;
+  const clamp=v=>Math.min(1,Math.max(0,v));
+  const smooth=t=>{let q=clamp(t);return q*q*(3-2*q)};
+  const fmt=n=>Number(n).toFixed(4);
+
+  // The unchanged v4.9 two-equal-crests/one-center-trough waveform.
+  // y is in screen coordinates, so negative y is a crest.
+  // Pure -sin(3πu) between u=0.04 and 0.96; symmetric short Hermite
+  // joins at the endpoints flatten only the zero crossings.
+  function equalSine(u){
+    if(u<=0||u>=1)return 0;
+    const edge=0.04;
+    if(u>=edge&&u<=1-edge)return -Math.sin(3*Math.PI*u);
+    const q=Math.min(u,1-u),t=q/edge;
+    const y1=-Math.sin(3*Math.PI*edge);
+    const m1=-3*Math.PI*Math.cos(3*Math.PI*edge);
+    const h01=-2*t*t*t+3*t*t;
+    const h11=t*t*t-t*t;
+    return h01*y1+h11*edge*m1;
+  }
+  function measure(){
+    const w=window.innerWidth||1280, h=window.innerHeight||800;
+    // Preserve v4.9's original horizontal span and maximum amplitude.
+    // This is a relative size baseline, not a triangle-position dependency.
+    const totalWidth=2*h/(9*Math.sqrt(3));
+    const amplitude=Math.max(1.5,h/9*0.0225);
+    geometry={w,h,cx:w/2,cy:h/2,totalWidth,amplitude};
+    svg.setAttribute('viewBox',`0 0 ${fmt(w)} ${fmt(h)}`);
+  }
+  function render(progress){
+    const p=clamp(progress);
+    lastP=p;
+    const g=geometry;
+    // Single coherent path scales about its exact center. No reveal masks,
+    // amplitude envelopes across x, or per-crest changes.
+    const extent=smooth(p);
+    const width=g.totalWidth*extent;
+    const amp=g.amplitude*smooth(p);
+    if(width<0.001){path.setAttribute('d',`M ${fmt(g.cx)} ${fmt(g.cy)}`);return;}
+    const samples=384;
+    let d='';
+    for(let i=0;i<=samples;i++){
+      const u=i/samples;
+      const x=g.cx+(u-.5)*width;
+      const y=g.cy+amp*equalSine(u);
+      d+=(i?' L ':'M ')+fmt(x)+' '+fmt(y);
+    }
+    path.setAttribute('d',d);
+    status.textContent=p<1?'中央生成 → 向左右對稱展開':'等弦波完整 · 等待視覺驗收';
+  }
+  function tick(now){
+    const p=clamp((now-startTime)/DURATION);
+    render(p);
+    if(p<1)frameId=requestAnimationFrame(tick);else frameId=0;
+  }
+  function stop(){if(frameId){cancelAnimationFrame(frameId);frameId=0;}}
+  function replay(){stop();startTime=performance.now();render(0);frameId=requestAnimationFrame(tick);}
+  function seek(p){stop();render(p);}
+  function resize(){measure();render(lastP);}
+  addEventListener('resize',resize,{passive:true});
+  document.getElementById('replay').addEventListener('click',replay);
+  document.getElementById('half').addEventListener('click',()=>seek(.5));
+  document.getElementById('full').addEventListener('click',()=>seek(1));
+  window.__inkEqualWavePreview={equalSine,geometry:()=>({...geometry}),seek,replay,duration:DURATION};
+  measure();
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)seek(1);else replay();
+})();
+</script>
+</body>
+</html>
