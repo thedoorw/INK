@@ -1,13 +1,13 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "36faca40c1784f2164c0659c32ec2bdebb45f1b7",
-  "source_tree": "5daca65562499e67b8db520b60e52e4770c01ac2",
-  "runtime_digest_sha256": "90c9157ab5260e418bf540b7db48cc993e1da1a039e910143f0e31d25c43a1c1",
+  "source_sha": "430dadd302e65a0496a3dfdac373c4073439dc5c",
+  "source_tree": "8b3716d68c1a0014eb0f7e8d89773ac2a1bfd109",
+  "runtime_digest_sha256": "d67f241ecfb6ef6102fb89d6d4ff1aade8bb9728a7f09f08fdc81a3db24be349",
   "package_manifest_sha256": "e6bb6218a18d98f2e6f6f08e2f976edf0cb2246dab33d03128ce650caa8f6e32",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "bf7d267d020b336f6e7b887b683db4912c66076b",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/507#issuecomment-6560053263",
+  "previous_target_commit": "d1c9baf6e1cb7448d976e3e81eb19e2133bff194",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/519",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -35,15 +35,15 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "bytes": 62890,
-      "sha256": "beeb1ad1c034bf316b6b6561843bc93982910504b56bce02965f56971e955583",
-      "git_blob_sha": "07c0c87fcf86cc3d51924763c876b2fffd1b96f7"
+      "bytes": 62897,
+      "sha256": "6215455561f009ce351c8ddbe02017e6581f46b39781a86c0c9c90243d8dd108",
+      "git_blob_sha": "bf720ff6d9811a339484ff23cd0fcf8940d79d4a"
     },
     {
       "path": "build-identity.js",
       "bytes": 193,
-      "sha256": "3d92d755a980d9ae47526f59f6c55913d5cb34be81fbd111ad468bcfab5a0e16",
-      "git_blob_sha": "ccb6a404b93fcda1043328b091479ed123517fc6"
+      "sha256": "111c6232ed811ad04491296c713b2a0de4f9bbce1aa9023da8c9314b3e5cb973",
+      "git_blob_sha": "e669602aab3709f2698ca5829ae48b8a792a1e90"
     },
     {
       "path": "dist/ink.compat.js",
@@ -1745,9 +1745,9 @@
     },
     {
       "path": "src/ui/branding-settings.js",
-      "bytes": 7047,
-      "sha256": "4a5ae988bf57d812c1fec4c695cdd24256aa696cb45269f8e41cb1bf7118b48b",
-      "git_blob_sha": "4e083ae3eb1a31b0b0db4de2302aecdc2ac3fef8"
+      "bytes": 10003,
+      "sha256": "79df4de0a2cd22061a34b949d5d1bcdf4764c10c5b439871783ccf9ab349877e",
+      "git_blob_sha": "a0fc19f128546c933db62a3e791612afd3d001c6"
     },
     {
       "path": "src/ui/ink017/entry.js",

@@ -4,49 +4,49 @@
   "action": "publish",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "36faca40c1784f2164c0659c32ec2bdebb45f1b7",
-    "product_tree": "5daca65562499e67b8db520b60e52e4770c01ac2"
+    "exact_sha": "430dadd302e65a0496a3dfdac373c4073439dc5c",
+    "product_tree": "8b3716d68c1a0014eb0f7e8d89773ac2a1bfd109"
   },
-  "build_id": "src-7e2c24630f365a58c049e6a9",
-  "runtime_digest_sha256": "90c9157ab5260e418bf540b7db48cc993e1da1a039e910143f0e31d25c43a1c1",
+  "build_id": "src-b8382086dcef7ff03828e93e",
+  "runtime_digest_sha256": "d67f241ecfb6ef6102fb89d6d4ff1aade8bb9728a7f09f08fdc81a3db24be349",
   "package_manifest_sha256": "e6bb6218a18d98f2e6f6f08e2f976edf0cb2246dab33d03128ce650caa8f6e32",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
   "target": {
     "repo": "thedoorw/INK",
     "branch": "main",
-    "expected_head": "bf7d267d020b336f6e7b887b683db4912c66076b",
-    "expected_tree": "4a7d2e7fcaf9ab4547fef2da9ac4f61f3dc73921",
-    "prior_receipt_sha256": "30fe590bb77a6b1300304b5ba01bbfb1aeb7588ad597aeba88dd6722807cfdea"
+    "expected_head": "d1c9baf6e1cb7448d976e3e81eb19e2133bff194",
+    "expected_tree": "32d3caf7ca8a4dfd0e9c5616abc52ae2ad1b357a",
+    "prior_receipt_sha256": "67fd8be53ecfd9324a12436753f5d18f6ef0a284bc40c5df114fe1b0578016e8"
   },
   "qualification": {
-    "source_tree": "5daca65562499e67b8db520b60e52e4770c01ac2",
+    "source_tree": "8b3716d68c1a0014eb0f7e8d89773ac2a1bfd109",
     "runs": [
       {
-        "profile": "ink-507-compiled-windows-native-v1",
-        "id": 41321512181,
-        "workflow_path": ".github/workflows/ink-share-link-draw-001-focused.yml",
-        "workflow_blob": "c78a89a267bb3bf9e4de49eb7e7b7d7560b823f1",
-        "head_sha": "74798cc9dde258c66955675bc3521e196420cd82"
+        "profile": "ink-pr519-branding-site-default-windows-v1",
+        "id": 41599492534,
+        "workflow_path": ".github/workflows/ink-branding-pr519-windows-qa.yml",
+        "workflow_blob": "59916fcf8fd93b48779b194d9d2460e3d9032777",
+        "head_sha": "ba4f6081ed481777f91742b13073faa07113889f"
       }
     ]
   },
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/507#issuecomment-6560053263",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/519",
   "rollback": {
-    "public_commit": "bf7d267d020b336f6e7b887b683db4912c66076b",
-    "receipt_sha256": "30fe590bb77a6b1300304b5ba01bbfb1aeb7588ad597aeba88dd6722807cfdea",
-    "source_sha": "5401505318efa796ad067dd4eab8f624e47669d4",
-    "source_tree": "33a539b3b4bb04bea209f550ff9f6cc9cf50d8d4"
+    "public_commit": "d1c9baf6e1cb7448d976e3e81eb19e2133bff194",
+    "receipt_sha256": "67fd8be53ecfd9324a12436753f5d18f6ef0a284bc40c5df114fe1b0578016e8",
+    "source_sha": "36faca40c1784f2164c0659c32ec2bdebb45f1b7",
+    "source_tree": "5daca65562499e67b8db520b60e52e4770c01ac2"
   },
   "files": [
     {
       "path": "BUILD_INFO.json",
-      "bytes": 62890,
-      "sha256": "beeb1ad1c034bf316b6b6561843bc93982910504b56bce02965f56971e955583"
+      "bytes": 62897,
+      "sha256": "6215455561f009ce351c8ddbe02017e6581f46b39781a86c0c9c90243d8dd108"
     },
     {
       "path": "PUBLISH_RECEIPT.json",
-      "bytes": 81628,
-      "sha256": "67fd8be53ecfd9324a12436753f5d18f6ef0a284bc40c5df114fe1b0578016e8"
+      "bytes": 81605,
+      "sha256": "7b7cbe183128d40df334269dc137106de633b959188fb4bf7f6de11f7255520e"
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -71,7 +71,7 @@
     {
       "path": "build-identity.js",
       "bytes": 193,
-      "sha256": "3d92d755a980d9ae47526f59f6c55913d5cb34be81fbd111ad468bcfab5a0e16"
+      "sha256": "111c6232ed811ad04491296c713b2a0de4f9bbce1aa9023da8c9314b3e5cb973"
     },
     {
       "path": "dist/ink.compat.js",
@@ -1490,8 +1490,8 @@
     },
     {
       "path": "src/ui/branding-settings.js",
-      "bytes": 7047,
-      "sha256": "4a5ae988bf57d812c1fec4c695cdd24256aa696cb45269f8e41cb1bf7118b48b"
+      "bytes": 10003,
+      "sha256": "79df4de0a2cd22061a34b949d5d1bcdf4764c10c5b439871783ccf9ab349877e"
     },
     {
       "path": "src/ui/ink017/entry.js",
@@ -1769,10 +1769,5 @@
       "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
     }
   ],
-  "deletions": [
-    "dist/startup/chunks/chunk-QJVBLZAR.mjs",
-    "dist/startup/chunks/chunk-WOYAYXJK.mjs",
-    "dist/startup/chunks/chunk-ZMY6Y7MB.mjs",
-    "dist/startup/chunks/runtime-test-bridge-LCQT6YPB.mjs"
-  ]
+  "deletions": []
 }
