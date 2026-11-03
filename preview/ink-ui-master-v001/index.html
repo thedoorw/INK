@@ -432,46 +432,56 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 }
 
 
-/* Master preview branding dialog: fixed controls and genuine desktop titlebar dragging. */
+/* Master UI / site branding. Row pitch 32, input 23, chooser 22, action 26; all 2/4/6/8/10/16 grid. */
 #masterBrandOverlay[hidden]{display:none!important}
-#masterBrandOverlay{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;background:#0005;padding:16px}
-#masterBrandDialog{display:flex;flex-direction:column;box-sizing:border-box;width:min(548px,100%);max-height:calc(100dvh - 32px);min-width:0;overflow:hidden;border:1px solid var(--border);border-radius:9px;background:var(--surface);box-shadow:0 15px 42px #0003;color:var(--primary);font-size:12px}
-#masterBrandHeader{display:flex;align-items:center;justify-content:space-between;min-height:42px;flex:0 0 42px;padding:0 14px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;cursor:grab;touch-action:none;user-select:none}
+#masterBrandOverlay{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);padding:16px}
+#masterBrandDialog{box-sizing:border-box;display:flex;flex-direction:column;width:min(496px,100%);max-height:calc(100dvh - 32px);min-width:0;overflow:hidden;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:0 10px 32px #0003;color:var(--primary);font:400 12px/16px var(--ui-font);transform:translate(0,0)}
+#masterBrandHeader{display:flex;align-items:center;justify-content:space-between;height:40px;min-height:40px;flex:0 0 40px;padding:0 12px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;cursor:grab;touch-action:none;user-select:none}
 #masterBrandHeader[data-dragging=true]{cursor:grabbing}
-#masterBrandHeader button{height:30px;min-height:30px;width:30px;flex:none;border:0;background:transparent;cursor:pointer;font-size:17px}
-#masterBrandBody{display:grid;gap:14px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:16px 18px}
-.master-brand-field{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
-.master-brand-field label,.master-brand-file label{color:var(--secondary)}
-.master-brand-field input[type=text]{width:100%;min-width:0;height:30px;padding:5px 9px;border:1px solid var(--border);border-radius:4px;background:white}
-#masterBrandPreview{display:flex;align-items:center;gap:18px;min-height:54px}
-#masterBrandWordmark{font-size:20px;font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#masterBrandLogoImage{width:auto;max-width:150px;height:48px;object-fit:contain}#masterBrandLogoImage[hidden]{display:none!important}
-#masterBrandMark{width:42px;height:42px;object-fit:contain}
-.master-brand-file{display:grid;gap:5px;min-width:0}
-.master-brand-file input[type=file]{box-sizing:border-box;display:block;max-width:100%;width:100%;min-width:0;min-height:32px;overflow:hidden;border:1px solid var(--border);border-radius:4px;background:white}
-.master-brand-file input[type=file]::file-selector-button{height:30px;margin-right:10px;padding:0 12px;border:0;border-right:1px solid var(--border);background:var(--soft);font:inherit;cursor:pointer}
-#masterBrandHelp,#masterBrandStatus{margin:0;color:var(--secondary);font-size:11px;line-height:1.6}
-#masterBrandStatus{min-height:18px}
-#masterBrandFooter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--line)}
-#masterBrandFooter button{min-width:0;min-height:34px;padding:0 13px;white-space:nowrap;border:1px solid var(--border);border-radius:5px}
-#masterBrandApply{width:100%;background:var(--primary)!important;border-color:var(--primary)!important;color:white!important;font-weight:600}
+#masterBrandHeader button{width:26px;height:26px;min-height:26px;flex:none;border:0;background:transparent;padding:0;font-size:16px;cursor:pointer}
+#masterBrandBody{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px 16px}
+.master-brand-field,.master-brand-file{display:grid;grid-template-columns:106px minmax(0,1fr);gap:8px;align-items:center;min-width:0;min-height:32px}
+.master-brand-field label,.master-brand-file>label{color:var(--secondary);font-size:12px;line-height:16px}
+.master-brand-field input[type=text]{box-sizing:border-box;display:block;width:100%;min-width:0;height:23px;min-height:23px;margin:0;padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:white;font-size:12px;line-height:16px}
+#masterBrandPreview{display:flex;align-items:center;gap:16px;min-height:44px;padding:0 0 0 0}
+.master-brand-preview-item{display:flex;align-items:center;gap:8px;min-width:0;max-width:50%}
+.master-brand-preview-label{width:40px;flex:none;color:var(--secondary);font-size:11px}
+#masterBrandWordmark{display:block;max-width:130px;font-size:18px;line-height:24px;font-weight:600;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#masterBrandLogoImage{display:block;width:auto;max-width:132px;height:36px;object-fit:contain}
+#masterBrandLogoImage[hidden],#masterBrandWordmark[hidden]{display:none!important}
+#masterBrandMark{display:block;width:32px;height:32px;object-fit:contain}
+.master-brand-file-control{display:flex;align-items:center;gap:8px;min-width:0;height:26px}
+.master-brand-file-control button{height:22px;min-height:22px;min-width:76px;padding:0 8px;border:1px solid var(--border);border-radius:3px;background:#fff;font-size:12px;font-weight:400;white-space:nowrap}
+.master-brand-file-control button:hover{background:var(--soft)}
+.master-brand-file-control span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary)}
+#masterBrandOverlay input[type=file][hidden]{display:none!important}
+#masterBrandHelp,#masterBrandStatus{margin:0;min-height:16px;color:var(--secondary);font-size:11px;line-height:16px}
+#masterBrandStatus[data-state=error]{color:#a32b2b}
+#masterBrandStatus[data-state=ready]{color:#305a3f}
+#masterBrandFooter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;flex:0 0 40px;min-height:40px;padding:6px 12px;border-top:1px solid var(--line)}
+#masterBrandFooter button{box-sizing:border-box;height:26px;min-height:26px;min-width:0;padding:0 10px;border:1px solid var(--border);border-radius:4px;background:#fff;font-size:12px;line-height:16px;font-weight:400;white-space:nowrap}
+#masterBrandApply{width:100%;background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important;font-weight:600!important}
+#masterBrandApply:disabled{opacity:.45;cursor:default}
 #masterBrandOverlay :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px),(pointer:coarse){#masterBrandHeader{cursor:default;touch-action:auto}}
-@media(max-width:430px){#masterBrandOverlay{padding:10px}#masterBrandDialog{max-height:calc(100dvh - 20px)}#masterBrandBody{padding:14px;gap:12px}.master-brand-field{grid-template-columns:1fr;gap:5px}#masterBrandFooter{grid-template-columns:1fr 1fr;padding:10px 14px}#masterBrandApply{grid-column:1/-1;grid-row:1}#masterBrandClear,#masterBrandClose{grid-row:2}#masterBrandFooter button{min-height:44px}}
+@media(max-width:420px){#masterBrandOverlay{padding:8px}#masterBrandDialog{max-height:calc(100dvh - 16px)}#masterBrandBody{padding:10px;gap:6px}.master-brand-field,.master-brand-file{grid-template-columns:1fr;gap:2px;min-height:auto}.master-brand-file-control{min-height:30px}#masterBrandFooter{grid-template-columns:1fr 1fr;min-height:72px;flex-basis:72px;padding:6px 10px}#masterBrandApply{grid-column:1/-1;grid-row:1}#masterBrandClear,#masterBrandClose{grid-row:2}#masterBrandFooter button{min-height:26px}#masterBrandPreview{gap:8px}.master-brand-preview-label{width:34px}}
 </style></head><body><div id="shell" class="shell"><aside class="left-rail"><button id="logoButton" aria-label="Application menu">INK</button><div class="tool-area" role="toolbar" aria-label="工具"></div><button type="button" id="railCustomize" aria-label="自訂工具列" title="自訂工具列">⋯</button><div class="rail-colors"><button id="resetColors" class="color-micro reset-colors" aria-label="Default colors (D)" title="Default colors (D)">◩</button><button id="swapColors" class="color-micro swap-colors" aria-label="Swap colors (X)" title="Swap colors (X)">⇄</button><button id="colorState" class="color-state" aria-label="Foreground and background colors"><span class="bg"></span><span class="fg"></span></button></div><div class="rail-spacer"></div><button id="quickUndo" aria-label="Undo" title="Undo (Ctrl+Z)">↶</button><button id="quickRedo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)">↷</button><button id="railToggle" aria-label="Toggle tool columns"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="6" height="14"/><rect x="14" y="5" width="6" height="14"/></svg></button></aside><main id="workspace" class="workspace" aria-label="Artwork workspace"><div id="artboardStage" class="artboard-stage"><div class="artboard-card active"><div class="artboard"><div class="artboard-margin"></div></div></div></div><div id="guideLayer" class="guide-layer"></div><span id="masterLabel">UI MASTER v0.3 · 手機滿版草稿</span><button type="button" id="masterDocSwitch" title="僅切換草稿示意，不建立文件">示意：有文件 ▾</button><button type="button" id="ur2ReviewButton" title="45 項功能缺口盤點（非 Native 功能）">UR2 待補／對照（45）</button></main><aside id="rightDock" class="right-dock" aria-label="UI3 R2.11 十面板整合設計草稿"><iframe id="masterDockFrame" title="UI3 R2.11 interactive preview" loading="eager"></iframe></aside><div id="dockResizer" role="separator" tabindex="0" aria-label="Resize right dock" aria-orientation="vertical"></div><div class="context-float"><button id="contextToggle" aria-label="Expand tool settings" aria-expanded="false" aria-controls="contextControls">⋯</button><span id="contextIdentity">Select</span><div id="contextControls"></div></div><div id="mainMenu" class="main-menu" hidden></div>
 <div id="masterBrandOverlay" hidden>
  <section id="masterBrandDialog" role="dialog" aria-modal="true" aria-labelledby="masterBrandHeading" aria-describedby="masterBrandHelp" tabindex="-1">
-  <header id="masterBrandHeader"><span id="masterBrandHeading">網站品牌設定</span><button id="masterBrandX" type="button" aria-label="關閉品牌設定">×</button></header>
+  <header id="masterBrandHeader"><span id="masterBrandHeading">網站品牌設定</span><button id="masterBrandX" type="button" aria-label="關閉網站品牌設定">×</button></header>
   <div id="masterBrandBody">
-   <div class="master-brand-field"><label for="masterBrandName">Application Name</label><input id="masterBrandName" type="text" maxlength="32" value="INK"></div>
-   <div class="master-brand-field"><label for="masterBrandTitle">Browser Title</label><input id="masterBrandTitle" type="text" maxlength="100" value="INK v0.1 · Web"></div>
-   <div id="masterBrandPreview"><span id="masterBrandWordmark">INK</span><img id="masterBrandLogoImage" alt="Logo 草稿預覽" hidden><img id="masterBrandMark" src="../../assets/ink-mark.svg" alt="網站圖示預覽"></div>
-   <div class="master-brand-file"><label for="masterBrandLogoFile">Choose Logo</label><input id="masterBrandLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></div>
-   <div class="master-brand-file"><label for="masterBrandFaviconFile">Choose Favicon</label><input id="masterBrandFaviconFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></div>
-   <p id="masterBrandHelp">設為網站預設需經正式審查及發布；此處不保存僅此瀏覽器的圖示。</p>
-   <p id="masterBrandStatus" role="status" aria-live="polite">Master UI 設計草稿，尚未提交或發布。</p>
+   <div class="master-brand-field"><label for="masterBrandName">Application Name</label><input id="masterBrandName" type="text" maxlength="32" value="INK" autocomplete="off"></div>
+   <div class="master-brand-field"><label for="masterBrandTitle">Browser Title</label><input id="masterBrandTitle" type="text" maxlength="100" value="INK v0.1 · Web" autocomplete="off"></div>
+   <div id="masterBrandPreview">
+    <div class="master-brand-preview-item"><span class="master-brand-preview-label">Logo</span><span id="masterBrandWordmark">INK</span><img id="masterBrandLogoImage" alt="自訂 Logo 預覽" hidden></div>
+    <div class="master-brand-preview-item"><span class="master-brand-preview-label">Favicon</span><img id="masterBrandMark" src="../../assets/favicon.png" alt="網站預設 Favicon 預覽"></div>
+   </div>
+   <div class="master-brand-file"><label for="masterBrandLogoFile">Choose Logo</label><div class="master-brand-file-control"><button id="masterBrandLogoChoose" type="button">選擇圖檔</button><span id="masterBrandLogoFilename">未選擇檔案</span><input id="masterBrandLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden></div></div>
+   <div class="master-brand-file"><label for="masterBrandFaviconFile">Choose Favicon</label><div class="master-brand-file-control"><button id="masterBrandFaviconChoose" type="button">選擇圖檔</button><span id="masterBrandFaviconFilename">未選擇檔案</span><input id="masterBrandFaviconFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden></div></div>
+   <p id="masterBrandHelp">網站預設須經 INK PUBLISH 核准與發布；不使用僅此瀏覽器的覆蓋模式。</p>
+   <p id="masterBrandStatus" role="status" aria-live="polite">請修改名稱或選擇 Logo／Favicon，再準備發布候選。</p>
   </div>
-  <footer id="masterBrandFooter"><button id="masterBrandClear" type="button">清除</button><button id="masterBrandApply" type="button">設為網站預設</button><button id="masterBrandClose" type="button">關閉</button></footer>
+  <footer id="masterBrandFooter"><button id="masterBrandClear" type="button">清除</button><button id="masterBrandApply" type="button" disabled>設為網站預設</button><button id="masterBrandClose" type="button">關閉</button></footer>
  </section>
 </div>
 <div id="overlay" class="overlay" hidden></div><div id="toast" role="status" aria-live="polite"></div><input id="openFile" type="file" accept="application/json,.json" hidden><div id="toolGroupMenu" class="drawing-tool-menu" popover="manual" role="menu"></div></div>
@@ -1039,69 +1049,189 @@ requestAnimationFrame(paint);
 })();
 </script>
 <script>
-/* Sole Master preview interaction; no Native, local branding persistence or GitHub publishing. */
+/* MASTER UI: real site-branding candidate export; no direct GitHub publish or browser-local override. */
 (()=>{
 'use strict';
-const get=id=>document.getElementById(id);
-const overlay=get('masterBrandOverlay'),dialog=get('masterBrandDialog'),header=get('masterBrandHeader');
-const name=get('masterBrandName'),title=get('masterBrandTitle'),mark=get('masterBrandMark'),word=get('masterBrandWordmark');
-const logo=get('masterBrandLogoFile'),favicon=get('masterBrandFaviconFile'),status=get('masterBrandStatus'),logoImage=get('masterBrandLogoImage');
-const defaultMark=mark.getAttribute('src'),urls=new Map();
-let prior=null,dx=0,dy=0,drag=null;
-function center(){dx=0;dy=0;drag=null;dialog.style.transform='';header.removeAttribute('data-dragging');}
-function close(){if(overlay.hidden)return;overlay.hidden=true;center();if(prior?.isConnected)prior.focus();}
-function open(){prior=document.activeElement;center();overlay.hidden=false;status.textContent='Master UI 設計草稿，尚未提交或發布。';name.focus();}
+const $=id=>document.getElementById(id);
+const overlay=$('masterBrandOverlay'),panel=$('masterBrandDialog'),header=$('masterBrandHeader');
+const name=$('masterBrandName'),title=$('masterBrandTitle'),word=$('masterBrandWordmark');
+const logoImage=$('masterBrandLogoImage'),faviconImage=$('masterBrandMark');
+const logo=$('masterBrandLogoFile'),favicon=$('masterBrandFaviconFile');
+const status=$('masterBrandStatus'),button=$('masterBrandApply');
+const names={logo:$('masterBrandLogoFilename'),favicon:$('masterBrandFaviconFilename')};
+const defaults=Object.freeze({name:'INK',title:'INK v0.1 · Web'});
+const originalFavicon=faviconImage.getAttribute('src');
+const supported=new Set(['image/png','image/jpeg','image/webp','image/gif','image/svg+xml']);
+const limits={logo:768*1024,favicon:256*1024};
+const loaded={logo:null,favicon:null},previewUrls=new Map();
+let previousFocus=null,drag=null,offsetX=0,offsetY=0,pending=0,lastExport=null;
+const setStatus=(message,state='')=>{status.textContent=message;status.dataset.state=state;};
+const trim=s=>s.trim();
+const changed=()=>Boolean(loaded.logo||loaded.favicon||
+  trim(name.value)!==defaults.name||trim(title.value)!==defaults.title);
+const refresh=()=>{button.disabled=pending>0||!changed();};
+const center=()=>{offsetX=0;offsetY=0;drag=null;panel.style.transform='';header.removeAttribute('data-dragging');};
+function open(){
+  if(!overlay.hidden)return;
+  previousFocus=document.activeElement;center();overlay.hidden=false;
+  setStatus('請修改名稱或選擇圖示；候選經 INK PUBLISH 核准後才會成為網站預設。');
+  refresh();name.focus();
+}
+function close(){
+  if(overlay.hidden)return;
+  overlay.hidden=true;center();
+  if(previousFocus?.isConnected)previousFocus.focus();
+}
 function clear(){
- for(const u of urls.values())URL.revokeObjectURL(u);urls.clear();
- name.value='INK';title.value='INK v0.1 · Web';word.textContent='INK';word.removeAttribute('title');
- mark.src=defaultMark;logoImage.hidden=true;logoImage.removeAttribute('src');word.hidden=false;logo.value='';favicon.value='';
- status.textContent='已清除未提交變更；網站設定沒有改變。';
+  if(pending)return;
+  for(const url of previewUrls.values())URL.revokeObjectURL(url);
+  previewUrls.clear();loaded.logo=null;loaded.favicon=null;
+  name.value=defaults.name;title.value=defaults.title;word.textContent=defaults.name;
+  word.hidden=false;logoImage.hidden=true;logoImage.removeAttribute('src');
+  faviconImage.src=originalFavicon;
+  logo.value='';favicon.value='';names.logo.textContent='未選擇檔案';names.favicon.textContent='未選擇檔案';
+  lastExport=null;refresh();setStatus('未提交變更已清除；網站圖示沒有改變。');
 }
-name.addEventListener('input',()=>{word.textContent=name.value.trim()||'INK';});
-function wire(input,kind){
- input.addEventListener('change',()=>{
-  const f=input.files?.[0];if(!f)return;
-  const max=kind==='favicon'?256*1024:768*1024;
-  if(!['image/png','image/jpeg','image/webp','image/gif','image/svg+xml'].includes(f.type)||!f.size||f.size>max){
-   input.value='';status.textContent='格式或檔案大小不符。';return;
+function svgSafe(raw){
+  if(!/^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b/i.test(raw)||!/\bviewBox\s*=\s*["'][^"']+["']/i.test(raw)||
+    !/<\/svg\s*>\s*$/.test(raw))return false;
+  if(/<!|<\?(?!xml\b)|\bon[a-z][\w-]*\s*=|\b(?:href|src|style)\s*=|url\s*\(|@import|javascript:|data:/i.test(raw))return false;
+  const allowed=new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','title','desc']);
+  for(const m of raw.matchAll(/<\s*\/?\s*([a-z][\w:.-]*)\b/gi))
+    if(!allowed.has(m[1].toLowerCase()))return false;
+  return true;
+}
+function decodeAsset(readerData,type){
+  const re=/^data:(image\/(?:png|jpeg|webp|gif|svg\+xml));base64,([a-z0-9+/=]+)$/i;
+  const match=re.exec(readerData);
+  if(!match||match[1].toLowerCase()!==type)throw Error('圖檔編碼與格式不一致');
+  const binary=atob(match[2]);
+  if(!binary.length)throw Error('圖檔內容為空');
+  if(type==='image/svg+xml'){
+    if(!svgSafe(new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(binary,c=>c.charCodeAt(0)))))
+      throw Error('SVG 含有未允許的內容');
+  }else if(type==='image/png'){
+    if(binary.slice(0,8)!=='\x89PNG\r\n\x1a\n')throw Error('PNG 格式不正確');
+  }else if(type==='image/jpeg'){
+    if(binary.charCodeAt(0)!==255||binary.charCodeAt(1)!==216||
+      binary.charCodeAt(binary.length-2)!==255||binary.charCodeAt(binary.length-1)!==217)
+      throw Error('JPEG 格式不正確');
+  }else if(type==='image/gif'){
+    if(!['GIF87a','GIF89a'].includes(binary.slice(0,6)))throw Error('GIF 格式不正確');
+  }else if(type==='image/webp'){
+    if(binary.slice(0,4)!=='RIFF'||binary.slice(8,12)!=='WEBP')throw Error('WebP 格式不正確');
   }
-  if(urls.has(kind))URL.revokeObjectURL(urls.get(kind));
-  const url=URL.createObjectURL(f);urls.set(kind,url);
-  if(kind==='favicon')mark.src=url;else{logoImage.src=url;logoImage.hidden=false;word.hidden=true;}
-  status.textContent=(kind==='favicon'?'Favicon':'Logo')+' 草稿預覽已更新，尚未生效。';
- });
+  return {media_type:type,base64:match[2]};
 }
-wire(logo,'logo');wire(favicon,'favicon');
-get('masterBrandClear').addEventListener('click',clear);
-get('masterBrandApply').addEventListener('click',()=>{status.textContent='僅供 Master UI 預覽；實際網站設定須交由受控發布流程。';});
-get('masterBrandClose').addEventListener('click',close);
-get('masterBrandX').addEventListener('click',close);
+function choose(kind,input){
+  const selected=input.files?.[0];
+  input.value='';
+  if(!selected)return;
+  if(!supported.has(selected.type)||!selected.size||selected.size>limits[kind]){
+    setStatus('圖檔格式或大小不符（Logo 768 KB／Favicon 256 KB）。','error');return;
+  }
+  pending++;refresh();
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const asset=decodeAsset(String(reader.result),selected.type);
+      if(!asset||Math.ceil(asset.base64.length*3/4)>limits[kind])throw Error('圖檔超過限制');
+      loaded[kind]=asset;
+      if(previewUrls.has(kind))URL.revokeObjectURL(previewUrls.get(kind));
+      const url=URL.createObjectURL(selected);previewUrls.set(kind,url);
+      if(kind==='logo'){logoImage.src=url;logoImage.hidden=false;word.hidden=true;}
+      else faviconImage.src=url;
+      names[kind].textContent=selected.name;names[kind].title=selected.name;
+      lastExport=null;setStatus((kind==='logo'?'Logo':'Favicon')+' 已加入網站預設候選；尚未發布。','ready');
+    }catch(error){setStatus('圖檔無法使用：'+error.message,'error');}
+    finally{pending--;refresh();}
+  };
+  reader.onerror=()=>{pending--;refresh();setStatus('無法讀取圖檔；候選沒有變更。','error');};
+  reader.readAsDataURL(selected);
+}
+$('masterBrandLogoChoose').addEventListener('click',()=>logo.click());
+$('masterBrandFaviconChoose').addEventListener('click',()=>favicon.click());
+logo.addEventListener('change',()=>choose('logo',logo));
+favicon.addEventListener('change',()=>choose('favicon',favicon));
+name.addEventListener('input',()=>{word.textContent=trim(name.value)||defaults.name;lastExport=null;refresh();});
+title.addEventListener('input',()=>{lastExport=null;refresh();});
+function candidate(){
+  if(!changed()||pending)throw Error('沒有可提交的變更');
+  const n=trim(name.value),t=trim(title.value);
+  if(!n||!t||n.length>32||t.length>100||
+    /[\u0000-\u001f\u007f<>]/u.test(n+t))
+    throw Error('網站名稱或標題不符合規格');
+  const assets={};
+  for(const kind of ['logo','favicon'])if(loaded[kind])assets[kind]=loaded[kind];
+  return {
+    schema:'INK_SITE_BRANDING_CANDIDATE_V2',
+    status:'AWAITING_REVIEW',
+    intent:'SET_WEBSITE_DEFAULT_AFTER_RELEASE',
+    site:'https://thedoorw.github.io/INK/',
+    destination:'thedoorw/INK-Browser-QA (Private source) -> Static Sync009 -> thedoorw/INK (Public)',
+    metadata:{name:n,title:t},
+    assets,
+    publication_note:'本檔為網站預設候選；須經 INK PUBLISH、Private QA、Public exact-HEAD 核准與 Pages 部署後才會跨裝置生效。'
+  };
+}
+function prepare(){
+  try{
+    const proposal=candidate();
+    const bytes=JSON.stringify(proposal,null,2)+'\n';
+    const blob=new Blob([bytes],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='INK_SITE_BRANDING_CANDIDATE.json';
+    document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    lastExport=proposal;
+    setStatus('網站預設候選已建立並下載；交由 INK PUBLISH 審查、核准與正式發布後才會跨裝置生效。','ready');
+  }catch(error){setStatus(error.message,'error');}
+}
+button.addEventListener('click',prepare);
+$('masterBrandClear').addEventListener('click',clear);
+$('masterBrandX').addEventListener('click',close);
+$('masterBrandClose').addEventListener('click',close);
 overlay.addEventListener('pointerdown',e=>{if(e.target===overlay)close();});
 overlay.addEventListener('keydown',e=>{
- if(e.key==='Escape'){e.preventDefault();close();}
- if(e.key==='Tab'){
-  const a=[...dialog.querySelectorAll('button:not([disabled]),input:not([disabled])')],first=a[0],last=a.at(-1);
-  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
-  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
- }
+  if(e.key==='Escape'){e.preventDefault();close();}
+  if(e.key==='Tab'){
+    const controls=[...panel.querySelectorAll('button:not([disabled]),input:not([disabled]):not([hidden])')];
+    const first=controls[0],last=controls.at(-1);
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
 });
 header.addEventListener('pointerdown',e=>{
- if(overlay.hidden||e.button!==0||e.pointerType!=='mouse'||matchMedia('(max-width:600px)').matches||e.target.closest('button'))return;
- const r=dialog.getBoundingClientRect();e.preventDefault();
- drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top,width:r.width,height:r.height,dx,dy};
- header.setPointerCapture(e.pointerId);header.dataset.dragging='true';
+  if(overlay.hidden||e.button!==0||e.pointerType!=='mouse'||
+    matchMedia('(max-width:600px)').matches||e.target.closest('button,input,a'))return;
+  const r=panel.getBoundingClientRect();e.preventDefault();
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top,width:r.width,height:r.height,offsetX,offsetY};
+  header.setPointerCapture(e.pointerId);header.dataset.dragging='true';
 });
 header.addEventListener('pointermove',e=>{
- if(!drag||e.pointerId!==drag.id)return;
- const x=Math.max(8-drag.left,Math.min(innerWidth-drag.width-8-drag.left,e.clientX-drag.x));
- const y=Math.max(8-drag.top,Math.min(innerHeight-drag.height-8-drag.top,e.clientY-drag.y));
- dx=drag.dx+x;dy=drag.dy+y;dialog.style.transform='translate('+dx+'px,'+dy+'px)';
+  if(!drag||e.pointerId!==drag.id)return;
+  const x=Math.max(8-drag.left,Math.min(innerWidth-drag.width-8-drag.left,e.clientX-drag.x));
+  const y=Math.max(8-drag.top,Math.min(innerHeight-drag.height-8-drag.top,e.clientY-drag.y));
+  offsetX=drag.offsetX+x;offsetY=drag.offsetY+y;
+  panel.style.transform='translate('+offsetX+'px,'+offsetY+'px)';
 });
-const end=e=>{if(!drag||e.pointerId!==drag.id)return;drag=null;header.removeAttribute('data-dragging');if(header.hasPointerCapture(e.pointerId))header.releasePointerCapture(e.pointerId);};
-header.addEventListener('pointerup',end);header.addEventListener('pointercancel',end);
+function endDrag(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  drag=null;header.removeAttribute('data-dragging');
+  if(header.hasPointerCapture(e.pointerId))header.releasePointerCapture(e.pointerId);
+}
+header.addEventListener('pointerup',endDrag);
+header.addEventListener('pointercancel',endDrag);
 window.addEventListener('resize',()=>{if(!overlay.hidden)center();});
 window.INK_MASTER_BRANDING_OPEN=open;
-window.INK_MASTER_BRANDING_PREVIEW=Object.freeze({open,close,inspect:()=>({open:!overlay.hidden,dx,dy,previewOnly:true})});
+window.INK_MASTER_BRANDING_PREVIEW=Object.freeze({
+  open,close,inspect:()=>({open:!overlay.hidden,x:offsetX,y:offsetY,
+    hasLogo:!!loaded.logo,hasFavicon:!!loaded.favicon,canSubmit:!button.disabled,
+    schema:'INK_SITE_BRANDING_CANDIDATE_V2',previewOnly:true,
+    published:false,hasExport:!!lastExport})
+});
 })();
 </script>
+
 </body></html>
