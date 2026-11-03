@@ -41,7 +41,7 @@
 .menu-group+.menu-group{border-top:1px solid var(--line);padding-top:3px;margin-top:3px}
 .menu-item-host{position:relative}
 .menu-row{width:100%;height:28px;display:flex;align-items:center;gap:4px;text-align:left;padding:0 6px;white-space:nowrap}
-.menu-row:disabled{opacity:1;color:var(--secondary);cursor:default}.menu-row:disabled .menu-shortcut,.menu-row:disabled .menu-chevron{color:var(--secondary)}.menu-row[data-command^="export:"]:not(:disabled) .menu-label{font-weight:var(--weight-strong)}
+.menu-row:disabled{opacity:1;color:var(--secondary);cursor:default}.menu-row[data-preview-only="true"]{color:var(--secondary)}.menu-row[data-preview-only="true"] .menu-preview-suffix{font-size:var(--text-tiny);color:var(--secondary)}.menu-row:disabled .menu-shortcut,.menu-row:disabled .menu-chevron{color:var(--secondary)}.menu-row[data-command^="export:"]:not(:disabled) .menu-label{font-weight:var(--weight-strong)}
 .menu-label{flex:1 1 auto;min-width:0;overflow:visible;text-overflow:clip;white-space:nowrap}
 .menu-shortcut{font-size:var(--text-tiny);color:var(--secondary);margin-left:auto;flex-shrink:0}
 .menu-chevron{font-size:16px;color:var(--secondary);line-height:1;margin-left:auto}
@@ -684,11 +684,18 @@ const menu=document.getElementById('mainMenu'),logo=document.getElementById('log
 const d={category:'file',expanded:'',hasDoc:true};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const note=t=>{const n=document.getElementById('ur2Notice');n.textContent=t;n.hidden=false;setTimeout(()=>n.hidden=true,2400)};
-const wired=x=>!!x.key&&!x.coreOnly&&(d.hasDoc||['new','open','recover','history-limit','branding'].includes(x.key)||x.key.startsWith('panel:'));
+// Master has no Native command host. The only working menu actions are
+// deliberately bounded previews: New Document mock and Brand candidate export.
+// A command key in the source catalogue does NOT imply functionality here.
+const previewActions=new Set(['new','branding']);
+const wired=x=>Boolean(x?.key&&!x.coreOnly&&previewActions.has(x.key));
 function item(x){
  let ch=x.children||(x.dynamic==='sessions'&&d.hasDoc?[{label:'示意文件 A4',coreOnly:true}]:null);
- const valid=ch?x.coreOnly||ch.some(wired):wired(x),open=!!ch&&d.expanded===x.label;
- return '<div class="menu-item-host"><button type="button" class="menu-row'+(x.coreOnly?' menu-row-core':'')+'" role="menuitem" '+(ch?'data-msub="'+esc(x.label)+'" aria-haspopup="menu" aria-expanded="'+open+'"':x.key?'data-mcmd="'+esc(x.key)+'"':'')+' '+(valid?'':'disabled aria-disabled="true"')+'><span class="menu-label">'+esc(x.label)+'</span>'+(ch?'<span class="menu-chevron" aria-hidden="true">›</span>':'')+'</button>'+(open?'<div class="menu-submenu" role="menu">'+ch.map(item).join('')+'</div>':'')+'</div>';
+ const valid=ch?ch.some(wired):wired(x),open=!!ch&&d.expanded===x.label;
+ const preview=valid&&(!!x.key||!!ch);
+ const label=esc(x.label)+(wired(x)?'<span class="menu-preview-suffix">（草稿）</span>':'');
+ const stateHint=valid?'僅 Master 草稿可互動，不執行 Native 命令':'尚未接入 Master Native；此項不可操作';
+ return '<div class="menu-item-host"><button type="button" class="menu-row'+(x.coreOnly?' menu-row-core':'')+'" role="menuitem" title="'+stateHint+'" '+(preview?'data-preview-only="true" ':'')+(ch?'data-msub="'+esc(x.label)+'" aria-haspopup="menu" aria-expanded="'+open+'"':x.key?'data-mcmd="'+esc(x.key)+'"':'')+' '+(valid?'':'disabled aria-disabled="true"')+'><span class="menu-label">'+label+'</span>'+(ch?'<span class="menu-chevron" aria-hidden="true">›</span>':'')+'</button>'+(open?'<div class="menu-submenu" role="menu">'+ch.map(item).join('')+'</div>':'')+'</div>';
 }
 function render(){
  menu.innerHTML='<div class="menu-grid"><nav class="menu-categories" role="tablist" aria-label="功能表分類">'+Object.entries(cats).map(([k,v])=>'<button type="button" class="menu-category'+(d.category===k?' active':'')+'" data-mcat="'+k+'" role="tab" aria-selected="'+(d.category===k)+'">'+v+'</button>').join('')+'</nav><div class="menu-panes"><div class="menu-pane" role="menu">'+groups[d.category].map(g=>'<div class="menu-group">'+g.map(item).join('')+'</div>').join('')+'</div></div></div>';
@@ -715,7 +722,7 @@ menu.addEventListener('click',e=>{
  const c=e.target.closest('[data-mcat]'),sub=e.target.closest('[data-msub]'),action=e.target.closest('[data-mcmd]');
  if(c){d.category=c.dataset.mcat;d.expanded='';render()}
  else if(sub&&!sub.disabled){d.expanded=d.expanded===sub.dataset.msub?'':sub.dataset.msub;render()}
- else if(action&&!action.disabled){const k=action.dataset.mcmd;close();if(k==='new')mockNew();else if(k==='branding')window.INK_MASTER_BRANDING_OPEN?.();else note('已核對 UI1 指令：'+action.textContent.trim()+'。主草稿不連接 Native。')}
+ else if(action&&!action.disabled){const k=action.dataset.mcmd;close();if(k==='new')mockNew();else if(k==='branding')window.INK_MASTER_BRANDING_OPEN?.();else note('此指令尚未接入 Native，不可在 Master 草稿執行。')}
 });
 menu.addEventListener('pointerover',e=>{
  const c=e.target.closest('[data-mcat]'),sub=e.target.closest('[data-msub]');
@@ -734,6 +741,7 @@ document.addEventListener('keydown',e=>{
 });
 window.INK_UI_MASTER_DRAFT={version:'0.1',status:'MERGED_HANDOFF_PENDING_SECTIONS_ACTIVE',native:false,
  sources:{UI1:'v4.1',UI2:'v006 (provisional)',UI3:'R2.11'},
+ menuExecution:{native:false,previewOnly:['new','branding'],disabledByDefault:true},
  inspect:()=>({categories:Object.keys(groups).length,menuRoots:65,menuDetails:72,ur2Tools:window.INK_UR2_PREVIEW_006?.snapshot?.().tools??null,ur3Dock:!!iframe.contentDocument?.querySelector('.dock'),documentPreview:d.hasDoc})
 };
 })();
