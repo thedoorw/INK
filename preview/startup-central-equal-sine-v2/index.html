@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>INK｜中央等弦波 · 固定線長與波峰傳播 v2</title>
+<style>
+:root { --bg:#f1f0ec; --ink:#69bfe3; --muted:#627985; --panel:rgba(255,255,255,.74); }
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%;width:100%}
+body{font:13px/1.5 system-ui,-apple-system,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--muted)}
+main{position:fixed;inset:0;min-height:100dvh;overflow:hidden;isolation:isolate;background:var(--bg)}
+main::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 63% at 44% 28%,rgba(255,255,255,.52),transparent 89%),radial-gradient(ellipse 70% 61% at 76% 88%,rgba(150,184,198,.035),transparent 88%)}
+#inkWave{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+#equalWave{fill:none;stroke:var(--ink);stroke-width:1.45;stroke-linejoin:round;stroke-linecap:round}
+nav{position:fixed;left:12px;right:12px;bottom:max(18px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+button{appearance:none;cursor:pointer;background:var(--panel);border:1px solid rgba(105,191,227,.29);border-radius:18px;padding:8px 13px;font:inherit;color:#496776}
+button:hover{background:#fff}button:focus-visible{outline:2px solid #69bfe3;outline-offset:3px}
+small{color:#80959d;font-size:11px}
+nav small{margin-right:6px}
+.info{position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:7px 12px;max-width:calc(100vw - 22px);border-radius:16px;background:rgba(255,255,255,.40);color:#78909d;font-size:11px;letter-spacing:.025em;text-align:center;white-space:normal}
+@media(max-width:480px){nav{gap:6px}button{font-size:12px;padding:7px 10px}nav small{flex-basis:100%;text-align:center;margin:0}}
+@media(prefers-reduced-motion:reduce){nav small::after{content:' · 可逐格檢查'}}
+</style>
+</head>
+<body>
+<main id="scene" role="img" aria-label="固定長度的中央等弦波，波峰沿水平線向左右對稱傳播">
+  <svg id="inkWave" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path id="equalWave" d=""/>
+  </svg>
+  <div class="info">線長從第一幀固定 · 等弦波沿線向左右傳播 · 無水滴／文字</div>
+  <nav aria-label="獨立波形預覽控制（非正式 INK）">
+    <small id="status">波沿固定長度的線向外移動</small>
+    <button type="button" id="replay">重播</button>
+    <button type="button" id="quarter">定格 20%</button>
+    <button type="button" id="mid">定格 58%</button>
+    <button type="button" id="late">定格 85%</button>
+  </nav>
+</main>
+<script>
+(() => {
+  'use strict';
+  const svg=document.getElementById('inkWave');
+  const path=document.getElementById('equalWave');
+  const status=document.getElementById('status');
+  const DURATION=2600;
+  const PAUSE=450;
+  const SAMPLES=440;
+  const K=3*Math.PI;
+  const MID_PHASE_PROGRESS=.58;
+  const clamp=v=>Math.min(1,Math.max(0,v));
+  const smooth=t=>{const p=clamp(t);return p*p*(3-2*p)};
+  const fmt=v=>Number(v).toFixed(4);
+  let geometry=null,startTime=0,raf=0,lastProgress=0;
+
+  function measure(){
+    const w=window.innerWidth||1280,h=window.innerHeight||876;
+    // Preserve the original v4.9 horizontal-line length, but center it on the viewport.
+    const length=2*h/(9*Math.sqrt(3));
+    geometry={w,h,cx:w/2,cy:h/2,length,amplitude:Math.max(1.5,h/9*.0225)};
+    svg.setAttribute('viewBox',`0 0 ${fmt(w)} ${fmt(h)}`);
+  }
+
+  // Hermite bridge: matching value and slope at inner join, and a flat
+  // first derivative at the true center / line endpoint. Equal-sine
+  // extrema remain analytically unchanged in the main waveform.
+  function hermite(y0,m0,y1,m1,t,width){
+    const z=clamp(t),z2=z*z,z3=z2*z;
+    return (2*z3-3*z2+1)*y0+(z3-2*z2+z)*width*m0+
+           (-2*z3+3*z2)*y1+(z3-z2)*width*m1;
+  }
+  function waveformAtRadius(r,phase){
+    // r is distance from the center, in line-fraction units [0, .5].
+    if(r<0||r>=.5)return 0;
+    const tailStart=.46;
+    const centerJoin=.045;
+    const y=Math.cos(K*r-phase);
+    if(r>=tailStart){
+      const y0=Math.cos(K*tailStart-phase);
+      const slope0=-K*Math.sin(K*tailStart-phase);
+      return hermite(y0,slope0,0,0,(r-tailStart)/(.5-tailStart),.5-tailStart);
+    }
+    if(r<centerJoin && Math.abs(phase)>1e-10){
+      const y0=Math.cos(-phase);
+      const y1=Math.cos(K*centerJoin-phase);
+      const slope1=-K*Math.sin(K*centerJoin-phase);
+      return hermite(y0,0,y1,slope1,r/centerJoin,centerJoin);
+    }
+    return y;
+  }
+  function stateAt(progress){
+    const p=clamp(progress);
+    // This is a travelling PHASE, not a change in width, clipping or mask.
+    // Two equal crests are at x=center±length*(1+p-.58)/3 throughout their
+    // journey (until they reach the endpoint smoothing region).
+    const phase=Math.PI*(p-MID_PHASE_PROGRESS);
+    const envelope=smooth(p/.12)*(1-smooth((p-.82)/.18));
+    return {p,phase,envelope,crestR:(1+p-MID_PHASE_PROGRESS)/3};
+  }
+  function render(progress){
+    const g=geometry,s=stateAt(progress);
+    lastProgress=s.p;
+    // Exactly the same left and right X coordinates at every moment.
+    const start=g.cx-g.length/2;
+    let d='';
+    for(let i=0;i<=SAMPLES;i++){
+      const u=i/SAMPLES;
+      const r=Math.abs(u-.5);
+      const x=start+u*g.length;
+      const y=g.cy+g.amplitude*s.envelope*waveformAtRadius(r,s.phase);
+      d+=(i?' L ':'M ')+fmt(x)+' '+fmt(y);
+    }
+    path.setAttribute('d',d);
+    status.textContent=s.p>=.999?'波已向外傳播 · 固定線長':`波峰向左右移動 · ${Math.round(s.p*100)}%`;
+  }
+  function tick(now){
+    const elapsed=now-startTime;
+    const p=Math.min(1,elapsed/DURATION);
+    render(p);
+    if(elapsed<DURATION+PAUSE)raf=requestAnimationFrame(tick);
+    else {startTime=now;raf=requestAnimationFrame(tick)}
+  }
+  function stop(){if(raf){cancelAnimationFrame(raf);raf=0}}
+  function replay(){stop();startTime=performance.now();render(0);raf=requestAnimationFrame(tick)}
+  function seek(p){stop();render(p)}
+  function resize(){measure();render(lastProgress)}
+  addEventListener('resize',resize,{passive:true});
+  document.getElementById('replay').addEventListener('click',replay);
+  document.getElementById('quarter').addEventListener('click',()=>seek(.2));
+  document.getElementById('mid').addEventListener('click',()=>seek(.58));
+  document.getElementById('late').addEventListener('click',()=>seek(.85));
+  window.__inkEqualWavePreview={geometry:()=>({...geometry}),seek,replay,stateAt,waveformAtRadius,duration:DURATION};
+  measure();
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)seek(.58);else replay();
+})();
+</script>
+</body>
+</html>
