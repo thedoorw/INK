@@ -456,6 +456,7 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .master-brand-file-control span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary)}
 #masterBrandOverlay input[type=file][hidden]{display:none!important}
 #masterBrandHelp,#masterBrandStatus{margin:0;min-height:16px;color:var(--secondary);font-size:11px;line-height:16px}
+#masterBrandStatus[hidden]{display:none!important}
 #masterBrandStatus[data-state=error]{color:#a32b2b}
 #masterBrandStatus[data-state=ready]{color:#305a3f}
 #masterBrandFooter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;flex:0 0 40px;min-height:40px;padding:6px 16px;border-top:1px solid var(--line)}
@@ -478,8 +479,8 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
    </div>
    <div class="master-brand-file"><label for="masterBrandLogoFile">Choose Logo</label><div class="master-brand-file-control"><button id="masterBrandLogoChoose" type="button">選擇圖檔</button><span id="masterBrandLogoFilename">未選擇檔案</span><input id="masterBrandLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden></div></div>
    <div class="master-brand-file"><label for="masterBrandFaviconFile">Choose Favicon</label><div class="master-brand-file-control"><button id="masterBrandFaviconChoose" type="button">選擇圖檔</button><span id="masterBrandFaviconFilename">未選擇檔案</span><input id="masterBrandFaviconFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden></div></div>
-   <p id="masterBrandHelp">網站預設須經 INK PUBLISH 核准與發布；不使用僅此瀏覽器的覆蓋模式。</p>
-   <p id="masterBrandStatus" role="status" aria-live="polite">請修改名稱或選擇 Logo／Favicon，再準備發布候選。</p>
+   <p id="masterBrandHelp">自訂 Logo／Favicon 經 INK PUBLISH 核准發布後，才會成為網站預設。</p>
+   <p id="masterBrandStatus" role="status" aria-live="polite" hidden></p>
   </div>
   <footer id="masterBrandFooter"><button id="masterBrandClear" type="button">清除</button><button id="masterBrandApply" type="button" disabled>設為網站預設</button><button id="masterBrandClose" type="button">關閉</button></footer>
  </section>
@@ -1065,7 +1066,7 @@ const supported=new Set(['image/png','image/jpeg','image/webp','image/gif','imag
 const limits={logo:768*1024,favicon:256*1024};
 const loaded={logo:null,favicon:null},previewUrls=new Map();
 let previousFocus=null,drag=null,offsetX=0,offsetY=0,pending=0,lastExport=null;
-const setStatus=(message,state='')=>{status.textContent=message;status.dataset.state=state;};
+const setStatus=(message,state='')=>{status.textContent=message;status.dataset.state=state;status.hidden=!message;};
 const trim=s=>s.trim();
 const changed=()=>Boolean(loaded.logo||loaded.favicon||
   trim(name.value)!==defaults.name||trim(title.value)!==defaults.title);
@@ -1074,7 +1075,7 @@ const center=()=>{offsetX=0;offsetY=0;drag=null;panel.style.transform='';header.
 function open(){
   if(!overlay.hidden)return;
   previousFocus=document.activeElement;center();overlay.hidden=false;
-  setStatus('請修改名稱或選擇圖示；候選經 INK PUBLISH 核准後才會成為網站預設。');
+  setStatus('');
   refresh();name.focus();
 }
 function close(){
