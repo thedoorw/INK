@@ -145,22 +145,51 @@ html[data-ink-shell-ready="false"] #app{visibility:hidden;pointer-events:none}
 /* #317 — local, reversible LOGO/Favicon preferences; no document data mutation. */
 .ink-branding-launch{flex:0 0 auto}
 .ink-branding-logo{max-width:100%;max-height:48px;object-fit:contain;display:block;margin:3px 0 8px}
-.ink-branding-backdrop{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.36);display:grid;place-items:center;padding:16px}
-.ink-branding-backdrop[hidden]{display:none}
-.ink-branding-panel{background:var(--surface,#fff);color:var(--primary,#222);width:min(440px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:0;border:1px solid #dedede;border-radius:9px;box-shadow:0 16px 44px #0003}
-.ink-branding-panel h2{margin:0;padding:0;font-size:var(--text-dialog,14px)}
-.ink-branding-panel label{display:block;font-size:11px;margin:8px 0 4px;color:#707070}
-.ink-branding-panel input[type=file]{width:100%;font-size:12px}
-.ink-branding-panel .ink-branding-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px;margin:0;padding:0 12px;border-top:1px solid var(--line,#ececec)}
-.ink-branding-panel .ink-branding-status{font-size:11px;min-height:1.5em;margin:0;padding:0 12px 10px;color:#707070}
-.ink-branding-panel .ink-branding-preview{display:flex;align-items:center;gap:12px;margin-top:12px}
-.ink-branding-panel .ink-branding-preview img{width:48px;height:48px;object-fit:contain}
+/* Master-approved INK site-branding modal: 32px row pitch; 23/22/26px controls. */
+.ink-branding-backdrop{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.30);display:flex;align-items:center;justify-content:center;padding:16px}
+.ink-branding-backdrop[hidden]{display:none!important}
+.ink-branding-panel{box-sizing:border-box;display:flex;flex-direction:column;width:min(496px,100%);min-width:0;max-height:calc(100dvh - 32px);overflow:hidden;padding:0;border:1px solid var(--border,#d4d4d4);border-radius:8px;background:var(--surface,#fff);color:var(--primary,#222);box-shadow:0 10px 32px #0003;transform:translate(0,0);font:400 12px/16px var(--ui-font,system-ui)}
+.ink-branding-panel>.ink-branding-header{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;height:40px;min-height:40px;flex:0 0 40px;padding:0 16px;border-bottom:1px solid var(--line,#ececec);cursor:grab;touch-action:none;user-select:none}
+.ink-branding-panel>.ink-branding-header[data-dragging=true]{cursor:grabbing}
+.ink-branding-panel>.ink-branding-header h2{margin:0;padding:0;font-size:14px;line-height:20px;font-weight:600}
+.ink-branding-panel>.ink-branding-header button{box-sizing:border-box;height:26px;min-height:26px;width:26px;min-width:26px;flex:none;padding:0;border:0;background:transparent;font-size:16px;cursor:pointer}
+.ink-branding-pref-body{min-height:0;overflow:auto;overscroll-behavior:contain}
+.ink-branding-pref-content{box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding:10px 16px}
+.ink-branding-fields{display:grid;grid-template-columns:104px minmax(0,1fr);grid-auto-rows:minmax(32px,auto);column-gap:8px;align-items:center}
+.ink-branding-panel .ink-branding-fields label{margin:0;color:var(--secondary,#707070);font-size:12px;line-height:16px}
+.ink-branding-panel .ink-branding-fields input[type=text]{box-sizing:border-box;display:block;height:23px;min-height:23px;width:100%;min-width:0;margin:0;padding:2px 6px;border:1px solid var(--border,#d4d4d4);border-radius:4px;background:#fff;font-size:12px;line-height:16px}
+.ink-branding-panel .ink-branding-preview{display:flex;align-items:center;gap:16px;min-height:44px;margin:0}
+.ink-branding-panel .ink-branding-preview-item{display:flex;align-items:center;gap:8px;min-width:0;max-width:50%}
+.ink-branding-panel .ink-branding-preview-label{flex:none;color:var(--secondary,#707070);font-size:11px}
+.ink-branding-panel .ink-branding-preview img{display:block;max-width:132px;max-height:36px;object-fit:contain}
+.ink-branding-panel .ink-branding-preview-item:last-child img{width:32px;height:32px}
+.ink-branding-file-row{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;min-width:0;min-height:32px;gap:8px}
+.ink-branding-panel .ink-branding-file-row>label{margin:0;font-size:12px;color:var(--secondary,#707070)}
+.ink-branding-file-controls{display:flex;align-items:center;gap:8px;min-width:0;height:26px}
+.ink-branding-panel .ink-branding-file-choose{box-sizing:border-box;flex:none;height:22px;min-height:22px;min-width:76px;padding:0 8px;border:1px solid var(--border,#d4d4d4);border-radius:4px;background:#fff;font-size:12px;font-weight:400;color:var(--primary,#222);cursor:pointer}
+.ink-branding-panel .ink-branding-file-choose:hover{background:var(--soft,#f3f3f3)}
+.ink-branding-file-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary,#707070);font-size:11px}
+.ink-branding-panel input[type=file][hidden]{display:none!important}
+.ink-branding-panel .ink-branding-help{margin:0;color:var(--secondary,#707070);font-size:11px;line-height:16px}
+.ink-branding-panel>.ink-branding-status{box-sizing:border-box;flex:none;min-height:16px;margin:0;padding:0 16px 6px;color:var(--secondary,#707070);font-size:11px;line-height:16px}
+.ink-branding-panel>.ink-branding-status[hidden]{display:none!important}
+.ink-branding-panel .ink-branding-actions{box-sizing:border-box;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;height:40px;min-height:40px;flex:0 0 40px;margin:0;padding:6px 16px;border-top:1px solid var(--line,#ececec)}
+.ink-branding-panel .ink-branding-actions button{box-sizing:border-box;min-width:0;height:26px;min-height:26px;padding:0 10px;border:1px solid var(--border,#d4d4d4);border-radius:4px;background:#fff;font-size:12px;line-height:16px;font-weight:400;white-space:nowrap}
+.ink-branding-panel .ink-branding-actions button.primary{width:100%;border-color:var(--primary,#222);background:var(--primary,#222);color:#fff;font-weight:600}
+.ink-branding-panel .ink-branding-actions button.primary:disabled{opacity:1;border-color:var(--line,#ececec);background:#aaa;color:#eee;cursor:default}
+.ink-branding-panel :focus-visible{outline:2px solid var(--accent,#1389dd);outline-offset:2px}
+@media(max-width:600px),(pointer:coarse){.ink-branding-panel>.ink-branding-header{cursor:default;touch-action:auto}}
+@media(max-width:420px){
+  .ink-branding-backdrop{padding:8px}
+  .ink-branding-panel{max-height:calc(100dvh - 16px)}
+  .ink-branding-pref-content{padding:10px;gap:6px}
+  .ink-branding-fields,.ink-branding-file-row{grid-template-columns:1fr;gap:2px}
+  .ink-branding-fields{grid-auto-rows:auto}
+  .ink-branding-panel .ink-branding-actions{grid-template-columns:1fr 1fr;min-height:72px;flex-basis:72px;padding:6px 10px}
+  .ink-branding-panel .ink-branding-actions button.primary{grid-column:1/-1;grid-row:1}
+  .ink-branding-panel .ink-branding-actions button:first-child,.ink-branding-panel .ink-branding-actions button:last-child{grid-row:2}
+}
 
-.ink-branding-pref-body{display:block}
-.ink-branding-pref-content{padding:14px 16px}
-.ink-branding-fields{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;gap:8px}
-.ink-branding-panel .ink-branding-fields label{margin:0}
-.ink-branding-fields input[type=text]{height:var(--action-height,28px);border:1px solid #dedede;border-radius:4px;padding:0 8px;font-size:var(--text-small,12px);min-width:0}
 .ink-branding-logo-toolbar{width:28px;height:28px;display:block;object-fit:contain;align-self:center}
 .ink-branding-launch{align-items:center;gap:6px}
 

@@ -4,49 +4,49 @@
   "action": "publish",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "430dadd302e65a0496a3dfdac373c4073439dc5c",
-    "product_tree": "8b3716d68c1a0014eb0f7e8d89773ac2a1bfd109"
+    "exact_sha": "46526edaed29adf9602fd356e0a8db30313ceda3",
+    "product_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693"
   },
-  "build_id": "src-b8382086dcef7ff03828e93e",
-  "runtime_digest_sha256": "d67f241ecfb6ef6102fb89d6d4ff1aade8bb9728a7f09f08fdc81a3db24be349",
+  "build_id": "src-ecb51f58cadc4c5b2b88f953",
+  "runtime_digest_sha256": "ffca090b4debe10f1dfd85fdba7d7ca785a957dc5a32e2951cfac9687100d12a",
   "package_manifest_sha256": "e6bb6218a18d98f2e6f6f08e2f976edf0cb2246dab33d03128ce650caa8f6e32",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
   "target": {
     "repo": "thedoorw/INK",
     "branch": "main",
-    "expected_head": "d1c9baf6e1cb7448d976e3e81eb19e2133bff194",
-    "expected_tree": "32d3caf7ca8a4dfd0e9c5616abc52ae2ad1b357a",
-    "prior_receipt_sha256": "67fd8be53ecfd9324a12436753f5d18f6ef0a284bc40c5df114fe1b0578016e8"
+    "expected_head": "96ab024b82f11f1b6ae6994a55b5d70cac22ef35",
+    "expected_tree": "407e9c5ef7491948728b8335e30a4d2305c0abbe",
+    "prior_receipt_sha256": "7b7cbe183128d40df334269dc137106de633b959188fb4bf7f6de11f7255520e"
   },
   "qualification": {
-    "source_tree": "8b3716d68c1a0014eb0f7e8d89773ac2a1bfd109",
+    "source_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693",
     "runs": [
       {
-        "profile": "ink-pr519-branding-site-default-windows-v1",
-        "id": 41599492534,
-        "workflow_path": ".github/workflows/ink-branding-pr519-windows-qa.yml",
-        "workflow_blob": "59916fcf8fd93b48779b194d9d2460e3d9032777",
-        "head_sha": "ba4f6081ed481777f91742b13073faa07113889f"
+        "profile": "ink-pr523-master-branding-windows-native-chrome-v1",
+        "id": 41643313574,
+        "workflow_path": ".github/workflows/ink-branding-pr523-windows-qa.yml",
+        "workflow_blob": "848a1ae62ca12e483b32123071731c5ea1846873",
+        "head_sha": "5e88d85d01e4b6982a02f80b06be006f9f40538e"
       }
     ]
   },
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/519",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/523#issuecomment-6605552056",
   "rollback": {
-    "public_commit": "d1c9baf6e1cb7448d976e3e81eb19e2133bff194",
-    "receipt_sha256": "67fd8be53ecfd9324a12436753f5d18f6ef0a284bc40c5df114fe1b0578016e8",
-    "source_sha": "36faca40c1784f2164c0659c32ec2bdebb45f1b7",
-    "source_tree": "5daca65562499e67b8db520b60e52e4770c01ac2"
+    "public_commit": "96ab024b82f11f1b6ae6994a55b5d70cac22ef35",
+    "receipt_sha256": "7b7cbe183128d40df334269dc137106de633b959188fb4bf7f6de11f7255520e",
+    "source_sha": "430dadd302e65a0496a3dfdac373c4073439dc5c",
+    "source_tree": "8b3716d68c1a0014eb0f7e8d89773ac2a1bfd109"
   },
   "files": [
     {
       "path": "BUILD_INFO.json",
-      "bytes": 62897,
-      "sha256": "6215455561f009ce351c8ddbe02017e6581f46b39781a86c0c9c90243d8dd108"
+      "bytes": 62905,
+      "sha256": "6c0308a90cd90b771cf635e332d1b1a1cb8c6ecedcfbc8307e97e4baf7fc8056"
     },
     {
       "path": "PUBLISH_RECEIPT.json",
-      "bytes": 81605,
-      "sha256": "7b7cbe183128d40df334269dc137106de633b959188fb4bf7f6de11f7255520e"
+      "bytes": 81629,
+      "sha256": "9fd15c56bf01385bd1ca72e808bea47923635f97f3a1ebc5baeaa54c878304ee"
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -71,7 +71,7 @@
     {
       "path": "build-identity.js",
       "bytes": 193,
-      "sha256": "111c6232ed811ad04491296c713b2a0de4f9bbce1aa9023da8c9314b3e5cb973"
+      "sha256": "5b6fbe5390026706489cb8293f409efc139ff0aab8df8effd5b6db767fad8853"
     },
     {
       "path": "dist/ink.compat.js",
@@ -1490,8 +1490,8 @@
     },
     {
       "path": "src/ui/branding-settings.js",
-      "bytes": 10003,
-      "sha256": "79df4de0a2cd22061a34b949d5d1bcdf4764c10c5b439871783ccf9ab349877e"
+      "bytes": 14230,
+      "sha256": "6b399389aff3ec4e67f520704fb3028e21d8b39b6d3e55918db08a7c7aa9069c"
     },
     {
       "path": "src/ui/ink017/entry.js",
@@ -1760,8 +1760,8 @@
     },
     {
       "path": "stage-runtime.css",
-      "bytes": 17315,
-      "sha256": "b5d61962870907db9f3b63d89a952aa52ab86644bb1f3aaf710190fb3c225769"
+      "bytes": 21357,
+      "sha256": "4e21f96099e85ba34338de7152f4bcac6f906586735e15b8e4bcad420501df6c"
     },
     {
       "path": "ui/capability-raster-tools.js",
