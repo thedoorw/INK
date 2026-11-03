@@ -436,13 +436,13 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #masterBrandOverlay[hidden]{display:none!important}
 #masterBrandOverlay{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.30);padding:16px}
 #masterBrandDialog{box-sizing:border-box;display:flex;flex-direction:column;width:min(496px,100%);max-height:calc(100dvh - 32px);min-width:0;overflow:hidden;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:0 10px 32px #0003;color:var(--primary);font:400 12px/16px var(--ui-font);transform:translate(0,0)}
-#masterBrandHeader{display:flex;align-items:center;justify-content:space-between;height:40px;min-height:40px;flex:0 0 40px;padding:0 12px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;cursor:grab;touch-action:none;user-select:none}
+#masterBrandHeader{display:flex;align-items:center;justify-content:space-between;height:40px;min-height:40px;flex:0 0 40px;padding:0 16px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;cursor:grab;touch-action:none;user-select:none}
 #masterBrandHeader[data-dragging=true]{cursor:grabbing}
 #masterBrandHeader button{width:26px;height:26px;min-height:26px;flex:none;border:0;background:transparent;padding:0;font-size:16px;cursor:pointer}
-#masterBrandBody{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px 16px}
-.master-brand-field,.master-brand-file{display:grid;grid-template-columns:106px minmax(0,1fr);gap:8px;align-items:center;min-width:0;min-height:32px}
+#masterBrandBody{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:10px 16px}
+.master-brand-field,.master-brand-file{display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px;align-items:center;min-width:0;min-height:32px}
 .master-brand-field label,.master-brand-file>label{color:var(--secondary);font-size:12px;line-height:16px}
-.master-brand-field input[type=text]{box-sizing:border-box;display:block;width:100%;min-width:0;height:23px;min-height:23px;margin:0;padding:2px 6px;border:1px solid var(--border);border-radius:3px;background:white;font-size:12px;line-height:16px}
+.master-brand-field input[type=text]{box-sizing:border-box;display:block;width:100%;min-width:0;height:23px;min-height:23px;margin:0;padding:2px 6px;border:1px solid var(--border);border-radius:4px;background:white;font-size:12px;line-height:16px}
 #masterBrandPreview{display:flex;align-items:center;gap:16px;min-height:44px;padding:0 0 0 0}
 .master-brand-preview-item{display:flex;align-items:center;gap:8px;min-width:0;max-width:50%}
 .master-brand-preview-label{width:40px;flex:none;color:var(--secondary);font-size:11px}
@@ -451,14 +451,14 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #masterBrandLogoImage[hidden],#masterBrandWordmark[hidden]{display:none!important}
 #masterBrandMark{display:block;width:32px;height:32px;object-fit:contain}
 .master-brand-file-control{display:flex;align-items:center;gap:8px;min-width:0;height:26px}
-.master-brand-file-control button{height:22px;min-height:22px;min-width:76px;padding:0 8px;border:1px solid var(--border);border-radius:3px;background:#fff;font-size:12px;font-weight:400;white-space:nowrap}
+.master-brand-file-control button{height:22px;min-height:22px;min-width:76px;padding:0 8px;border:1px solid var(--border);border-radius:4px;background:#fff;font-size:12px;font-weight:400;white-space:nowrap}
 .master-brand-file-control button:hover{background:var(--soft)}
 .master-brand-file-control span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary)}
 #masterBrandOverlay input[type=file][hidden]{display:none!important}
 #masterBrandHelp,#masterBrandStatus{margin:0;min-height:16px;color:var(--secondary);font-size:11px;line-height:16px}
 #masterBrandStatus[data-state=error]{color:#a32b2b}
 #masterBrandStatus[data-state=ready]{color:#305a3f}
-#masterBrandFooter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;flex:0 0 40px;min-height:40px;padding:6px 12px;border-top:1px solid var(--line)}
+#masterBrandFooter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;flex:0 0 40px;min-height:40px;padding:6px 16px;border-top:1px solid var(--line)}
 #masterBrandFooter button{box-sizing:border-box;height:26px;min-height:26px;min-width:0;padding:0 10px;border:1px solid var(--border);border-radius:4px;background:#fff;font-size:12px;line-height:16px;font-weight:400;white-space:nowrap}
 #masterBrandApply{width:100%;background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important;font-weight:600!important}
 #masterBrandApply:disabled{opacity:.45;cursor:default}
