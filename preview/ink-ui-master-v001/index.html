@@ -445,6 +445,7 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 .master-brand-field input[type=text]{width:100%;min-width:0;height:30px;padding:5px 9px;border:1px solid var(--border);border-radius:4px;background:white}
 #masterBrandPreview{display:flex;align-items:center;gap:18px;min-height:54px}
 #masterBrandWordmark{font-size:20px;font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#masterBrandLogoImage{width:auto;max-width:150px;height:48px;object-fit:contain}#masterBrandLogoImage[hidden]{display:none!important}
 #masterBrandMark{width:42px;height:42px;object-fit:contain}
 .master-brand-file{display:grid;gap:5px;min-width:0}
 .master-brand-file input[type=file]{box-sizing:border-box;display:block;max-width:100%;width:100%;min-width:0;min-height:32px;overflow:hidden;border:1px solid var(--border);border-radius:4px;background:white}
@@ -464,7 +465,7 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
   <div id="masterBrandBody">
    <div class="master-brand-field"><label for="masterBrandName">Application Name</label><input id="masterBrandName" type="text" maxlength="32" value="INK"></div>
    <div class="master-brand-field"><label for="masterBrandTitle">Browser Title</label><input id="masterBrandTitle" type="text" maxlength="100" value="INK v0.1 · Web"></div>
-   <div id="masterBrandPreview"><span id="masterBrandWordmark">INK</span><img id="masterBrandMark" src="../../assets/ink-mark.svg" alt="網站圖示預覽"></div>
+   <div id="masterBrandPreview"><span id="masterBrandWordmark">INK</span><img id="masterBrandLogoImage" alt="Logo 草稿預覽" hidden><img id="masterBrandMark" src="../../assets/ink-mark.svg" alt="網站圖示預覽"></div>
    <div class="master-brand-file"><label for="masterBrandLogoFile">Choose Logo</label><input id="masterBrandLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></div>
    <div class="master-brand-file"><label for="masterBrandFaviconFile">Choose Favicon</label><input id="masterBrandFaviconFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></div>
    <p id="masterBrandHelp">設為網站預設需經正式審查及發布；此處不保存僅此瀏覽器的圖示。</p>
@@ -1044,7 +1045,7 @@ requestAnimationFrame(paint);
 const get=id=>document.getElementById(id);
 const overlay=get('masterBrandOverlay'),dialog=get('masterBrandDialog'),header=get('masterBrandHeader');
 const name=get('masterBrandName'),title=get('masterBrandTitle'),mark=get('masterBrandMark'),word=get('masterBrandWordmark');
-const logo=get('masterBrandLogoFile'),favicon=get('masterBrandFaviconFile'),status=get('masterBrandStatus');
+const logo=get('masterBrandLogoFile'),favicon=get('masterBrandFaviconFile'),status=get('masterBrandStatus'),logoImage=get('masterBrandLogoImage');
 const defaultMark=mark.getAttribute('src'),urls=new Map();
 let prior=null,dx=0,dy=0,drag=null;
 function center(){dx=0;dy=0;drag=null;dialog.style.transform='';header.removeAttribute('data-dragging');}
@@ -1053,7 +1054,7 @@ function open(){prior=document.activeElement;center();overlay.hidden=false;statu
 function clear(){
  for(const u of urls.values())URL.revokeObjectURL(u);urls.clear();
  name.value='INK';title.value='INK v0.1 · Web';word.textContent='INK';word.removeAttribute('title');
- mark.src=defaultMark;logo.value='';favicon.value='';
+ mark.src=defaultMark;logoImage.hidden=true;logoImage.removeAttribute('src');word.hidden=false;logo.value='';favicon.value='';
  status.textContent='已清除未提交變更；網站設定沒有改變。';
 }
 name.addEventListener('input',()=>{word.textContent=name.value.trim()||'INK';});
@@ -1066,7 +1067,7 @@ function wire(input,kind){
   }
   if(urls.has(kind))URL.revokeObjectURL(urls.get(kind));
   const url=URL.createObjectURL(f);urls.set(kind,url);
-  if(kind==='favicon')mark.src=url;else{word.textContent=f.name;word.title=f.name;}
+  if(kind==='favicon')mark.src=url;else{logoImage.src=url;logoImage.hidden=false;word.hidden=true;}
   status.textContent=(kind==='favicon'?'Favicon':'Logo')+' 草稿預覽已更新，尚未生效。';
  });
 }
