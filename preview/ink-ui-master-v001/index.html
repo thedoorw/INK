@@ -47,7 +47,7 @@
 .menu-chevron{font-size:16px;color:var(--secondary);line-height:1;margin-left:auto}
 .menu-submenu{position:absolute;left:calc(100% - 1px);top:-6px;z-index:85;width:184px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002}
 .menu-category:focus-visible,.menu-row:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
-.overlay{position:absolute;z-index:90;inset:0;display:grid;place-items:center;background:#0002}.dialog{position:relative;width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 30px #0003;display:flex;flex-direction:column;overflow:hidden}.dialog-header{height:var(--dialog-header-height);flex:0 0 var(--dialog-header-height);padding:0 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);font-size:var(--text-dialog);font-weight:var(--weight-strong);touch-action:none;cursor:move}.dialog-close{height:28px;min-height:28px;width:28px;flex:0 0 28px;border:0;padding:0;display:grid;place-items:center;background:transparent;color:var(--secondary)}.dialog-body{padding:var(--dialog-body-padding);overflow:auto;min-height:0}.dialog-footer{height:var(--dialog-footer-height);flex:0 0 var(--dialog-footer-height);display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 12px;border-top:1px solid var(--line)}.dialog-footer button{min-height:var(--action-height);min-width:var(--action-min-width);padding:0 10px}.dialog-footer button.primary{background:var(--primary);color:var(--surface);border-color:var(--primary);font-weight:var(--weight-strong)}.dialog-footer button.primary:hover{background:#111}.dialog-footer [data-cancel],.dialog-footer [data-close-choice="cancel"],.dialog-footer [data-size-cancel]{background:var(--surface);color:var(--secondary);border-color:var(--border)}.primary{background:var(--accent);color:white;border-color:var(--accent)}.pref-tabs{display:flex;gap:4px;margin-bottom:16px}.pref-tabs .active{background:var(--accent-soft)}.branding-preview{height:56px;display:flex;align-items:center;gap:8px}.branding-preview img{max-width:48px;max-height:48px}.logo-image{width:24px;height:24px;object-fit:contain}.file-row{margin:8px 0}.file-row input{height:auto}.dialog .field-row{grid-template-columns:120px minmax(0,1fr)}.dialog-body input:not([type=checkbox]):not([type=radio]),.dialog-body select{height:var(--action-height);min-height:var(--action-height)}#toast{position:absolute;z-index:100;bottom:72px;left:50%;transform:translateX(-50%);max-width:90%;padding:8px 12px;border-radius:6px;background:var(--primary);color:white;pointer-events:none}#toast:empty{display:none}
+.overlay{position:absolute;z-index:90;inset:0;display:grid;place-items:center;background:#0002}.dialog{position:relative;width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 30px #0003;display:flex;flex-direction:column;overflow:hidden}.dialog-header{height:var(--dialog-header-height);flex:0 0 var(--dialog-header-height);padding:0 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);font-size:var(--text-dialog);font-weight:var(--weight-strong);cursor:default}.dialog-close{height:28px;min-height:28px;width:28px;flex:0 0 28px;border:0;padding:0;display:grid;place-items:center;background:transparent;color:var(--secondary)}.dialog-body{padding:var(--dialog-body-padding);overflow:auto;min-height:0}.dialog-footer{height:var(--dialog-footer-height);flex:0 0 var(--dialog-footer-height);display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 12px;border-top:1px solid var(--line)}.dialog-footer button{min-height:var(--action-height);min-width:var(--action-min-width);padding:0 10px}.dialog-footer button.primary{background:var(--primary);color:var(--surface);border-color:var(--primary);font-weight:var(--weight-strong)}.dialog-footer button.primary:hover{background:#111}.dialog-footer [data-cancel],.dialog-footer [data-close-choice="cancel"],.dialog-footer [data-size-cancel]{background:var(--surface);color:var(--secondary);border-color:var(--border)}.primary{background:var(--accent);color:white;border-color:var(--accent)}.pref-tabs{display:flex;gap:4px;margin-bottom:16px}.pref-tabs .active{background:var(--accent-soft)}.branding-preview{height:56px;display:flex;align-items:center;gap:8px}.branding-preview img{max-width:48px;max-height:48px}.logo-image{width:24px;height:24px;object-fit:contain}.file-row{margin:8px 0}.file-row input{height:auto}.dialog .field-row{grid-template-columns:120px minmax(0,1fr)}.dialog-body input:not([type=checkbox]):not([type=radio]),.dialog-body select{height:var(--action-height);min-height:var(--action-height)}#toast{position:absolute;z-index:100;bottom:72px;left:50%;transform:translateX(-50%);max-width:90%;padding:8px 12px;border-radius:6px;background:var(--primary);color:white;pointer-events:none}#toast:empty{display:none}
 .layer-row [data-visible] svg,.layer-row [data-lock] svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}.layer-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}.panel-host[data-panel=history]{display:flex;flex-direction:column}.history-list{flex:1 1 auto;min-height:72px;overflow:auto;scrollbar-width:thin}.history-actions{flex-shrink:0}.dock-zone .panel-host{overscroll-behavior:contain}.zone-expand:hover{background:var(--soft)}.zone-expand:focus-visible{outline:2px solid var(--accent)}.layer-footer button,.swatch-footer button{min-width:26px}.color-plane:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* The Photoshop-style single column fits all 20 groups at the desktop viewport.
    Compact vertical rhythm only when browser chrome leaves too little height;
@@ -431,7 +431,49 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
  #shell:has(#mobileProjectMenu:not([hidden])) #mobileTopCollapse{visibility:hidden}
 }
 
-</style></head><body><div id="shell" class="shell"><aside class="left-rail"><button id="logoButton" aria-label="Application menu">INK</button><div class="tool-area" role="toolbar" aria-label="工具"></div><button type="button" id="railCustomize" aria-label="自訂工具列" title="自訂工具列">⋯</button><div class="rail-colors"><button id="resetColors" class="color-micro reset-colors" aria-label="Default colors (D)" title="Default colors (D)">◩</button><button id="swapColors" class="color-micro swap-colors" aria-label="Swap colors (X)" title="Swap colors (X)">⇄</button><button id="colorState" class="color-state" aria-label="Foreground and background colors"><span class="bg"></span><span class="fg"></span></button></div><div class="rail-spacer"></div><button id="quickUndo" aria-label="Undo" title="Undo (Ctrl+Z)">↶</button><button id="quickRedo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)">↷</button><button id="railToggle" aria-label="Toggle tool columns"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="6" height="14"/><rect x="14" y="5" width="6" height="14"/></svg></button></aside><main id="workspace" class="workspace" aria-label="Artwork workspace"><div id="artboardStage" class="artboard-stage"><div class="artboard-card active"><div class="artboard"><div class="artboard-margin"></div></div></div></div><div id="guideLayer" class="guide-layer"></div><span id="masterLabel">UI MASTER v0.3 · 手機滿版草稿</span><button type="button" id="masterDocSwitch" title="僅切換草稿示意，不建立文件">示意：有文件 ▾</button><button type="button" id="ur2ReviewButton" title="45 項功能缺口盤點（非 Native 功能）">UR2 待補／對照（45）</button></main><aside id="rightDock" class="right-dock" aria-label="UI3 R2.11 十面板整合設計草稿"><iframe id="masterDockFrame" title="UI3 R2.11 interactive preview" loading="eager"></iframe></aside><div id="dockResizer" role="separator" tabindex="0" aria-label="Resize right dock" aria-orientation="vertical"></div><div class="context-float"><button id="contextToggle" aria-label="Expand tool settings" aria-expanded="false" aria-controls="contextControls">⋯</button><span id="contextIdentity">Select</span><div id="contextControls"></div></div><div id="mainMenu" class="main-menu" hidden></div><div id="overlay" class="overlay" hidden></div><div id="toast" role="status" aria-live="polite"></div><input id="openFile" type="file" accept="application/json,.json" hidden><div id="toolGroupMenu" class="drawing-tool-menu" popover="manual" role="menu"></div></div>
+
+/* Master preview branding dialog: fixed controls and genuine desktop titlebar dragging. */
+#masterBrandOverlay[hidden]{display:none!important}
+#masterBrandOverlay{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;background:#0005;padding:16px}
+#masterBrandDialog{display:flex;flex-direction:column;box-sizing:border-box;width:min(548px,100%);max-height:calc(100dvh - 32px);min-width:0;overflow:hidden;border:1px solid var(--border);border-radius:9px;background:var(--surface);box-shadow:0 15px 42px #0003;color:var(--primary);font-size:12px}
+#masterBrandHeader{display:flex;align-items:center;justify-content:space-between;min-height:42px;flex:0 0 42px;padding:0 14px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;cursor:grab;touch-action:none;user-select:none}
+#masterBrandHeader[data-dragging=true]{cursor:grabbing}
+#masterBrandHeader button{height:30px;min-height:30px;width:30px;flex:none;border:0;background:transparent;cursor:pointer;font-size:17px}
+#masterBrandBody{display:grid;gap:14px;min-height:0;overflow:auto;overscroll-behavior:contain;padding:16px 18px}
+.master-brand-field{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;align-items:center}
+.master-brand-field label,.master-brand-file label{color:var(--secondary)}
+.master-brand-field input[type=text]{width:100%;min-width:0;height:30px;padding:5px 9px;border:1px solid var(--border);border-radius:4px;background:white}
+#masterBrandPreview{display:flex;align-items:center;gap:18px;min-height:54px}
+#masterBrandWordmark{font-size:20px;font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#masterBrandMark{width:42px;height:42px;object-fit:contain}
+.master-brand-file{display:grid;gap:5px;min-width:0}
+.master-brand-file input[type=file]{box-sizing:border-box;display:block;max-width:100%;width:100%;min-width:0;min-height:32px;overflow:hidden;border:1px solid var(--border);border-radius:4px;background:white}
+.master-brand-file input[type=file]::file-selector-button{height:30px;margin-right:10px;padding:0 12px;border:0;border-right:1px solid var(--border);background:var(--soft);font:inherit;cursor:pointer}
+#masterBrandHelp,#masterBrandStatus{margin:0;color:var(--secondary);font-size:11px;line-height:1.6}
+#masterBrandStatus{min-height:18px}
+#masterBrandFooter{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid var(--line)}
+#masterBrandFooter button{min-width:0;min-height:34px;padding:0 13px;white-space:nowrap;border:1px solid var(--border);border-radius:5px}
+#masterBrandApply{width:100%;background:var(--primary)!important;border-color:var(--primary)!important;color:white!important;font-weight:600}
+#masterBrandOverlay :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px),(pointer:coarse){#masterBrandHeader{cursor:default;touch-action:auto}}
+@media(max-width:430px){#masterBrandOverlay{padding:10px}#masterBrandDialog{max-height:calc(100dvh - 20px)}#masterBrandBody{padding:14px;gap:12px}.master-brand-field{grid-template-columns:1fr;gap:5px}#masterBrandFooter{grid-template-columns:1fr 1fr;padding:10px 14px}#masterBrandApply{grid-column:1/-1;grid-row:1}#masterBrandClear,#masterBrandClose{grid-row:2}#masterBrandFooter button{min-height:44px}}
+</style></head><body><div id="shell" class="shell"><aside class="left-rail"><button id="logoButton" aria-label="Application menu">INK</button><div class="tool-area" role="toolbar" aria-label="工具"></div><button type="button" id="railCustomize" aria-label="自訂工具列" title="自訂工具列">⋯</button><div class="rail-colors"><button id="resetColors" class="color-micro reset-colors" aria-label="Default colors (D)" title="Default colors (D)">◩</button><button id="swapColors" class="color-micro swap-colors" aria-label="Swap colors (X)" title="Swap colors (X)">⇄</button><button id="colorState" class="color-state" aria-label="Foreground and background colors"><span class="bg"></span><span class="fg"></span></button></div><div class="rail-spacer"></div><button id="quickUndo" aria-label="Undo" title="Undo (Ctrl+Z)">↶</button><button id="quickRedo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)">↷</button><button id="railToggle" aria-label="Toggle tool columns"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="6" height="14"/><rect x="14" y="5" width="6" height="14"/></svg></button></aside><main id="workspace" class="workspace" aria-label="Artwork workspace"><div id="artboardStage" class="artboard-stage"><div class="artboard-card active"><div class="artboard"><div class="artboard-margin"></div></div></div></div><div id="guideLayer" class="guide-layer"></div><span id="masterLabel">UI MASTER v0.3 · 手機滿版草稿</span><button type="button" id="masterDocSwitch" title="僅切換草稿示意，不建立文件">示意：有文件 ▾</button><button type="button" id="ur2ReviewButton" title="45 項功能缺口盤點（非 Native 功能）">UR2 待補／對照（45）</button></main><aside id="rightDock" class="right-dock" aria-label="UI3 R2.11 十面板整合設計草稿"><iframe id="masterDockFrame" title="UI3 R2.11 interactive preview" loading="eager"></iframe></aside><div id="dockResizer" role="separator" tabindex="0" aria-label="Resize right dock" aria-orientation="vertical"></div><div class="context-float"><button id="contextToggle" aria-label="Expand tool settings" aria-expanded="false" aria-controls="contextControls">⋯</button><span id="contextIdentity">Select</span><div id="contextControls"></div></div><div id="mainMenu" class="main-menu" hidden></div>
+<div id="masterBrandOverlay" hidden>
+ <section id="masterBrandDialog" role="dialog" aria-modal="true" aria-labelledby="masterBrandHeading" aria-describedby="masterBrandHelp" tabindex="-1">
+  <header id="masterBrandHeader"><span id="masterBrandHeading">網站品牌設定</span><button id="masterBrandX" type="button" aria-label="關閉品牌設定">×</button></header>
+  <div id="masterBrandBody">
+   <div class="master-brand-field"><label for="masterBrandName">Application Name</label><input id="masterBrandName" type="text" maxlength="32" value="INK"></div>
+   <div class="master-brand-field"><label for="masterBrandTitle">Browser Title</label><input id="masterBrandTitle" type="text" maxlength="100" value="INK v0.1 · Web"></div>
+   <div id="masterBrandPreview"><span id="masterBrandWordmark">INK</span><img id="masterBrandMark" src="../../assets/ink-mark.svg" alt="網站圖示預覽"></div>
+   <div class="master-brand-file"><label for="masterBrandLogoFile">Choose Logo</label><input id="masterBrandLogoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></div>
+   <div class="master-brand-file"><label for="masterBrandFaviconFile">Choose Favicon</label><input id="masterBrandFaviconFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></div>
+   <p id="masterBrandHelp">設為網站預設需經正式審查及發布；此處不保存僅此瀏覽器的圖示。</p>
+   <p id="masterBrandStatus" role="status" aria-live="polite">Master UI 設計草稿，尚未提交或發布。</p>
+  </div>
+  <footer id="masterBrandFooter"><button id="masterBrandClear" type="button">清除</button><button id="masterBrandApply" type="button">設為網站預設</button><button id="masterBrandClose" type="button">關閉</button></footer>
+ </section>
+</div>
+<div id="overlay" class="overlay" hidden></div><div id="toast" role="status" aria-live="polite"></div><input id="openFile" type="file" accept="application/json,.json" hidden><div id="toolGroupMenu" class="drawing-tool-menu" popover="manual" role="menu"></div></div>
 <div id="ur2Review" hidden role="complementary" aria-label="UR2 對照與待補檢視"><header><strong>UR2 對照：示意，非 Native</strong><button id="ur2ReviewClose" aria-label="關閉">×</button></header><div class="ur2-tabs"><button type="button" id="ur2TabCurrent" aria-pressed="true">目前工具</button><button type="button" id="ur2TabAll" aria-pressed="false">全部45項</button></div><div id="ur2ReviewBody"></div><footer><span id="ur2Totals"></span><button id="ur2GeometryExport" type="button" title="匯出預覽的 computed CSS 和 DOM 幾何，並非正式版證據">匯出量測</button><button id="ur2LiveMode" type="button">同視窗正式 INK</button><button id="ur2LiveLink" type="button">新分頁 ↗</button></footer></div><div id="ur2Notice" role="status" hidden></div><iframe id="ur2LiveFrame" title="正式已發布 INK：實際 Runtime，供相同視窗視覺對照" src="about:blank" hidden loading="lazy"></iframe><button id="ur2SwitchBack" type="button" hidden>返回 UR2 示意</button><script>
 const R=(label,desc)=>({label,desc,kind:'ready'}),P=(label,desc,rank='後續',confirmed=true,fields=[])=>({label,desc,rank,kind:'pending',confirmed,fields});
 const catalog=[
@@ -661,7 +703,7 @@ menu.addEventListener('click',e=>{
  const c=e.target.closest('[data-mcat]'),sub=e.target.closest('[data-msub]'),action=e.target.closest('[data-mcmd]');
  if(c){d.category=c.dataset.mcat;d.expanded='';render()}
  else if(sub&&!sub.disabled){d.expanded=d.expanded===sub.dataset.msub?'':sub.dataset.msub;render()}
- else if(action&&!action.disabled){const k=action.dataset.mcmd;close();if(k==='new')mockNew();else note('已核對 UI1 指令：'+action.textContent.trim()+'。主草稿不連接 Native。')}
+ else if(action&&!action.disabled){const k=action.dataset.mcmd;close();if(k==='new')mockNew();else if(k==='branding')window.INK_MASTER_BRANDING_OPEN?.();else note('已核對 UI1 指令：'+action.textContent.trim()+'。主草稿不連接 Native。')}
 });
 menu.addEventListener('pointerover',e=>{
  const c=e.target.closest('[data-mcat]'),sub=e.target.closest('[data-msub]');
@@ -994,4 +1036,71 @@ window.INK_MOBILE_V08=Object.freeze({getState:()=>({view,quickPage,demoTool,brus
 window.INK_MOBILE_V09=Object.freeze({getState:()=>({mobileMenuType:"three-task-hub",projectMenuOpen:!projectMenu.hidden,previewActions:["blank","photo","export"],legacyEightCategoryMenuVisible:media.matches?false:null,desktopMenuPreserved:true,mobilePanels:false,view,previewOnly:true})});
 requestAnimationFrame(paint);
 })();
-</script></body></html>
+</script>
+<script>
+/* Sole Master preview interaction; no Native, local branding persistence or GitHub publishing. */
+(()=>{
+'use strict';
+const get=id=>document.getElementById(id);
+const overlay=get('masterBrandOverlay'),dialog=get('masterBrandDialog'),header=get('masterBrandHeader');
+const name=get('masterBrandName'),title=get('masterBrandTitle'),mark=get('masterBrandMark'),word=get('masterBrandWordmark');
+const logo=get('masterBrandLogoFile'),favicon=get('masterBrandFaviconFile'),status=get('masterBrandStatus');
+const defaultMark=mark.getAttribute('src'),urls=new Map();
+let prior=null,dx=0,dy=0,drag=null;
+function center(){dx=0;dy=0;drag=null;dialog.style.transform='';header.removeAttribute('data-dragging');}
+function close(){if(overlay.hidden)return;overlay.hidden=true;center();if(prior?.isConnected)prior.focus();}
+function open(){prior=document.activeElement;center();overlay.hidden=false;status.textContent='Master UI 設計草稿，尚未提交或發布。';name.focus();}
+function clear(){
+ for(const u of urls.values())URL.revokeObjectURL(u);urls.clear();
+ name.value='INK';title.value='INK v0.1 · Web';word.textContent='INK';word.removeAttribute('title');
+ mark.src=defaultMark;logo.value='';favicon.value='';
+ status.textContent='已清除未提交變更；網站設定沒有改變。';
+}
+name.addEventListener('input',()=>{word.textContent=name.value.trim()||'INK';});
+function wire(input,kind){
+ input.addEventListener('change',()=>{
+  const f=input.files?.[0];if(!f)return;
+  const max=kind==='favicon'?256*1024:768*1024;
+  if(!['image/png','image/jpeg','image/webp','image/gif','image/svg+xml'].includes(f.type)||!f.size||f.size>max){
+   input.value='';status.textContent='格式或檔案大小不符。';return;
+  }
+  if(urls.has(kind))URL.revokeObjectURL(urls.get(kind));
+  const url=URL.createObjectURL(f);urls.set(kind,url);
+  if(kind==='favicon')mark.src=url;else{word.textContent=f.name;word.title=f.name;}
+  status.textContent=(kind==='favicon'?'Favicon':'Logo')+' 草稿預覽已更新，尚未生效。';
+ });
+}
+wire(logo,'logo');wire(favicon,'favicon');
+get('masterBrandClear').addEventListener('click',clear);
+get('masterBrandApply').addEventListener('click',()=>{status.textContent='僅供 Master UI 預覽；實際網站設定須交由受控發布流程。';});
+get('masterBrandClose').addEventListener('click',close);
+get('masterBrandX').addEventListener('click',close);
+overlay.addEventListener('pointerdown',e=>{if(e.target===overlay)close();});
+overlay.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){e.preventDefault();close();}
+ if(e.key==='Tab'){
+  const a=[...dialog.querySelectorAll('button:not([disabled]),input:not([disabled])')],first=a[0],last=a.at(-1);
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+ }
+});
+header.addEventListener('pointerdown',e=>{
+ if(overlay.hidden||e.button!==0||e.pointerType!=='mouse'||matchMedia('(max-width:600px)').matches||e.target.closest('button'))return;
+ const r=dialog.getBoundingClientRect();e.preventDefault();
+ drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top,width:r.width,height:r.height,dx,dy};
+ header.setPointerCapture(e.pointerId);header.dataset.dragging='true';
+});
+header.addEventListener('pointermove',e=>{
+ if(!drag||e.pointerId!==drag.id)return;
+ const x=Math.max(8-drag.left,Math.min(innerWidth-drag.width-8-drag.left,e.clientX-drag.x));
+ const y=Math.max(8-drag.top,Math.min(innerHeight-drag.height-8-drag.top,e.clientY-drag.y));
+ dx=drag.dx+x;dy=drag.dy+y;dialog.style.transform='translate('+dx+'px,'+dy+'px)';
+});
+const end=e=>{if(!drag||e.pointerId!==drag.id)return;drag=null;header.removeAttribute('data-dragging');if(header.hasPointerCapture(e.pointerId))header.releasePointerCapture(e.pointerId);};
+header.addEventListener('pointerup',end);header.addEventListener('pointercancel',end);
+window.addEventListener('resize',()=>{if(!overlay.hidden)center();});
+window.INK_MASTER_BRANDING_OPEN=open;
+window.INK_MASTER_BRANDING_PREVIEW=Object.freeze({open,close,inspect:()=>({open:!overlay.hidden,dx,dy,previewOnly:true})});
+})();
+</script>
+</body></html>
