@@ -4,49 +4,49 @@
   "action": "publish",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "46526edaed29adf9602fd356e0a8db30313ceda3",
-    "product_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693"
+    "exact_sha": "e47c37c63d4c7949c95a29ccd37acb44e71bd8b0",
+    "product_tree": "f7a1c74ea70b6cbda266c63a67a067fa6da99ee9"
   },
-  "build_id": "src-ecb51f58cadc4c5b2b88f953",
-  "runtime_digest_sha256": "ffca090b4debe10f1dfd85fdba7d7ca785a957dc5a32e2951cfac9687100d12a",
+  "build_id": "src-80d8d73748a49a96d109d592",
+  "runtime_digest_sha256": "3f30aee9cd0bdae6dc5dfb22ba405903f4ec6fa18f1591e8fad6e06adc4caa05",
   "package_manifest_sha256": "e6bb6218a18d98f2e6f6f08e2f976edf0cb2246dab33d03128ce650caa8f6e32",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
   "target": {
     "repo": "thedoorw/INK",
     "branch": "main",
-    "expected_head": "96ab024b82f11f1b6ae6994a55b5d70cac22ef35",
-    "expected_tree": "407e9c5ef7491948728b8335e30a4d2305c0abbe",
-    "prior_receipt_sha256": "7b7cbe183128d40df334269dc137106de633b959188fb4bf7f6de11f7255520e"
+    "expected_head": "4b71601eefa83834c7540cb0718187c1dac0d22b",
+    "expected_tree": "210ab5d5ef49e5465430548b1156f862d415b6a5",
+    "prior_receipt_sha256": "9fd15c56bf01385bd1ca72e808bea47923635f97f3a1ebc5baeaa54c878304ee"
   },
   "qualification": {
-    "source_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693",
+    "source_tree": "f7a1c74ea70b6cbda266c63a67a067fa6da99ee9",
     "runs": [
       {
-        "profile": "ink-pr523-master-branding-windows-native-chrome-v1",
-        "id": 41643313574,
-        "workflow_path": ".github/workflows/ink-branding-pr523-windows-qa.yml",
-        "workflow_blob": "848a1ae62ca12e483b32123071731c5ea1846873",
-        "head_sha": "5e88d85d01e4b6982a02f80b06be006f9f40538e"
+        "profile": "ink-favicon528-public-owner-url-windows-node-chrome-v1",
+        "id": 41777234624,
+        "workflow_path": ".github/workflows/ink-favicon528-win-qa.yml",
+        "workflow_blob": "350f6eb95e65dbc6df651124be604830cf88fbc8",
+        "head_sha": "cd597d690254558a69970b98b180b69337f8344e"
       }
     ]
   },
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/523#issuecomment-6605552056",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/528#issuecomment-6622117756",
   "rollback": {
-    "public_commit": "96ab024b82f11f1b6ae6994a55b5d70cac22ef35",
-    "receipt_sha256": "7b7cbe183128d40df334269dc137106de633b959188fb4bf7f6de11f7255520e",
-    "source_sha": "430dadd302e65a0496a3dfdac373c4073439dc5c",
-    "source_tree": "8b3716d68c1a0014eb0f7e8d89773ac2a1bfd109"
+    "public_commit": "4b71601eefa83834c7540cb0718187c1dac0d22b",
+    "receipt_sha256": "9fd15c56bf01385bd1ca72e808bea47923635f97f3a1ebc5baeaa54c878304ee",
+    "source_sha": "46526edaed29adf9602fd356e0a8db30313ceda3",
+    "source_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693"
   },
   "files": [
     {
       "path": "BUILD_INFO.json",
-      "bytes": 62905,
-      "sha256": "6c0308a90cd90b771cf635e332d1b1a1cb8c6ecedcfbc8307e97e4baf7fc8056"
+      "bytes": 62901,
+      "sha256": "ab3c90f5a3ce8b472cd8eb9f5cc9901d133f96722f3a4a032617cd5ee92de5ee"
     },
     {
       "path": "PUBLISH_RECEIPT.json",
       "bytes": 81629,
-      "sha256": "9fd15c56bf01385bd1ca72e808bea47923635f97f3a1ebc5baeaa54c878304ee"
+      "sha256": "9d9a95b3c9a4b60563753f10431e11f4ea8fc54a028042f140688b26f2aa7613"
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -71,7 +71,7 @@
     {
       "path": "build-identity.js",
       "bytes": 193,
-      "sha256": "5b6fbe5390026706489cb8293f409efc139ff0aab8df8effd5b6db767fad8853"
+      "sha256": "702a43bd18ef6ab51c71d5b28e32f482f6e781cdb282bd06518f8cc2b98bdb4f"
     },
     {
       "path": "dist/ink.compat.js",
@@ -1490,8 +1490,8 @@
     },
     {
       "path": "src/ui/branding-settings.js",
-      "bytes": 14230,
-      "sha256": "6b399389aff3ec4e67f520704fb3028e21d8b39b6d3e55918db08a7c7aa9069c"
+      "bytes": 15446,
+      "sha256": "9b42db7dcfa5db98e2f59e76756dd1f980092f63f1bde9e20a1bf13d2f8763c3"
     },
     {
       "path": "src/ui/ink017/entry.js",

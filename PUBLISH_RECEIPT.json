@@ -1,13 +1,13 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "46526edaed29adf9602fd356e0a8db30313ceda3",
-  "source_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693",
-  "runtime_digest_sha256": "ffca090b4debe10f1dfd85fdba7d7ca785a957dc5a32e2951cfac9687100d12a",
+  "source_sha": "e47c37c63d4c7949c95a29ccd37acb44e71bd8b0",
+  "source_tree": "f7a1c74ea70b6cbda266c63a67a067fa6da99ee9",
+  "runtime_digest_sha256": "3f30aee9cd0bdae6dc5dfb22ba405903f4ec6fa18f1591e8fad6e06adc4caa05",
   "package_manifest_sha256": "e6bb6218a18d98f2e6f6f08e2f976edf0cb2246dab33d03128ce650caa8f6e32",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "96ab024b82f11f1b6ae6994a55b5d70cac22ef35",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/523#issuecomment-6605552056",
+  "previous_target_commit": "4b71601eefa83834c7540cb0718187c1dac0d22b",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/528#issuecomment-6622117756",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -35,15 +35,15 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "bytes": 62905,
-      "sha256": "6c0308a90cd90b771cf635e332d1b1a1cb8c6ecedcfbc8307e97e4baf7fc8056",
-      "git_blob_sha": "fe3544da1a158417806a8c970bd82646d5b8c08b"
+      "bytes": 62901,
+      "sha256": "ab3c90f5a3ce8b472cd8eb9f5cc9901d133f96722f3a4a032617cd5ee92de5ee",
+      "git_blob_sha": "50fb1ecf9d4223945c7fc6f0a8fd67abf4c002d3"
     },
     {
       "path": "build-identity.js",
       "bytes": 193,
-      "sha256": "5b6fbe5390026706489cb8293f409efc139ff0aab8df8effd5b6db767fad8853",
-      "git_blob_sha": "f06bd5aca15b0f094b82595f5497d1c9fe5f013c"
+      "sha256": "702a43bd18ef6ab51c71d5b28e32f482f6e781cdb282bd06518f8cc2b98bdb4f",
+      "git_blob_sha": "ede4a4a747c83359ef6072b507ddf49e1531d575"
     },
     {
       "path": "dist/ink.compat.js",
@@ -1745,9 +1745,9 @@
     },
     {
       "path": "src/ui/branding-settings.js",
-      "bytes": 14230,
-      "sha256": "6b399389aff3ec4e67f520704fb3028e21d8b39b6d3e55918db08a7c7aa9069c",
-      "git_blob_sha": "6996107d2e2ec5fc425ac7364f46d0ec036f2f33"
+      "bytes": 15446,
+      "sha256": "9b42db7dcfa5db98e2f59e76756dd1f980092f63f1bde9e20a1bf13d2f8763c3",
+      "git_blob_sha": "6284de556ec07d6e7235e377dfac5f757c80259f"
     },
     {
       "path": "src/ui/ink017/entry.js",

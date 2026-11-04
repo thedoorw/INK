@@ -2,6 +2,9 @@
 (() => {
   'use strict';
   const LEGACY_KEY='ink.web.branding.active.v1';
+  // Site-owner media is intentionally outside Static Sync009 managed runtime files.
+  const OWNER_FAVICON='https://thedoorw.github.io/INK/assets/favicon-user.png';
+  const OWNER_UPLOAD='https://github.com/thedoorw/INK/upload/main/assets';
   const MIME=new Set(['image/png','image/jpeg','image/webp','image/gif','image/svg+xml']);
   const LIMIT={logo:768*1024,favicon:256*1024};
   const DATA_RE=/^data:(image\/(?:png|jpeg|webp|gif|svg\+xml));base64,([a-z0-9+/=]+)$/i;
@@ -41,6 +44,19 @@
     if(logoImage)logoImage.src=draft.logo;
     if(faviconImage)faviconImage.src=draft.favicon;
     if(button)button.disabled=pending>0||!updated();
+  };
+  // GitHub already authenticates the owner; INK only detects their Public-owned file.
+  const loadOwnerFavicon=async()=>{
+    try{
+      const response=await fetch(OWNER_FAVICON+'?v='+Date.now(),{
+        method:'HEAD',cache:'no-store'
+      });
+      if(!response.ok||!/^image\/png\b/i.test(response.headers.get('content-type')||''))return;
+      const href=OWNER_FAVICON+'?v='+Date.now();
+      faviconLink?.setAttribute('href',href);
+      if(!assetFiles.favicon)draft.favicon=href;
+      refresh();
+    }catch{/* Offline, nonexistent owner file: use built-in favicon. */}
   };
   const imageData=(raw,kind)=>{
     const match=DATA_RE.exec(raw);
@@ -83,7 +99,8 @@
       const old=JSON.parse(localStorage.getItem(LEGACY_KEY)||'null');
       if(!old||typeof old!=='object')return false;
       let any=false;
-      for(const kind of ['logo','favicon']){
+      // Old local favicon drafts must never mask the Public owner's current icon.
+      for(const kind of ['logo']){
         const entry=typeof old[kind]==='string'&&imageData(old[kind],kind);
         if(entry){draft[kind]=old[kind];assetFiles[kind]=entry;any=true;}
       }
@@ -184,7 +201,7 @@
     const a=make('a',{href:url,download:'INK_SITE_BRANDING_CANDIDATE.json'});
     document.body.append(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
-    statusText('網站預設候選已下載，交由 INK PUBLISH 核准與發布後生效。');
+    statusText('網站設定候選已下載，正式發布後生效。');
   };
   function mount(){
     if(backdrop)return;
@@ -222,9 +239,15 @@
     faviconGroup.append(faviconImage);
     preview.append(logoGroup,faviconGroup);content.append(preview);
     makeFile(content,'inkBrandLogoFile','Choose Logo','logo');
-    makeFile(content,'inkBrandFaviconFile','Choose Favicon','favicon');
+    const faviconRow=make('div',{class:'ink-branding-file-row'});
+    const ownerLink=make('a',{
+      href:OWNER_UPLOAD,target:'_blank',rel:'noopener noreferrer',
+      'data-ink-brand-owner-favicon':''
+    },'在 GitHub 更換 Favicon');
+    faviconRow.append(make('label',{},'Favicon'),ownerLink);
+    content.append(faviconRow);
     content.append(make('p',{id:'inkBrandHelp',class:'ink-branding-help'},
-      '自訂 Logo／Favicon 經 INK PUBLISH 核准發布後，才會成為網站預設。'));
+      'Favicon：在 GitHub 上傳 favicon-user.png 並提交，重新整理 INK 即生效。其他網站設定仍由 INK PUBLISH 發布。'));
     body.append(content);panel.append(body);
     status=make('p',{class:'ink-branding-status',role:'status','aria-live':'polite'});
     status.hidden=true;
@@ -232,7 +255,7 @@
     const footer=make('div',{class:'dialog-footer ink-branding-actions'});
     clearButton=make('button',{type:'button','data-ink-brand-clear':''},'清除');
     clearButton.addEventListener('click',reset);
-    button=make('button',{type:'button','data-ink-brand-public-candidate':'',class:'primary'},'設為網站預設');
+    button=make('button',{type:'button','data-ink-brand-public-candidate':'',class:'primary'},'下載其他設定候選');
     button.addEventListener('click',exportCandidate);
     const dismiss=make('button',{type:'button','data-ink-brand-close':''},'關閉');
     dismiss.addEventListener('click',close);
@@ -286,6 +309,7 @@
     });
     window.dispatchEvent(new Event('ink:branding-changed'));
   });
+  void loadOwnerFavicon();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
 })();
