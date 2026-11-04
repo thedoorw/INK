@@ -4,8 +4,8 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "46526edaed29adf9602fd356e0a8db30313ceda3",
-    "product_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693"
+    "exact_sha": "e47c37c63d4c7949c95a29ccd37acb44e71bd8b0",
+    "product_tree": "f7a1c74ea70b6cbda266c63a67a067fa6da99ee9"
   },
   "runtime": {
     "root": "/INK/",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 193,
-        "sha256": "5b6fbe5390026706489cb8293f409efc139ff0aab8df8effd5b6db767fad8853"
+        "sha256": "702a43bd18ef6ab51c71d5b28e32f482f6e781cdb282bd06518f8cc2b98bdb4f"
       },
       {
         "path": "dist/ink.compat.js",
@@ -1453,8 +1453,8 @@
       },
       {
         "path": "src/ui/branding-settings.js",
-        "bytes": 14230,
-        "sha256": "6b399389aff3ec4e67f520704fb3028e21d8b39b6d3e55918db08a7c7aa9069c"
+        "bytes": 15446,
+        "sha256": "9b42db7dcfa5db98e2f59e76756dd1f980092f63f1bde9e20a1bf13d2f8763c3"
       },
       {
         "path": "src/ui/ink017/entry.js",
@@ -1732,11 +1732,11 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "ffca090b4debe10f1dfd85fdba7d7ca785a957dc5a32e2951cfac9687100d12a"
+    "package_digest_sha256": "3f30aee9cd0bdae6dc5dfb22ba405903f4ec6fa18f1591e8fad6e06adc4caa05"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "28f6dec4358b248251ec4f5d665d45d2ac4ae920",
+    "exact_sha": "fbca2a188c7307faf3dda6798231e22f3bd1941a",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
@@ -1744,20 +1744,20 @@
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "f06f5cb9542cb16c479e6edde8cacb082ec72693",
+    "source_tree": "f7a1c74ea70b6cbda266c63a67a067fa6da99ee9",
     "runs": [
       {
-        "profile": "ink-pr523-master-branding-windows-native-chrome-v1",
-        "id": 41643313574,
-        "workflow_path": ".github/workflows/ink-branding-pr523-windows-qa.yml",
-        "workflow_blob": "848a1ae62ca12e483b32123071731c5ea1846873",
-        "head_sha": "5e88d85d01e4b6982a02f80b06be006f9f40538e"
+        "profile": "ink-favicon528-public-owner-url-windows-node-chrome-v1",
+        "id": 41777234624,
+        "workflow_path": ".github/workflows/ink-favicon528-win-qa.yml",
+        "workflow_blob": "350f6eb95e65dbc6df651124be604830cf88fbc8",
+        "head_sha": "cd597d690254558a69970b98b180b69337f8344e"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "96ab024b82f11f1b6ae6994a55b5d70cac22ef35",
+    "previous_target_commit": "4b71601eefa83834c7540cb0718187c1dac0d22b",
     "runtime_bytes_unchanged_from_package": true
   }
 }
