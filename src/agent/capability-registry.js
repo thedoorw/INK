@@ -1066,6 +1066,27 @@ primary.push(descriptor({
 }));
 
 
+primary.push(descriptor({
+  id: 'artwork.importAi', title: 'Import Illustrator PDF display vectors',
+  description: 'Bounded raw/Flate single-page PDF-compatible .ai to editable Native paths/groups/text. Always VISUAL_IMPORT_PARTIAL.',
+  availability: true, routingClass: 'NAMED_TOOL', namedTool: 'import_ink_ai_document', publicMethod: 'tools.invoke', role: 'WRITE',
+  authoritativeRoute: 'normalizeChatAttachment → app.importAiDocument → decodeAiDocument → existing Native History/Path/Group/Text',
+  inputSchema: obj({ input: { description: 'Browser-local .ai File/Blob through existing attachment handoff.' }, options: obj({expectedContext:{type:'object',additionalProperties:true,description:'Optional first-party ingress target identity guard.'}},[]) }, ['input']),
+  targetTypes: ['Path','Text','Group','Layer'], constraints: ['8 MiB; raw/Flate PDF display subset only.', 'PDF optional-content groups are not the original Illustrator layer tree. No full layer fidelity claim.'],
+  ...policy(false, 'DIRECT_NAMED_TOOL', 'AUTHORITATIVE_COMMIT', 'NO_AUTO_CAPTURE'),
+  resultContract: resultContract({ statuses: ['COMPLETED','FAILED'], createsRefs: true }), examples: [], toolPrimary: true
+}));
+
+primary.push(descriptor({
+  id: 'psd.importLayers', title: 'Import layered PSD',
+  description: 'Bounded RGB8 PSD/PSB raw/RLE/ZIP layers to Native images/groups; async native decompression and explicit fidelity receipt.',
+  availability: true, routingClass: 'NAMED_TOOL', namedTool: 'import_ink_psd_layers', publicMethod: 'tools.invoke', role: 'WRITE',
+  authoritativeRoute: 'normalizeChatAttachment → app.importPsdLayers → decodeLayeredPsd → existing Native History/layers/images',
+  inputSchema: obj({ input: { description: 'Browser-local PSD File/Blob through existing attachment handoff.' }, options: obj({expectedContext:{type:'object',additionalProperties:true,description:'Optional first-party ingress target identity guard.'}},[]) }, ['input']),
+  targetTypes: ['Image','Group','Layer'], constraints: ['32 MiB input; RGB8 raw/RLE/ZIP, including bounded PSB.', 'Partial mask alpha conversion; no layered PSD export or full Photoshop fidelity.'],
+  ...policy(false, 'DIRECT_NAMED_TOOL', 'AUTHORITATIVE_COMMIT', 'NO_AUTO_CAPTURE'),
+  resultContract: resultContract({ statuses: ['COMPLETED','FAILED'], createsRefs: true }), examples: [], toolPrimary: true
+}));
 // Cluster B1 direct mutable web-raster import. Binary ingest is a named-tool boundary, not bounded-edit JSON.
 primary.push(descriptor({
   id: 'raster.import',
@@ -1512,3 +1533,4 @@ export function resolveInkCapabilityDescriptor(idOrToolName) {
   const found = BY_ID.get(key) || BY_TOOL.get(key) || null;
   return found ? clone(found) : null;
 }
+
