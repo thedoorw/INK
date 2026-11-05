@@ -1,13 +1,13 @@
 {
   "schema": "INK_CHAT_DRAW_545_ISOLATED_PAGES_PACKAGE_V1",
-  "candidateSha": "ab6dcf4ee323c2ce63fcdfcba401ace4aa1cf374",
+  "candidateSha": "0b98a5a6137f15e889eaff503d91f0724a834d66",
   "source": "thedoorw/INK-Browser-QA",
   "intendedUrlPath": "/INK/qa/chat-draw-545/",
   "oauthOrigin": "https://thedoorw.github.io",
   "oauthScope": "https://www.googleapis.com/auth/drive.file",
   "deployment": "NOT_DEPLOYED_BY_THIS_SCRIPT",
   "caveat": "Public test assets; not official /INK/ Native release; real OAuth not yet tested",
-  "fileCount": 368,
+  "fileCount": 367,
   "files": [
     {
       "path": ".nojekyll",
@@ -201,13 +201,8 @@
     },
     {
       "path": "service-worker-runtime.js",
-      "bytes": 13758,
-      "sha256": "c303585e39b306f09d60261f2178aadd3d9279f9481258a87b45a7f853746c0e"
-    },
-    {
-      "path": "service-worker.js",
-      "bytes": 2043,
-      "sha256": "043d85155ac3211823cd44b8da52004dd4957d99102429a533ce424e54d84f6e"
+      "bytes": 892,
+      "sha256": "c70891cfa9f723beb266b80c7202f4c03d29a5c06974017d45b0298434e27f77"
     },
     {
       "path": "src/agent/capability-registry.js",
