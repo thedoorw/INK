@@ -1,0 +1,204 @@
+import { runInflatingDecoder } from '../../compression/bounded-deflate.js';
+import { asBytes, viewOf, need, ascii, decodePackBits } from './binary.js';
+import { createNormalizedPayload, provenanceFor } from './normalized-payload.js';
+import { formatPayloadToDocumentImageState } from '../format-interoperability.js';
+
+// Deliberately separate from the metadata-tolerant/flattened import route.
+// No source programs, URLs, external services or Adobe private decoders run here.
+function* decodeLayeredPsdSteps(input, { uid, maxBytes = 32 * 1024 * 1024, maxPixels = 4 * 1024 * 1024 } = {}) {
+  const bytes = asBytes(input), v = viewOf(bytes);
+  const fail = code => { throw Object.assign(new Error(code), { code }); };
+  if (typeof uid !== 'function') fail('INK_PSD_ID_FACTORY_REQUIRED');
+  if (bytes.length > maxBytes) fail('INK_PSD_INPUT_BUDGET');
+  need(bytes, 0, 26, 'psd-header');
+  if (ascii(bytes, 0, 4) !== '8BPS') fail('INK_PSD_SIGNATURE_INVALID');
+  const version=v.getUint16(4);
+  if (![1,2].includes(version)) fail('INK_PSD_VERSION_UNSUPPORTED');
+  const height = v.getUint32(14), width = v.getUint32(18);
+  if (!width || !height || width * height > maxPixels) fail('INK_PSD_PIXEL_BUDGET');
+  if (v.getUint16(22) !== 8 || v.getUint16(24) !== 3) fail('INK_PSD_LAYERED_REQUIRES_RGB8');
+  let o = 26, end = bytes.length, pixelBudget = 0;
+  const take = n => { if (!Number.isSafeInteger(n) || n < 0 || o + n > end) fail('INK_PSD_SECTION_BOUNDS'); const p = o; o += n; return p; };
+  const u32 = () => v.getUint32(take(4));
+  const length = () => {if(version===1)return u32();const p=take(8),n=Number(v.getBigUint64(p));if(!Number.isSafeInteger(n))fail('INK_PSB_LENGTH_BOUNDS');return n;};
+  const skipBlock = () => { const n = u32(); take(n); };
+  skipBlock(); skipBlock();
+  const lmLen = length(), lmStart = o; take(lmLen); end = lmStart + lmLen; o = lmStart;
+  const infoLen = length(), infoStart = o;
+  if (!infoLen || infoStart + infoLen > end) fail('INK_PSD_LAYER_INFO_REQUIRED');
+  end = infoStart + infoLen;
+  const count = Math.abs(v.getInt16(take(2)));
+  if (!count || count > 512) fail('INK_PSD_LAYER_COUNT_BUDGET');
+  const records = [];
+  for (let i = 0; i < count; i++) {
+    const p = take(18), top = v.getInt32(p), left = v.getInt32(p + 4), bottom = v.getInt32(p + 8), right = v.getInt32(p + 12), n = v.getUint16(p + 16);
+    if (n > 8 || right < left || bottom < top) fail('INK_PSD_LAYER_BOUNDS');
+    const channels = [];
+    for (let c = 0; c < n; c++) { const p=take(2),id=v.getInt16(p);channels.push({id,length:length()}); }
+    const b = take(12);
+    if (ascii(bytes, b, 4) !== '8BIM') fail('INK_PSD_BLEND_SIGNATURE');
+    const blend = ascii(bytes, b + 4, 4), opacity = bytes[b + 8] / 255, clipping = bytes[b + 9], flags = bytes[b + 10];
+    const extraLen = u32(), extraStart = o, extraEnd = o + extraLen, savedEnd = end;
+    if (extraEnd > end) fail('INK_PSD_EXTRA_BOUNDS'); end = extraEnd;
+    const maskLen = u32(), maskStart = take(maskLen);
+    let mask = null;
+    if (maskLen) {
+      if (maskLen < 20) fail('INK_PSD_MASK_BOUNDS');
+      mask = { top: v.getInt32(maskStart), left: v.getInt32(maskStart + 4), bottom: v.getInt32(maskStart + 8), right: v.getInt32(maskStart + 12), default: bytes[maskStart + 16], flags: bytes[maskStart + 17] };
+      if (mask.flags & ~2 || maskLen > 20) fail('INK_PSD_MASK_PARAMETERS_UNSUPPORTED');
+    }
+    skipBlock();
+    const nameLength = bytes[take(1)], nameStart = take(nameLength);
+    let name = ascii(bytes, nameStart, nameLength), sectionType = null, locked = Boolean(flags & 1);
+    take((4 - ((o - nameStart + 1) % 4)) % 4);
+    const unsupported = [], metadataLosses = [], sourceMetadata = {};
+    while (o < extraEnd) {
+      if (extraEnd - o < 12) { if (bytes.slice(o, extraEnd).some(Boolean)) fail('INK_PSD_EXTRA_TRAILING'); o = extraEnd; break; }
+      const p = take(8), sig = ascii(bytes, p, 4), key = ascii(bytes, p + 4, 4), size = u32(), d = take(size);
+      if (sig !== '8BIM') fail('INK_PSD_ADDITIONAL_SIGNATURE');
+      if (key === 'lsct' && size >= 4) sectionType = v.getUint32(d);
+      else if (key === 'luni') { if (size < 4 || v.getUint32(d) * 2 + 4 > size) fail('INK_PSD_UNICODE_NAME'); name = ''; for (let j = 0; j < v.getUint32(d); j++) name += String.fromCharCode(v.getUint16(d + 4 + j * 2)); }
+      else if (key === 'lspf' && size === 4) locked ||= v.getUint32(d) !== 0;
+      else if (['clbl','infx','knko'].includes(key)) {
+        if(size!==4||bytes[d]>1||bytes.slice(d+1,d+4).some(Boolean))fail('INK_PSD_BLEND_OPTIONS_INVALID');
+        sourceMetadata[key]=bytes[d];
+        // Knockout needs a Native compositing equivalent. Interior/clipped-element options
+        // affect effects/clipping, which this route rejects separately.
+        if(key==='knko'&&bytes[d]!==0)unsupported.push(key);
+        else metadataLosses.push('BLEND_OPTION_'+key.toUpperCase()+'_RECORDED_NOT_EDITABLE');
+      }
+      else if (key==='lyvr'&&size===4)sourceMetadata.layerVersion=v.getUint32(d);
+      else if (key==='lnsr'&&size===4)sourceMetadata.layerNameSource=ascii(bytes,d,4);
+      else if (key==='lclr'&&size===8) {sourceMetadata.sheetColor=v.getUint16(d);metadataLosses.push('LAYER_LABEL_COLOR_METADATA_ONLY');}
+      else if (key==='fxrp'&&size===16) {
+        const point=[v.getFloat64(d),v.getFloat64(d+8)];if(!point.every(Number.isFinite))fail('INK_PSD_REFERENCE_POINT_INVALID');
+        sourceMetadata.referencePoint=point;metadataLosses.push('REFERENCE_POINT_METADATA_ONLY');
+      }
+      else if (key==='shmd') {sourceMetadata.metadataSettingBytes=size;metadataLosses.push('LAYER_METADATA_SETTINGS_NOT_INTERPRETED');}
+      else if (!['lyid'].includes(key)) unsupported.push(key);
+      if (size % 2) take(1);
+    }
+    end = savedEnd; o = extraEnd;
+    if (clipping || unsupported.length) fail(`INK_PSD_LAYER_UNSUPPORTED:${i}:${clipping ? 'clipping' : unsupported.join(',')}`);
+    if (!['norm', 'pass'].includes(blend) || blend === 'pass' && ![1,2].includes(sectionType)) fail(`INK_PSD_BLEND_UNSUPPORTED:${i}:${blend}`);
+    records.push({ index: i, name, top, left, bottom, right, channels, blend, flags, opacity, visible: !(flags & 2), locked, sectionType, mask, metadataLosses, sourceMetadata });
+  }
+  const receipt = { format:version===2?'PSB':'PSD', schema: 'INK_PSD_LAYER_FIDELITY_V1', status: 'SUPPORTED_SUBSET', source: provenanceFor(bytes), width, height, sourceRecords: count, sourceLayers: records.filter(r => r.sectionType == null || r.sectionType === 0).length, sourceGroups: records.filter(r => [1,2].includes(r.sectionType)).length, sourceMasks:records.filter(r=>r.mask).length, nativeMaskCompanions:0, mappings: [], losses: [] };
+  for (const r of records) {
+    if(r.metadataLosses.length)receipt.losses.push({sourceIndex:r.index,codes:r.metadataLosses});
+    const w = r.right - r.left, h = r.bottom - r.top;
+    const planes = new Map();
+    for (const ch of r.channels) {
+      if (![-2,-1,0,1,2].includes(ch.id) || planes.has(ch.id)) fail(`INK_PSD_CHANNEL_UNSUPPORTED:${r.index}:${ch.id}`);
+      const start = o, stop = o + ch.length;
+      if (ch.length < 2 || stop > end) fail('INK_PSD_CHANNEL_BOUNDS');
+      const isMask = ch.id === -2;
+      if (isMask && !r.mask) fail('INK_PSD_MASK_DESCRIPTOR_REQUIRED');
+      const cw = isMask ? r.mask.right - r.mask.left : w, cy = isMask ? r.mask.bottom - r.mask.top : h;
+      if (cw < 0 || cy < 0 || (pixelBudget += cw * cy) > maxPixels * 8) fail('INK_PSD_LAYER_PIXEL_BUDGET');
+      const compression = v.getUint16(take(2)); let raw;
+      if (compression === 0) { if (o + cw * cy !== stop) fail('INK_PSD_RAW_LENGTH'); raw = bytes.slice(take(cw * cy), stop); }
+      else if (compression === 1) {
+        const entry=version===2?4:2;
+        if (o + cy * entry > stop) fail('INK_PSD_RLE_TABLE');
+        const table = take(cy * entry); raw = new Uint8Array(cw * cy);
+        for (let y = 0; y < cy; y++) { const len = version===2?v.getUint32(table+y*entry):v.getUint16(table+y*entry); if (o + len > stop) fail('INK_PSD_RLE_ROW'); raw.set(decodePackBits(bytes.slice(take(len), o), cw), y * cw); }
+        if (o !== stop) fail('INK_PSD_RLE_LENGTH');
+      } else if(compression===2||compression===3){
+        raw=yield {bytes:bytes.slice(o,stop),maxOutputBytes:cw*cy,expectedLength:cw*cy};
+        if(compression===3)for(let y=0;y<cy;y++)for(let x=1;x<cw;x++)raw[y*cw+x]=(raw[y*cw+x]+raw[y*cw+x-1])&255;
+      } else fail(`INK_PSD_LAYER_COMPRESSION_UNSUPPORTED:${compression}`);
+      o = stop; planes.set(ch.id, raw);
+    }
+    r.id = uid();
+    if (r.flags & 1) receipt.losses.push({sourceIndex:r.index,codes:['TRANSPARENCY_LOCK_CONVERTED_TO_FULL_LOCK']});
+    if ([1,2,3].includes(r.sectionType)) { if (w * h) fail('INK_PSD_GROUP_PIXELS_UNSUPPORTED'); continue; }
+    if (!w || !h || ![0,1,2].every(c => planes.has(c))) fail(`INK_PSD_LAYER_PIXELS_REQUIRED:${r.index}`);
+    const data = new Uint8Array(w * h * 3), alpha = new Uint8Array(w * h);
+    for (let p = 0; p < w * h; p++) {
+      for (let c = 0; c < 3; c++) data[p * 3 + c] = planes.get(c)[p];
+      let a = planes.get(-1)?.[p] ?? 255;
+      if (r.mask && !(r.mask.flags & 2)) {
+        const m = r.mask, x = r.left + p % w - m.left, y = r.top + Math.floor(p / w) - m.top;
+        if (!planes.has(-2)) fail('INK_PSD_MASK_PIXELS_REQUIRED');
+        const value = x >= 0 && y >= 0 && x < m.right - m.left && y < m.bottom - m.top ? planes.get(-2)[y * (m.right - m.left) + x] : m.default;
+        a = Math.round(a * value / 255);
+      }
+      alpha[p] = a;
+    }
+    const losses = r.mask ? ['MASK_PREVIEW_BAKED_SOURCE_AND_MASK_NATIVE_RASTERS_NOT_LIVE_LINKED'] : [];
+    if (losses.length) receipt.losses.push({ sourceIndex: r.index, codes: losses });
+    const payload = createNormalizedPayload({ format: version===2?'PSB':'PSD', width: w, height: h, bitDepth: 8, colorMode: 'RGB', data, alpha, provenance: { ...receipt.source, sourceLayerIndex: r.index } });
+    r.object = { id: r.id, type: 'image', name: r.name, matrix: [1,0,0,1,r.left,r.top], opacity: r.opacity, visible: r.visible, locked: r.locked, w, h, rasterState: formatPayloadToDocumentImageState(payload), metadata: { psd: { sourceIndex: r.index, sourceMetadata:r.sourceMetadata, bounds: [r.left,r.top,r.right,r.bottom], losses } } };
+    if (r.mask) {
+      // The displayed raster remains identical to Photoshop's baked composite.
+      // Additionally preserve independently editable, nonrendering Native image
+      // objects for ORIGINAL RGB/alpha and the actual source mask channel. These
+      // can be exposed/edited/serialized without losing masked-out source pixels.
+      // A mask edit does NOT live-update the displayed preview; disclose this loss.
+      const m=r.mask,mw=m.right-m.left,mh=m.bottom-m.top,maskPlane=planes.get(-2);
+      if (!maskPlane||mw<=0||mh<=0||maskPlane.length!==mw*mh) fail('INK_PSD_MASK_PIXELS_REQUIRED');
+      const originalAlpha=planes.get(-1)?.slice()??new Uint8Array(w*h).fill(255);
+      const original=createNormalizedPayload({format:version===2?'PSB':'PSD',width:w,height:h,bitDepth:8,colorMode:'RGB',
+        data:data.slice(),alpha:originalAlpha,provenance:{...receipt.source,sourceLayerIndex:r.index,channel:'ORIGINAL_RGB_ALPHA'}});
+      const maskRgb=new Uint8Array(mw*mh*3);
+      for(let p=0;p<maskPlane.length;p++)maskRgb.fill(maskPlane[p],p*3,p*3+3);
+      const sourceMask=createNormalizedPayload({format:version===2?'PSB':'PSD',width:mw,height:mh,bitDepth:8,colorMode:'RGB',
+        data:maskRgb,alpha:new Uint8Array(mw*mh).fill(255),provenance:{...receipt.source,sourceLayerIndex:r.index,channel:'LAYER_MASK'}});
+      const rootId=uid(),rawId=uid(),maskId=uid();
+      const metadata={psd:{sourceIndex:r.index,sourceMetadata:r.sourceMetadata,maskFlags:m.flags,maskDefault:m.default,
+        companion:true,linkage:'PREVIEW_ONLY_NOT_LIVE'}};
+      const raw={id:rawId,type:'image',name:r.name+' / source pixels',matrix:[1,0,0,1,r.left,r.top],
+        opacity:1,visible:false,locked:r.locked,w,h,rasterState:formatPayloadToDocumentImageState(original),
+        metadata:{...metadata,psd:{...metadata.psd,channel:'ORIGINAL_RGB_ALPHA'}},parentId:rootId};
+      const mask={id:maskId,type:'image',name:r.name+' / source mask',matrix:[1,0,0,1,m.left,m.top],
+        opacity:1,visible:false,locked:r.locked,w:mw,h:mh,rasterState:formatPayloadToDocumentImageState(sourceMask),
+        metadata:{...metadata,psd:{...metadata.psd,channel:'LAYER_MASK'}},parentId:rootId};
+      r.object.opacity=1;r.object.visible=true;r.object.parentId=rootId;
+      r.object={id:rootId,type:'group',name:r.name,matrix:[1,0,0,1,0,0],
+        opacity:r.opacity,visible:r.visible,locked:r.locked,children:[r.object,raw,mask]};
+      r.maskNativeIds={preview:r.id,sourcePixels:rawId,sourceMask:maskId};r.id=rootId;
+      receipt.nativeMaskCompanions+=2;
+    }
+  }
+  // Photoshop files observed with up to three zero bytes of layer-info alignment.
+  if (end - o > 3 || bytes.slice(o, end).some(Boolean)) fail('INK_PSD_LAYER_DATA_TRAILING');
+  // Photoshop serializes records back-to-front. Walk front-to-back to pair
+  // group openings with the earlier bounding divider, then unshift for Native paint order.
+  const roots = [], stack = [];
+  for (const r of [...records].reverse()) {
+    if (r.sectionType === 3) { if (!stack.length) fail('INK_PSD_GROUP_UNBALANCED'); stack.pop(); continue; }
+    let object = r.object;
+    if ([1,2].includes(r.sectionType)) {
+      if (r.opacity !== 1) receipt.losses.push({ sourceIndex: r.index, codes: ['GROUP_OPACITY_NATIVE_PER_CHILD_COMPOSITING'] });
+      if (r.blend === 'pass') receipt.losses.push({ sourceIndex: r.index, codes: ['PASS_THROUGH_CONVERTED_TO_ISOLATED_GROUP'] });
+      object = { id: r.id, type: 'group', name: r.name, matrix: [1,0,0,1,0,0], opacity: r.opacity, visible: r.visible, locked: r.locked, children: [] };
+    }
+    const parent = stack.at(-1);
+    if (parent) { object.parentId = parent.id; parent.children.unshift(object); } else roots.unshift(object);
+    receipt.mappings.push({ sourceIndex: r.index, sourceName: r.name, nativeObjectId: object.id, nativeType: object.type, mask: r.mask ? 'NATIVE_EDITABLE_SOURCE_MASK_WITH_BAKED_PREVIEW' : 'ABSENT', maskNativeIds:r.maskNativeIds??null, visibility: 'PRESERVED', blend: r.blend === 'norm' ? 'PRESERVED' : 'LOSS', text: 'ABSENT', effects: 'ABSENT' });
+    if ([1,2].includes(r.sectionType)) stack.push(object);
+  }
+  if (stack.length) fail('INK_PSD_GROUP_UNBALANCED');
+  const layers = roots.map(object => {
+    const id = uid();
+    const ids = new Set(); const collect = o => { ids.add(o.id); for (const c of o.children || []) collect(c); }; collect(object);
+    receipt.mappings.filter(m => ids.has(m.nativeObjectId)).forEach(m => { m.nativeLayerId = id; });
+    return { id, name: object.name, visible: object.visible, locked: object.locked, opacity: 1, objects: [object] };
+  });
+  receipt.status = receipt.losses.length ? 'PARTIAL' : 'SUPPORTED_SUBSET';
+  // Resource/ICC and global masks are not yet interpreted by this layered route.
+  receipt.losses.push({ codes: ['DOCUMENT_RESOURCES_ICC_GLOBAL_MASK_UNVERIFIED'] }); receipt.status = 'PARTIAL';
+  return { layers, receipt };
+}
+
+// Sync route remains available for legacy raw/RLE callers. Compressed channels
+// require the explicit async route, so no synchronous fake decode is introduced.
+export function decodeLayeredPsd(input,options={}) {
+  const step=decodeLayeredPsdSteps(input,options).next();
+  if(!step.done)throw new Error('INK_PSD_ASYNC_ZIP_DECODE_REQUIRED');
+  return step.value;
+}
+export function decodeLayeredPsdAsync(input,options={}) {
+  return runInflatingDecoder(decodeLayeredPsdSteps(input,options));
+}

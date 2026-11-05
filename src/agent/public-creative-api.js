@@ -1,3 +1,4 @@
+import { assertArtworkContext } from '../artwork-import/file-routing.js';
 import { createInkRecipeCreativeLoop } from './recipe-creative-loop.js';
 import { buildAIDocumentBridge } from '../ai/document-bridge.js';
 import { installInkOutputRegistry } from './output-handle-registry.js';
@@ -1058,6 +1059,26 @@ export function createInkPublicCreativeApi(app) {
     release_ink_output: input => asset.release(input?.handleId ?? input),
     describe_ink_capability: input => capability.describe(input?.idOrToolName ?? input?.capabilityId ?? input?.toolName ?? input),
     import_ink_reference: request => reference.import(request?.input ?? request, request?.options ?? {}),
+    import_ink_ai_document: async request => {
+      try {
+        const file = await normalizeChatAttachment(request?.input ?? request, request?.options ?? {});
+        if (file.size > 8 * 1024 * 1024) throw new Error('INK_AI_INPUT_BUDGET');
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        assertArtworkContext(app, request?.options?.expectedContext);
+        if (typeof app.importAiDocument !== 'function') throw new Error('INK_AI_IMPORT_AUTHORITY_UNAVAILABLE');
+        return createInkAgentResult(app, 'artwork.importAi', { result: { receipt: await app.importAiDocument(bytes) } });
+      } catch (error) { return failedResult(app, 'artwork.importAi', error); }
+    },
+    import_ink_psd_layers: async request => {
+      try {
+        const file = await normalizeChatAttachment(request?.input ?? request, request?.options ?? {});
+        if (file.size > 32 * 1024 * 1024) throw new Error('INK_PSD_INPUT_BUDGET');
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        assertArtworkContext(app, request?.options?.expectedContext);
+        if (typeof app.importPsdLayers !== 'function') throw new Error('INK_PSD_LAYERED_AUTHORITY_UNAVAILABLE');
+        return createInkAgentResult(app, 'psd.importLayers', { result: { receipt: await app.importPsdLayers(bytes) } });
+      } catch (error) { return failedResult(app, 'psd.importLayers', error); }
+    },
     import_ink_raster: request => raster.import(request?.input ?? request, request?.options ?? {}),
     export_ink_asset: input => asset.export(input ?? {}),
     search_ink_library: input => library.query(input ?? {}),
@@ -1131,3 +1152,4 @@ export function installInkPublicCreativeApi(app) {
   });
   return api;
 }
+

@@ -3,6 +3,8 @@ import { applyPatches, createPatchPair, patchByteSize, patchObjectIds } from './
 import { collectLinkedRepeatDependencies, synchronizeLinkedRepeatDependencies } from './repeat-source-sync.js';
 import { inspectDocument, documentFingerprint } from '../document/integrity.js';
 import { sanitizeDocument } from '../document/migration.js';
+import { packPortableStates, unpackPortableStates, PORTABLE_HISTORY_V2 } from './portable-codec.js';
+import { encodePortableHistoryBundle, decodePortableHistoryBundle } from './portable-lz4.js';
 
 const cloneMaybe = value => value === undefined ? undefined : deepClone(value);
 
@@ -110,8 +112,26 @@ export class HistoryManager {
     const states=[past];
     for(let i=this.undoStack.length-1;i>=0;i--){past=applyPatches(deepClone(past),this.undoStack[i].inverse);states.unshift(past);}
     for(const entry of [...this.redoStack].reverse()){future=applyPatches(deepClone(future),entry.forward);states.push(future);}
-    const payload={schema:'INK_NATIVE_HISTORY_CHECKPOINTS_V1',documentId:document.id,applied:this.undoStack.length,
-      limit:this.limit,labels:this.timeline().entries.map(x=>String(x.label).slice(0,256)),states:states.map(sanitizeDocument)};
+    let payload={schema:'INK_NATIVE_HISTORY_CHECKPOINTS_V1',documentId:document.id,applied:this.undoStack.length,
+      // Keep transport checkpoints in their actual validated Native shape.
+      // Normalization happens inside portableEntries, before safe patch regeneration;
+      // eagerly normalizing every snapshot may multiply source rasters/path defaults
+      // beyond the same 8 MiB network/storage ceiling without adding fidelity.
+      limit:this.limit,labels:this.timeline().entries.map(x=>String(x.label).slice(0,256)),states};
+    // Keep old V1 checkpoints for small Native files. Raster-heavy documents
+    // are losslessly compacted into explicitly versioned V2 when necessary,
+    // without raising the 8 MiB portable transport limit.
+    const uncompressedBytes=new TextEncoder().encode(JSON.stringify(payload)).byteLength;
+    if(uncompressedBytes>8*1024*1024){
+      payload.schema=PORTABLE_HISTORY_V2;
+      const packed=packPortableStates(states);payload.states=packed.states;payload.keyTable=packed.keyTable;
+      if(new TextEncoder().encode(JSON.stringify(payload)).byteLength>8*1024*1024){
+        // A second, deterministic lossless block layer is necessary for
+        // large vector documents after the normal migration of path defaults.
+        payload.compressedStates=encodePortableHistoryBundle(packed);
+        payload.states=[];delete payload.keyTable;
+      }
+    }
     // Validate exports through the exact same bounded parser used for remote input.
     this.portableEntries(payload,document);
     return payload;
@@ -121,16 +141,30 @@ export class HistoryManager {
     const fail=()=>{throw new Error('INK_HISTORY_CHECKPOINT_INVALID');};
     if(!payload||new TextEncoder().encode(JSON.stringify(payload)).byteLength>8*1024*1024)fail();
     let nodes=0;
-    const safe=(value,depth=0)=>{if(++nodes>200000||depth>64)fail();if(value&&typeof value==='object')for(const [key,item]of Object.entries(value)){if(['__proto__','prototype','constructor','inkSessionHistory'].includes(key))fail();safe(item,depth+1);}};
+    // Count only traversable containers: large Native RGBA byte arrays consist of
+    // scalar pixels, already bounded by the 8 MiB serialized payload check.
+    // Preserve the 200k object/array node and depth limits for hostile structures.
+    const safe=(value,depth=0)=>{if(value===null||typeof value!=='object')return;if(++nodes>(payload.schema===PORTABLE_HISTORY_V2?400000:200000)||depth>64)fail();for(const [key,item]of Object.entries(value)){if(['__proto__','prototype','constructor','inkSessionHistory'].includes(key))fail();safe(item,depth+1);}};
     safe(payload);
-    const {states,labels,applied}=payload;
-    if(payload.schema!=='INK_NATIVE_HISTORY_CHECKPOINTS_V1'||payload.documentId!==document?.id||
+    const {labels,applied}=payload;
+    const compressed=payload.schema===PORTABLE_HISTORY_V2&&payload.compressedStates;
+    if(compressed&&(payload.states?.length!==0||payload.keyTable!==undefined))fail();
+    const bundle=compressed?decodePortableHistoryBundle(payload.compressedStates):null;
+    const states=bundle?bundle.states:payload.states;
+    const keyTable=bundle?bundle.keyTable:payload.keyTable;
+    if(!['INK_NATIVE_HISTORY_CHECKPOINTS_V1',PORTABLE_HISTORY_V2].includes(payload.schema)||payload.documentId!==document?.id||
       ![20,30,50].includes(payload.limit)||!Array.isArray(states)||states.length<1||states.length>payload.limit+1||
       !Array.isArray(labels)||labels.length!==states.length-1||labels.some(s=>typeof s!=='string'||s.length>256)||
       !Number.isSafeInteger(applied)||applied<0||applied>=states.length)fail();
-    const normalized=states.map(value=>{if(value?.id!==document.id||!inspectDocument(value).passed)fail();return sanitizeDocument(value);});
+    // Preserve bounded original Native state shapes for patch reconstruction.
+    // Eagerly migrating every historical checkpoint expands raster-derived
+    // defaults and makes a valid <8 MiB saved History fail on the very next
+    // autosave after reopen. Boundary fingerprints are still compared after
+    // canonical migration; all source states independently pass integrity.
+    const decodedStates=payload.schema===PORTABLE_HISTORY_V2?unpackPortableStates(states,keyTable):states;
+    const normalized=decodedStates.map(value=>{if(value?.id!==document.id||!inspectDocument(value).passed)fail();return deepClone(value);});
     const current=deepClone(document);delete current.inkSessionHistory;delete current.inkSessionLink;
-    if(documentFingerprint(normalized[applied])!==documentFingerprint(sanitizeDocument(current)))fail();
+    if(documentFingerprint(sanitizeDocument(normalized[applied]))!==documentFingerprint(sanitizeDocument(current)))fail();
     // Diff the current boundary against the actual live document shape. Migration
     // may add derived semantic nodes absent in an older/raw current document.
     normalized[applied]=current;
