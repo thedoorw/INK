@@ -736,7 +736,7 @@ class InkApp{
   fitContent(){if(this.spaceMode()==='layout'){this.fitArtboard({switchSpace:false});return;}const b=this.renderer.contentBounds();if(!b){this.resetView();return;}this.fitBounds(b,70);}
   fitArtboard({switchSpace=false}={}){if(switchSpace&&this.spaceMode()!=='layout'){this.switchWorkspace('layout',{fit:false,announce:false});}this.fitBounds(artboardBleedBounds(this.page(),true),56);}
 
-  async saveProject(execution=null){execution?.assertDocumentCurrent?.();this.doc.modifiedAt=nowISO();const integrity=inspectDocument(this.doc);if(!integrity.passed){this.toast(`無法儲存：文件完整性錯誤 ${integrity.errors.length} 項`,3000);return false;}const json=JSON.stringify(this.sessions.projectPayload(this.doc),null,2);execution?.assertDocumentCurrent?.();this.download(new Blob([json],{type:'application/json'}),`${fileSafe(this.doc.title)}.ink`);this.dirty=false;this.sessions?.capture?.();this.toast('INK 專案檔已建立');return true;}
+  async saveProject(execution=null){execution?.assertDocumentCurrent?.();this.doc.modifiedAt=nowISO();const integrity=inspectDocument(this.doc);if(!integrity.passed){this.toast(`無法儲存：文件完整性錯誤 ${integrity.errors.length} 項`,3000);return false;}let payload,historyOmitted=false;try{payload=this.sessions.projectPayload(this.doc,{history:true});}catch(error){if(error?.message!=='INK_HISTORY_CHECKPOINT_INVALID'){console.error(error);this.toast('無法儲存：歷史紀錄尚未準備完成',3000);return false;}payload=this.doc;historyOmitted=true;}const json=JSON.stringify(payload,null,2);execution?.assertDocumentCurrent?.();this.download(new Blob([json],{type:'application/json'}),`${fileSafe(this.doc.title)}.ink`);this.dirty=false;this.sessions?.capture?.();this.toast(historyOmitted?'INK 專案檔已建立；歷史紀錄無法封裝，未包含 Undo／Redo':'INK 專案檔已建立',5000);return true;}
   async openProjectFile(file,execution=null){if(!file)return false;try{const artwork=await routeArtworkFile(this,file);if(artwork.handled)return artwork.receipt;const text=await file.text();const doc=sanitizeDocument(JSON.parse(text));const integrity=inspectDocument(doc);if(!integrity.passed)throw new Error(`文件完整性錯誤 ${integrity.errors.length} 項`);execution?.assertDocumentCurrent?.();await this.sessions.waitForAutosaves();execution?.assertDocumentCurrent?.();const target=this.sessions.add(doc,{lease:execution?.sessionOperation,historyLimit:this.history.limit});const snapshot=deepClone(this.doc);const admission=this.autosaveAdmission();const persisted=await this.sessions.persistAutosave(admission,snapshot);if(this.autosaveAdmissionCurrent(admission)){this.commands?.notify?.(persisted===true?'autosave-saved':'autosave-error');this.toast(persisted===true?'專案已開啟':'專案已開啟，但未完成持久儲存，F5 無法保證恢復',3000);}return Boolean(target)&&persisted===true;}catch(e){console.error(e);this.toast(`無法開啟：${e.message}`,3000);if(e?.code==='STALE_DOCUMENT')throw e;return false;}}
   importPsdLayers(input){return importLayeredPsd(this,input);}
   importAiDocument(input){return importAiDocument(this,input);}
@@ -1099,6 +1099,13 @@ function bootInk(){
     return null;
   }
   window.INK_APP=app;
+  // R1: optional source-neutral Native bytes I/O from the same Renderer module graph.
+  app.nativeFileInputReady=import('./document/native-byte-input.mjs')
+    .then(module=>module.installNativeByteInput(app,{ready:app.startupDocumentReady}));
+  app.nativeFileInputReady.catch(error=>app.toast?.(error.code||'INK_BYTE_INPUT_STARTUP_FAILED',5000));
+  app.nativeByteOutputReady=import('./document/native-byte-output.mjs')
+    .then(module=>module.installNativeByteOutput(app));
+  app.nativeByteOutputReady.catch(error=>app.toast?.(error.code||'INK_BYTE_OUTPUT_STARTUP_FAILED',5000));
   // Public INK OAuth client ID is not a secret; PIN's OAuth client/config is untouched.
   // Only the canonical INK origin has a built-in default. Other origins must explicitly
   // supply their own first-party config (e.g. a locally registered development origin).
