@@ -1,0 +1,119 @@
+{
+  "schema": "INK_BUNDLED_STARTUP_DELIVERY_V1",
+  "esbuild": "0.25.12",
+  "minification": {
+    "whitespace": true,
+    "syntax": false,
+    "identifiers": false
+  },
+  "entries": [
+    "ink-boot.mjs",
+    "ink-shell.mjs"
+  ],
+  "canonical_sources": [
+    "src/ink.js",
+    "src/ui/ink017/entry.js"
+  ],
+  "assets": [
+    {
+      "path": "asset-inventory.js",
+      "bytes": 914,
+      "sha256": "46fdf0a64809a78f81d829485d24173ba1176749fce5bcb254de774b26f5b53a"
+    },
+    {
+      "path": "chunks/chunk-2FPRSOHV.mjs",
+      "bytes": 6917,
+      "sha256": "744e625efde1deca3ea888698df423b0c4373fdf86c3e8d1a6974398e48ff129"
+    },
+    {
+      "path": "chunks/chunk-342G2AIU.mjs",
+      "bytes": 912,
+      "sha256": "ee7d7b6c7f008c3b3c339255e641019d2d88ba34594ec35cd3bd73db5647a5d7"
+    },
+    {
+      "path": "chunks/chunk-4RISLQQ5.mjs",
+      "bytes": 67539,
+      "sha256": "f53ef513a7af830b8039f7d8431cc64b7efd9ef8b41499fbc17866f578aeeed5"
+    },
+    {
+      "path": "chunks/chunk-CGMNJBCC.mjs",
+      "bytes": 38293,
+      "sha256": "f7b6d8a1a99c10ffce06375fec3b1ee5340b958b9f34fa98876248455bd11167"
+    },
+    {
+      "path": "chunks/chunk-CIQG3GK5.mjs",
+      "bytes": 452999,
+      "sha256": "5f09028d09284886493a02fd4a54722a9cf40c73a421c6ae4ef440234e036bc4"
+    },
+    {
+      "path": "chunks/chunk-D4XO7EMA.mjs",
+      "bytes": 151,
+      "sha256": "02759675d74bfadec205576b5900b3e3f036836f1433e9acfa052266afbbc498"
+    },
+    {
+      "path": "chunks/chunk-GX5XI6KG.mjs",
+      "bytes": 48383,
+      "sha256": "87fea4a041b574c9fde23b477be85c9c52274e7b5c9b8a47c71287aeead17345"
+    },
+    {
+      "path": "chunks/chunk-T7AQINKX.mjs",
+      "bytes": 307392,
+      "sha256": "238f14d7e5b0b2d1c4de84e475f91406f2ab9f350bb53e4e88c1903499a0eaff"
+    },
+    {
+      "path": "chunks/drive-native-link-startup-QDRWIOK6.mjs",
+      "bytes": 34948,
+      "sha256": "40f9aa25f024448dab1527964e0147a5b1611c2d9387a91df547115c6c034f55"
+    },
+    {
+      "path": "chunks/export-3NJAKKKA.mjs",
+      "bytes": 3156,
+      "sha256": "e87aa01e4334f6cfbe04c9e8f3e235939c6f48f0e363145f4a950a87d1bcdbf5"
+    },
+    {
+      "path": "chunks/native-byte-input-OC7QXJSO.mjs",
+      "bytes": 5299,
+      "sha256": "f3e40ecc6c4bb476d2c705dc748af61b41d218fcce6b90ca7ff62eb8d6c23f6a"
+    },
+    {
+      "path": "chunks/native-byte-output-7QVPNPJU.mjs",
+      "bytes": 4848,
+      "sha256": "c4d802980b518f7bad822c1911bbb7eda5a53bc9a62135113754824644667a7b"
+    },
+    {
+      "path": "chunks/runtime-test-bridge-POHQQWKC.mjs",
+      "bytes": 15966,
+      "sha256": "720900219561018197e720db428973a2ae2af3fe6a4c9025faf4ba68ff791e21"
+    },
+    {
+      "path": "chunks/work-runtime-read-controls-HY6A6NUB.mjs",
+      "bytes": 10208,
+      "sha256": "0ee4b38149d353251a8d8c6ca8573a8057a35e5382dcf2894975989bd37e0a0c"
+    },
+    {
+      "path": "ink-boot.mjs",
+      "bytes": 2063954,
+      "sha256": "461243b53565b2ef1a0a90f6eac37227e18d672a59270a0735286144baf1376b"
+    },
+    {
+      "path": "ink-shell.mjs",
+      "bytes": 285699,
+      "sha256": "abcba3bad780a1b67c1ed4786e629f799bd41c4d9a19da8f62c75afc10ea86c7"
+    }
+  ],
+  "initial_static_bundle_count": 10,
+  "product_source_input_count": 296,
+  "note": "Static request count only. Actual Shell Ready latency and feature safety require Chrome A/B.",
+  "initial_static_bundle_paths": [
+    "./dist/startup/chunks/chunk-2FPRSOHV.mjs",
+    "./dist/startup/chunks/chunk-342G2AIU.mjs",
+    "./dist/startup/chunks/chunk-4RISLQQ5.mjs",
+    "./dist/startup/chunks/chunk-CGMNJBCC.mjs",
+    "./dist/startup/chunks/chunk-CIQG3GK5.mjs",
+    "./dist/startup/chunks/chunk-D4XO7EMA.mjs",
+    "./dist/startup/chunks/chunk-GX5XI6KG.mjs",
+    "./dist/startup/chunks/chunk-T7AQINKX.mjs",
+    "./dist/startup/ink-boot.mjs",
+    "./dist/startup/ink-shell.mjs"
+  ]
+}
