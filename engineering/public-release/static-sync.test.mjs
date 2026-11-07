@@ -115,3 +115,10 @@ test('bad PNG, wrong CRC, non-square favicon and oversized payload all fail',()=
  assert.throws(()=>validateBrandPng(Buffer.concat([p,Buffer.from('script')]),'assets/favicon-user.png'),/BRAND_PNG_TRAILING_BYTES/);
  assert.throws(()=>validateBrandPng(Buffer.from('<script>alert(1)</script>'),'assets/logo-user.png'),/BRAND_PNG_SIZE|BRAND_PNG_SIGNATURE/);
 });
+
+
+test('real published owner-approved favicon PNG satisfies the fast path decoder',async()=>{
+ const real=await readFile(new URL('../../assets/favicon.png',import.meta.url));
+ const result=validateBrandPng(real,'assets/favicon-user.png');
+ assert.equal(result.width,64);assert.equal(result.height,64);
+});
