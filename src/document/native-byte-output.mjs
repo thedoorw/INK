@@ -6,7 +6,11 @@ import {PORTABLE_HISTORY_V2} from '../history/portable-codec.js';
 import {getInkOutputRegistry} from '../agent/output-handle-registry.js';
 import {inspectInkOutput} from '../agent/visual-feedback.js';
 
-export const NATIVE_OUTPUT_LIMIT=8*1024*1024;
+// The 8 MiB ceiling could not hold the actual reopened CC2015 AI Native
+// document (8,521,321 compact bytes) plus verified V2 History (2,287,107).
+// The local .ink transport is now bounded at 12 MiB (not Adobe input or
+// History limits), and switches to equivalent minified JSON when necessary.
+export const NATIVE_OUTPUT_LIMIT=12*1024*1024;
 export const PREVIEW_OUTPUT_LIMIT=32*1024*1024;
 const fail=code=>{throw Object.assign(new Error(code),{code});};
 const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
@@ -51,11 +55,31 @@ export function installNativeByteOutput(app){
       const historyBefore=app.history?.timeline?.()?.applied??null;
       const integrity=app.documentIntegrity();
       if(integrity?.passed!==true)fail('INK_NATIVE_OUTPUT_DOCUMENT_INVALID');
-      const payload=app.sessions.projectPayload(before,{history:true});
+      let encoding='AUTO';
+      let payload=app.sessions.projectPayload(before,{history:true});
       if(payload?.format!=='INK'||payload.formatVersion!==FORMAT_VERSION||
          payload.id!==before.id)fail('INK_NATIVE_OUTPUT_FORMAT_INVALID');
+      let bytes=new TextEncoder().encode(JSON.stringify(payload,null,2));
+      // Retain History V2 + LZ4 as lossless bounded reduction before any
+      // compact-json fallback. This does not mutate the authoritative doc.
+      for(const mode of ['V2','V2_LZ4']){
+        if(bytes.length<=NATIVE_OUTPUT_LIMIT)break;
+        encoding=mode;
+        payload=app.sessions.projectPayload(before,{history:true,
+          forceCompact:true,forceCompress:mode==='V2_LZ4'});
+        if(payload?.format!=='INK'||payload.formatVersion!==FORMAT_VERSION||
+           payload.id!==before.id)fail('INK_NATIVE_OUTPUT_FORMAT_INVALID');
+        bytes=new TextEncoder().encode(JSON.stringify(payload,null,2));
+      }
+      // Pretty JSON inflates a large but valid vector .ink above the bounded
+      // native transport. The compact representation is byte-for-byte
+      // equivalent after JSON.parse and still subject to the same hard cap.
+      let jsonLayout='PRETTY';
+      if(bytes.length>NATIVE_OUTPUT_LIMIT){
+        bytes=new TextEncoder().encode(JSON.stringify(payload));
+        jsonLayout='COMPACT';
+      }
       const history=historyReceipt(payload,before.id);
-      const bytes=new TextEncoder().encode(JSON.stringify(payload,null,2));
       if(bytes.length<40||bytes.length>NATIVE_OUTPUT_LIMIT)fail('INK_NATIVE_OUTPUT_SIZE_LIMIT');
       const digest=await sha256(bytes);
       if(app.doc!==before||app.history?.pending||(app.sessions?.active?.()??null)!==active||
@@ -63,13 +87,13 @@ export function installNativeByteOutput(app){
         fail('INK_NATIVE_OUTPUT_DOCUMENT_CHANGED');
       // Document fingerprint alone excludes portable History, which may mutate
       // while hashing. Validate the same authoritative session payload twice.
-      const historyAfter=app.sessions.projectPayload(before,{history:true})?.inkSessionHistory;
+      const historyAfter=app.sessions.projectPayload(before,{history:true,forceCompact:encoding!=='AUTO',forceCompress:encoding==='V2_LZ4'})?.inkSessionHistory;
       if((app.history?.timeline?.()?.applied??null)!==historyBefore||
          !historyAfter||JSON.stringify(historyAfter)!==JSON.stringify(payload.inkSessionHistory))
         fail('INK_NATIVE_OUTPUT_HISTORY_CHANGED');
       return {bytes,receipt:Object.freeze({schema:'INK_NATIVE_OUTPUT_RECEIPT_V1',
         kind:'native',documentId:before.id,sha256:digest,byteLength:bytes.length,
-        formatVersion:payload.formatVersion,historyApplied:history.applied,
+        formatVersion:payload.formatVersion,historyEncoding:encoding,jsonLayout,historyApplied:history.applied,
         historyStates:history.states,documentFingerprint:integrity.fingerprint})};
     },
     // The original Renderer Blob is read from the existing bundle's registry,

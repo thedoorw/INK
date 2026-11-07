@@ -4,7 +4,7 @@ import { sanitizeDocument } from './migration.js';
 import { inspectDocument } from './integrity.js';
 
 const fail=(code)=>{throw Object.assign(new Error(code),{code});};
-const transientKeys=['doc','documentOpen','history','dirty','selection','spatialIndex','spatialDirty','spatialPending','persistenceGeneration','mutationEpoch','autosaveBoundaryPromise','layoutViewportPreview','strokeEdit','draft'];
+const transientKeys=['doc','documentOpen','history','dirty','autosavePending','selection','spatialIndex','spatialDirty','spatialPending','persistenceGeneration','mutationEpoch','autosaveBoundaryPromise','layoutViewportPreview','strokeEdit','draft'];
 const studioKeys=['currentFixture','lastExecutionId','lastPaintSession','lastProgramImport','lastProgramReplay','lastDifference','lastReferenceRun','lastReferencePackage','lastDrawingImport','lastDrawingReplay','lastDrawingQuality','lastInteractiveBenchmark','activeStrokeRecorder','lastStylusReport','programStep'];
 const identity=(entry)=>Object.freeze({sessionId:entry.sessionId,documentId:entry.documentId,generation:entry.generation,pageId:entry.doc?.activePageId||null});
 // The marker records this tab's chosen existing InkStore lane, NOT its document bytes.
@@ -145,7 +145,7 @@ export class DocumentSessionRegistry {
     if(portable)history.restorePortable(portable,{document:doc});
     const entry=this.makeEntry(doc);
     entry.recoverySourceKey=recoverySourceKey;
-    entry.values={doc,documentOpen:true,history,portableHistoryEnabled:Boolean(portable),dirty:Boolean(dirty),selection:[],spatialIndex:this.makeSpatialIndex(),spatialDirty:true,spatialPending:new Set(),persistenceGeneration:0,mutationEpoch:0,autosaveBoundaryPromise:Promise.resolve(true),layoutViewportPreview:null,strokeEdit:null,draft:null};
+    entry.values={doc,documentOpen:true,history,portableHistoryEnabled:Boolean(portable),dirty:Boolean(dirty),autosavePending:false,selection:[],spatialIndex:this.makeSpatialIndex(),spatialDirty:true,spatialPending:new Set(),persistenceGeneration:0,mutationEpoch:0,autosaveBoundaryPromise:Promise.resolve(true),layoutViewportPreview:null,strokeEdit:null,draft:null};
     entry.values.driveLinkIdentity=link||null;
     for(const key of studioKeys)entry.studio[key]=null;
     entry.studio.programStep=0;
@@ -239,11 +239,11 @@ export class DocumentSessionRegistry {
     const admission=this.app.autosaveAdmission();
     return this.persistAutosave(admission,deepClone(this.app.doc));
   }
-  projectPayload(document=this.app.doc,{history=false}={}){
+  projectPayload(document=this.app.doc,{history=false,forceCompact=false,forceCompress=false}={}){
     const entry=this.active();
     if(!entry||entry.doc!==document)return document;
     if(!history&&!entry.values.portableHistoryEnabled)return document;
-    return{...document,inkSessionHistory:entry.values.history.exportPortable(document),...(entry.values.driveLinkIdentity?{inkSessionLink:entry.values.driveLinkIdentity}:{})};
+    return{...document,inkSessionHistory:entry.values.history.exportPortable(document,{forceCompact,forceCompress}),...(entry.values.driveLinkIdentity?{inkSessionLink:entry.values.driveLinkIdentity}:{})};
   }
   async persistAutosave(admission,snapshot){
     const entry=this.get(admission.target?.sessionId);

@@ -2,7 +2,8 @@
 import {inspectDocument} from './integrity.js';
 import {FORMAT_VERSION} from '../config.js';
 
-export const NATIVE_INPUT_LIMIT=8*1024*1024;
+// Must match the bounded first-party Native output, not Adobe source limits.
+export const NATIVE_INPUT_LIMIT=12*1024*1024;
 const ID=/^[A-Za-z0-9_-]{10,160}$/;
 const SHA=/^[a-f0-9]{64}$/;
 const busy=new WeakSet();

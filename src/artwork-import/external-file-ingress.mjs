@@ -1,5 +1,5 @@
-import { decodeLayeredPsdAsync } from '../image/formats/psd-layered.js';
-import { decodeAiDocumentAsync } from './ai-document.js';
+import { decodeAdobeArtwork } from './adobe-core.js';
+import { adobeNativeEngineFor,adobeIllustratorEngineFor } from './adobe-native-engine.js';
 import { ARTWORK_FORMAT_LIMITS,captureArtworkContext,assertArtworkContext,artworkFail as fail } from './file-routing.js';
 const MAX_AGE=5*60*1000;
 const validId=value=>typeof value==='string'&&/^[A-Za-z0-9_-]{10,160}$/.test(value);
@@ -82,7 +82,7 @@ export function createExternalArtworkIngress(app,{transport=null,clock=()=>Date.
         value=await read();let counter=0;
         const previewUid=()=>`preview-${++counter}`;
         // Actual strict decoder preflight: no fabricated preview and no Native mutation.
-        const preview=await (value.source.format!=='ai'?decodeLayeredPsdAsync(value.bytes,{uid:previewUid}):decodeAiDocumentAsync(value.bytes,{uid:previewUid}));
+        const preview=await decodeAdobeArtwork(value.bytes,{uid:previewUid,format:value.source.format,nativeEngine:adobeNativeEngineFor(app),illustratorEngine:adobeIllustratorEngineFor(app)});
         current();pending={...value,fidelity:preview.receipt};
         return {status:'PENDING_CONFIRMATION',source:clone(value.source),fidelity:clone(preview.receipt)};
       }catch(error){value?.bytes.fill(0);clear();throw error;}
@@ -109,3 +109,4 @@ export function createExternalArtworkIngress(app,{transport=null,clock=()=>Date.
     dispose(){if(busy)fail('INK_ARTWORK_INGRESS_BUSY');disposed=true;clear();}
   });
 }
+

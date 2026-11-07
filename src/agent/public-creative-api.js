@@ -1079,6 +1079,50 @@ export function createInkPublicCreativeApi(app) {
         return createInkAgentResult(app, 'psd.importLayers', { result: { receipt: await app.importPsdLayers(bytes) } });
       } catch (error) { return failedResult(app, 'psd.importLayers', error); }
     },
+    // #559: agent receives only a bounded pending-source descriptor, never raw Adobe bytes.
+    // The first-party ingress controller still owns source identity, reread and History commit.
+    get_ink_adobe_pending: () => {
+      try {
+        const state=app.externalArtworkIngress?.state?.();
+        const source=state?.status==='PENDING_CONFIRMATION'?state.pending?.source:null;
+        return createInkAgentResult(app,'artwork.pendingSource',{
+          result:{
+            status:state?.status||'INGRESS_UNAVAILABLE',
+            source:source?{
+              format:source.format,byteLength:source.byteLength,
+              sha256:source.sha256,requestId:source.requestId
+            }:null,
+            fidelity:source?{
+              status:state.pending?.fidelity?.status||'UNKNOWN',
+              lossCount:state.pending?.fidelity?.losses?.length??null
+            }:null
+          }
+        });
+      } catch (error) { return failedResult(app,'artwork.pendingSource',error); }
+    },
+    // No arbitrary binary/URL/Drive identifier accepted from a CHAT or WORK request.
+    // The bridge requires its own explicit USER consent for this named tool.
+    import_ink_adobe_confirmed: async request => {
+      try {
+        const ingress=app.externalArtworkIngress;
+        const state=ingress?.state?.();
+        const source=state?.status==='PENDING_CONFIRMATION'?state.pending?.source:null;
+        if(!source)throw Object.assign(new Error('INK_ADOBE_PREVIEW_AND_FIRST_PARTY_SOURCE_REQUIRED'),{code:'INK_ADOBE_PREVIEW_AND_FIRST_PARTY_SOURCE_REQUIRED'});
+        if(!isRecord(request)||typeof request.requestId!=='string'||request.requestId!==source.requestId||
+           typeof request.sha256!=='string'||!/^[a-f0-9]{64}$/.test(request.sha256)||request.sha256!==source.sha256)
+          throw Object.assign(new Error('INK_ADOBE_PENDING_SOURCE_MISMATCH'),{code:'INK_ADOBE_PENDING_SOURCE_MISMATCH'});
+        const confirmed=await ingress.confirm();
+        if(confirmed?.status!=='IMPORTED')throw Object.assign(new Error('INK_ADOBE_NATIVE_CONFIRM_FAILED'),{code:'INK_ADOBE_NATIVE_CONFIRM_FAILED'});
+        return createInkAgentResult(app,'artwork.importConfirmed',{
+          result:{
+            status:'IMPORTED',
+            format:source.format,
+            sha256:source.sha256,
+            receipt:confirmed.receipt
+          }
+        });
+      } catch(error) { return failedResult(app,'artwork.importConfirmed',error); }
+    },
     import_ink_raster: request => raster.import(request?.input ?? request, request?.options ?? {}),
     export_ink_asset: input => asset.export(input ?? {}),
     search_ink_library: input => library.query(input ?? {}),

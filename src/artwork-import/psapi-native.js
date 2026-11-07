@@ -1,0 +1,41 @@
+import {createNormalizedPayload} from '../image/formats/normalized-payload.js';
+import {formatPayloadToDocumentImageState} from '../image/format-interoperability.js';
+const fail=code=>{throw Object.assign(new Error(code),{code});};
+const sha=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
+const safe=(v,min,max)=>Number.isSafeInteger(v)&&v>=min&&v<=max;
+const u16=(v,n)=>{
+  if(!Array.isArray(v)||v.length!==n||v.some(x=>!safe(x,0,65535)))fail('INK_PSAPI_SAMPLE_INVALID');
+  return new Uint16Array(v);
+};
+export async function decodePsapiNative(bytes,{uid,nativeEngine,plan}={}){
+  if(typeof uid!=='function')fail('INK_PSD_ID_FACTORY_REQUIRED');
+  const sourceSHA256=await sha(bytes);
+  const raw=await nativeEngine.decode(bytes,{sourceSHA256,format:plan.format});
+  if(raw?.schema!=='INK_PSAPI_NATIVE_ADAPTER_INPUT_V1'||raw.sourceSHA256!==sourceSHA256||
+    raw.engineVersion!=='0.9.1'||raw.sourceFormat!==plan.format.toUpperCase()||raw.bitDepth!==16||raw.colorMode!=='RGB'||
+    raw.width!==plan.width||raw.height!==plan.height||!Array.isArray(raw.layers)||!raw.layers.length||raw.layers.length>512||
+    !Array.isArray(raw.unsupported)||raw.unsupported.length||raw.layerOrder!=='TOP_TO_BOTTOM')fail('INK_PSAPI_RESULT_INVALID');
+  if(!Array.isArray(raw.icc)||raw.icc.length>1024*1024||raw.icc.some(x=>!safe(x,0,255)))fail('INK_PSAPI_ICC_INVALID');
+  let total=0;
+  const native=[],mappings=[];
+  for(let index=0;index<raw.layers.length;index++){
+    const l=raw.layers[index];
+    if(!safe(l.width,1,100000)||!safe(l.height,1,100000)||(total+=l.width*l.height)>2*1024*1024||
+      !safe(l.x,-1000000,1000000)||!safe(l.y,-1000000,1000000)||
+      typeof l.name!=='string'||l.name.length>255||typeof l.visible!=='boolean'||typeof l.locked!=='boolean'||
+      !Number.isFinite(l.opacity)||l.opacity<0||l.opacity>1||l.sourceIndex!==index)fail('INK_PSAPI_LAYER_INVALID');
+    const data=u16(l.rgb16,l.width*l.height*3),alpha=u16(l.alpha16,l.width*l.height);
+    const payload=createNormalizedPayload({format:raw.sourceFormat,width:l.width,height:l.height,bitDepth:16,colorMode:'RGB',
+      data,alpha,icc:new Uint8Array(raw.icc),provenance:{sourceSHA256,sourceLayerIndex:index,engine:'PhotoshopAPI 0.9.1'}});
+    const object={id:uid(),type:'image',name:l.name,matrix:[1,0,0,1,l.x,l.y],opacity:1,visible:true,locked:l.locked,
+      w:l.width,h:l.height,rasterState:formatPayloadToDocumentImageState(payload)};
+    const layer={id:uid(),name:l.name,visible:l.visible,locked:l.locked,opacity:l.opacity,objects:[object]};
+    native.unshift(layer); // PhotoshopAPI exposes top-to-bottom; Native paints forward.
+    mappings.push({sourceIndex:index,nativeLayerId:layer.id,nativeObjectId:object.id,nativeType:'image',bitDepth:16});
+  }
+  return {layers:native,receipt:{schema:'INK_PSAPI_NATIVE_FIDELITY_V1',status:'PARTIAL',format:raw.sourceFormat,
+    source:{sourceSHA256,inputByteLength:bytes.length},sourceLayers:raw.layers.length,width:raw.width,height:raw.height,
+    sourceBitDepth:16,nativeBitDepth:16,iccBytesPreserved:raw.icc.length,mappings,
+    losses:[{codes:['SOURCE_BLEND_RANGES_AND_LAYER_METADATA_NOT_NATIVE_EDITABLE','ADOBE_EFFECTS_SMART_OBJECTS_AND_PRIVATE_SEMANTICS_UNQUALIFIED','RENDERED_PIXEL_PARITY_NOT_QUALIFIED']}],
+    fullFidelity:false}};
+}
