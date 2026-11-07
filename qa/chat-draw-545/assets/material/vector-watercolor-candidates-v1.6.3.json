@@ -1,0 +1,136 @@
+{
+  "format": "INK-MATERIAL-STRUCTURE-CANDIDATES",
+  "version": "1.6.3",
+  "status": "VALIDATION REQUIRED",
+  "materials": [
+    {
+      "materialId": "MAT-VW-001",
+      "name": "Procedural Vector Watercolor Brush",
+      "type": "Brush Material",
+      "stableIdRule": "brushId+brushVersion",
+      "parameters": [
+        "strokeWidth",
+        "scale",
+        "opacity",
+        "blendMode",
+        "seed",
+        "layerCount",
+        "jitter"
+      ],
+      "evidence": [
+        "VW-01–04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "materialId": "MAT-VW-002",
+      "name": "Watercolor Petal Composite",
+      "type": "Vector Composite",
+      "stableIdRule": "sourcePathId+brushId+role",
+      "parameters": [
+        "color",
+        "scale",
+        "seed"
+      ],
+      "evidence": [
+        "VW-01",
+        "VW-02"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "materialId": "MAT-VW-003",
+      "name": "Watercolor Leaf Composite",
+      "type": "Vector Composite",
+      "stableIdRule": "sourcePathId+brushId+role",
+      "parameters": [
+        "direction",
+        "color",
+        "seed"
+      ],
+      "evidence": [
+        "VW-03",
+        "VW-04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "materialId": "MAT-VW-004",
+      "name": "Watercolor Stem Stroke",
+      "type": "Path Brush Instance",
+      "stableIdRule": "sourcePathId+brushId",
+      "parameters": [
+        "width",
+        "direction",
+        "seed"
+      ],
+      "evidence": [
+        "VW-03",
+        "VW-04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "materialId": "MAT-VW-005",
+      "name": "Watercolor Wash",
+      "type": "Vector Layer",
+      "stableIdRule": "washId",
+      "parameters": [
+        "color",
+        "opacity",
+        "blendMode"
+      ],
+      "evidence": [
+        "VW-04",
+        "Batch02 Case6 enhanced"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "materialId": "MAT-VW-006",
+      "name": "Vector Splatter",
+      "type": "Deterministic Vector Group",
+      "stableIdRule": "splatterId+index+seed",
+      "parameters": [
+        "count",
+        "radius",
+        "color",
+        "seed"
+      ],
+      "evidence": [
+        "VW-04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "materialId": "MAT-VW-007",
+      "name": "Paper Texture Dependency",
+      "type": "Hybrid Reference",
+      "stableIdRule": "referenceId",
+      "parameters": [
+        "sourceAsset"
+      ],
+      "evidence": [
+        "VW-04"
+      ],
+      "validationState": "RESEARCH"
+    },
+    {
+      "materialId": "STR-VW-001",
+      "name": "Editable Watercolor Plant Structure",
+      "type": "Hierarchy",
+      "stableIdRule": "semantic hierarchy IDs",
+      "parameters": [
+        "flower",
+        "stem",
+        "leaves",
+        "wash",
+        "splatter"
+      ],
+      "evidence": [
+        "VW-04"
+      ],
+      "validationState": "VERIFIED"
+    }
+  ]
+}
