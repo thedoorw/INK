@@ -68,7 +68,8 @@ function requestActionLabel(tool) {
   return ({
     approve_ink_edit: 'Approve edit proposal',
     undo_ink: 'Undo current History step',
-    redo_ink: 'Redo current History step'
+    redo_ink: 'Redo current History step',
+    import_ink_adobe_confirmed: 'Import the verified PSD/PSB/AI source into INK Native'
   })[tool] || String(tool || 'Request');
 }
 

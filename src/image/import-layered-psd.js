@@ -1,5 +1,6 @@
 import { pinImportTarget } from '../artwork-import/import-context.js';
-import { decodeLayeredPsdAsync } from './formats/psd-layered.js';
+import { decodeAdobeArtwork } from '../artwork-import/adobe-core.js';
+import { adobeNativeEngineFor } from '../artwork-import/adobe-native-engine.js';
 import { uid } from '../core/index.js';
 
 export async function importLayeredPsd(app, input) {
@@ -7,7 +8,7 @@ export async function importLayeredPsd(app, input) {
   if (app.layer().locked) throw new Error('INK_ACTIVE_LAYER_LOCKED');
   if (app.history.pending) throw new Error('INK_HISTORY_BUSY');
   const assertTarget=pinImportTarget(app);
-  const result = await decodeLayeredPsdAsync(input, { uid });
+  const result = await decodeAdobeArtwork(input, { uid, format: 'photoshop',nativeEngine:adobeNativeEngineFor(app) });
   assertTarget();
   result.layers.at(-1).importFidelity = result.receipt;
   const page = app.page(), path = app.pagePath();
@@ -20,3 +21,4 @@ export async function importLayeredPsd(app, input) {
   app.refreshAll();
   return result.receipt;
 }
+

@@ -105,7 +105,7 @@ export class HistoryManager {
     return [20, 30, 50].includes(numeric) ? numeric : 30;
   }
 
-  exportPortable(document = this.app.doc) {
+  exportPortable(document = this.app.doc,{forceCompact=false,forceCompress=false}={}) {
     if (this.pending) throw new Error('INK_HISTORY_BUSY');
     const clean = value => { const copy=deepClone(value);delete copy.inkSessionHistory;delete copy.inkSessionLink;return copy; };
     let past=clean(document),future=clean(document);
@@ -122,10 +122,10 @@ export class HistoryManager {
     // are losslessly compacted into explicitly versioned V2 when necessary,
     // without raising the 8 MiB portable transport limit.
     const uncompressedBytes=new TextEncoder().encode(JSON.stringify(payload)).byteLength;
-    if(uncompressedBytes>8*1024*1024){
+    if(forceCompact||forceCompress||uncompressedBytes>8*1024*1024){
       payload.schema=PORTABLE_HISTORY_V2;
       const packed=packPortableStates(states);payload.states=packed.states;payload.keyTable=packed.keyTable;
-      if(new TextEncoder().encode(JSON.stringify(payload)).byteLength>8*1024*1024){
+      if(forceCompress||new TextEncoder().encode(JSON.stringify(payload)).byteLength>8*1024*1024){
         // A second, deterministic lossless block layer is necessary for
         // large vector documents after the normal migration of path defaults.
         payload.compressedStates=encodePortableHistoryBundle(packed);

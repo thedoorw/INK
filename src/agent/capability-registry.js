@@ -1438,6 +1438,40 @@ const operationDescriptors = CHAT_EDIT_OPERATIONS.map(operation => {
   });
 });
 
+// #559: append the first-party Adobe ingress control seam only after existing tools.
+primary.push(descriptor({
+  id:'artwork.pendingSource',title:'Inspect prepared Adobe artwork source',
+  description:'Read-only compact status for a previously user-prepared PSD/PSB/AI first-party ingress; no bytes, remote URL, account or filename returned.',
+  availability:true,routingClass:'READ_ONLY',namedTool:'get_ink_adobe_pending',publicMethod:'tools.invoke',role:'READ',
+  authoritativeRoute:'app.externalArtworkIngress.state → compact source and fidelity status',
+  inputSchema:obj({},[],'No input; only an already prepared first-party source can be reported.'),
+  targetTypes:['Document'],
+  constraints:['Never reads a remote file and never mutates Native.','Only hash, format, size, nonce and fidelity summary are returned; never the original bytes.'],
+  ...policy(false,'NONE','NONE','READ_CURRENT'),
+  resultContract:resultContract({statuses:['COMPLETED','FAILED']}),
+  examples:[{}],toolPrimary:true
+}));
+primary.push(descriptor({
+  id:'artwork.importConfirmed',title:'Confirm prepared Adobe artwork into Native',
+  description:'After first-party source preparation, ask the existing ingress controller to re-read/verify identity and commit to Native Document/History. Explicit USER Runtime consent is mandatory.',
+  availability:true,routingClass:'NAMED_TOOL',namedTool:'import_ink_adobe_confirmed',publicMethod:'tools.invoke',role:'WRITE',
+  authoritativeRoute:'verified source hash + first-party ingress pending preview → existing ingress.confirm → original Adobe named tool → Native Document/History',
+  inputSchema:obj({
+    requestId:str('Exact first-party prepared source nonce (not an arbitrary file/URL).'),
+    sha256:str('Exact public pending source SHA256 (64 lowercase hex characters).')
+  },['requestId','sha256'],'Confirm an already prepared source; no raw bytes or URL may be supplied.'),
+  targetTypes:['Layer','Image','Path','Text','Group'],
+  constraints:[
+    'Requires previously user-prepared PENDING_CONFIRMATION source and exact nonce+SHA.',
+    'The Runtime Bridge additionally gates this tool behind interactive USER consent.',
+    'Existing first-party ingress rechecks identity, account, target, source digest and History before commit.',
+    'No arbitrary JSON Document, file URL, byte array or direct mutation authority.'
+  ],
+  ...policy(true,'FIRST_PARTY_PREVIEW_AND_RUNTIME_USER_CONSENT','AUTHORITATIVE_COMMIT','NO_AUTO_CAPTURE'),
+  resultContract:resultContract({statuses:['COMPLETED','FAILED'],createsRefs:true}),
+  examples:[{requestId:'first-party-request-id',sha256:'0'.repeat(64)}],toolPrimary:true
+}));
+
 const unavailable = [
   descriptor({
     id: 'external.transport', title: 'External connector transport', description: 'Future external transport capability; not implemented by Connector-003.',

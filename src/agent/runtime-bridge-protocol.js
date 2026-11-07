@@ -15,13 +15,16 @@ export const INK_RUNTIME_TOOL_SCOPE = Object.freeze([
   'get_ink_preview',
   'get_ink_history',
   'undo_ink',
-  'redo_ink'
+  'redo_ink',
+  'get_ink_adobe_pending',
+  'import_ink_adobe_confirmed'
 ]);
 
 export const INK_RUNTIME_EXPLICIT_CONSENT_TOOLS = Object.freeze([
   'approve_ink_edit',
   'undo_ink',
-  'redo_ink'
+  'redo_ink',
+  'import_ink_adobe_confirmed'
 ]);
 
 const SHA40 = /^[a-f0-9]{40}$/i;
