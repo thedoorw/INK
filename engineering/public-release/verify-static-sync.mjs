@@ -94,6 +94,9 @@ export function verifyBrandingOnly({base,candidate,changedPaths}){
   }
   const receipt=JSON.parse(base.files.get('PUBLISH_RECEIPT.json')?.bytes.toString('utf8')||'null');
   assert.equal(receipt?.schema,'INK_PUBLICATION_RECEIPT_V1','BRAND_BASE_RECEIPT');
+  const actualPaths=[...new Set([...base.files.keys(),...candidate.files.keys()])]
+    .filter(p=>base.files.get(p)?.sha!==candidate.files.get(p)?.sha).sort();
+  assert.deepEqual([...changedPaths].sort(),actualPaths,'BRAND_EXACT_DIFF');
   const managed=new Set(receipt.managed_files?.map(x=>x.path)||[]);
   const assets=[];
   for(const path of changedPaths){
