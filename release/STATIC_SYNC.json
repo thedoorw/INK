@@ -4,49 +4,50 @@
   "action": "publish",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "5010130a37772cc8da08f23c1d3d85bc08b3f466",
-    "product_tree": "303d5070bae2ba4d059759cfb57eefe5e135ea70"
+    "exact_sha": "956e839eb5dac6680fb2c3bc82623fa3dc772d83",
+    "product_tree": "61bed2e5ce087fa252a0bbbd8846acac3576ec04"
   },
-  "build_id": "src-ca119ba2a2116b86c78d5cfc",
-  "runtime_digest_sha256": "99d9525006c6765cb64d96f851990a545b21e76bd1e77987a87eea76e7787f92",
-  "package_manifest_sha256": "75e9e3e4c1b7c5b123a20e9ba9ffa0a39286a484ab2d674b3998a7085c6451cd",
+  "build_id": "src-a4306e3e5f27b826703ac938",
+  "runtime_digest_sha256": "980fdac1bd47f27f609d708e584c09ef6e97de417c90290acf9ec84e13ee4510",
+  "package_manifest_sha256": "447c8ff910c8bacc39c7c23af7be3a845ba79317998294ecdd1da18f08f4280a",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
   "target": {
     "repo": "thedoorw/INK",
     "branch": "main",
-    "expected_head": "ca799ac8b1530be90ccbb7693dbfaa389a6daaf1",
-    "expected_tree": "a92dbf3631f99aabea1e42ca7e4ecc669a04595e",
-    "prior_receipt_sha256": "0426a766de14937c90ee1e0a1f8c310ccd822dfff3e9722b4cebd3fb58689b2f"
+    "expected_head": "cfe258f90a90700d91c54c8ffbd2d2ca86a37d1b",
+    "expected_tree": "45d2849ecfaf7d0d5c3dec52f7abca977cbbc4d0",
+    "prior_receipt_sha256": "0d5b5c6c07b570beede2ce518da31d68cdddf940a489de865cd4bef1b19f6f2b"
   },
   "qualification": {
-    "source_tree": "303d5070bae2ba4d059759cfb57eefe5e135ea70",
+    "source_tree": "61bed2e5ce087fa252a0bbbd8846acac3576ec04",
     "runs": [
       {
-        "profile": "ink-adobe559-static-delivery-windows-v1",
-        "id": 42351635959,
-        "workflow_path": ".github/workflows/ink-adobe-core-559-license-windows.yml",
-        "workflow_blob": "dd249c372bac253af92f9c06eea4895456bded3d",
-        "head_sha": "87606334b810ea18fb24a5e8774049c1b3cc73f4"
+        "profile": "ink-psd569-compiled-central-windows-v1",
+        "id": 42384960643,
+        "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
+        "workflow_blob": "26d3bb83a0b725501544a25f03ed122c2efe7f8b",
+        "head_sha": "cfaa62a2bcac7795b80bfa12577f7f530c7fb7d0",
+        "tested_sha": "1af7b4d7fbb1f1d69a2417b373ad3debfacafce6"
       }
     ]
   },
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/564#issuecomment-6704017390",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/569#issuecomment-6715349200",
   "rollback": {
-    "public_commit": "ca799ac8b1530be90ccbb7693dbfaa389a6daaf1",
-    "receipt_sha256": "0426a766de14937c90ee1e0a1f8c310ccd822dfff3e9722b4cebd3fb58689b2f",
-    "source_sha": "6d2301c06ced5f218837e7dfd2f0f67feffd3241",
-    "source_tree": "48fa50a0ccf3ac713a7854c1ee564807e37b11bf"
+    "public_commit": "cfe258f90a90700d91c54c8ffbd2d2ca86a37d1b",
+    "receipt_sha256": "0d5b5c6c07b570beede2ce518da31d68cdddf940a489de865cd4bef1b19f6f2b",
+    "source_sha": "5010130a37772cc8da08f23c1d3d85bc08b3f466",
+    "source_tree": "303d5070bae2ba4d059759cfb57eefe5e135ea70"
   },
   "files": [
     {
       "path": "BUILD_INFO.json",
-      "bytes": 71678,
-      "sha256": "f9f6060b7dc6ae06c836182dd8a181a82e492adf02f3192e3393005d345370f3"
+      "bytes": 70998,
+      "sha256": "2ab7cad4bb71a1cab4c806a323aa1c177eed273590fddae77015f9b5cc045cf6"
     },
     {
       "path": "PUBLISH_RECEIPT.json",
-      "bytes": 93096,
-      "sha256": "0d5b5c6c07b570beede2ce518da31d68cdddf940a489de865cd4bef1b19f6f2b"
+      "bytes": 92136,
+      "sha256": "e2c9dfeb2495642b965f1012a72d9d02621926c125981a61005056adfc9b40f0"
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -71,7 +72,7 @@
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "e4008563f6d5fd397098589488ce3545fe334b8da8b0dbd5ee0c73748699edd0"
+      "sha256": "3425b91c0a9b5fad8aea40f192fb4041fe4fa56ed8b2a06124d26484d52d3f23"
     },
     {
       "path": "dist/ink.compat.js",
@@ -79,29 +80,9 @@
       "sha256": "8b238db3c512aa0cea683310930e6fd2e70f5d4b5229fc9ebcbb5e05fd19c479"
     },
     {
-      "path": "dist/startup/LICENSES/ag-psd-MIT.txt",
-      "bytes": 1449,
-      "sha256": "3907e1664a7d749644e33d1936ccad8c3d23df35277fca9ecec61146b46dc8fd"
-    },
-    {
-      "path": "dist/startup/LICENSES/create-design-MPL-2.0.txt",
-      "bytes": 15648,
-      "sha256": "5eba353fe5076ac3432177f8ab1cf75e3afcd0584251e37c3bfead5f447d040e"
-    },
-    {
-      "path": "dist/startup/LICENSES/pako-MIT.txt",
-      "bytes": 2177,
-      "sha256": "a91fc787a67cc5c336ffe99db75ecf4e9ffbfa01cdeffff127f34a63f633fa0a"
-    },
-    {
-      "path": "dist/startup/THIRD_PARTY_NOTICES_R2.md",
-      "bytes": 6409,
-      "sha256": "e22c480a91e2ca05a428a73077fa59957a0473a06da1ef7c7d41976390fd75da"
-    },
-    {
       "path": "dist/startup/asset-inventory.js",
       "bytes": 1737,
-      "sha256": "13cf00149bac168194534184e50a199e00b417c3289492909926eaed3467104c"
+      "sha256": "53faa0d3ba6e519aa89d9ca490951f5e5e25328d99323f961b62dc85f630f67e"
     },
     {
       "path": "dist/startup/chunks/ag-psd-native-RBT4AWL7.mjs",
@@ -214,9 +195,9 @@
       "sha256": "009fc29f01b70f681a718b9e1a9eac98f2df2777c4ca4635c3b4e2eaf204515f"
     },
     {
-      "path": "dist/startup/chunks/psd-layered-LG3WF6SF.mjs",
-      "bytes": 12219,
-      "sha256": "6edd4603f4e24b1f6471da584385231ca6beedeabe8f2d91e04805b659189a64"
+      "path": "dist/startup/chunks/psd-layered-DBYJA7RD.mjs",
+      "bytes": 12630,
+      "sha256": "9cc7100cb32baef9df3db7b27299abc1dc0ee3041685e8407ab9828d6255f2dd"
     },
     {
       "path": "dist/startup/chunks/runtime-test-bridge-DAYSX6GP.mjs",
@@ -230,8 +211,8 @@
     },
     {
       "path": "dist/startup/ink-boot.mjs",
-      "bytes": 2102306,
-      "sha256": "b645546d9835cc2c20fe328c87c44d90ef1897215bf8390bfbab187e67a2e97d"
+      "bytes": 2102457,
+      "sha256": "bd6fc89eb243bfb1b3444b04f6e2efd542e980bda2dd98fedf56f122a944c7d6"
     },
     {
       "path": "dist/startup/ink-shell.mjs",
@@ -255,8 +236,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 3221,
-      "sha256": "d1b7434d58a43b170bd23680754d57d1f604641028e9983591db28013a299f14"
+      "bytes": 2942,
+      "sha256": "52d7490dc64df047521b3ae5bef48d8ce6cf84657f53e4f4f58d4842b63c97a7"
     },
     {
       "path": "manifest-portable.webmanifest",
@@ -475,8 +456,8 @@
     },
     {
       "path": "src/artwork-import/file-routing.js",
-      "bytes": 4726,
-      "sha256": "b5eeea40fa0f27c15cf7e38240e7e7a22575e110d093c0f655db0445fb7951bc"
+      "bytes": 4814,
+      "sha256": "ae0d67afceb323950e5a363f43700f2d06cfb7715b518a0e6d0363f406aad168"
     },
     {
       "path": "src/artwork-import/illustrator-core.js",
@@ -1195,8 +1176,8 @@
     },
     {
       "path": "src/image/formats/psd-layered.js",
-      "bytes": 15634,
-      "sha256": "ceb56bc10e46c874d41ab58fd3459a0db9ba9ce85b34f21e9197d65d278868b2"
+      "bytes": 16468,
+      "sha256": "6f30ed8c91339ccd9705ae331dd3911c65a8e80cf2a6011913d41eff34436d9f"
     },
     {
       "path": "src/image/formats/psd.js",
@@ -2010,18 +1991,10 @@
     }
   ],
   "deletions": [
-    "dist/startup/chunks/chunk-2FPRSOHV.mjs",
-    "dist/startup/chunks/chunk-342G2AIU.mjs",
-    "dist/startup/chunks/chunk-5QZLIRLT.mjs",
-    "dist/startup/chunks/chunk-GX5XI6KG.mjs",
-    "dist/startup/chunks/chunk-QKQQE4RD.mjs",
-    "dist/startup/chunks/chunk-RVMQ5OHX.mjs",
-    "dist/startup/chunks/chunk-V7WEE33N.mjs",
-    "dist/startup/chunks/drive-native-link-startup-B4IPRIQV.mjs",
-    "dist/startup/chunks/export-3NJAKKKA.mjs",
-    "dist/startup/chunks/native-byte-input-OC7QXJSO.mjs",
-    "dist/startup/chunks/native-byte-output-WA2RBZRR.mjs",
-    "dist/startup/chunks/runtime-test-bridge-J7TB7D23.mjs",
-    "dist/startup/chunks/work-runtime-read-controls-HY6A6NUB.mjs"
+    "dist/startup/LICENSES/ag-psd-MIT.txt",
+    "dist/startup/LICENSES/create-design-MPL-2.0.txt",
+    "dist/startup/LICENSES/pako-MIT.txt",
+    "dist/startup/THIRD_PARTY_NOTICES_R2.md",
+    "dist/startup/chunks/psd-layered-LG3WF6SF.mjs"
   ]
 }

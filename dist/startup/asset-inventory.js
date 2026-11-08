@@ -26,7 +26,7 @@ self.INK_STARTUP_ASSETS = Object.freeze([
   "./dist/startup/chunks/native-byte-input-OG66WBBW.mjs",
   "./dist/startup/chunks/native-byte-output-BB66IDMF.mjs",
   "./dist/startup/chunks/psapi-native-QSH727BG.mjs",
-  "./dist/startup/chunks/psd-layered-LG3WF6SF.mjs",
+  "./dist/startup/chunks/psd-layered-DBYJA7RD.mjs",
   "./dist/startup/chunks/runtime-test-bridge-DAYSX6GP.mjs",
   "./dist/startup/chunks/work-runtime-read-controls-EQLOVAVJ.mjs",
   "./dist/startup/ink-boot.mjs",

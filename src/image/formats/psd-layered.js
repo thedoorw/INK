@@ -114,28 +114,33 @@ function* decodeLayeredPsdSteps(input, { uid, maxBytes = 32 * 1024 * 1024, maxPi
     if (r.flags & 1) receipt.losses.push({sourceIndex:r.index,codes:['TRANSPARENCY_LOCK_CONVERTED_TO_FULL_LOCK']});
     if ([1,2,3].includes(r.sectionType)) { if (w * h) fail('INK_PSD_GROUP_PIXELS_UNSUPPORTED'); continue; }
     if (!w || !h || ![0,1,2].every(c => planes.has(c))) fail(`INK_PSD_LAYER_PIXELS_REQUIRED:${r.index}`);
+    // Keep the original pixel alpha separate from the Photoshop layer mask.
+    // The existing Native Studio image renderer applies rasterMask.alpha live,
+    // so neither editing nor reopening may rely on a previously baked preview.
     const data = new Uint8Array(w * h * 3), alpha = new Uint8Array(w * h);
+    const maskFactors = r.mask ? new Uint8Array(w * h) : null;
     for (let p = 0; p < w * h; p++) {
       for (let c = 0; c < 3; c++) data[p * 3 + c] = planes.get(c)[p];
-      let a = planes.get(-1)?.[p] ?? 255;
-      if (r.mask && !(r.mask.flags & 2)) {
+      if (r.mask) {
         const m = r.mask, x = r.left + p % w - m.left, y = r.top + Math.floor(p / w) - m.top;
         if (!planes.has(-2)) fail('INK_PSD_MASK_PIXELS_REQUIRED');
-        const value = x >= 0 && y >= 0 && x < m.right - m.left && y < m.bottom - m.top ? planes.get(-2)[y * (m.right - m.left) + x] : m.default;
-        a = Math.round(a * value / 255);
+        // PSD mask bounds are absolute document coordinates, while the
+        // Native raster mask is local to its image. Preserve the default
+        // coverage for pixels outside the source mask rectangle.
+        maskFactors[p] = x >= 0 && y >= 0 && x < m.right - m.left && y < m.bottom - m.top
+          ? planes.get(-2)[y * (m.right - m.left) + x] : m.default;
       }
-      alpha[p] = a;
+      alpha[p] = planes.get(-1)?.[p] ?? 255;
     }
-    const losses = r.mask ? ['MASK_PREVIEW_BAKED_SOURCE_AND_MASK_NATIVE_RASTERS_NOT_LIVE_LINKED'] : [];
+    const losses = r.mask ? ['SOURCE_MASK_SNAPSHOT_IS_NOT_A_SECOND_LIVE_MASK_EDITOR'] : [];
     if (losses.length) receipt.losses.push({ sourceIndex: r.index, codes: losses });
     const payload = createNormalizedPayload({ format: version===2?'PSB':'PSD', width: w, height: h, bitDepth: 8, colorMode: 'RGB', data, alpha, provenance: { ...receipt.source, sourceLayerIndex: r.index } });
     r.object = { id: r.id, type: 'image', name: r.name, matrix: [1,0,0,1,r.left,r.top], opacity: r.opacity, visible: r.visible, locked: r.locked, w, h, rasterState: formatPayloadToDocumentImageState(payload), metadata: { psd: { sourceIndex: r.index, sourceMetadata:r.sourceMetadata, bounds: [r.left,r.top,r.right,r.bottom], losses } } };
     if (r.mask) {
-      // The displayed raster remains identical to Photoshop's baked composite.
-      // Additionally preserve independently editable, nonrendering Native image
-      // objects for ORIGINAL RGB/alpha and the actual source mask channel. These
-      // can be exposed/edited/serialized without losing masked-out source pixels.
-      // A mask edit does NOT live-update the displayed preview; disclose this loss.
+      // Use the established Native rasterMask compositing path. The canonical
+      // editable mask is preview.rasterMask.alpha (full image-local coverage).
+      // Original RGB/alpha and the coordinate-bounded source mask are retained
+      // as hidden archival snapshots, NOT as parallel live compositing owners.
       const m=r.mask,mw=m.right-m.left,mh=m.bottom-m.top,maskPlane=planes.get(-2);
       if (!maskPlane||mw<=0||mh<=0||maskPlane.length!==mw*mh) fail('INK_PSD_MASK_PIXELS_REQUIRED');
       const originalAlpha=planes.get(-1)?.slice()??new Uint8Array(w*h).fill(255);
@@ -146,8 +151,14 @@ function* decodeLayeredPsdSteps(input, { uid, maxBytes = 32 * 1024 * 1024, maxPi
       const sourceMask=createNormalizedPayload({format:version===2?'PSB':'PSD',width:mw,height:mh,bitDepth:8,colorMode:'RGB',
         data:maskRgb,alpha:new Uint8Array(mw*mh).fill(255),provenance:{...receipt.source,sourceLayerIndex:r.index,channel:'LAYER_MASK'}});
       const rootId=uid(),rawId=uid(),maskId=uid();
+      const maskEnabled=!(m.flags&2);
+      if (maskEnabled) {
+        r.object.rasterMask={id:uid(),type:'raster-mask',width:w,height:h,alpha:Array.from(maskFactors),
+          invert:false,feather:0,expand:0,enabled:true};
+      }
       const metadata={psd:{sourceIndex:r.index,sourceMetadata:r.sourceMetadata,maskFlags:m.flags,maskDefault:m.default,
-        companion:true,linkage:'PREVIEW_ONLY_NOT_LIVE'}};
+        maskBounds:[m.left,m.top,m.right,m.bottom],maskCoordinates:'DOCUMENT_ABSOLUTE',
+        maskEnabled,companion:true,linkage:'SOURCE_SNAPSHOT_CANONICAL_LIVE_MASK_ON_PREVIEW'}};
       const raw={id:rawId,type:'image',name:r.name+' / source pixels',matrix:[1,0,0,1,r.left,r.top],
         opacity:1,visible:false,locked:r.locked,w,h,rasterState:formatPayloadToDocumentImageState(original),
         metadata:{...metadata,psd:{...metadata.psd,channel:'ORIGINAL_RGB_ALPHA'}},parentId:rootId};
@@ -157,7 +168,9 @@ function* decodeLayeredPsdSteps(input, { uid, maxBytes = 32 * 1024 * 1024, maxPi
       r.object.opacity=1;r.object.visible=true;r.object.parentId=rootId;
       r.object={id:rootId,type:'group',name:r.name,matrix:[1,0,0,1,0,0],
         opacity:r.opacity,visible:r.visible,locked:r.locked,children:[r.object,raw,mask]};
-      r.maskNativeIds={preview:r.id,sourcePixels:rawId,sourceMask:maskId};r.id=rootId;
+      r.maskNativeIds={preview:r.id,sourcePixels:rawId,sourceMask:maskId,
+        liveMaskOwner:r.id,liveMaskId:r.object.children[0].rasterMask?.id??null};
+      r.id=rootId;
       receipt.nativeMaskCompanions+=2;
     }
   }
@@ -176,7 +189,7 @@ function* decodeLayeredPsdSteps(input, { uid, maxBytes = 32 * 1024 * 1024, maxPi
     }
     const parent = stack.at(-1);
     if (parent) { object.parentId = parent.id; parent.children.unshift(object); } else roots.unshift(object);
-    receipt.mappings.push({ sourceIndex: r.index, sourceName: r.name, nativeObjectId: object.id, nativeType: object.type, mask: r.mask ? 'NATIVE_EDITABLE_SOURCE_MASK_WITH_BAKED_PREVIEW' : 'ABSENT', maskNativeIds:r.maskNativeIds??null, visibility: 'PRESERVED', blend: r.blend === 'norm' ? 'PRESERVED' : 'LOSS', text: 'ABSENT', effects: 'ABSENT' });
+    receipt.mappings.push({ sourceIndex: r.index, sourceName: r.name, nativeObjectId: object.id, nativeType: object.type, mask: r.mask ? (r.mask.flags&2?'SOURCE_MASK_DISABLED_PRESERVED':'NATIVE_LIVE_RASTER_MASK_WITH_SOURCE_SNAPSHOT') : 'ABSENT', maskNativeIds:r.maskNativeIds??null, visibility: 'PRESERVED', blend: r.blend === 'norm' ? 'PRESERVED' : 'LOSS', text: 'ABSENT', effects: 'ABSENT' });
     if ([1,2].includes(r.sectionType)) stack.push(object);
   }
   if (stack.length) fail('INK_PSD_GROUP_UNBALANCED');
