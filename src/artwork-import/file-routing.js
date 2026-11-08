@@ -44,7 +44,7 @@ export async function routeArtworkFile(app,file,{confirm=globalThis.confirm,exec
       ? 'ag-psd RGB16 匯入會建立可編輯 Native 物件；部分遮色片、效果與智慧型物件不保證保真。是否繼續？'
     : plan.engine==='photoshopapi-0.9.1-rgb16'
       ? '有限 RGB16 PSD／PSB 匯入：使用已綁定的本機 PhotoshopAPI；保留 16-bit 像素與 ICC，但圖層效果及私有語意未完整驗證，不是完整保真。匯入後請另存 .ink 並核對原稿。是否繼續？'
-      : '有限 PSD／PSB 匯入：僅支援部分 RGB8 圖層。遮色片預覽為靜態，編輯遮色片不會即時更新；智慧型物件、效果及色彩管理未完整保留。匯入後請另存 .ink 並核對原稿。是否繼續？';
+      : '有限 PSD／PSB 匯入：僅支援部分 RGB8 圖層。已支援 RGB8 像素遮色片於 Native rasterMask 即時合成；獨立原稿遮色片副本只供保留來源，不與即時遮色片雙向同步；智慧型物件、效果及色彩管理未完整保留。匯入後請另存 .ink 並核對原稿。是否繼續？';
   if(typeof confirm!=='function')artworkFail('INK_ARTWORK_CONFIRMATION_REQUIRED');
   if(!confirm(warning))return {handled:true,receipt:false};
   assertArtworkContext(app,context);
