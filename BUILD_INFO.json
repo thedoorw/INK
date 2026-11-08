@@ -4,8 +4,8 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "956e839eb5dac6680fb2c3bc82623fa3dc772d83",
-    "product_tree": "61bed2e5ce087fa252a0bbbd8846acac3576ec04"
+    "exact_sha": "7a7e966963be1d24fc63992f729d0057a86225b7",
+    "product_tree": "a7e41115c7464568271dac17e8e55f1b4143f576"
   },
   "runtime": {
     "root": "/INK/",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "3425b91c0a9b5fad8aea40f192fb4041fe4fa56ed8b2a06124d26484d52d3f23"
+        "sha256": "6be2a74ed08fc227a21a6418ed2593a08144a231c5296f4502b71ce49737b33b"
       },
       {
         "path": "dist/ink.compat.js",
@@ -44,7 +44,7 @@
       {
         "path": "dist/startup/asset-inventory.js",
         "bytes": 1737,
-        "sha256": "53faa0d3ba6e519aa89d9ca490951f5e5e25328d99323f961b62dc85f630f67e"
+        "sha256": "fd3347cad1411c5fd751419bb41c9839ec382cb231cbfd7a4959af5287c9095a"
       },
       {
         "path": "dist/startup/chunks/ag-psd-native-RBT4AWL7.mjs",
@@ -132,9 +132,9 @@
         "sha256": "cdea99ac06277fbfb1aee4b1712206910c2f43be9d45ba02bc1321a7d9cef932"
       },
       {
-        "path": "dist/startup/chunks/drive-native-link-startup-NI3XOAVA.mjs",
-        "bytes": 17238,
-        "sha256": "59a67200715d133ba0a19cce488f2e1979a81853e68dc44a90c7b4b43323cb77"
+        "path": "dist/startup/chunks/drive-native-link-startup-5HKIKCXP.mjs",
+        "bytes": 20455,
+        "sha256": "2355b00ea66a559f941c1d6c41bf83ace954bbe889044c487f3450eba71c6e6d"
       },
       {
         "path": "dist/startup/chunks/export-CKGLQZVM.mjs",
@@ -174,12 +174,12 @@
       {
         "path": "dist/startup/ink-boot.mjs",
         "bytes": 2102457,
-        "sha256": "bd6fc89eb243bfb1b3444b04f6e2efd542e980bda2dd98fedf56f122a944c7d6"
+        "sha256": "f4be7bacef75370af4caef02385d5ee202cae1ef5dbfee0b2238cfcc4674fcbf"
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 285913,
-        "sha256": "83c9a3ffb05734e335d3da3543fd37065d05df6e0087d77f6b52f9e420644254"
+        "bytes": 286909,
+        "sha256": "ea9b85db9215d48e746aa6229febdf48ed9e0c5aae12d8c9d24d6adae6c7ece7"
       },
       {
         "path": "dist/startup/parsers/ag-psd.mjs",
@@ -558,8 +558,8 @@
       },
       {
         "path": "src/document/drive-native-link-startup.mjs",
-        "bytes": 6515,
-        "sha256": "baa7ee78242d77d37689833eacfd2b4d142c3d7d046014c61fa0820b0dc57c6b"
+        "bytes": 10648,
+        "sha256": "a3e694a756419ba3d164fc7bc45500f20b47aa9627a2dfb58178b077d56ccbbc"
       },
       {
         "path": "src/document/drive-native-links.mjs",
@@ -1688,8 +1688,8 @@
       },
       {
         "path": "src/ui/ink017/menu-ui.js",
-        "bytes": 18635,
-        "sha256": "5e2b75cecca0b1ddfeb13d9c10f5600245c818e0b43f84d0e681745490be8f8c"
+        "bytes": 19224,
+        "sha256": "5ef5d7f9e229d46358c6fd9ccf41efcf3484057c6aa5108ce364fd47e0faff24"
       },
       {
         "path": "src/ui/ink017/native-host.js",
@@ -1778,8 +1778,8 @@
       },
       {
         "path": "src/ui/ink017/shell.js",
-        "bytes": 16762,
-        "sha256": "59fdfd1541044eeb28ff6baa8b82fb7d54510140e5d1898fbfaba0999e4e28fa"
+        "bytes": 17739,
+        "sha256": "6a4b540eeb88a962320a73c6859c4f1c1ed25ffa399c78c3caefb73e5379f7d0"
       },
       {
         "path": "src/ui/ink017/tokens.css",
@@ -1943,8 +1943,8 @@
       },
       {
         "path": "stage-runtime.css",
-        "bytes": 21357,
-        "sha256": "4e21f96099e85ba34338de7152f4bcac6f906586735e15b8e4bcad420501df6c"
+        "bytes": 22552,
+        "sha256": "173381c7175ac087ac049369c00f903c3a4cfd184f9cf0323410c11d99aa5d75"
       },
       {
         "path": "ui/capability-raster-tools.js",
@@ -1952,33 +1952,32 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "980fdac1bd47f27f609d708e584c09ef6e97de417c90290acf9ec84e13ee4510"
+    "package_digest_sha256": "2369f019a1fb1f96586ecd71c84cb4fee2a0981367e235390d067154f31ccb78"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "94741934ed56333af5e8ab0688ee4a3ca7fc8ae3",
+    "exact_sha": "f85de06f4b215e5c72a4bbfe840233a36716aa0a",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
-    "manifest_sha256": "447c8ff910c8bacc39c7c23af7be3a845ba79317998294ecdd1da18f08f4280a"
+    "manifest_sha256": "7a31fcef3e1c03e48b0a3a9ec8e40d724795fd2d248f970f0c53cf8745f716ca"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "61bed2e5ce087fa252a0bbbd8846acac3576ec04",
+    "source_tree": "a7e41115c7464568271dac17e8e55f1b4143f576",
     "runs": [
       {
-        "profile": "ink-psd569-compiled-central-windows-v1",
-        "id": 42384960643,
-        "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
-        "workflow_blob": "26d3bb83a0b725501544a25f03ed122c2efe7f8b",
-        "head_sha": "cfaa62a2bcac7795b80bfa12577f7f530c7fb7d0",
-        "tested_sha": "1af7b4d7fbb1f1d69a2417b373ad3debfacafce6"
+        "profile": "ink-pr560-drive-menu-windows-chrome-v1",
+        "id": 42450749184,
+        "workflow_path": ".github/workflows/ink-gpt-560-windows-g1.yml",
+        "workflow_blob": "cd130da397c5ca3f01670c2ad0dc3b25265fe0e4",
+        "head_sha": "0c545644d5e4f31039d9852e5a0bf23e7c1aec30"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "cfe258f90a90700d91c54c8ffbd2d2ca86a37d1b",
+    "previous_target_commit": "c0bd32bf18b0276d122bde444c931e44ba4537de",
     "runtime_bytes_unchanged_from_package": true
   }
 }

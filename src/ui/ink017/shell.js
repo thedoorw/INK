@@ -84,6 +84,21 @@ export function mountNativeShell(app,root){
   menuUi?.close(menu.contains(document.activeElement));const s=host.getSnapshot();
   if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;(panel.querySelector('[data-recovery-key]')||panel.querySelector('button'))?.focus();return}
   if(key==='recover')return command('native-tools');
+  if(['drive-save','drive-recover','drive-save-revision'].includes(key)){
+   // Only route into the existing first-party INK Drive service. The menu
+   // opens its visible dialog; GIS auth and Native IO remain on the original
+   // buttons requiring an actual user click, never on the menu dispatch.
+   const mounted=await host.app.driveLinkStartup;
+   if(typeof mounted?.service?.showPanel!=='function'){
+    // Show the existing first-party diagnostic (SDK/config not available)
+    // in the same top-layer dialog rather than leave it clipped offscreen.
+    if(mounted?.panel&&!mounted.panel.open)mounted.panel.showModal();
+    feedback(mounted?.status==='AUTH_CONFIGURATION_REQUIRED'?'INK Google Drive 授權尚未設定':'INK Google Drive 尚未就緒');
+    return {ok:false,code:'INK_DRIVE_FIRST_PARTY_NOT_READY'};
+   }
+   const intent=key==='drive-recover'?'recover':key==='drive-save-revision'?'save-revision':'save';
+   return mounted.service.showPanel(intent);
+  }
   if(/^view:[124]$/.test(key))return run('session.view.layout.v1',{layout:Number(key.slice(5))});
   if(key.startsWith('session:'))return run('session.activate.v1',{sessionId:key.slice(8)});
   if(key==='undo'||key==='redo')return run('history.'+key+'.v1');

@@ -21,7 +21,7 @@ self.INK_STARTUP_ASSETS = Object.freeze([
   "./dist/startup/chunks/chunk-PHK7F5TU.mjs",
   "./dist/startup/chunks/chunk-QYQRDZL3.mjs",
   "./dist/startup/chunks/create-design-native-UTDQB7PC.mjs",
-  "./dist/startup/chunks/drive-native-link-startup-NI3XOAVA.mjs",
+  "./dist/startup/chunks/drive-native-link-startup-5HKIKCXP.mjs",
   "./dist/startup/chunks/export-CKGLQZVM.mjs",
   "./dist/startup/chunks/native-byte-input-OG66WBBW.mjs",
   "./dist/startup/chunks/native-byte-output-BB66IDMF.mjs",

@@ -193,3 +193,22 @@ html[data-ink-shell-ready="false"] #app{visibility:hidden;pointer-events:none}
 .ink-branding-logo-toolbar{width:28px;height:28px;display:block;object-fit:contain;align-self:center}
 .ink-branding-launch{align-items:center;gap:6px}
 
+/* #560 first-party Google Drive actions: one native top-layer dialog,
+   reachable from the real File menu even when the INK shell clips overflow. */
+dialog.ink-drive-native-dialog{
+  box-sizing:border-box;width:min(430px,calc(100vw - 24px));
+  max-height:calc(100dvh - 24px);margin:auto;padding:16px;
+  border:1px solid var(--border,#d4d4d4);border-radius:8px;
+  background:var(--surface,#fff);color:var(--primary,#222);
+  font:400 13px/1.5 var(--ui-font,system-ui);box-shadow:0 12px 36px #0003;
+  overflow:auto;
+}
+dialog.ink-drive-native-dialog::backdrop{background:#0006}
+dialog.ink-drive-native-dialog[open]{display:flex;flex-direction:column;gap:10px}
+.ink-drive-native-dialog>header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.ink-drive-native-dialog>header strong{font-size:14px;font-weight:600}
+.ink-drive-native-dialog>button{width:100%;min-height:30px;text-align:left}
+.ink-drive-native-dialog>p{margin:0;overflow-wrap:anywhere}
+.ink-drive-native-dialog>div{display:flex;flex-direction:column;gap:6px}
+.ink-drive-native-dialog>div button{text-align:left;min-height:28px;white-space:normal}
+.ink-drive-native-dialog>a{display:block;overflow-wrap:anywhere}
