@@ -26,6 +26,18 @@ const groups={
     "key": "save"
    },
    {
+    "label": "儲存到 Google Drive…",
+    "key": "drive-save"
+   },
+   {
+    "label": "從 Google Drive 找回作品…",
+    "key": "drive-recover"
+   },
+   {
+    "label": "另存 Google Drive 新版…",
+    "key": "drive-save-revision"
+   },
+   {
     "label": "文件復原工具…",
     "key": "recover"
    },
@@ -620,6 +632,11 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
  const enabled=(key,v)=>{
   if(!key)return false;
   if(['recipe-workflow','recipe-engine','translate-photoshop','translate-illustrator','translate-figma','translate-canva'].includes(key))return typeof host.app?.inkPublicApi?.tools?.invoke==='function';
+  // Visible even when unconfigured, disabled unless the existing first-party
+  // Drive startup is installed. Never surface a false "connected" state.
+  if(key==='drive-recover')return Boolean(host.app?.driveLinkStartup);
+  if(key==='drive-save'||key==='drive-save-revision')
+    return Boolean(host.app?.driveLinkStartup)&&v.hasDoc;
   if(['new','open','about','branding','native-tools','recover','history-limit'].includes(key)||key.startsWith('panel:'))return true;
   if(!v.hasDoc)return false;
   if(key.startsWith('session:'))return v.sessions.some(x=>x.sessionId===key.slice(8));
