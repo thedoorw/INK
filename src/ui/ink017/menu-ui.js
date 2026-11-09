@@ -14,14 +14,6 @@ const groups={
     "key": "open"
    },
    {
-    "label": "Illustrator 本機引擎配對…",
-    "key": "ai-local-host"
-   },
-   {
-    "label": "停用 Illustrator 本機引擎",
-    "key": "ai-local-host-disconnect"
-   },
-   {
     "label": "開啟中的文件",
     "dynamic": "sessions"
    },
@@ -639,8 +631,6 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
  };
  const enabled=(key,v)=>{
   if(!key)return false;
-  if(key==='ai-local-host')return globalThis.location?.origin==='https://thedoorw.github.io'&&/^\/INK(?:\/|$)/.test(globalThis.location.pathname);
-  if(key==='ai-local-host-disconnect')return Boolean(host.app?.illustratorPagesBridge);
   if(['recipe-workflow','recipe-engine','translate-photoshop','translate-illustrator','translate-figma','translate-canva'].includes(key))return typeof host.app?.inkPublicApi?.tools?.invoke==='function';
   // Visible even when unconfigured, disabled unless the existing first-party
   // Drive startup is installed. Never surface a false "connected" state.
