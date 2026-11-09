@@ -20,7 +20,7 @@ const illustratorKey=Symbol.for('INK_TRUSTED_ILLUSTRATOR_ENGINE_V1');
 export function bindAdobeIllustratorEngine(app,engine){
  if(!app||typeof app!=='object')throw new Error('INK_ADOBE_HOST_REQUIRED');
  if(engine===null){delete app[illustratorKey];return;}
- if(engine?.schema!=='INK_ADOBE_NATIVE_ENGINE_V1'||engine.id!=='create-design-ai-0.0.17'||typeof engine.decode!=='function')
+ if(engine?.schema!=='INK_ADOBE_NATIVE_ENGINE_V1'||!['create-design-ai-0.0.17','vectorcraft-ai-0.22.0'].includes(engine.id)||typeof engine.decode!=='function')
   throw new Error('INK_ILLUSTRATOR_NATIVE_ENGINE_INVALID');
  const decode=engine.decode.bind(engine);
  Object.defineProperty(app,illustratorKey,{value:Object.freeze({schema:engine.schema,id:engine.id,decode}),enumerable:false,configurable:true});

@@ -4,12 +4,12 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "7a7e966963be1d24fc63992f729d0057a86225b7",
-    "product_tree": "a7e41115c7464568271dac17e8e55f1b4143f576"
+    "exact_sha": "5599847e3a054e03bfdfaf19620467e20c0c3eed",
+    "product_tree": "e2d2985fa10f8c46228dd7cbaaeb8eab345bb0a1"
   },
   "runtime": {
     "root": "/INK/",
-    "file_count": 388,
+    "file_count": 393,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "6be2a74ed08fc227a21a6418ed2593a08144a231c5296f4502b71ce49737b33b"
+        "sha256": "154372e8b18ef2c8ca94f0aee75af8a4d19a4991c5a44d9b604da9b066d58eea"
       },
       {
         "path": "dist/ink.compat.js",
@@ -43,23 +43,18 @@
       },
       {
         "path": "dist/startup/asset-inventory.js",
-        "bytes": 1737,
-        "sha256": "fd3347cad1411c5fd751419bb41c9839ec382cb231cbfd7a4959af5287c9095a"
+        "bytes": 1907,
+        "sha256": "57173eb26641d4c15165f6449db2a6859ccddf007e84529012329c72e4233c86"
       },
       {
-        "path": "dist/startup/chunks/ag-psd-native-RBT4AWL7.mjs",
+        "path": "dist/startup/chunks/ag-psd-native-T5IN2KCV.mjs",
         "bytes": 5986,
-        "sha256": "a368711b8cd225c307756f23926e746dec933e32a6f3a1bacc54f0d16d18d048"
+        "sha256": "7d72aa25001454f26d5a922230f363027593fa89460c1f35cee58edeaa7c4718"
       },
       {
-        "path": "dist/startup/chunks/ai-document-P5ET56L6.mjs",
+        "path": "dist/startup/chunks/ai-document-52OI6K36.mjs",
         "bytes": 45497,
-        "sha256": "4b7aa0f4acd41038385059ea1c308412095f83192f504daab127a1384527aab5"
-      },
-      {
-        "path": "dist/startup/chunks/chunk-2IDYBGN4.mjs",
-        "bytes": 67641,
-        "sha256": "c85ede48c52360ce2d02d02f9a2a2de69e1098ff8619da2c2221c07057d051b6"
+        "sha256": "5855fa97e4edaaefbf76344d672f7e9682f373e7b12744dd9aa4f1ab41caf249"
       },
       {
         "path": "dist/startup/chunks/chunk-2MYWK3CP.mjs",
@@ -77,11 +72,6 @@
         "sha256": "afc93453b079119c8d8d294f71aef8387e843214370174be4de1b8416519875c"
       },
       {
-        "path": "dist/startup/chunks/chunk-BNXATM6A.mjs",
-        "bytes": 453103,
-        "sha256": "866289ad6dd5f010ecbf53e1c4ec428a1dded60bf457f5a53e5d4a75eb284995"
-      },
-      {
         "path": "dist/startup/chunks/chunk-D4XO7EMA.mjs",
         "bytes": 151,
         "sha256": "02759675d74bfadec205576b5900b3e3f036836f1433e9acfa052266afbbc498"
@@ -97,6 +87,11 @@
         "sha256": "58eaa8a0b4c41b8184d93a0b7529bece302ac1a9f54e7d03c257b513fe1ed638"
       },
       {
+        "path": "dist/startup/chunks/chunk-GQSI2AZC.mjs",
+        "bytes": 67641,
+        "sha256": "23626184f66818dac6109ffc31a98ab8ddfacceb057ab74c1465376323b496ab"
+      },
+      {
         "path": "dist/startup/chunks/chunk-JPRMRFJS.mjs",
         "bytes": 9224,
         "sha256": "c5e11a9b1e8cce907942af76e6162183c27208689f6c21eba0ba0482974428db"
@@ -107,6 +102,11 @@
         "sha256": "b22a664e6290e5f85bbfeb7e55bf5f84e5d07599097c5f6d31b36cc3ef38780b"
       },
       {
+        "path": "dist/startup/chunks/chunk-KERUJQBT.mjs",
+        "bytes": 453103,
+        "sha256": "c225a26b95d26fdf78e1a3b83d061d01a69643f810f0a1b8a50e762d9ffaf984"
+      },
+      {
         "path": "dist/startup/chunks/chunk-KL42EZHH.mjs",
         "bytes": 6917,
         "sha256": "a14f39cf6f22cd2999ce5af0745f1c5370f32842627215ab356734fe3a5f115a"
@@ -115,6 +115,11 @@
         "path": "dist/startup/chunks/chunk-PCK5DDAF.mjs",
         "bytes": 148682,
         "sha256": "89e6f8796c15a0984df623e94720da15dc15b3a9c8334c8ee0829a73f6d81967"
+      },
+      {
+        "path": "dist/startup/chunks/chunk-PEZBLEZW.mjs",
+        "bytes": 15989,
+        "sha256": "6231171e19501f8d98107758dbaf1db5ef1ad80299b5e858b2c389df6adfaca0"
       },
       {
         "path": "dist/startup/chunks/chunk-PHK7F5TU.mjs",
@@ -162,9 +167,19 @@
         "sha256": "9cc7100cb32baef9df3db7b27299abc1dc0ee3041685e8407ab9828d6255f2dd"
       },
       {
-        "path": "dist/startup/chunks/runtime-test-bridge-DAYSX6GP.mjs",
+        "path": "dist/startup/chunks/runtime-test-bridge-RJJ44CI3.mjs",
         "bytes": 16116,
-        "sha256": "b253475bde70b93f73fa05bd5f59fd0c3d070417522fb612d53c77fe5b9966b8"
+        "sha256": "f0154fe775c9b3fe4ebc83b0c2ec28e5a2b0e5333e92b79664f25d7225b94f27"
+      },
+      {
+        "path": "dist/startup/chunks/vectorcraft-native-NVR7MGJ5.mjs",
+        "bytes": 13125,
+        "sha256": "bdbc4fce19c6432fa2fc4d8e1ee6da47e93bdc5b7dae213531d609ef5f6643ab"
+      },
+      {
+        "path": "dist/startup/chunks/vectorcraft-pages-client-XKQW7IRT.mjs",
+        "bytes": 5479,
+        "sha256": "8a66a5bc35cb5d10dd01b151d3dcc95333bca17aaf9ed484b6efa8bc3d139a5d"
       },
       {
         "path": "dist/startup/chunks/work-runtime-read-controls-EQLOVAVJ.mjs",
@@ -173,13 +188,13 @@
       },
       {
         "path": "dist/startup/ink-boot.mjs",
-        "bytes": 2102457,
-        "sha256": "f4be7bacef75370af4caef02385d5ee202cae1ef5dbfee0b2238cfcc4674fcbf"
+        "bytes": 2087906,
+        "sha256": "d5104be8f9644e5502f80de66e1ee5aef51516966fc6dec66ed4d177987bc027"
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 286909,
-        "sha256": "ea9b85db9215d48e746aa6229febdf48ed9e0c5aae12d8c9d24d6adae6c7ece7"
+        "bytes": 289012,
+        "sha256": "71077167507c896d91408ef79171894d056e36bae41ac73140b98510af374dc1"
       },
       {
         "path": "dist/startup/parsers/ag-psd.mjs",
@@ -193,13 +208,13 @@
       },
       {
         "path": "index-standalone.html",
-        "bytes": 2940,
-        "sha256": "6127a648955c46388722c344df5da0fa4f58fe7eeab64cd93b3f555f1f55e7e0"
+        "bytes": 2963,
+        "sha256": "13c8c1aababd64ef157c9719c11247f787e2c26dfe49cd362c44a3c6b29da2de"
       },
       {
         "path": "index.html",
-        "bytes": 2942,
-        "sha256": "52d7490dc64df047521b3ae5bef48d8ce6cf84657f53e4f4f58d4842b63c97a7"
+        "bytes": 2965,
+        "sha256": "63c34e5f722310ede573a2503e17254125caa23b515ddedc4a81d979e2859040"
       },
       {
         "path": "manifest-portable.webmanifest",
@@ -378,8 +393,8 @@
       },
       {
         "path": "src/artwork-import/adobe-native-engine.js",
-        "bytes": 1899,
-        "sha256": "6808f67167332a50c2ef98a0b69a356d27f60a0e3b46dcaad104ce03ec3fa6f9"
+        "bytes": 1934,
+        "sha256": "e7c1600b8bdb1e84dc4345f1d613ce95ad1a9b92c3b5c3cec71a22fb5a8a2ad6"
       },
       {
         "path": "src/artwork-import/ag-psd-native.js",
@@ -398,8 +413,8 @@
       },
       {
         "path": "src/artwork-import/ai-path-clip.js",
-        "bytes": 561,
-        "sha256": "ffaabd49b2b20202e264f48754c1033b466e82b0eea7d07eb0f54fed558fbf47"
+        "bytes": 597,
+        "sha256": "80f7cef831c6a62e50a80af82efb626ef230cff16b3ce2bb4d08c4b6210bf93f"
       },
       {
         "path": "src/artwork-import/ai-shading.js",
@@ -418,18 +433,18 @@
       },
       {
         "path": "src/artwork-import/file-routing.js",
-        "bytes": 4814,
-        "sha256": "ae0d67afceb323950e5a363f43700f2d06cfb7715b518a0e6d0363f406aad168"
+        "bytes": 4969,
+        "sha256": "c73ebece3dd08860cfde32687bdffb7f0ad3ec9d9ebda99a9c8522b80b2c4cbb"
       },
       {
         "path": "src/artwork-import/illustrator-core.js",
-        "bytes": 3314,
-        "sha256": "50c42e64c309c389bee69ad29e9a439e790a04fda4d4c5a0461758dfa9e84d3b"
+        "bytes": 4150,
+        "sha256": "06f40b599c49384e37da4dca88020888e7d9651f6b66fdd143f7105a97ef88e9"
       },
       {
         "path": "src/artwork-import/import-ai-document.js",
-        "bytes": 1070,
-        "sha256": "1b88695c95c6d66bd1591bf7288c3dd58026396bc6742d967a404c8f5343bd99"
+        "bytes": 1180,
+        "sha256": "e037b24e7a6b2dacc8bfca1e5a3a795b0af40b027a5eb8b714a8bb5e2a1db35b"
       },
       {
         "path": "src/artwork-import/import-context.js",
@@ -455,6 +470,16 @@
         "path": "src/artwork-import/psapi-native.js",
         "bytes": 3342,
         "sha256": "6af390541b4d3defe3b0bfee51e98fb30042f22d4d8f4a444ad1d047195af9ed"
+      },
+      {
+        "path": "src/artwork-import/vectorcraft-native.js",
+        "bytes": 15134,
+        "sha256": "e7a0d86c6487e8e8dd81d9eb929c1166a018eaab0cb4ab1468d2e99caa4ccfdb"
+      },
+      {
+        "path": "src/artwork-import/vectorcraft-pages-client.js",
+        "bytes": 6137,
+        "sha256": "bc53f89e40dc8f6403e64ac4d102b8f37b22e943ba46093b8947395cf79d3e71"
       },
       {
         "path": "src/assets/asset-error.js",
@@ -1688,8 +1713,8 @@
       },
       {
         "path": "src/ui/ink017/menu-ui.js",
-        "bytes": 19224,
-        "sha256": "5ef5d7f9e229d46358c6fd9ccf41efcf3484057c6aa5108ce364fd47e0faff24"
+        "bytes": 19644,
+        "sha256": "3aa8e399c73fa86e17d30e4e3cfdfcc2528a0e37e28c82eddcb856b61f6be18b"
       },
       {
         "path": "src/ui/ink017/native-host.js",
@@ -1778,8 +1803,8 @@
       },
       {
         "path": "src/ui/ink017/shell.js",
-        "bytes": 17739,
-        "sha256": "6a4b540eeb88a962320a73c6859c4f1c1ed25ffa399c78c3caefb73e5379f7d0"
+        "bytes": 19183,
+        "sha256": "b720a35ccf17f5926042f2b74728ed978e7f8a994cc5c56c72a5f72f582f0f19"
       },
       {
         "path": "src/ui/ink017/tokens.css",
@@ -1952,32 +1977,33 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "2369f019a1fb1f96586ecd71c84cb4fee2a0981367e235390d067154f31ccb78"
+    "package_digest_sha256": "71db086adccdb768db49208618b5c2dcf699fd53389c963b1cfb5d1ad6f9a8a3"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "f85de06f4b215e5c72a4bbfe840233a36716aa0a",
+    "exact_sha": "3338812cb579f99629426105e533ac887aad1c8e",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
-    "manifest_sha256": "7a31fcef3e1c03e48b0a3a9ec8e40d724795fd2d248f970f0c53cf8745f716ca"
+    "manifest_sha256": "481ee2278228f0481092892ee8edc47d54bca02e369f80de629b9a2ce65328fd"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "a7e41115c7464568271dac17e8e55f1b4143f576",
+    "source_tree": "e2d2985fa10f8c46228dd7cbaaeb8eab345bb0a1",
     "runs": [
       {
-        "profile": "ink-pr560-drive-menu-windows-chrome-v1",
-        "id": 42450749184,
-        "workflow_path": ".github/workflows/ink-gpt-560-windows-g1.yml",
-        "workflow_blob": "cd130da397c5ca3f01670c2ad0dc3b25265fe0e4",
-        "head_sha": "0c545644d5e4f31039d9852e5a0bf23e7c1aec30"
+        "profile": "ink-illustrator582-exact-windows-candidate-v1",
+        "id": 42542094644,
+        "workflow_path": ".github/workflows/ink-illustrator-582-windows.yml",
+        "workflow_blob": "373943f5e3cb0a0e4f45fb209b857faa7062a996",
+        "head_sha": "d287e2d251679983156063a25c2f551a2ff37ba9",
+        "tested_sha": "efbe8034a0853c44facdc32770fb325947f28bdc"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "c0bd32bf18b0276d122bde444c931e44ba4537de",
+    "previous_target_commit": "a5da334c5c72b7e00d56d008ec41c071ccf62a88",
     "runtime_bytes_unchanged_from_package": true
   }
 }

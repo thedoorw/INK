@@ -80,10 +80,27 @@ export function mountNativeShell(app,root){
   overlay.querySelector('[data-key="format"]').value=format;
   overlay.querySelector('[data-apply]').textContent='Export';
  }
+ function localIllustratorHostDialog(){
+  dialog('Illustrator 本機引擎',
+   '<p class="dialog-copy">請先在自己的 Windows 電腦啟動已驗證版本 VectorCraft 0.22.0 的 INK 本機 Host。原稿只傳到本機 127.0.0.1，不上傳雲端。配對後每份 .ai 仍需在「開啟文件」時個別確認。</p>'+
+   '<label class="field-row"><span>本機 Host 顯示的 32 字元配對碼</span><input type="password" data-key="code" autocomplete="off" spellcheck="false" maxlength="32" aria-label="INK Illustrator local Host pairing code"></label>',
+   async ({code})=>{
+    let bridge=host.app.illustratorPagesBridge;
+    if(!bridge){const {createVectorcraftPagesBridge}=await import('../../artwork-import/vectorcraft-pages-client.js');
+     bridge=createVectorcraftPagesBridge(host.app);host.app.illustratorPagesBridge=bridge;}
+    await bridge.pair(code);
+    const field=overlay.querySelector('[data-key="code"]');if(field)field.value='';
+    feedback('本機 Illustrator 已配對；可在「開啟文件」選擇 .ai。');
+    return {ok:true};
+   });
+  overlay.querySelector('[data-apply]').textContent='本機配對';
+ }
  const command=async key=>{
   menuUi?.close(menu.contains(document.activeElement));const s=host.getSnapshot();
   if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;(panel.querySelector('[data-recovery-key]')||panel.querySelector('button'))?.focus();return}
   if(key==='recover')return command('native-tools');
+  if(key==='ai-local-host')return localIllustratorHostDialog();
+  if(key==='ai-local-host-disconnect'){host.app.illustratorPagesBridge?.disconnect();feedback('Illustrator 本機引擎已停用；下次 .ai 將使用原有解析路徑。');return {ok:true};}
   if(['drive-save','drive-recover','drive-save-revision'].includes(key)){
    // Only route into the existing first-party INK Drive service. The menu
    // opens its visible dialog; GIS auth and Native IO remain on the original
@@ -165,7 +182,7 @@ export function mountNativeShell(app,root){
  syncBrandName();
  globalThis.dispatchEvent(new Event('ink:ui-shell-mounted'));
  const unsubscribe=host.subscribe(render);render(host.getSnapshot());
- return{host,dock,command,dispose(){sizeRouteCleanup?.();unsubscribe();abort.abort();close();contextToolbar.dispose();dock.unmount();host.dispose()}};
+ return{host,dock,command,dispose(){host.app.illustratorPagesBridge?.dispose?.();sizeRouteCleanup?.();unsubscribe();abort.abort();close();contextToolbar.dispose();dock.unmount();host.dispose()}};
 }
 
 
