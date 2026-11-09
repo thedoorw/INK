@@ -266,7 +266,27 @@ async function precacheShell(){
   try {
     for(let i=0;i<APP_SHELL.length;i+=PRECACHE_BATCH_SIZE){
       const paths=APP_SHELL.slice(i,i+PRECACHE_BATCH_SIZE);
-      await cache.addAll(paths.map(path=>new Request(path,{cache:'reload'})));
+      try {
+        await cache.addAll(paths.map(path=>new Request(path,{cache:'reload'})));
+      } catch (error) {
+        // cache.addAll rejects the whole batch; identify the failing request
+        // without weakening install atomicity or accepting partial offline data.
+        const failures = [];
+        for (const path of paths) {
+          try {
+            const response = await fetch(new Request(path, { cache: 'reload' }));
+            if (!response.ok || response.type === 'opaque') {
+              failures.push({ path, status: response.status, type: response.type });
+            }
+          } catch (probeError) {
+            failures.push({ path, error: String(probeError) });
+          }
+        }
+        const detail = { buildId: BUILD_ID, offset: i, paths, failures,
+          originalError: String(error) };
+        console.error('INK_SW_PRECACHE_BATCH_FAILED', detail);
+        throw new Error('INK_SW_PRECACHE_BATCH_FAILED:' + JSON.stringify(detail));
+      }
     }
   } catch(error) {
     await caches.delete(SHELL_CACHE);
