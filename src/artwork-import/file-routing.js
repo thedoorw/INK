@@ -34,7 +34,9 @@ export async function routeArtworkFile(app,file,{confirm=globalThis.confirm,exec
   const nativeEngine=adobeNativeEngineFor(app);
   const illustratorEngine=adobeIllustratorEngineFor(app);
   const plan=planAdobeImport(bytes,{format,nativeEngine,illustratorEngine});
-  const warning=format==='ai'&&plan.engine==='create-design-ai-browser-0.0.17'
+  const warning=format==='ai'&&plan.engine==='vectorcraft-ai-0.22.0'
+     ? 'Illustrator 原始私有結構將交由已授權的 VectorCraft 本機引擎解析並映射 INK，可編輯性與字型、畫板及效果可能部分保真。是否繼續？'
+     : format==='ai'&&plan.engine==='create-design-ai-browser-0.0.17'
     ? 'Illustrator 私有原生來源將在瀏覽器解析為 INK 物件；未知語意可能回退 PDF 顯示內容，非完整 Adobe 保真。是否繼續？'
     : format==='ai'&&plan.engine==='create-design-ai-0.0.17'
     ? 'Illustrator Native 私有來源由授權的本機 Node 引擎解析；仍可能遺失效果、字體與畫板語意。是否繼續？'
@@ -44,7 +46,7 @@ export async function routeArtworkFile(app,file,{confirm=globalThis.confirm,exec
       ? 'ag-psd RGB16 匯入會建立可編輯 Native 物件；部分遮色片、效果與智慧型物件不保證保真。是否繼續？'
     : plan.engine==='photoshopapi-0.9.1-rgb16'
       ? '有限 RGB16 PSD／PSB 匯入：使用已綁定的本機 PhotoshopAPI；保留 16-bit 像素與 ICC，但圖層效果及私有語意未完整驗證，不是完整保真。匯入後請另存 .ink 並核對原稿。是否繼續？'
-      : '有限 PSD／PSB 匯入：僅支援部分 RGB8 圖層。已支援 RGB8 像素遮色片於 Native rasterMask 即時合成；獨立原稿遮色片副本只供保留來源，不與即時遮色片雙向同步；智慧型物件、效果及色彩管理未完整保留。匯入後請另存 .ink 並核對原稿。是否繼續？';
+      : '有限 PSD／PSB 匯入：僅支援部分 RGB8 圖層。遮色片預覽為靜態，編輯遮色片不會即時更新；智慧型物件、效果及色彩管理未完整保留。匯入後請另存 .ink 並核對原稿。是否繼續？';
   if(typeof confirm!=='function')artworkFail('INK_ARTWORK_CONFIRMATION_REQUIRED');
   if(!confirm(warning))return {handled:true,receipt:false};
   assertArtworkContext(app,context);

@@ -2,7 +2,7 @@ import { tracePath } from '../vector/vector-core.js';
 // Minimal adapter for the imported AI display subset. Existing unrelated paths
 // retain their previous behavior. Clip matrix is relative to the owning Path.
 export function applyAiPathClip(ctx,object) {
-  if(object?.metadata?.sourceFormat!=='AI_PDF_DISPLAY'||!object.clipPath?.path)return false;
+  if(!['AI_PDF_DISPLAY','AI_VECTORCRAFT_PRIVATE'].includes(object?.metadata?.sourceFormat)||!object.clipPath?.path)return false;
   const clip=object.clipPath.path;
   ctx.save();
   try {ctx.transform(...clip.matrix);tracePath(ctx,clip);} finally {ctx.restore();}
