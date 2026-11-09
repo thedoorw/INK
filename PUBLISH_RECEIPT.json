@@ -1,13 +1,13 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "d7de4ba514b38a30305550e59c91fbafaf2613f1",
-  "source_tree": "7ece34c68e4319627319b7c63ca7133728be2a18",
-  "runtime_digest_sha256": "e148c7f8e67a954502c5c310b2fd0d0060ea0e0e86ce70bc31743c1e66755454",
-  "package_manifest_sha256": "404c62ad607ca3c6be1427cf1f7286864d6b24b3094ab951c256a1e8948cf8e8",
+  "source_sha": "e12f71c2304f5a5863b48cb2acd214ccda6c399b",
+  "source_tree": "44894fb8d1053d858fd086d8d471b2e28b5580fe",
+  "runtime_digest_sha256": "a1017493b69f77528701e4d7079751cfab00c10f9273fe6843e0762c009932e6",
+  "package_manifest_sha256": "68baa5fcebb70ab521e1bd642ca113864648836e98b9d94454fcdcf9b3244c15",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "f9155490baab39cdd08efa4bf136989ccf18ded7",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/587#issuecomment-6734610555",
+  "previous_target_commit": "538df0d8939e356739ab934e7ce30b9418458259",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/587#issuecomment-6737663294",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -35,15 +35,15 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "bytes": 72684,
-      "sha256": "c2429704ecd61720d755639dd78a41a9097923944eca3c6e0a43c7265f276be0",
-      "git_blob_sha": "9b2668319cad8b77f4e1d7b52ff37ba438697f90"
+      "bytes": 72114,
+      "sha256": "1725e366fe9a107bcb9a4887bd5b8d2324b6a3954cf1a9489d35017264fbb1f9",
+      "git_blob_sha": "6c72339dcc4450927645c266fcee8e4b775b5c64"
     },
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "9e1a77214822bb07fc7bd95d42e7f87fe52e9b9d3ce2fb410c2285f89fa56eb6",
-      "git_blob_sha": "f073c78a8ce9b85e5efd6075d20a5a6a51584dab"
+      "sha256": "158d5dd4a75951e9d70a6b9d46e7328c0be4689ee4a2487535c3c5adf68c835b",
+      "git_blob_sha": "87ec72be5332a12ec90e10982d2ca3e6f029cf32"
     },
     {
       "path": "dist/ink.compat.js",
@@ -53,9 +53,9 @@
     },
     {
       "path": "dist/startup/asset-inventory.js",
-      "bytes": 1907,
-      "sha256": "57173eb26641d4c15165f6449db2a6859ccddf007e84529012329c72e4233c86",
-      "git_blob_sha": "c821f13e981e92009348ad8187bba091063db3df"
+      "bytes": 1796,
+      "sha256": "de11212fe0338f151a95a422bd2840bba35d8391b62fbc648dc2ca5bf315a0b7",
+      "git_blob_sha": "025b475d1b2e610a62fa0ef57d8f0c06e2da97e0"
     },
     {
       "path": "dist/startup/chunks/ag-psd-native-T5IN2KCV.mjs",
@@ -142,12 +142,6 @@
       "git_blob_sha": "f9a489842b61ca2ef5377bb59bbc01c8fd78cf36"
     },
     {
-      "path": "dist/startup/chunks/chunk-PEZBLEZW.mjs",
-      "bytes": 15989,
-      "sha256": "6231171e19501f8d98107758dbaf1db5ef1ad80299b5e858b2c389df6adfaca0",
-      "git_blob_sha": "44f953d89ed7ce0ac1e2ea31c6bd6fa6850bacd2"
-    },
-    {
       "path": "dist/startup/chunks/chunk-PHK7F5TU.mjs",
       "bytes": 41212,
       "sha256": "d9b050a3dff35cb921020c9ec20df61ab5fd8573670db88cb8aa25b7c67d63b0",
@@ -214,12 +208,6 @@
       "git_blob_sha": "a30827c7c33001ea5ae1dbf63b07e390c680e849"
     },
     {
-      "path": "dist/startup/chunks/vectorcraft-pages-client-XKQW7IRT.mjs",
-      "bytes": 5479,
-      "sha256": "8a66a5bc35cb5d10dd01b151d3dcc95333bca17aaf9ed484b6efa8bc3d139a5d",
-      "git_blob_sha": "342b7f1dcb737b0ec9c96227216c8f22accccabf"
-    },
-    {
       "path": "dist/startup/chunks/work-runtime-read-controls-EQLOVAVJ.mjs",
       "bytes": 10208,
       "sha256": "1e58de66a11e85c748734cb3baa9a540f78a6ad694a6f6f83cdc72eb42655a8d",
@@ -227,15 +215,15 @@
     },
     {
       "path": "dist/startup/ink-boot.mjs",
-      "bytes": 2087906,
-      "sha256": "d5104be8f9644e5502f80de66e1ee5aef51516966fc6dec66ed4d177987bc027",
-      "git_blob_sha": "a94dcb9d5a0159fdb4963fd85511433f1fe61ed1"
+      "bytes": 2103622,
+      "sha256": "44fb0a10cf063ffa5002f91c496b0f43d43e07c40b7827ff82d4fd01a47b3646",
+      "git_blob_sha": "2323dd37e598b02a8b8e94e2bb34aba6a57eeeaa"
     },
     {
       "path": "dist/startup/ink-shell.mjs",
-      "bytes": 289012,
-      "sha256": "71077167507c896d91408ef79171894d056e36bae41ac73140b98510af374dc1",
-      "git_blob_sha": "9cad769708584c4d38330eb914de28326423f05d"
+      "bytes": 286954,
+      "sha256": "0beb42d6c8785f3524284d820fb20a2935b379b7ac6294e49afd6361f5f6830f",
+      "git_blob_sha": "e4f424e407030b2e59e925c612cf49e7028f07e1"
     },
     {
       "path": "dist/startup/LICENSES/ag-psd-MIT.txt",
@@ -596,12 +584,6 @@
       "bytes": 15134,
       "sha256": "e7a0d86c6487e8e8dd81d9eb929c1166a018eaab0cb4ab1468d2e99caa4ccfdb",
       "git_blob_sha": "3ff41108316c92b09ef7d1b4c86d132065a8519b"
-    },
-    {
-      "path": "src/artwork-import/vectorcraft-pages-client.js",
-      "bytes": 6137,
-      "sha256": "bc53f89e40dc8f6403e64ac4d102b8f37b22e943ba46093b8947395cf79d3e71",
-      "git_blob_sha": "42656e51dbaa9fefdc686154b0bb10f57ec2aa52"
     },
     {
       "path": "src/assets/asset-error.js",
@@ -2081,9 +2063,9 @@
     },
     {
       "path": "src/ui/ink017/menu-ui.js",
-      "bytes": 19644,
-      "sha256": "3aa8e399c73fa86e17d30e4e3cfdfcc2528a0e37e28c82eddcb856b61f6be18b",
-      "git_blob_sha": "ddabfd4d46d45baaa800b60dd78e17d450f62905"
+      "bytes": 19224,
+      "sha256": "5ef5d7f9e229d46358c6fd9ccf41efcf3484057c6aa5108ce364fd47e0faff24",
+      "git_blob_sha": "2768a02f2752b2cefd1ae48a1a6d572303c30ec3"
     },
     {
       "path": "src/ui/ink017/native-host.js",
@@ -2189,9 +2171,9 @@
     },
     {
       "path": "src/ui/ink017/shell.js",
-      "bytes": 19183,
-      "sha256": "b720a35ccf17f5926042f2b74728ed978e7f8a994cc5c56c72a5f72f582f0f19",
-      "git_blob_sha": "c5058b921ffa855a5ff5f3581f33ffdac288840f"
+      "bytes": 17784,
+      "sha256": "f9df094eb4694db0c01c3fc797a1f479f3299d7af898824c14741d1dfe41206e",
+      "git_blob_sha": "91f2bef4ee876168048f5995bae351bc32412b61"
     },
     {
       "path": "src/ui/ink017/tokens.css",

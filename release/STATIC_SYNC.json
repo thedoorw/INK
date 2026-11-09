@@ -4,50 +4,50 @@
   "action": "publish",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "d7de4ba514b38a30305550e59c91fbafaf2613f1",
-    "product_tree": "7ece34c68e4319627319b7c63ca7133728be2a18"
+    "exact_sha": "e12f71c2304f5a5863b48cb2acd214ccda6c399b",
+    "product_tree": "44894fb8d1053d858fd086d8d471b2e28b5580fe"
   },
-  "build_id": "src-ac7b7ab09ba711f7e0bb436e",
-  "runtime_digest_sha256": "e148c7f8e67a954502c5c310b2fd0d0060ea0e0e86ce70bc31743c1e66755454",
-  "package_manifest_sha256": "404c62ad607ca3c6be1427cf1f7286864d6b24b3094ab951c256a1e8948cf8e8",
+  "build_id": "src-32d07c67ceb4290da4cfbd50",
+  "runtime_digest_sha256": "a1017493b69f77528701e4d7079751cfab00c10f9273fe6843e0762c009932e6",
+  "package_manifest_sha256": "68baa5fcebb70ab521e1bd642ca113864648836e98b9d94454fcdcf9b3244c15",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
   "target": {
     "repo": "thedoorw/INK",
     "branch": "main",
-    "expected_head": "f9155490baab39cdd08efa4bf136989ccf18ded7",
-    "expected_tree": "00da761072a09ff7556dc53723f30e92c3bf050f",
-    "prior_receipt_sha256": "72356a31d51f8e9cf937bba9a9af9c72241820825f60a423d7e9380daff96ab4"
+    "expected_head": "538df0d8939e356739ab934e7ce30b9418458259",
+    "expected_tree": "42b9e953315363f8621a18d7c3daaa6237deacb7",
+    "prior_receipt_sha256": "1b7d5db9b95f37d7dfcf2272a3c2981fb4f9a8e5a18cd0bad711f2337ca26e39"
   },
   "qualification": {
-    "source_tree": "7ece34c68e4319627319b7c63ca7133728be2a18",
+    "source_tree": "44894fb8d1053d858fd086d8d471b2e28b5580fe",
     "runs": [
       {
-        "profile": "ink587-exact-windows-pwa-v1",
-        "id": 42569630813,
-        "workflow_path": ".github/workflows/ink587-admitted-source-qa.yml",
-        "workflow_blob": "4ec86003edcd9ef545157b9a5a2247051744b4df",
-        "head_sha": "1d0c56ae4511c9690cffdc5fd68b33a2a8938f37",
-        "tested_sha": "ea8e12f7ca17813ee05510d3ff2c5571b4f683ce"
+        "profile": "ink591-exact-windows-ui-chrome-v1",
+        "id": 42598740959,
+        "workflow_path": ".github/workflows/ink591-windows-ui-build-qa.yml",
+        "workflow_blob": "44e8d1a597630fef603b4d9ce5b9dd886151d128",
+        "head_sha": "c953434d5affe32a37982def55cc22513ae76121",
+        "tested_sha": "a82546770f7ea431376aa94cbcfd4d9216f7789c"
       }
     ]
   },
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/587#issuecomment-6734610555",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/587#issuecomment-6737663294",
   "rollback": {
-    "public_commit": "f9155490baab39cdd08efa4bf136989ccf18ded7",
-    "receipt_sha256": "72356a31d51f8e9cf937bba9a9af9c72241820825f60a423d7e9380daff96ab4",
-    "source_sha": "5599847e3a054e03bfdfaf19620467e20c0c3eed",
-    "source_tree": "e2d2985fa10f8c46228dd7cbaaeb8eab345bb0a1"
+    "public_commit": "538df0d8939e356739ab934e7ce30b9418458259",
+    "receipt_sha256": "1b7d5db9b95f37d7dfcf2272a3c2981fb4f9a8e5a18cd0bad711f2337ca26e39",
+    "source_sha": "d7de4ba514b38a30305550e59c91fbafaf2613f1",
+    "source_tree": "7ece34c68e4319627319b7c63ca7133728be2a18"
   },
   "files": [
     {
       "path": "BUILD_INFO.json",
-      "bytes": 72684,
-      "sha256": "c2429704ecd61720d755639dd78a41a9097923944eca3c6e0a43c7265f276be0"
+      "bytes": 72114,
+      "sha256": "1725e366fe9a107bcb9a4887bd5b8d2324b6a3954cf1a9489d35017264fbb1f9"
     },
     {
       "path": "PUBLISH_RECEIPT.json",
-      "bytes": 94339,
-      "sha256": "1b7d5db9b95f37d7dfcf2272a3c2981fb4f9a8e5a18cd0bad711f2337ca26e39"
+      "bytes": 93594,
+      "sha256": "891f28cc96f24aa48c6b09f9289b251f6a2e64462b0216198f9f41b124a7c061"
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -72,7 +72,7 @@
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "9e1a77214822bb07fc7bd95d42e7f87fe52e9b9d3ce2fb410c2285f89fa56eb6"
+      "sha256": "158d5dd4a75951e9d70a6b9d46e7328c0be4689ee4a2487535c3c5adf68c835b"
     },
     {
       "path": "dist/ink.compat.js",
@@ -101,8 +101,8 @@
     },
     {
       "path": "dist/startup/asset-inventory.js",
-      "bytes": 1907,
-      "sha256": "57173eb26641d4c15165f6449db2a6859ccddf007e84529012329c72e4233c86"
+      "bytes": 1796,
+      "sha256": "de11212fe0338f151a95a422bd2840bba35d8391b62fbc648dc2ca5bf315a0b7"
     },
     {
       "path": "dist/startup/chunks/ag-psd-native-T5IN2KCV.mjs",
@@ -175,11 +175,6 @@
       "sha256": "89e6f8796c15a0984df623e94720da15dc15b3a9c8334c8ee0829a73f6d81967"
     },
     {
-      "path": "dist/startup/chunks/chunk-PEZBLEZW.mjs",
-      "bytes": 15989,
-      "sha256": "6231171e19501f8d98107758dbaf1db5ef1ad80299b5e858b2c389df6adfaca0"
-    },
-    {
       "path": "dist/startup/chunks/chunk-PHK7F5TU.mjs",
       "bytes": 41212,
       "sha256": "d9b050a3dff35cb921020c9ec20df61ab5fd8573670db88cb8aa25b7c67d63b0"
@@ -235,24 +230,19 @@
       "sha256": "bdbc4fce19c6432fa2fc4d8e1ee6da47e93bdc5b7dae213531d609ef5f6643ab"
     },
     {
-      "path": "dist/startup/chunks/vectorcraft-pages-client-XKQW7IRT.mjs",
-      "bytes": 5479,
-      "sha256": "8a66a5bc35cb5d10dd01b151d3dcc95333bca17aaf9ed484b6efa8bc3d139a5d"
-    },
-    {
       "path": "dist/startup/chunks/work-runtime-read-controls-EQLOVAVJ.mjs",
       "bytes": 10208,
       "sha256": "1e58de66a11e85c748734cb3baa9a540f78a6ad694a6f6f83cdc72eb42655a8d"
     },
     {
       "path": "dist/startup/ink-boot.mjs",
-      "bytes": 2087906,
-      "sha256": "d5104be8f9644e5502f80de66e1ee5aef51516966fc6dec66ed4d177987bc027"
+      "bytes": 2103622,
+      "sha256": "44fb0a10cf063ffa5002f91c496b0f43d43e07c40b7827ff82d4fd01a47b3646"
     },
     {
       "path": "dist/startup/ink-shell.mjs",
-      "bytes": 289012,
-      "sha256": "71077167507c896d91408ef79171894d056e36bae41ac73140b98510af374dc1"
+      "bytes": 286954,
+      "sha256": "0beb42d6c8785f3524284d820fb20a2935b379b7ac6294e49afd6361f5f6830f"
     },
     {
       "path": "dist/startup/parsers/ag-psd.mjs",
@@ -533,11 +523,6 @@
       "path": "src/artwork-import/vectorcraft-native.js",
       "bytes": 15134,
       "sha256": "e7a0d86c6487e8e8dd81d9eb929c1166a018eaab0cb4ab1468d2e99caa4ccfdb"
-    },
-    {
-      "path": "src/artwork-import/vectorcraft-pages-client.js",
-      "bytes": 6137,
-      "sha256": "bc53f89e40dc8f6403e64ac4d102b8f37b22e943ba46093b8947395cf79d3e71"
     },
     {
       "path": "src/assets/asset-error.js",
@@ -1771,8 +1756,8 @@
     },
     {
       "path": "src/ui/ink017/menu-ui.js",
-      "bytes": 19644,
-      "sha256": "3aa8e399c73fa86e17d30e4e3cfdfcc2528a0e37e28c82eddcb856b61f6be18b"
+      "bytes": 19224,
+      "sha256": "5ef5d7f9e229d46358c6fd9ccf41efcf3484057c6aa5108ce364fd47e0faff24"
     },
     {
       "path": "src/ui/ink017/native-host.js",
@@ -1861,8 +1846,8 @@
     },
     {
       "path": "src/ui/ink017/shell.js",
-      "bytes": 19183,
-      "sha256": "b720a35ccf17f5926042f2b74728ed978e7f8a994cc5c56c72a5f72f582f0f19"
+      "bytes": 17784,
+      "sha256": "f9df094eb4694db0c01c3fc797a1f479f3299d7af898824c14741d1dfe41206e"
     },
     {
       "path": "src/ui/ink017/tokens.css",
@@ -2035,5 +2020,9 @@
       "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
     }
   ],
-  "deletions": []
+  "deletions": [
+    "dist/startup/chunks/chunk-PEZBLEZW.mjs",
+    "dist/startup/chunks/vectorcraft-pages-client-XKQW7IRT.mjs",
+    "src/artwork-import/vectorcraft-pages-client.js"
+  ]
 }
