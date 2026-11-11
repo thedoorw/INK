@@ -26,7 +26,7 @@ import { InputArbiter } from './input/input-arbiter.js';
 import { PenInputCalibrator, normalizePenProfile } from './input/pen-calibration.js';
 import { clearStrokeSegmentStyle, deleteStrokeNodes, eraseStrokeWithCircle, insertStrokeNode, moveStrokeHandle, nearestStrokeCurveSegment, nearestStrokeNode, sampleStrokePath, sampleStrokeSegment, segmentStyleAt, setStrokeNodeMode, setStrokeSegmentStyle, simplifyStrokePoints, splitStrokeAtSegment } from './stroke/index.js';
 import { PageSpatialIndex } from './spatial/index.js';
-import { addRulerGuide, applyObjectMatrices, applyWorldTransformBatch, assertFinitePathGeometry, cloneInitialMatrices, collapseTransformRoots, frameWorldGeometryBounds, groupWorldGeometryBounds, installChatBoundedEdit, installChatCreativePlan, installCreativeWorkspace, installExpressiveStroke, installPathEditing, installRepaintMaterial, inspectComposition, lassoCandidates, marqueeCandidates, moveRulerGuide, nonSingularScaleComponent, normalizeSnapSettings, polygonBounds, preflightObjectMatrices, regenerateCompositionIds, removeRulerGuide, resolveCompositionSelection, resolveSnappedRotation, resolveSnappedTranslation, resizeFrameGeometry, selectionWorldGeometryBounds, setRulerGuideLocked, setRulerGuideVisibility, setSnapCategory, setSnapEnabled } from './editor/index.js';
+import { applyObjectMatrices, applyWorldTransformBatch, assertFinitePathGeometry, cloneInitialMatrices, collapseTransformRoots, frameWorldGeometryBounds, groupWorldGeometryBounds, installChatBoundedEdit, installChatCreativePlan, installCreativeWorkspace, installExpressiveStroke, installPathEditing, installRepaintMaterial, inspectComposition, lassoCandidates, marqueeCandidates, nonSingularScaleComponent, normalizeSnapSettings, polygonBounds, preflightObjectMatrices, regenerateCompositionIds, resolveCompositionSelection, resolveSnappedRotation, resolveSnappedTranslation, resizeFrameGeometry, selectionWorldGeometryBounds, setSnapCategory, setSnapEnabled } from './editor/index.js';
 import { LiveCanvasTileRenderer, NaturalMediaController, PersistentTileAtlas, TiledExportCancelledError, TiledExportJob, createTilePlan, paperProfileFingerprint, paperSampleAt, renderTiledCanvas } from './render/index.js';
 
 import { ExternalValidationRecorder, RuntimeHealthMonitor, buildExternalDiagnosticBundle } from './release/index.js';
@@ -469,11 +469,13 @@ class InkApp{
   get gridSnap(){return normalizeSnapSettings(this.page()?.snap||{}).categories.grid}
   set gridSnap(value){if(this.page())this.page().snap=setSnapCategory(this.page().snap||{},'grid',value)}
   pageStatePath(key){const index=this.doc.pages.indexOf(this.page());if(index<0)throw new Error('INK_ACTIVE_PAGE_NOT_FOUND');return['pages',index,key]}
-  addGuide(guide){let created=null;this.history.pushScoped('新增參考線',[this.pageStatePath('guides')],()=>{const next=addRulerGuide(this.page().guides||[],guide);created=next.at(-1);this.page().guides=next;});this.renderer.render();return created}
-  moveGuide(id,position){this.history.pushScoped('移動參考線',[this.pageStatePath('guides')],()=>{this.page().guides=moveRulerGuide(this.page().guides||[],id,position);});this.renderer.render();return true}
-  removeGuide(id){this.history.pushScoped('刪除參考線',[this.pageStatePath('guides')],()=>{this.page().guides=removeRulerGuide(this.page().guides||[],id);});this.renderer.render();return true}
-  setGuideLocked(id,locked=true){this.history.pushScoped('鎖定參考線',[this.pageStatePath('guides')],()=>{this.page().guides=setRulerGuideLocked(this.page().guides||[],id,locked);});this.renderer.render();return true}
-  setGuideVisible(id,visible=true){this.history.pushScoped('顯示參考線',[this.pageStatePath('guides')],()=>{this.page().guides=setRulerGuideVisibility(this.page().guides||[],id,visible);});this.renderer.render();return true}
+  // Legacy UI consumers retain their values; Native service owns Document and History.
+  guideCommand(id,args){const response=this.commands.execute(id,args,'human-ui');if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'Guide operation failed'),{code:response?.error?.code||'COMMAND_FAILED',details:response?.error?.details});return response.result;}
+  addGuide(guide){return this.guideCommand('guide.add.v1',guide).guide;}
+  moveGuide(id,position){this.guideCommand('guide.move.v1',{guideId:id,position});return true;}
+  removeGuide(id){this.guideCommand('guide.remove.v1',{guideId:id});return true;}
+  setGuideLocked(id,locked=true){this.guideCommand('guide.lock.set.v1',{guideId:id,locked});return true;}
+  setGuideVisible(id,visible=true){this.guideCommand('guide.visibility.set.v1',{guideId:id,visible});return true;}
   setSnapEnabledState(enabled){this.history.pushScoped('吸附設定',[this.pageStatePath('snap')],()=>{this.page().snap=setSnapEnabled(this.page().snap||{},enabled);});return this.page().snap}
   setSnapCategoryState(category,enabled){this.history.pushScoped('吸附設定',[this.pageStatePath('snap')],()=>{this.page().snap=setSnapCategory(this.page().snap||{},category,enabled);});return this.page().snap}
   spaceMode(){return workspaceSpace(this.page())}

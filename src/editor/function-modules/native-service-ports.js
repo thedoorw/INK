@@ -13,6 +13,7 @@ import { createUiB002DocumentAdapter } from './ui-b-002-document-adapter.js';
 import { VIEW_ZOOM_CONTRACT } from '../../document/workspace.js';
 import { thumbnailPreviewGeometry } from '../../document/artboard.js';
 import { applyArtworkResize, applyCanvasSize, applyOutputPpi } from '../../document/size.js';
+import { addRulerGuide, moveRulerGuide, removeRulerGuide, setRulerGuideLocked, setRulerGuideVisibility } from '../precision-layout.js';
 
 const clone=value=>value==null?value:JSON.parse(JSON.stringify(value));
 const finite=value=>Number.isFinite(Number(value));
@@ -153,6 +154,19 @@ function historySummary(app){
   return{applied:timeline.applied,retainedCount:timeline.entries?.length||0,limit:timeline.limit,canUndo:Boolean(history.undoStack?.length),canRedo:Boolean(history.redoStack?.length),entries:(timeline.entries||[]).map((entry,index)=>({index,label:entry.label||'變更',applied:index<timeline.applied,patchCount:entry.patchCount??null,captureMode:entry.captureMode||null}))};
 }
 function mutateScoped(app,label,targets,operation){if(app.history?.pending){operation();return{joined:true};}app.history.pushScoped(label,targets,operation);return{joined:false};}
+function mutateGuide(app,label,transform){
+  const page=activePage(app);
+  if(!page)throw Object.assign(new Error('Page unavailable'),{code:'CAPABILITY_UNAVAILABLE'});
+  // Validate a pure next-state before opening History or touching Document.
+  const next=transform(page.guides||[]);
+  const changed=JSON.stringify(page.guides||[])!==JSON.stringify(next);
+  if(changed){
+    mutateScoped(app,label,[[...app.pagePath(page),'guides']],()=>{page.guides=next;});
+    app.renderer?.render?.();
+  }
+  return{page,changed,guides:clone(page.guides||[])};
+}
+
 function assertPageCurrent(app,pageAtStart){
   const current=activePage(app),idAtStart=pageAtStart?.id??null;
   if(current!==pageAtStart||(idAtStart!=null&&current?.id!==idAtStart))throw Object.assign(new Error('Page changed during asynchronous command'),{code:'STALE_PAGE'});
@@ -232,11 +246,11 @@ export function createNativeFunctionServicePorts(app){
         mutateScoped(app,'重新命名頁面',[app.pagePath(page)],()=>{page.name=next;});app.refreshAll?.();
         return{changed:true,result:{pageId:page.id,oldName,name:page.name,activePageId:app.doc?.activePageId||null}};
       },
-      guideAdd:args=>{const guide=app.addGuide?.(args);return{changed:true,result:{pageId:activePage(app)?.id,guide:clone(guide),guides:clone(activePage(app)?.guides||[])}};},
-      guideMove:(id,position)=>{app.moveGuide?.(id,position);return{changed:true,result:{pageId:activePage(app)?.id,guideId:id,guides:clone(activePage(app)?.guides||[])}};},
-      guideRemove:id=>{app.removeGuide?.(id);return{changed:true,result:{pageId:activePage(app)?.id,guideId:id,guides:clone(activePage(app)?.guides||[])}};},
-      guideLock:(id,locked)=>{app.setGuideLocked?.(id,locked);return{changed:true,result:{pageId:activePage(app)?.id,guideId:id,guides:clone(activePage(app)?.guides||[])}};},
-      guideVisibility:(id,visible)=>{app.setGuideVisible?.(id,visible);return{changed:true,result:{pageId:activePage(app)?.id,guideId:id,guides:clone(activePage(app)?.guides||[])}};},
+      guideAdd:args=>{const {page,changed,guides}=mutateGuide(app,'新增參考線',items=>addRulerGuide(items,args));return{changed,result:{pageId:page.id,guide:clone(guides.at(-1)||null),guides}};},
+      guideMove:(id,position)=>{const {page,changed,guides}=mutateGuide(app,'移動參考線',items=>moveRulerGuide(items,id,position));return{changed,result:{pageId:page.id,guideId:id,guides}};},
+      guideRemove:id=>{const {page,changed,guides}=mutateGuide(app,'刪除參考線',items=>removeRulerGuide(items,id));return{changed,result:{pageId:page.id,guideId:id,guides}};},
+      guideLock:(id,locked)=>{const {page,changed,guides}=mutateGuide(app,'鎖定參考線',items=>setRulerGuideLocked(items,id,locked));return{changed,result:{pageId:page.id,guideId:id,guides}};},
+      guideVisibility:(id,visible)=>{const {page,changed,guides}=mutateGuide(app,'顯示參考線',items=>setRulerGuideVisibility(items,id,visible));return{changed,result:{pageId:page.id,guideId:id,guides}};},
       snap:(key,value)=>{const snap=key==='enabled'?app.setSnapEnabledState?.(value):app.setSnapCategoryState?.(key,value);return{changed:true,result:{pageId:activePage(app)?.id,snap:clone(snap)}};},
       paper:(key,value)=>executePageSurfaceOperation(app,{operation:'page.paper.set.v1',arguments:{key,value},targets:[]}),
       artboard:(key,value)=>executePageSurfaceOperation(app,{operation:'page.artboard.set.v1',arguments:{key,value},targets:[]}),
