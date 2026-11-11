@@ -4,8 +4,8 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "2357d10a9cb3c4b38053b5f6f894d5132d86d0bf",
-    "product_tree": "667ce76a00507f98460766a5de3c0e41f9eb51b5"
+    "exact_sha": "5d3c12831b6c91fa13366fd770f10f12f9e35f4f",
+    "product_tree": "e8886375e8928b8fd7d99f7f97be01f324e2a080"
   },
   "runtime": {
     "root": "/INK/",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "72179f57c38f3f45540e4c1e7ed17823114389286b63887f2ed79715e44fc44a"
+        "sha256": "f5d45b13c2389810e2064ee0264dc5a747f257687b653466dcccbcdb58bc9705"
       },
       {
         "path": "dist/ink.compat.js",
@@ -218,8 +218,8 @@
       },
       {
         "path": "dist/startup/ink-boot.mjs",
-        "bytes": 2107246,
-        "sha256": "7835e0144cf3c6839dad04a186fd4aeca51cb4c67a31a035d98fc49eb3978e15"
+        "bytes": 2107743,
+        "sha256": "5cfc0b66e50b64d9f2196c17d0a6022880ab7f9abb2bf8ef158938c8a737d26a"
       },
       {
         "path": "dist/startup/ink-shell.mjs",
@@ -728,8 +728,8 @@
       },
       {
         "path": "src/editor/command-authority.js",
-        "bytes": 14988,
-        "sha256": "4e496558c2eba074cf24d74bb48bc89a4e98a1176b4e3812f4d9422d37d526dd"
+        "bytes": 16118,
+        "sha256": "190aa89aa347bd1aa673b32583d64cd16bf6379280c8524220a50339e340168c"
       },
       {
         "path": "src/editor/composition.js",
@@ -808,8 +808,8 @@
       },
       {
         "path": "src/editor/function-modules/native-service-ports.js",
-        "bytes": 34734,
-        "sha256": "12e2a4173b9f659e28161d5482b97f64205f3d82ae4fb9a9d1a6aff01747d330"
+        "bytes": 35542,
+        "sha256": "348541ad896b17ff184d93980dc443ba9aa4b1a85e38fded34540d1e79e414ad"
       },
       {
         "path": "src/editor/function-modules/providers.js",
@@ -1258,8 +1258,8 @@
       },
       {
         "path": "src/ink.js",
-        "bytes": 183298,
-        "sha256": "aa63a59e52e236b70d59f447be53034c6446dd008b4475da318d5826c46d4293"
+        "bytes": 182932,
+        "sha256": "45c4be16908b990e5d3a46ecd68572935a32fa4f58d2c960decc72e75f65325b"
       },
       {
         "path": "src/input/device-validation.js",
@@ -2017,33 +2017,33 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "a671bc407e49c4a6ebcd3bf6eb968bfbf2ff0699e533898ed611af9de62d594e"
+    "package_digest_sha256": "2d166c12b27fb46b8d921ba08be4e1ecb61fe3bb2ba525a20bace3b98eeab786"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "f4d864c6efc947a56ad260e8282721181b786cb2",
+    "exact_sha": "b0d69010f331b79e6211edfed9dd62d515d00bb5",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
-    "manifest_sha256": "9ac5e30a926d827fa459bc93996d627e21b47f4fd7d8a0e489b757d928a0db52"
+    "manifest_sha256": "cf4b3440b71b9e3f006562fa08a850641700032f5d04e6016bf0ab771510e9d4"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "667ce76a00507f98460766a5de3c0e41f9eb51b5",
+    "source_tree": "e8886375e8928b8fd7d99f7f97be01f324e2a080",
     "runs": [
       {
-        "profile": "ink595-exact-windows-ai-native-chrome-v1",
-        "id": 42729882698,
-        "workflow_path": ".github/workflows/ink-ai568-windows-admitted-qa.yml",
-        "workflow_blob": "2afb5fa83b426a70caa3be02388a967462b97469",
-        "head_sha": "f2c1d0a9c82a27e742cfc016e7e87061dc141c17",
-        "tested_sha": "0a7cb77ba3fcf456d52ae824ede8b7ded7b83a53"
+        "profile": "ink600-compiled-windows-node-chrome-f5-v1",
+        "id": 42983226887,
+        "workflow_path": ".github/workflows/ink600-private-compiled-build-qa.yml",
+        "workflow_blob": "4d3b2ca02baa3319bb2228a4d5e411b0ed580d1c",
+        "head_sha": "b9890bb9dfc9384a27701d864671d4a0b9a215a4",
+        "tested_sha": "73ea5e29b371f7d9ff95c5bd8ade2f77420e3fa3"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "f429f5749b4fbf612b1fbc9060424c61cbbfa008",
+    "previous_target_commit": "af5aa48b6eb9aa725807603c00ce78cbf8638006",
     "runtime_bytes_unchanged_from_package": true
   }
 }

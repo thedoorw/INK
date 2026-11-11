@@ -192,6 +192,18 @@ export function installCommandAuthority(app) {
     return response;
   };
 
+  // Issue #600 P1 — fail-closed admission. There are currently ZERO first-party
+  // REQUIRED providers with an independently audited, bounded synchronous handler.
+  // A provider's historyAtomic, async flag or function constructor is NOT an audit.
+  // A callback retaining app can schedule detached Promise/timer work after rollback,
+  // so caller-supplied callback metadata must never unlock REQUIRED. Adding an
+  // admitted handler needs an explicit separately reviewed core-owned implementation;
+  // this authority intentionally grants none in P1.
+  const requiredAdmissionError = () => Object.assign(
+    new Error('REQUIRED needs a separately audited synchronous mutation implementation'),
+    {code:'HISTORY_ATOMIC_ADMISSION_REQUIRED'}
+  );
+
   const execute = (commandIdOrEnvelope, args = {}, origin = 'human-ui') => {
     const envelope = normalizeEnvelope(commandIdOrEnvelope,args,origin);
     const commandId = String(envelope.commandId || '');
@@ -201,6 +213,9 @@ export function installCommandAuthority(app) {
     if (!owner || owner.disabled) return unavailable(commandId,definition.ownerId);
     if (envelope.schema && envelope.schema !== COMMAND_SCHEMA) return commandFailure(commandId,Object.assign(new Error('Invalid command schema'),{code:'ARGUMENTS_INVALID'}));
     if (envelope.version != null && Number(envelope.version) !== COMMAND_VERSION) return commandFailure(commandId,Object.assign(new Error('Invalid command version'),{code:'ARGUMENTS_INVALID'}));
+    // Refuse before validation, session admission, or invocation of untrusted run.
+    // This also covers detached chains, thenable getters, timers and callbacks.
+    if (definition.history === 'REQUIRED') return commandFailure(commandId,requiredAdmissionError());
     envelope.origin = ORIGINS.has(envelope.origin) ? envelope.origin : 'system';
     const beforeHistory = historySummary(app);
     const documentAtStart=app?.doc || null, documentIdAtStart=documentAtStart?.id || null;
@@ -218,23 +233,28 @@ export function installCommandAuthority(app) {
     try {app.multiView?.assertCommandAllowed?.(commandId);sessionOperation=app.sessions?.admit(commandId)||null;}
     catch(error){return commandFailure(commandId,error);}
     owner.inFlight++;
+    let asynchronous = false;
     try {
       definition.validate?.(envelope.arguments || {}, envelope);
       const raw = definition.run(envelope.arguments || {}, envelope, execution);
       if (raw && typeof raw.then === 'function') {
+        asynchronous = true;
         return raw.then(value=>{
           if (definition.documentPolicy === 'SAME_DOCUMENT') execution.assertDocumentCurrent();
           return finalize(definition,envelope,value,beforeHistory);
-        }).catch(error=>commandFailure(commandId,error)).finally(()=>{ owner.inFlight=Math.max(0,owner.inFlight-1); sessionOperation?.release(); });
+        }).catch(error=>commandFailure(commandId,error)).finally(()=>{
+          owner.inFlight=Math.max(0,owner.inFlight-1); sessionOperation?.release();
+        });
       }
-      const response=finalize(definition,envelope,raw,beforeHistory);
-      owner.inFlight=Math.max(0,owner.inFlight-1);
-      sessionOperation?.release();
-      return response;
+      if (definition.documentPolicy === 'SAME_DOCUMENT') execution.assertDocumentCurrent();
+      return finalize(definition,envelope,raw,beforeHistory);
     } catch (error) {
-      owner.inFlight=Math.max(0,owner.inFlight-1);
-      sessionOperation?.release();
       return commandFailure(commandId,error);
+    } finally {
+      if (!asynchronous) {
+        owner.inFlight=Math.max(0,owner.inFlight-1);
+        sessionOperation?.release();
+      }
     }
   };
 
