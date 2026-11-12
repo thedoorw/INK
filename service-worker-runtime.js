@@ -247,6 +247,8 @@ const APP_SHELL = Object.freeze([
   './index-standalone.html',
   './stage-runtime.css',
   './build-identity.js',
+  './popup-client.js',
+  './popup-policy.js',
   './qa/runtime-test-bridge.js',
   './assets/INK_MARK_SOURCE_W-300.jpg',
   './assets/ink-mark.svg',

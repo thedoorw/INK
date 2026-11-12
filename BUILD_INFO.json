@@ -4,12 +4,12 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "5d3c12831b6c91fa13366fd770f10f12f9e35f4f",
-    "product_tree": "e8886375e8928b8fd7d99f7f97be01f324e2a080"
+    "exact_sha": "940808792365b834516c0bacd9c60bff3de12093",
+    "product_tree": "90c5df6e003f2b26133b5b3267a07097ea96d392"
   },
   "runtime": {
     "root": "/INK/",
-    "file_count": 401,
+    "file_count": 403,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "f5d45b13c2389810e2064ee0264dc5a747f257687b653466dcccbcdb58bc9705"
+        "sha256": "017b253bf7ffe9ae829b5a2d713f07ad9c9aceeb0f728293b5e6d3e79a7ebeca"
       },
       {
         "path": "dist/ink.compat.js",
@@ -243,8 +243,8 @@
       },
       {
         "path": "index.html",
-        "bytes": 2965,
-        "sha256": "63c34e5f722310ede573a2503e17254125caa23b515ddedc4a81d979e2859040"
+        "bytes": 3210,
+        "sha256": "a3f47b22ed6f43212751041a891bd4a340dfad228c0931a5d09a0b3862f1f072"
       },
       {
         "path": "manifest-portable.webmanifest",
@@ -255,6 +255,16 @@
         "path": "manifest.webmanifest",
         "bytes": 448,
         "sha256": "ecdd596633a9a0c716499cb877ef29071e818a1c3b58c52c6f4b775589608320"
+      },
+      {
+        "path": "popup-client.js",
+        "bytes": 3382,
+        "sha256": "e48da74efc0baa220d66b4b25df15cf6aad2b397f57222bb364a7808d6490b68"
+      },
+      {
+        "path": "popup-policy.js",
+        "bytes": 3586,
+        "sha256": "9bfe281089a4df297df9d143ce7ff263d8f42b1c0da0cc41e665128db49ff79d"
       },
       {
         "path": "qa/runtime-test-bridge.js",
@@ -268,8 +278,8 @@
       },
       {
         "path": "service-worker-runtime.js",
-        "bytes": 14661,
-        "sha256": "57d98ac03634b8574d6d5d71d162f6d8ab614d16f98ebf05113a6fc4588786a3"
+        "bytes": 14707,
+        "sha256": "68d7b0e4e3904fe1760fb10c9237829dac56cfea2bd9765a576c5003ff9ac51a"
       },
       {
         "path": "service-worker.js",
@@ -2017,33 +2027,33 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "2d166c12b27fb46b8d921ba08be4e1ecb61fe3bb2ba525a20bace3b98eeab786"
+    "package_digest_sha256": "54b6dcb0f819131d849f0c6a689b91e1f263bc8f84705a70112da064b2520370"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "b0d69010f331b79e6211edfed9dd62d515d00bb5",
-    "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
+    "exact_sha": "babfbcacc6c7630fa839f88569b916ff26d79d87",
+    "allowlist_digest_sha256": "2f6031141898e8c690d731ef572fac9869b6ff4a8bc59de2cc3f85297af5b3d4"
   },
   "package": {
-    "manifest_sha256": "cf4b3440b71b9e3f006562fa08a850641700032f5d04e6016bf0ab771510e9d4"
+    "manifest_sha256": "d314cbdc56066dd6d3088d87ff8df634fe4f4e11217661c4963e2835554219e3"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "e8886375e8928b8fd7d99f7f97be01f324e2a080",
+    "source_tree": "90c5df6e003f2b26133b5b3267a07097ea96d392",
     "runs": [
       {
-        "profile": "ink600-compiled-windows-node-chrome-f5-v1",
-        "id": 42983226887,
-        "workflow_path": ".github/workflows/ink600-private-compiled-build-qa.yml",
-        "workflow_blob": "4d3b2ca02baa3319bb2228a4d5e411b0ed580d1c",
-        "head_sha": "b9890bb9dfc9384a27701d864671d4a0b9a215a4",
-        "tested_sha": "73ea5e29b371f7d9ff95c5bd8ade2f77420e3fa3"
+        "profile": "ink604-popup-readonly-windows-node-chrome-v1",
+        "id": 43242612888,
+        "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
+        "workflow_blob": "260a15fc953fbce6592922433c26894afc8285d9",
+        "head_sha": "d04e13eb69d5c01de2d80f75f6a21f8aa71099fa",
+        "tested_sha": "f4ebf4a21e700df1edef1fea8b3aff5045f2e4ae"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "af5aa48b6eb9aa725807603c00ce78cbf8638006",
+    "previous_target_commit": "b1ee3a326ee7b551e5d63ee2bd3105d76d01b92f",
     "runtime_bytes_unchanged_from_package": true
   }
 }
