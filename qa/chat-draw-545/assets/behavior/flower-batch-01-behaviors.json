@@ -1,0 +1,547 @@
+{
+  "format": "INK-BEHAVIOR-LIBRARY-INCREMENT",
+  "version": "Batch-01",
+  "count": 17,
+  "behaviors": [
+    {
+      "id": "FLEURIFY_OUTLINE_FROM_CLOSED_PATH",
+      "level": "Composite",
+      "input": "Ordered closed path + percentage",
+      "preconditions": [
+        "closed path",
+        "at least 3 PathPoints"
+      ],
+      "parameters": {
+        "percentage": {
+          "type": "number",
+          "min": 0,
+          "max": 200,
+          "default": 100,
+          "unit": "percent"
+        }
+      },
+      "steps": [
+        "read cyclic previous/current/next anchors",
+        "compute handle directions",
+        "write leftDirection/rightDirection"
+      ],
+      "invariants": [
+        "anchor IDs",
+        "anchor positions",
+        "closed topology"
+      ],
+      "cases": [
+        "CASE-01-OUTLINE-FLEURIFY"
+      ],
+      "failureConditions": [
+        "open path",
+        "invalid percentage",
+        "unsupported dynamic code"
+      ],
+      "dependencies": [
+        "PathPoint mapping",
+        "cyclic indexing"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "ATOMIC_CREATE_PARAMETERIZED_PATH",
+      "level": "Atomic",
+      "input": "template parameters",
+      "preconditions": [
+        "finite dimensions"
+      ],
+      "parameters": [
+        "length",
+        "width",
+        "tip"
+      ],
+      "steps": [
+        "create anchors",
+        "set cubic handles"
+      ],
+      "invariants": [
+        "stable object ID"
+      ],
+      "cases": [
+        "CASE-02-PETAL-LEAF-TEMPLATES"
+      ],
+      "failureConditions": [
+        "non-finite dimensions"
+      ],
+      "dependencies": [
+        "createPath"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "COMPOSITE_BEND_TAPER_LEAF_OR_PETAL",
+      "level": "Composite",
+      "input": "base vector template",
+      "preconditions": [
+        "closed cubic path"
+      ],
+      "parameters": [
+        "bend",
+        "taper",
+        "angle"
+      ],
+      "steps": [
+        "move tip",
+        "adjust shoulders",
+        "rotate around base"
+      ],
+      "invariants": [
+        "closed topology",
+        "material ID"
+      ],
+      "cases": [
+        "CASE-02-PETAL-LEAF-TEMPLATES"
+      ],
+      "failureConditions": [
+        "self-intersection at extreme bend"
+      ],
+      "dependencies": [
+        "anchor handles",
+        "transform"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "STRATEGY_REUSE_TEMPLATE_BEFORE_REDRAW",
+      "level": "Strategy",
+      "input": "requested petal/leaf family",
+      "preconditions": [
+        "matching base material exists"
+      ],
+      "parameters": [
+        "materialId",
+        "variation"
+      ],
+      "steps": [
+        "select reusable material",
+        "modify parameters",
+        "preserve source relationship"
+      ],
+      "invariants": [
+        "source material remains traceable"
+      ],
+      "cases": [
+        "CASE-02-PETAL-LEAF-TEMPLATES"
+      ],
+      "failureConditions": [
+        "no compatible template"
+      ],
+      "dependencies": [
+        "material registry"
+      ],
+      "validation": "VALIDATED_IN_SINGLE_CASE"
+    },
+    {
+      "id": "ATOMIC_DUPLICATE_ROTATE_INSTANCE",
+      "level": "Atomic",
+      "input": "source path + angle",
+      "preconditions": [
+        "valid center"
+      ],
+      "parameters": [
+        "angle"
+      ],
+      "steps": [
+        "clone linked source",
+        "apply rotation matrix"
+      ],
+      "invariants": [
+        "source material ID"
+      ],
+      "cases": [
+        "CASE-03-RADIAL-PETAL-ASSEMBLY"
+      ],
+      "failureConditions": [
+        "invalid center"
+      ],
+      "dependencies": [
+        "repeatTransforms"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "COMPOSITE_RADIAL_PETAL_ASSEMBLY",
+      "level": "Composite",
+      "input": "petal material + count + center",
+      "preconditions": [
+        "count >= 1"
+      ],
+      "parameters": [
+        "petalCount",
+        "petalLength",
+        "angleOffset"
+      ],
+      "steps": [
+        "create source petal",
+        "radially repeat",
+        "place center object"
+      ],
+      "invariants": [
+        "ring ID",
+        "center ID",
+        "unmodified center hash during ring recompute"
+      ],
+      "cases": [
+        "CASE-03-RADIAL-PETAL-ASSEMBLY"
+      ],
+      "failureConditions": [
+        "extreme overlap/self-intersection"
+      ],
+      "dependencies": [
+        "repeat",
+        "transform",
+        "group/layer"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "STRATEGY_INFER_REPEAT_UNIT_BEFORE_EXPANSION",
+      "level": "Strategy",
+      "input": "radial flower target",
+      "preconditions": [
+        "recognizable repeated petal"
+      ],
+      "parameters": [
+        "unitCandidate",
+        "symmetryCenter"
+      ],
+      "steps": [
+        "select one petal unit",
+        "estimate count/center",
+        "expand linked repeat"
+      ],
+      "invariants": [
+        "single editable source"
+      ],
+      "cases": [
+        "CASE-03-RADIAL-PETAL-ASSEMBLY"
+      ],
+      "failureConditions": [
+        "irregular non-repeatable flower"
+      ],
+      "dependencies": [
+        "structural analysis"
+      ],
+      "validation": "VALIDATED_IN_SINGLE_CASE"
+    },
+    {
+      "id": "ATOMIC_SET_LAYER_ORDER",
+      "level": "Atomic",
+      "input": "layer list",
+      "preconditions": [
+        "unique layer IDs"
+      ],
+      "parameters": [
+        "zIndex"
+      ],
+      "steps": [
+        "order background to foreground"
+      ],
+      "invariants": [
+        "object IDs"
+      ],
+      "cases": [
+        "CASE-04-MULTILAYER-COROLLA"
+      ],
+      "failureConditions": [
+        "cyclic hierarchy"
+      ],
+      "dependencies": [
+        "layers"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "COMPOSITE_BUILD_MULTILAYER_COROLLA",
+      "level": "Composite",
+      "input": "ring parameter list + petal materials",
+      "preconditions": [
+        "at least two rings"
+      ],
+      "parameters": [
+        "count",
+        "length",
+        "width",
+        "radialOffset",
+        "angleOffset",
+        "jitter"
+      ],
+      "steps": [
+        "build outer ring",
+        "build successive inner rings",
+        "apply independent variation",
+        "place center"
+      ],
+      "invariants": [
+        "outer ring hashes under inner-only recompute"
+      ],
+      "cases": [
+        "CASE-04-MULTILAYER-COROLLA"
+      ],
+      "failureConditions": [
+        "severe interpenetration",
+        "insufficient occlusion ordering"
+      ],
+      "dependencies": [
+        "groups",
+        "layers",
+        "transforms"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "STRATEGY_OUTER_TO_INNER_OCCLUSION",
+      "level": "Strategy",
+      "input": "layered flower target",
+      "preconditions": [
+        "rings distinguishable"
+      ],
+      "parameters": [
+        "ring segmentation"
+      ],
+      "steps": [
+        "segment rings",
+        "assign background/midground/foreground",
+        "recompute only affected ring"
+      ],
+      "invariants": [
+        "unaffected ring IDs and hashes"
+      ],
+      "cases": [
+        "CASE-04-MULTILAYER-COROLLA"
+      ],
+      "failureConditions": [
+        "unresolvable irregular overlaps"
+      ],
+      "dependencies": [
+        "structural analysis",
+        "partial recompute"
+      ],
+      "validation": "VALIDATED_IN_SINGLE_CASE"
+    },
+    {
+      "id": "ATOMIC_CREATE_CURVED_STEM",
+      "level": "Atomic",
+      "input": "start/end/bend",
+      "preconditions": [
+        "finite coordinates"
+      ],
+      "parameters": [
+        "bend",
+        "strokeWidth"
+      ],
+      "steps": [
+        "create open cubic path"
+      ],
+      "invariants": [
+        "stem ID"
+      ],
+      "cases": [
+        "CASE-05-STEM-LEAF-BUD-ASSEMBLY"
+      ],
+      "failureConditions": [
+        "zero-length stem"
+      ],
+      "dependencies": [
+        "open path"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "COMPOSITE_PLACE_ASYMMETRIC_SIDE_LEAVES",
+      "level": "Composite",
+      "input": "stem + leaf material",
+      "preconditions": [
+        "attachment points"
+      ],
+      "parameters": [
+        "side",
+        "angle",
+        "bend",
+        "scale"
+      ],
+      "steps": [
+        "instantiate leaf",
+        "rotate at base",
+        "add vein",
+        "attach to stem"
+      ],
+      "invariants": [
+        "stem hash under leaf-local recompute"
+      ],
+      "cases": [
+        "CASE-05-STEM-LEAF-BUD-ASSEMBLY"
+      ],
+      "failureConditions": [
+        "leaf-stem disconnection"
+      ],
+      "dependencies": [
+        "leaf material",
+        "transform",
+        "group"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "COMPOSITE_ASSEMBLE_BUD_CALYX",
+      "level": "Composite",
+      "input": "bud + calyx materials",
+      "preconditions": [
+        "branch endpoint"
+      ],
+      "parameters": [
+        "budScale",
+        "calyxCount"
+      ],
+      "steps": [
+        "place bud shell",
+        "radially place sepals",
+        "group with branch"
+      ],
+      "invariants": [
+        "branch relationship"
+      ],
+      "cases": [
+        "CASE-05-STEM-LEAF-BUD-ASSEMBLY"
+      ],
+      "failureConditions": [
+        "missing attachment"
+      ],
+      "dependencies": [
+        "repeat/group"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "STRATEGY_BUILD_REUSABLE_PLANT_UNIT",
+      "level": "Strategy",
+      "input": "flower head + support components",
+      "preconditions": [
+        "component materials available"
+      ],
+      "parameters": [
+        "seed",
+        "layout"
+      ],
+      "steps": [
+        "build stem",
+        "attach leaves",
+        "attach side bud",
+        "attach flower head",
+        "group as unit"
+      ],
+      "invariants": [
+        "parent-child relation"
+      ],
+      "cases": [
+        "CASE-05-STEM-LEAF-BUD-ASSEMBLY"
+      ],
+      "failureConditions": [
+        "unresolved component hierarchy"
+      ],
+      "dependencies": [
+        "material selection",
+        "group hierarchy"
+      ],
+      "validation": "VALIDATED_IN_SINGLE_CASE"
+    },
+    {
+      "id": "ATOMIC_APPLY_OPACITY_WASH",
+      "level": "Atomic",
+      "input": "vector layer + opacity",
+      "preconditions": [
+        "visible vector objects"
+      ],
+      "parameters": [
+        "opacity",
+        "color"
+      ],
+      "steps": [
+        "duplicate source structure",
+        "set fill variation",
+        "set opacity"
+      ],
+      "invariants": [
+        "base structure IDs"
+      ],
+      "cases": [
+        "CASE-06-WATERCOLOR-PAPER-POSTPROCESS"
+      ],
+      "failureConditions": [
+        "flattened-only source"
+      ],
+      "dependencies": [
+        "layers",
+        "opacity"
+      ],
+      "validation": "VALIDATED_BY_EXECUTION"
+    },
+    {
+      "id": "COMPOSITE_VECTOR_WATERCOLOR_APPROXIMATION",
+      "level": "Composite",
+      "input": "structured flower",
+      "preconditions": [
+        "separable layers"
+      ],
+      "parameters": [
+        "washCount",
+        "offset",
+        "opacity"
+      ],
+      "steps": [
+        "preserve base layer",
+        "add translucent color washes",
+        "export formal PNG"
+      ],
+      "invariants": [
+        "base path topology"
+      ],
+      "cases": [
+        "CASE-06-WATERCOLOR-PAPER-POSTPROCESS"
+      ],
+      "failureConditions": [
+        "required raster diffusion fidelity"
+      ],
+      "dependencies": [
+        "layer preservation",
+        "opacity"
+      ],
+      "validation": "VALIDATED_AS_APPROXIMATION"
+    },
+    {
+      "id": "STRATEGY_PRESERVE_STRUCTURE_RESTYLE_SURFACE",
+      "level": "Strategy",
+      "input": "validated flower structure",
+      "preconditions": [
+        "structure approved"
+      ],
+      "parameters": [
+        "styleProfile"
+      ],
+      "steps": [
+        "lock structure",
+        "apply surface layers",
+        "compare against reference process"
+      ],
+      "invariants": [
+        "anchor topology"
+      ],
+      "cases": [
+        "CASE-06-WATERCOLOR-PAPER-POSTPROCESS"
+      ],
+      "failureConditions": [
+        "style requires destructive raster merge"
+      ],
+      "dependencies": [
+        "structure/style separation"
+      ],
+      "validation": "VALIDATED_IN_SINGLE_CASE"
+    }
+  ]
+}
