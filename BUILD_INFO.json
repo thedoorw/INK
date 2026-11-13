@@ -4,8 +4,8 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "aae63514b339a666d7014f18a26ec0eb579d7d9b",
-    "product_tree": "8bb4c6a3314e50604673f91545d3e2c7b6ca864a"
+    "exact_sha": "87b0f712244206a32254aaaca8451d0dd92cdef6",
+    "product_tree": "4483bcfabc808d1fc4919b3507af0cdce769ca7a"
   },
   "runtime": {
     "root": "/INK/",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "407fc76bc327e7862a4ac39cea6c77df3312c06bb20eced63250360e772b9534"
+        "sha256": "5bbd5bb3ce99035c1320ad3066432d6fbe55dc7b7a985ecbc0b8e0d6e5cac8a9"
       },
       {
         "path": "dist/ink.compat.js",
@@ -303,8 +303,8 @@
       },
       {
         "path": "src/agent/popup-client.js",
-        "bytes": 3382,
-        "sha256": "e48da74efc0baa220d66b4b25df15cf6aad2b397f57222bb364a7808d6490b68"
+        "bytes": 5361,
+        "sha256": "c305ed35f7057c39256e3eb85f659028013d949e1b9a63c6a384befefe713358"
       },
       {
         "path": "src/agent/popup-policy.js",
@@ -2027,11 +2027,11 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "0d63e283eca32ca478f436b9dff8827e948cf6d511df4f02d216d123015c90b8"
+    "package_digest_sha256": "8956cf2dedaee75e94faa9d2879734cd29ed458759b97630606e3c561c650724"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "43fd3eafacb239dd6f56eab165ba4f8fa6a5a38b",
+    "exact_sha": "dec85840d5796c7d8140c70eb5b9a217e857db16",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
@@ -2039,21 +2039,21 @@
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "8bb4c6a3314e50604673f91545d3e2c7b6ca864a",
+    "source_tree": "4483bcfabc808d1fc4919b3507af0cdce769ca7a",
     "runs": [
       {
-        "profile": "ink604-popup-readonly-windows-node-chrome-v2",
-        "id": 43253605775,
+        "profile": "ink604-popup-readonly-windows-node-chrome-v3",
+        "id": 43347848095,
         "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
-        "workflow_blob": "cb01420d55d89b0c1ec21c1b32c126770bf64a2a",
-        "head_sha": "e6c9be913e8c662de5d3d1478bb8a0e78a2d95af",
-        "tested_sha": "d000ad5078242b6993f585233dc3c420c404a1cc"
+        "workflow_blob": "fe6380d8ca56c47e53bccba09d36f6e560807771",
+        "head_sha": "e9a627965f873b62b1bd1231b307f6f316fd1cb4",
+        "tested_sha": "9058b47a46b954499464e2a5132db4e464f8dd51"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "b1ee3a326ee7b551e5d63ee2bd3105d76d01b92f",
+    "previous_target_commit": "1b920a9f00263e15ba8f0a4b53936210b0c1b368",
     "runtime_bytes_unchanged_from_package": true
   }
 }

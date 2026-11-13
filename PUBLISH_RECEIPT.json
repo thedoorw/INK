@@ -1,12 +1,12 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "aae63514b339a666d7014f18a26ec0eb579d7d9b",
-  "source_tree": "8bb4c6a3314e50604673f91545d3e2c7b6ca864a",
-  "runtime_digest_sha256": "0d63e283eca32ca478f436b9dff8827e948cf6d511df4f02d216d123015c90b8",
+  "source_sha": "87b0f712244206a32254aaaca8451d0dd92cdef6",
+  "source_tree": "4483bcfabc808d1fc4919b3507af0cdce769ca7a",
+  "runtime_digest_sha256": "8956cf2dedaee75e94faa9d2879734cd29ed458759b97630606e3c561c650724",
   "package_manifest_sha256": "bec710af329cdba0d41c5e4cef50da13ec07958ab7d93425e65ea058f533ccba",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "b1ee3a326ee7b551e5d63ee2bd3105d76d01b92f",
+  "previous_target_commit": "1b920a9f00263e15ba8f0a4b53936210b0c1b368",
   "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/604",
   "managed_files": [
     {
@@ -36,14 +36,14 @@
     {
       "path": "BUILD_INFO.json",
       "bytes": 73807,
-      "sha256": "cb12e243e10728e521156a12c732cb8631c7992c7bb9f38ebf985fc2de518883",
-      "git_blob_sha": "c166b6514cb3b201a54e2783fd327a34f355d315"
+      "sha256": "a9fc43dab17b833c0636234ce82bb0e8aab984f35524a88e340bcbb8e4186336",
+      "git_blob_sha": "8fe6cbb23d895aa5e12b95e760c30c5615b3e1d4"
     },
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "407fc76bc327e7862a4ac39cea6c77df3312c06bb20eced63250360e772b9534",
-      "git_blob_sha": "7739bdb77c7b8202e64aa58abfcd51bbc98804a1"
+      "sha256": "5bbd5bb3ce99035c1320ad3066432d6fbe55dc7b7a985ecbc0b8e0d6e5cac8a9",
+      "git_blob_sha": "aee5d1ddb0934cd37815f3ca76260930e378da2d"
     },
     {
       "path": "dist/ink.compat.js",
@@ -365,9 +365,9 @@
     },
     {
       "path": "src/agent/popup-client.js",
-      "bytes": 3382,
-      "sha256": "e48da74efc0baa220d66b4b25df15cf6aad2b397f57222bb364a7808d6490b68",
-      "git_blob_sha": "6ace50950a9cf11d5533a6efbae81e25d73a8c6d"
+      "bytes": 5361,
+      "sha256": "c305ed35f7057c39256e3eb85f659028013d949e1b9a63c6a384befefe713358",
+      "git_blob_sha": "1555c9fd45bfc05d6ca1abe462c794536b3daf79"
     },
     {
       "path": "src/agent/popup-policy.js",
