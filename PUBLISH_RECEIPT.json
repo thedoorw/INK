@@ -1,13 +1,13 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "5d3c12831b6c91fa13366fd770f10f12f9e35f4f",
-  "source_tree": "e8886375e8928b8fd7d99f7f97be01f324e2a080",
-  "runtime_digest_sha256": "2d166c12b27fb46b8d921ba08be4e1ecb61fe3bb2ba525a20bace3b98eeab786",
-  "package_manifest_sha256": "cf4b3440b71b9e3f006562fa08a850641700032f5d04e6016bf0ab771510e9d4",
+  "source_sha": "aae63514b339a666d7014f18a26ec0eb579d7d9b",
+  "source_tree": "8bb4c6a3314e50604673f91545d3e2c7b6ca864a",
+  "runtime_digest_sha256": "0d63e283eca32ca478f436b9dff8827e948cf6d511df4f02d216d123015c90b8",
+  "package_manifest_sha256": "bec710af329cdba0d41c5e4cef50da13ec07958ab7d93425e65ea058f533ccba",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "af5aa48b6eb9aa725807603c00ce78cbf8638006",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/603#issuecomment-6790733550",
+  "previous_target_commit": "b1ee3a326ee7b551e5d63ee2bd3105d76d01b92f",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/604",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -35,15 +35,15 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "bytes": 73471,
-      "sha256": "eec3964fd8d72478fd7733ed3793cf2cf96a7d56db88ffd2112bcb28d2db0f5e",
-      "git_blob_sha": "fdb6906706b052397403935a5e3c79e50dd3bb74"
+      "bytes": 73807,
+      "sha256": "cb12e243e10728e521156a12c732cb8631c7992c7bb9f38ebf985fc2de518883",
+      "git_blob_sha": "c166b6514cb3b201a54e2783fd327a34f355d315"
     },
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "f5d45b13c2389810e2064ee0264dc5a747f257687b653466dcccbcdb58bc9705",
-      "git_blob_sha": "5d6b05665bb866fc1508c1b3c8d37a6516197be5"
+      "sha256": "407fc76bc327e7862a4ac39cea6c77df3312c06bb20eced63250360e772b9534",
+      "git_blob_sha": "7739bdb77c7b8202e64aa58abfcd51bbc98804a1"
     },
     {
       "path": "dist/ink.compat.js",
@@ -293,9 +293,9 @@
     },
     {
       "path": "index.html",
-      "bytes": 2965,
-      "sha256": "63c34e5f722310ede573a2503e17254125caa23b515ddedc4a81d979e2859040",
-      "git_blob_sha": "744a15f5bdcac06585ff4b09390a9fca1f0ef20b"
+      "bytes": 3220,
+      "sha256": "a6d9f00bc741d25934209d039edba568aadb31d3dc1e557f729d0511ca29896e",
+      "git_blob_sha": "ec7d83c9e95263123b5325165fd2a183a412d395"
     },
     {
       "path": "manifest-portable.webmanifest",
@@ -323,9 +323,9 @@
     },
     {
       "path": "service-worker-runtime.js",
-      "bytes": 14661,
-      "sha256": "57d98ac03634b8574d6d5d71d162f6d8ab614d16f98ebf05113a6fc4588786a3",
-      "git_blob_sha": "cb7345d154c40988edd45d0320c829893508be42"
+      "bytes": 14727,
+      "sha256": "fa8a2cd991301dac94bf3ce6fde210bbe08b29ec265622f9e4e4a1b9cd7ecba0",
+      "git_blob_sha": "1fb8562c07184f4e8e52645606ed0eebbb81427b"
     },
     {
       "path": "service-worker.js",
@@ -362,6 +362,18 @@
       "bytes": 6618,
       "sha256": "0637e1a3d643b892917c468f5273679f14b6145ed16d0b894b0ae14cc45c07be",
       "git_blob_sha": "4d1877d49dae0798ef74788a2fea90090fc65310"
+    },
+    {
+      "path": "src/agent/popup-client.js",
+      "bytes": 3382,
+      "sha256": "e48da74efc0baa220d66b4b25df15cf6aad2b397f57222bb364a7808d6490b68",
+      "git_blob_sha": "6ace50950a9cf11d5533a6efbae81e25d73a8c6d"
+    },
+    {
+      "path": "src/agent/popup-policy.js",
+      "bytes": 3586,
+      "sha256": "9bfe281089a4df297df9d143ce7ff263d8f42b1c0da0cc41e665128db49ff79d",
+      "git_blob_sha": "869583fc88feba77d3a99e95f0a6754a232f5ca8"
     },
     {
       "path": "src/agent/public-creative-api.js",
