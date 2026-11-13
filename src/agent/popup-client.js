@@ -59,6 +59,58 @@ function call(method, input) {
     port.postMessage({challenge,id,method,input});
   });
 }
+// #604: Optional Popup controls live in INK's existing plugins/擴充 menu.
+// Do not place any standalone action on the artboard or modify editor commands.
+function mountPrivatePluginMenu() {
+  let menuObserver, activeMenu;
+  const install = () => {
+    const pane = activeMenu?.querySelector('.menu-pane[aria-label="plugins"]');
+    const group = pane?.querySelector(".menu-group");
+    if (!group || group.querySelector("[data-ink-readonly-popup]")) return;
+    const host = document.createElement("div");
+    host.className = "menu-item-host";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "menu-row";
+    button.setAttribute("role", "menuitem");
+    button.setAttribute("data-ink-readonly-popup", "");
+    const label = document.createElement("span");
+    label.className = "menu-label";
+    label.textContent = "開啟私人唯讀連線";
+    button.append(label);
+    host.append(button);
+    group.append(host);
+  };
+  const attach = () => {
+    const menu = document.getElementById("mainMenu");
+    if (!menu || menu === activeMenu) return !!menu;
+    menuObserver?.disconnect();
+    activeMenu = menu;
+    menu.addEventListener("click", event => {
+      const button = event.target.closest?.("[data-ink-readonly-popup]");
+      if (!button || !menu.contains(button)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      // Keep the original menu's close lifecycle and the user's popup gesture.
+      document.getElementById("logoButton")?.click();
+      openPopup();
+    }, true);
+    menuObserver = new MutationObserver(install);
+    menuObserver.observe(menu, {childList:true,subtree:true});
+    install();
+    return true;
+  };
+  // The native shell can replace #mainMenu after initial mount or on re-render.
+  // Track the current element, not an obsolete menu subtree.
+  const shellObserver = new MutationObserver(() => attach());
+  shellObserver.observe(document.body, {childList:true,subtree:true});
+  attach();
+  window.addEventListener("pagehide", () => {
+    shellObserver.disconnect();
+    menuObserver?.disconnect();
+  }, {once:true});
+}
+
 if (loadedIdentity(location, window.INK_BUILD_ID)) {
   window.INK_RUNTIME_BRIDGE_CONFIG = Object.freeze({
     install:true, sourceSha,
@@ -79,10 +131,6 @@ if (loadedIdentity(location, window.INK_BUILD_ID)) {
     },
     pairOptionsProvider:()=>({scope}),
   });
-  const button=document.createElement("button");
-  button.type="button";
-  button.textContent="開啟私人唯讀連線";
-  button.addEventListener("click",openPopup);
-  document.body.append(button);
+  mountPrivatePluginMenu();
   window.addEventListener("pagehide",reset,{once:true});
 }
