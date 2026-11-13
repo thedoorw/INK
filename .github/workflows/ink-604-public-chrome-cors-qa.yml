@@ -1,0 +1,79 @@
+name: INK 604 Public Chrome CORS One-Shot QA
+on:
+  push:
+    branches:
+      - qa/ink604-chrome-cors-20261113
+    paths:
+      - .github/workflows/ink-604-public-chrome-cors-qa.yml
+permissions: {}
+jobs:
+  chrome-cors:
+    if: github.repository == 'thedoorw/INK' && github.ref == 'refs/heads/qa/ink604-chrome-cors-20261113'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Real Chrome from Public INK origin to Relay
+        shell: bash
+        run: |
+          set -euo pipefail
+          google-chrome --version
+          npm install --prefix "$RUNNER_TEMP/ink604-qa" --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const { chromium } = require(process.env.RUNNER_TEMP + '/ink604-qa/node_modules/playwright-core');
+          const origin = 'https://thedoorw.github.io';
+          const target = 'https://ink-604-https-cors-poc-qa.up.railway.app/bridge-presence/v1/browser/heartbeat';
+          const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+          (async () => {
+            const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--no-sandbox'] });
+            try {
+              const context = await browser.newContext({ serviceWorkers: 'block' });
+              const page = await context.newPage();
+              const cdp = await context.newCDPSession(page);
+              const records = [];
+              await cdp.send('Network.enable');
+              await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+              cdp.on('Network.requestWillBeSent', event => {
+                if (event.request.url === target) records.push({ id: event.requestId, method: event.request.method, sent: true });
+              });
+              cdp.on('Network.responseReceivedExtraInfo', event => {
+                const item = records.findLast(x => x.id === event.requestId);
+                if (item) {
+                  item.status = event.statusCode;
+                  item.headers = Object.fromEntries(Object.entries(event.headers)
+                    .filter(([name]) => /^(access-control-|x-railway-request-id)/i.test(name))
+                    .map(([name, value]) => [name.toLowerCase(), value]));
+                }
+              });
+              cdp.on('Network.loadingFailed', event => {
+                const item = records.findLast(x => x.id === event.requestId);
+                if(item)item.error = event.errorText;
+              });
+              const nav = await page.goto(origin + '/INK/', { waitUntil: 'domcontentloaded', timeout: 35000 });
+              assert.equal(nav.status(), 200, 'Public INK must serve HTTP 200');
+              assert.equal(new URL(page.url()).origin, origin, 'Public INK must preserve origin');
+              const result = await page.evaluate(async target => {
+                const response = await fetch(target, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Authorization: 'Bearer invalid' },
+                  body: '{}',
+                  signal: AbortSignal.timeout(20000)
+                });
+                return { origin: location.origin, status: response.status, body: await response.json() };
+              }, target);
+              await delay(1200);
+              console.log('INK604_BROWSER_FETCH ' + JSON.stringify({ time: new Date().toISOString(), chrome: browser.version(), result }));
+              console.log('INK604_CDP_NETWORK ' + JSON.stringify(records));
+              assert.equal(result.origin, origin);
+              assert.equal(result.status, 403);
+              assert.equal(result.body.error, 'GRANT_REQUIRED');
+              const post = records.find(r => r.method === 'POST' && r.status === 403);
+              assert.ok(post, 'Chrome CDP POST 403 evidence required');
+              assert.equal(post.headers?.['access-control-allow-origin'], origin);
+              const options = records.find(r => r.method === 'OPTIONS' && r.status === 204);
+              assert.ok(options, 'Chrome CDP OPTIONS 204 evidence required (fresh context)');
+              assert.equal(options.headers?.['access-control-allow-origin'], origin);
+              console.log('INK604_REAL_CHROME_CORS_PASS');
+            } finally { await browser.close(); }
+          })().catch(error => { console.error('INK604_REAL_CHROME_CORS_FAIL', error); process.exitCode = 1; });
+          NODE
