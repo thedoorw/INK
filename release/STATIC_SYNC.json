@@ -4,50 +4,50 @@
   "action": "publish",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "87b0f712244206a32254aaaca8451d0dd92cdef6",
-    "product_tree": "4483bcfabc808d1fc4919b3507af0cdce769ca7a"
+    "exact_sha": "06a6ebd53ac3c8362784047a21db4584059156f9",
+    "product_tree": "c27c23765e2731c93c9512249f99bc75183e6b64"
   },
-  "build_id": "src-6189f3ecb2623cd0b93d6e71",
-  "runtime_digest_sha256": "8956cf2dedaee75e94faa9d2879734cd29ed458759b97630606e3c561c650724",
+  "build_id": "src-4f892c2a05c61467a4231a9b",
+  "runtime_digest_sha256": "46102445d89757768fd65316c3f57ce4e12e9d469d6eeafdb72a8f270d768d0d",
   "package_manifest_sha256": "bec710af329cdba0d41c5e4cef50da13ec07958ab7d93425e65ea058f533ccba",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
   "target": {
     "repo": "thedoorw/INK",
     "branch": "main",
-    "expected_head": "1b920a9f00263e15ba8f0a4b53936210b0c1b368",
-    "expected_tree": "f8468f11d554693e0313690335ac46d8af5ae4dc",
-    "prior_receipt_sha256": "c9a4b637727c6c0029f9ce4dfec39a9ffd4acd5ac4e787e493363d6461df5a36"
+    "expected_head": "0721ea69fef28cd31c837702366099853bbcf431",
+    "expected_tree": "8189bdef6012fc26c0b27832aa98997a902a707a",
+    "prior_receipt_sha256": "41ecfcaaff86b9a0c63c505280e0e9746b21e7bb7760673d41877d57c12be453"
   },
   "qualification": {
-    "source_tree": "4483bcfabc808d1fc4919b3507af0cdce769ca7a",
+    "source_tree": "c27c23765e2731c93c9512249f99bc75183e6b64",
     "runs": [
       {
-        "profile": "ink604-popup-readonly-windows-node-chrome-v3",
-        "id": 43347848095,
+        "profile": "ink604-g2-popup-windows-node-chrome-v1",
+        "id": 43372033958,
         "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
         "workflow_blob": "fe6380d8ca56c47e53bccba09d36f6e560807771",
-        "head_sha": "e9a627965f873b62b1bd1231b307f6f316fd1cb4",
-        "tested_sha": "9058b47a46b954499464e2a5132db4e464f8dd51"
+        "head_sha": "03cfd2c3d30ca76bec44d288327daf7de8d65c22",
+        "tested_sha": "f82ffd9e8b79bc2df949d6d19909189a37b4ba71"
       }
     ]
   },
   "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/604",
   "rollback": {
-    "public_commit": "1b920a9f00263e15ba8f0a4b53936210b0c1b368",
-    "receipt_sha256": "c9a4b637727c6c0029f9ce4dfec39a9ffd4acd5ac4e787e493363d6461df5a36",
-    "source_sha": "aae63514b339a666d7014f18a26ec0eb579d7d9b",
-    "source_tree": "8bb4c6a3314e50604673f91545d3e2c7b6ca864a"
+    "public_commit": "0721ea69fef28cd31c837702366099853bbcf431",
+    "receipt_sha256": "41ecfcaaff86b9a0c63c505280e0e9746b21e7bb7760673d41877d57c12be453",
+    "source_sha": "87b0f712244206a32254aaaca8451d0dd92cdef6",
+    "source_tree": "4483bcfabc808d1fc4919b3507af0cdce769ca7a"
   },
   "files": [
     {
       "path": "BUILD_INFO.json",
-      "bytes": 73807,
-      "sha256": "a9fc43dab17b833c0636234ce82bb0e8aab984f35524a88e340bcbb8e4186336"
+      "bytes": 73801,
+      "sha256": "a8dc4b6b8660c3435b4abc6411488ae01c0fb3867cc3456f3f093becf572b3d2"
     },
     {
       "path": "PUBLISH_RECEIPT.json",
       "bytes": 95757,
-      "sha256": "41ecfcaaff86b9a0c63c505280e0e9746b21e7bb7760673d41877d57c12be453"
+      "sha256": "f1ad47e252a9368e568627637802c2897f171c03baea35082f0413e4884bd041"
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -72,7 +72,7 @@
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "5bbd5bb3ce99035c1320ad3066432d6fbe55dc7b7a985ecbc0b8e0d6e5cac8a9"
+      "sha256": "31c4c3bd41e0da38a189d23170e399df395efd9da56075d4288386b748574d0c"
     },
     {
       "path": "dist/ink.compat.js",
@@ -341,13 +341,13 @@
     },
     {
       "path": "src/agent/popup-client.js",
-      "bytes": 5361,
-      "sha256": "c305ed35f7057c39256e3eb85f659028013d949e1b9a63c6a384befefe713358"
+      "bytes": 9938,
+      "sha256": "541a286ecda2535c5b252cf0341ab0878ec8a47576e9a3c42d3b23ae822daeb1"
     },
     {
       "path": "src/agent/popup-policy.js",
-      "bytes": 3586,
-      "sha256": "9bfe281089a4df297df9d143ce7ff263d8f42b1c0da0cc41e665128db49ff79d"
+      "bytes": 8680,
+      "sha256": "ec2cdb47c4c11408bad820814219d4484f96171cd04357f822d833011b355fe2"
     },
     {
       "path": "src/agent/public-creative-api.js",
