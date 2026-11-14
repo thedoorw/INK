@@ -162,7 +162,7 @@ function mountPrivatePluginMenu() {
   }, {once:true});
 }
 
-if (loadedIdentity(location, window.INK_BUILD_ID)) {
+if (window.INK_G2_DIRECT_ENABLED !== true && loadedIdentity(location, window.INK_BUILD_ID)) {
   function trackNewDocument() {
     const app = window.INK_APP;
     const unsubscribe = app.commands.subscribe(event => {

@@ -116,6 +116,35 @@ export function createInkPresenceClient({
       return lastStatus;
     },
     stop(){running=false;if(timer!==null)cancel(timer);timer=null;lastStatus='STOPPED';},
+    // #604 G2: the long-lived device secret never leaves this Presence closure.
+    // Offer creation is exclusively controlled by the authenticated Site owner;
+    // a registered Presence device cannot itself mint a G2 edit capability.
+    async getG2Offer(){
+      if(!running||!exactLocation())throw new Error('G2_PRESENCE_REQUIRED');
+      const info=runtime();
+      if(info?.ready!==true||!BUILD_PATTERN.test(info?.buildId||''))
+        throw new Error('G2_RUNTIME_NOT_READY');
+      if(!device)throw new Error('G2_PRESENCE_REQUIRED');
+      return send('g2-offer', {deviceId:device.deviceId,instanceId},device.secret);
+    },
+    async pairG2(input){
+      if(!running||!exactLocation())throw new Error('G2_PRESENCE_REQUIRED');
+      const info=runtime();
+      if(info?.ready!==true||!BUILD_PATTERN.test(info?.buildId||''))
+        throw new Error('G2_RUNTIME_NOT_READY');
+      if(!device||!input||input.instanceId!==instanceId
+          ||input.buildId!==info.buildId
+          ||!/^([a-f0-9]{24})$/.test(input.offerId||''))
+        throw new Error('G2_PAIR_BINDING_DENIED');
+      // Server re-checks deviceAuth, one-use offer, owner, exact instance,
+      // Build, source SHA and disposable document binding atomically.
+      const {sessionId,sourceSha,scope,documentId,pageId,documentGeneration}=input;
+      return send('g2-pair',{
+        offerId:input.offerId,instanceId,deviceId:device.deviceId,
+        sessionId,buildId:info.buildId,sourceSha,scope,
+        documentId,pageId,documentGeneration
+      },device.secret);
+    },
     getStatus(){return {status:lastStatus,instanceId};}
   };
 }

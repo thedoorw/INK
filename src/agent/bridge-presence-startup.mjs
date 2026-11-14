@@ -21,7 +21,13 @@ export function installInkPresenceStartup({
   });
   const start = () => { void Promise.resolve().then(() => client.start()).catch(() => {}); };
   const stop = () => client.stop();
-  const controller = Object.freeze({installed:true, status:()=>client.getStatus(), stop});
+  const controller = Object.freeze({
+    installed:true,status:()=>client.getStatus(),stop,
+    ...(globalObject.INK_G2_DIRECT_ENABLED===true?{
+      getG2Offer:()=>client.getG2Offer(),
+      pairG2:input=>client.pairG2(input)
+    }:{})
+  });
   Object.defineProperty(globalObject, 'INK_BRIDGE_PRESENCE', {
     value:controller, writable:false, configurable:false, enumerable:false
   });
