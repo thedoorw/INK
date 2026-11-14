@@ -4,12 +4,12 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "be725aef6788039590fc5f6dbd18c46bc21146cb",
-    "product_tree": "c0b419e05c3d386c322079df4e5f6232a22b81c3"
+    "exact_sha": "aa253c2d5f5955a16a7e830af81379164d730330",
+    "product_tree": "daddc188cf6e394884950ad028fa3a4e089cb1ac"
   },
   "runtime": {
     "root": "/INK/",
-    "file_count": 405,
+    "file_count": 410,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "07e3792fe9bfcd3bf85d88b1966352030c33471cdbcf7f47bc8a88e3446b7676"
+        "sha256": "91780087ab09df46cd596e3761f00570b4282fb3750b3f46a54ce11ee67a766a"
       },
       {
         "path": "dist/ink.compat.js",
@@ -243,8 +243,8 @@
       },
       {
         "path": "index.html",
-        "bytes": 3298,
-        "sha256": "bef012f68b5cbb071e6076bfbde24e81c9b527dc8a81f70c426c726981acf304"
+        "bytes": 3423,
+        "sha256": "b30196a334d040aada11dab1539f7e0c6463ec8f2a9e8216e9c04d5910eb934b"
       },
       {
         "path": "manifest-portable.webmanifest",
@@ -268,8 +268,8 @@
       },
       {
         "path": "service-worker-runtime.js",
-        "bytes": 14727,
-        "sha256": "fa8a2cd991301dac94bf3ce6fde210bbe08b29ec265622f9e4e4a1b9cd7ecba0"
+        "bytes": 15029,
+        "sha256": "7c3835a1f170450e0ca9937b549069d5f6c692b295972b97eedd550daafff998"
       },
       {
         "path": "service-worker.js",
@@ -278,13 +278,13 @@
       },
       {
         "path": "src/agent/bridge-presence-client.mjs",
-        "bytes": 5684,
-        "sha256": "2f740501749b0f9f2e83b5344776f758921c3c3b65411f774e98cee426bbd534"
+        "bytes": 7232,
+        "sha256": "035e21642653d82f6fe14e509f8461cc6a7f1b7f53e6e709447afea8fae92e36"
       },
       {
         "path": "src/agent/bridge-presence-startup.mjs",
-        "bytes": 1639,
-        "sha256": "ea79561dd56b02d5b61c3c66017b0ed26a5f44e039152af5bb1475192191b82b"
+        "bytes": 1791,
+        "sha256": "b34d592659670a39f8f84bfe321c2cf8650aac87d6fc94c3fb7e4c04ec7675f4"
       },
       {
         "path": "src/agent/capability-registry.js",
@@ -302,6 +302,31 @@
         "sha256": "49debe95df1a29594792e4385d1a1dd8a929fc8a6bc13f9f906f8949ee9e8407"
       },
       {
+        "path": "src/agent/g2-direct-boot.mjs",
+        "bytes": 2211,
+        "sha256": "3368568c09afb717462fa49ee5c32c36b097d12c39f51da68527951efeabf443"
+      },
+      {
+        "path": "src/agent/g2-direct-browser-transport.mjs",
+        "bytes": 9341,
+        "sha256": "d53a419345510707b07d56512eb10684a7902c442a20f18ae7b329af6e8fba42"
+      },
+      {
+        "path": "src/agent/g2-direct-opt-in.js",
+        "bytes": 290,
+        "sha256": "92318c95bcea3332c2e624a4f207485743bcb9a3ef0a564786e042195f492d4a"
+      },
+      {
+        "path": "src/agent/g2-direct-runtime-startup.mjs",
+        "bytes": 6194,
+        "sha256": "f93ef835ac650c7dc5ace8815dfa2086d6797300e42c66a7b3d50797bc26b5fb"
+      },
+      {
+        "path": "src/agent/g2-direct-target-guard.mjs",
+        "bytes": 4422,
+        "sha256": "fca534bcd80068d6f7e18b0131285f903d36c27a2a7630bf2787101096d6ea50"
+      },
+      {
         "path": "src/agent/index.js",
         "bytes": 1203,
         "sha256": "639760787d7925f0a62b91d376c12678b651624f5c3ec860df43e2384b6e0e8e"
@@ -313,8 +338,8 @@
       },
       {
         "path": "src/agent/popup-client.js",
-        "bytes": 9938,
-        "sha256": "541a286ecda2535c5b252cf0341ab0878ec8a47576e9a3c42d3b23ae822daeb1"
+        "bytes": 9979,
+        "sha256": "39ab0f0a193d112b75ee90ab1b4b20dc9f5419f9f5007904afb0e80cb07cf12e"
       },
       {
         "path": "src/agent/popup-policy.js",
@@ -2037,32 +2062,32 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "eb74441f2a65f7fe7c781ccb72deb5eb3ef1b1cf0b0e15b092802de2afd3b537"
+    "package_digest_sha256": "6974555920d0ff227911842e0952e98c7f7e8582a323b1246e7e996d36013a92"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "b99365c335d3cc9569bfdcde53552692955b811b",
+    "exact_sha": "0955a8984226195c2d0f57e0cf5ca8275cd20f9c",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
-    "manifest_sha256": "c5a9fb43d1385046fc5964c0cdebe70f7044294853f2a2e0ecb639a517bbc630"
+    "manifest_sha256": "7f1807360b2598ffde08adf4ec9330a40ea98c83d3534929b0d80f9b2af5ad93"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "c0b419e05c3d386c322079df4e5f6232a22b81c3",
+    "source_tree": "daddc188cf6e394884950ad028fa3a4e089cb1ac",
     "runs": [
       {
-        "profile": "ink604-presence-windows-chrome-v1",
-        "id": 43544049559,
-        "workflow_path": ".github/workflows/ink-604-presence-release-qa.yml",
-        "workflow_blob": "8111440846518a1230a233872629621ccac5648f",
-        "head_sha": "818e310909d969d22bf40eada6860480d85435f6"
+        "profile": "ink604-native-circle-windows-v1",
+        "id": 43594298929,
+        "workflow_path": ".github/workflows/ink-604-windows-native-circle.yml",
+        "workflow_blob": "548649f3f7a9dddea4e1210a8dcdfaa89be70e11",
+        "head_sha": "aeeb30ef290bd4abaf7135da68ab14bc741ccfd3"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "abe5bae33a7023ddd3e84dd7cbab51ce6cd60c83",
+    "previous_target_commit": "63547bf8b8de4b71af2e05d2010507d598eb22df",
     "runtime_bytes_unchanged_from_package": true
   }
 }
