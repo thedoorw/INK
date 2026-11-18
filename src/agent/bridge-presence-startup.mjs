@@ -24,6 +24,7 @@ export function installInkPresenceStartup({
   const controller = Object.freeze({
     installed:true,status:()=>client.getStatus(),stop,
     ...(globalObject.INK_G2_DIRECT_ENABLED===true?{
+      blankG2:(grantId,cancel)=>client.blankG2(grantId,cancel),
       getG2Offer:()=>client.getG2Offer(),
       pairG2:input=>client.pairG2(input)
     }:{})

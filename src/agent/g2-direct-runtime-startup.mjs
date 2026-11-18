@@ -1,19 +1,17 @@
-/* #604 PRIVATE REFERENCE — not wired to Public index.html.
-   Uses INK's existing Native bridge and consent; does NOT install the old Popup,
-   add a Connect CHAT button, or auto-approve a Native edit / Undo.
-   The Site owner-intent/Presence offer adapter MUST exist before enabling. */
 import {installInkRuntimeBridge} from './runtime-bridge.js';
-import {createG2NativeTargetGuard} from './g2-direct-target-guard.mjs';
+import {createG2SessionGuard} from './g2-direct-session-guard.mjs';
 import {createG2DirectBrowserTransport,G2_SCOPE} from './g2-direct-browser-transport.mjs';
 
 export function createG2AutoDriver(bridge, {
   schedule=(fn,ms)=>setTimeout(fn,ms),
   cancel=key=>clearTimeout(key),
-  intervalMs=3_000
+  intervalMs=3_000,
+  onStatus=()=>{},
+  onInvalid=null
 }={}) {
   if (!bridge?.status || !bridge?.pair || !bridge?.checkNow || !bridge?.pendingConsent)
     throw new TypeError('G2_AUTO_DRIVER_REQUIRES_NATIVE_BRIDGE');
-  let running=false, timer=null, pendingTick=false, phase='STOPPED', error=null;
+  let running=false, timer=null, pendingTick=false, idleTicks=0, phase='STOPPED', error=null;
   const tick=async()=>{
     if (!running || pendingTick) return;
     pendingTick=true;
@@ -26,124 +24,132 @@ export function createG2AutoDriver(bridge, {
         phase='G2_PAIRED';error=null;
       } else {
         phase='CHECKING';
-        await bridge.checkNow();
+        const result=await bridge.checkNow();
+        idleTicks=result?0:Math.min(idleTicks+1,2);
         phase='G2_PAIRED';error=null;
       }
     } catch (e) {
       error=String(e?.code||e?.message||'G2_ERROR').slice(0,120);
-      phase=error==='G2_OWNER_OFFER_REQUIRED'?'WAITING_CHAT_INTENT'
+      phase=(error==='G2_OWNER_OFFER_REQUIRED'||error==='G2_PRESENCE_REQUIRED')?'WAITING_CHAT_INTENT'
         :error==='G2_DISPOSABLE_TARGET_REQUIRED'?'WAITING_NEW_NATIVE_DOCUMENT'
         :error==='G2_TARGET_CHANGED'?'TARGET_CHANGED':'CHECK_FAILED';
-      if (error==='G2_TARGET_CHANGED' || error==='G2_SESSION_EXPIRED') {
+      if (['G2_TARGET_CHANGED','BRIDGE_HTTP_403'].includes(error) || (bridge.status().paired &&
+        ['G2_SESSION_EXPIRED','G2_LEASE_CONFIRMED_EXPIRED','G2_SESSION_REQUIRED','G2_SITE_HTTP_403',
+          'G2_RUNTIME_NOT_READY','G2_LEASE_RECEIPT_INVALID','G2_DELIVERY_PENDING'].includes(error))) {
+        if(onInvalid){running=false;onInvalid(error);return;}
         try {await bridge.revoke('g2-session-invalid');} catch { /* fail closed */ }
       }
     } finally {
       pendingTick=false;
-      if (running) timer=schedule(tick,intervalMs);
+      onStatus();
+      if (running) timer=schedule(tick,intervalMs*(1+idleTicks));
     }
   };
   return Object.freeze({
     start() { if(running) return; running=true;phase='STARTING';void tick(); },
     stop() { running=false;phase='STOPPED';if(timer!==null)cancel(timer);timer=null; },
     status() {return {running,phase,error};},
-    tickNow:tick
-  });
-}
-
-export function mountG2OwnerConsent(bridge, {
-  documentObject=globalThis.document, container=documentObject?.getElementById?.('documentStatusStrip')
-}={}) {
-  if (!container || !documentObject?.createElement || !bridge?.pendingConsent
-      || !bridge?.approvePending || !bridge?.rejectPending)
-    throw new Error('G2_CONSENT_UI_UNAVAILABLE');
-
-  const root=documentObject.createElement('section');
-  root.setAttribute('data-g2-owner-consent','1');
-  root.setAttribute('role','group');
-  root.setAttribute('aria-label','Native edit or Undo approval');
-  const label=documentObject.createElement('span');
-  const error=documentObject.createElement('span');
-  error.setAttribute('role','alert');
-  const approve=documentObject.createElement('button');
-  const reject=documentObject.createElement('button');
-  approve.type=reject.type='button';
-  approve.textContent='核准此項變更';
-  reject.textContent='拒絕';
-  root.append(label,error,approve,reject);
-  container.append(root);
-  let busy=false, disposed=false, lastError='';
-  const render=()=>{
-    if(disposed)return;
-    const pending=bridge.pendingConsent();
-    root.hidden=!pending;
-    label.textContent=pending?String(pending.action||pending.tool||'Native request'):'';
-    error.textContent=lastError;
-    approve.disabled=reject.disabled=busy||!pending;
-  };
-  const act=async accepted=>{
-    if(busy||disposed)return;
-    const pending=bridge.pendingConsent();
-    if(!pending)return;
-    busy=true;lastError='';render();
-    try {
-      if(accepted)await bridge.approvePending(pending.requestId);
-      else await bridge.rejectPending(pending.requestId);
-    }catch(e){
-      lastError=String(e?.code||e?.message||'G2_CONSENT_FAILED').slice(0,120);
-    }finally{busy=false;render();}
-  };
-  const onApprove=()=>{void act(true);};
-  const onReject=()=>{void act(false);};
-  approve.addEventListener('click',onApprove);
-  reject.addEventListener('click',onReject);
-  const unsubscribe=bridge.subscribe(()=>render());
-  render();
-  return Object.freeze({
-    dispose(){
-      if(disposed)return;
-      disposed=true;
-      unsubscribe?.();
-      approve.removeEventListener('click',onApprove);
-      reject.removeEventListener('click',onReject);
-      root.remove();
+    tickNow(){
+      if(timer!==null)cancel(timer);
+      timer=null;
+      return tick();
     }
   });
 }
 
 export function installG2DirectRuntime(app, {
   getTrustedOffer,pairThroughPresence,fetchImpl=globalThis.fetch,globalObject=globalThis,
-  documentObject=globalThis.document,schedule,cancel
+  schedule,cancel,now,userGranted=false,onStatus,onInvalid
 }={}) {
-  if (!app?.documentOpen && !app?.commands?.subscribe)
-    throw new Error('G2_NATIVE_RUNTIME_REQUIRED');
-  // Never overwrite or piggyback on an existing legacy Popup/G1 runtime pairing.
+  if (!userGranted || !app?.commands?.subscribe || !app?.history)
+    throw new Error('G2_CLICK_GRANT_REQUIRED');
   if (app.runtimeBridge) throw new Error('G2_BRIDGE_ALREADY_PRESENT');
-  const guard=createG2NativeTargetGuard(app);
-  let bridge=null,controls=null,driver=null;
-  try {
-    const transport=createG2DirectBrowserTransport({
-      getTrustedOffer,pairThroughPresence,targetGuard:guard,fetchImpl,locationObject:globalObject.location,
-      getRuntime:()=>({buildId:globalObject.INK_BUILD_ID,
-        ready:!!globalObject.INK_APP
-          && globalObject.INK_ARCHITECTURE?.buildId===globalObject.INK_BUILD_ID})
+  const guard=createG2SessionGuard(app);
+  const grantBuild=globalObject.INK_BUILD_ID;
+  let grantedInstance=null, disposed=false, recovering=false, recovery=null;
+  let bridge, driver, transport;
+  const validGrant=()=>!disposed && guard.matches() && globalObject.INK_APP===app
+    && globalObject.INK_BUILD_ID===grantBuild && globalObject.INK_ARCHITECTURE?.buildId===grantBuild;
+  const invalidate=error=>onInvalid?.(error);
+  const rearm=async()=>{
+    recovering=true;
+    onStatus?.();
+    try {
+      await bridge.dispose();
+      if(!disposed && validGrant())install();
+      else if(!disposed)invalidate('G2_TARGET_CHANGED');
+    } catch {
+      if(!disposed)invalidate('G2_RECOVERY_FAILED');
+    } finally {
+      recovering=false;
+      onStatus?.();
+    }
+  };
+  const handleFailure=error=>{
+    // Only an elapsed local lease can rearm the click grant. A Relay denial,
+    // invalid response, target switch or Build change ends the grant.
+    if(error==='G2_LEASE_CONFIRMED_EXPIRED' && grantedInstance && validGrant()){
+      recovery=rearm();
+      return;
+    }
+    invalidate(error);
+  };
+  function install(){
+    transport=createG2DirectBrowserTransport({
+      getTrustedOffer:async()=>{
+        const offer=await getTrustedOffer();
+        if(offer?.status==='G2_OFFER' && grantedInstance && offer.instanceId!==grantedInstance)
+          throw new Error('G2_TARGET_CHANGED');
+        return offer;
+      },
+      pairThroughPresence:async input=>{
+        const result=await pairThroughPresence(input);
+        if(result?.status==='G2_PAIRED' && result.instanceId===input.instanceId)
+          grantedInstance=input.instanceId;
+        return result;
+      },
+      targetGuard:guard,fetchImpl,now,locationObject:globalObject.location,
+      verifyExpiredLease:true,
+      isForeground:()=>true,
+      getRuntime:()=>({buildId:grantBuild,ready:validGrant()})
     });
-    bridge=installInkRuntimeBridge(app,{transport,enabled:false});
-    controls=mountG2OwnerConsent(bridge,{documentObject});
-    driver=createG2AutoDriver(bridge,{schedule,cancel});
-    const onPagehide=()=>{driver.stop();void bridge.revoke('pagehide');};
-    globalObject.addEventListener?.('pagehide',onPagehide,{once:true});
-    driver.start();
-    return Object.freeze({
-      status:()=>({driver:driver.status(),bridge:bridge.status()}),
-      dispose:async()=>{
-        driver.stop();controls.dispose();
-        globalObject.removeEventListener?.('pagehide',onPagehide);
-        try{await bridge.revoke('g2-dispose');}finally{guard.dispose();}
+    bridge=installInkRuntimeBridge(app,{
+      transport,enabled:false,now,
+      sourceShaReader:()=>globalObject.document?.querySelector('meta[name="ink-live-source-sha"]')?.content,
+      sessionConsent:request=>transport.authorizes(request)
+        && ['approve_ink_edit','undo_ink','redo_ink'].includes(request.tool),
+      authorizeDispatch:request=>transport.authorizes(request),
+      invoke:(tool,input)=>{
+        const result=guard.invoke(tool,input);
+        if(!validGrant())invalidate('G2_TARGET_CHANGED');
+        return result;
       }
     });
-  }catch(e){
-    driver?.stop();controls?.dispose();guard.dispose();
-    if(bridge && app.runtimeBridge===bridge){void bridge.dispose();delete app.runtimeBridge;}
-    throw e;
+    driver=createG2AutoDriver(bridge,{schedule,cancel,onStatus,onInvalid:handleFailure});
+    driver.start();
   }
+  const unsubscribe=app.commands.subscribe(()=>{
+    if(!validGrant())invalidate('G2_TARGET_CHANGED');
+  });
+  const wake=()=>{if(!disposed && !recovering)void driver.tickNow();};
+  install();
+  globalObject.addEventListener?.('online',wake);
+  globalObject.document?.addEventListener?.('visibilitychange',wake);
+  return Object.freeze({
+    status:()=>{
+      const state=bridge.status();
+      return {recovering,driver:driver.status(),bridge:{...state,accepting:state.accepting&&transport.status().paired}};
+    },
+    async dispose(){
+      if(disposed)return;
+      disposed=true;
+      driver.stop();
+      unsubscribe?.();
+      guard.dispose();
+      globalObject.removeEventListener?.('online',wake);
+      globalObject.document?.removeEventListener?.('visibilitychange',wake);
+      if(recovering)await recovery;
+      else await bridge.dispose();
+    }
+  });
 }
