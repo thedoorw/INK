@@ -74,6 +74,8 @@ function requestActionLabel(tool) {
 }
 
 export class InkRuntimeBridge {
+  #sessionConsent;
+  #authorizeDispatch;
   constructor(app, {
     transport = null,
     enabled = false,
@@ -81,6 +83,8 @@ export class InkRuntimeBridge {
     sourceShaReader = sourceShaFromDocument,
     invoke = null,
     registry = null,
+    sessionConsent = null,
+    authorizeDispatch = null,
     now = () => Date.now()
   } = {}) {
     if (!app) throw new TypeError('INK Runtime Bridge requires app');
@@ -95,6 +99,8 @@ export class InkRuntimeBridge {
     this.invokeTool = invoke || ((name, input) => this.app?.inkPublicApi?.tools?.invoke?.(name, input));
     this.registry = registry || (() => this.app?.inkPublicApi?.tools?.registry?.() || []);
     this.now = now;
+    this.#sessionConsent = sessionConsent;
+    this.#authorizeDispatch = authorizeDispatch;
     this.scope = [];
     this.ledger = new Map();
     this.remoteApprovals = new Map();
@@ -349,7 +355,7 @@ export class InkRuntimeBridge {
     this.ledger.set(normalized.requestId, record);
     this.activeRequestId = normalized.requestId;
 
-    if (CONSENT_TOOLS.has(normalized.tool)) {
+    if (CONSENT_TOOLS.has(normalized.tool) && !this.#sessionConsent) {
       record.state = 'WAITING_CONSENT';
       record.result = this._result(normalized, observedRequestBlobSha, 'WAITING_CONSENT', null, null);
       this.last = { requestId: normalized.requestId, state: record.state, result: record.result };
@@ -536,6 +542,10 @@ export class InkRuntimeBridge {
 
       record.state = 'INVOKING';
       this._emit('invoke-start');
+      this._assertGeneration(dispatchGeneration, 'INK_RUNTIME_PAIR_REVOKED');
+      if ((this.#authorizeDispatch && this.#authorizeDispatch(request) !== true)
+          || (this.#sessionConsent && CONSENT_TOOLS.has(request.tool) && this.#sessionConsent(request) !== true))
+        throw runtimeProtocolError('INK_RUNTIME_SESSION_TARGET_DENIED');
       const agentResult = await Promise.resolve(this.invokeTool(request.tool, clone(request.input)));
       if (!agentResult || agentResult.schema !== 'INK_AGENT_RESULT') {
         throw runtimeProtocolError('INK_RUNTIME_AGENT_RESULT_INVALID');

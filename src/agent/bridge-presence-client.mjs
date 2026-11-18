@@ -6,10 +6,27 @@ export const INK_ROOT = 'https://thedoorw.github.io/INK/';
 // Build is derived from the generated public build-identity.js; never self-pin its source hash.
 export const BUILD_PATTERN = /^src-[a-f0-9]{24}$/;
 const dbName='ink-private-presence-v1', storeName='device';
+const instanceKey='ink-presence-instance-v1';
 function randomHex(bytes=12){
   const out=new Uint8Array(bytes);
   crypto.getRandomValues(out);
   return Array.from(out,b=>b.toString(16).padStart(2,'0')).join('');
+}
+// Reuse an instance only for a real same-tab reload. Session storage survives F5,
+// but an ordinary new/duplicated tab should not inherit its sibling's instance.
+// Never store an enrollment secret or a G2 edit capability in sessionStorage.
+export function createPresenceInstanceId({
+  storage=(()=>{try{return globalThis.sessionStorage}catch{return null}})(),
+  navigationType=(()=>{try{return globalThis.performance?.getEntriesByType?.('navigation')?.[0]?.type}catch{return null}})()
+}={}) {
+  if(navigationType==='reload'){
+    let reused=null;
+    try {reused=storage?.getItem(instanceKey)} catch { /* storage can be blocked */ }
+    if(/^[a-f0-9]{24}$/.test(reused||'')) return reused;
+  }
+  const id=randomHex();
+  try {storage?.setItem(instanceKey,id)} catch { /* fall back to this page lifetime */ }
+  return id;
 }
 export function createDeviceStorage({indexedDBImpl=globalThis.indexedDB}={}) {
   return {
@@ -49,11 +66,12 @@ export function createInkPresenceClient({
   fetchImpl=globalThis.fetch,
   runtime=()=>({buildId:globalThis.INK_BUILD_ID, ready:Boolean(globalThis.INK_APP)&&globalThis.INK_ARCHITECTURE?.buildId===globalThis.INK_BUILD_ID}),
   storage=createDeviceStorage(),
+  instanceIdFactory=createPresenceInstanceId,
   schedule=(fn,ms)=>setTimeout(fn,ms),
   cancel=id=>clearTimeout(id),
   periodMs=3_000
 }={}) {
-  let instanceId=randomHex(), device=null, running=false, timer=null, lastStatus='INITIAL';
+  let instanceId=instanceIdFactory(), device=null, running=false, timer=null, lastStatus='INITIAL';
   let grant=null;
   const exactLocation=()=>locationObject?.origin==='https://thedoorw.github.io' && locationObject.pathname==='/INK/';
   async function send(action,body,secret,method='POST') {
@@ -119,6 +137,12 @@ export function createInkPresenceClient({
     // #604 G2: the long-lived device secret never leaves this Presence closure.
     // Offer creation is exclusively controlled by the authenticated Site owner;
     // a registered Presence device cannot itself mint a G2 edit capability.
+    async blankG2(grantId,cancel=false){
+      const info=runtime();
+      if(!running||!exactLocation()||!device||info?.ready!==true||!BUILD_PATTERN.test(info.buildId||''))
+        throw new Error('G2_PRESENCE_REQUIRED');
+      return send('g2-blank',{deviceId:device.deviceId,instanceId,buildId:info.buildId,grantId,cancel},device.secret);
+    },
     async getG2Offer(){
       if(!running||!exactLocation())throw new Error('G2_PRESENCE_REQUIRED');
       const info=runtime();
@@ -148,3 +172,4 @@ export function createInkPresenceClient({
     getStatus(){return {status:lastStatus,instanceId};}
   };
 }
+
