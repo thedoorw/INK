@@ -1,3 +1,4 @@
+import {stableJson} from './runtime-bridge-protocol.js';
 /* #604 Private reference only; NOT installed in Product. No popup, no IndexedDB writes.
    The caller MUST fetch trusted owner-initiated offers AND redeem one through the
    authenticated Presence closure; Relay validates the SAME enrolled device.
@@ -11,8 +12,10 @@ export const G2_ROUTE = '/bridge-presence/v1/browser/g2/';
 export const SOURCE_SHA = '5d3c12831b6c91fa13366fd770f10f12f9e35f4f';
 export const G2_SCOPE = Object.freeze([
   'approve_ink_edit', 'execute_ink_edit', 'get_ink_context',
-  'get_ink_history', 'propose_ink_edit', 'undo_ink'
+  'get_ink_history', 'propose_ink_edit', 'redo_ink', 'undo_ink'
 ]);
+const SESSION_TTL_MS = 120_000;
+const RENEW_WINDOW_MS = 30_000;
 const hex24 = /^[0-9a-f]{24}$/;
 const hex64 = /^[0-9a-f]{64}$/;
 const runtimeId = /^inkrt_[0-9a-f]{48}$/;
@@ -39,6 +42,8 @@ export function createG2DirectBrowserTransport({
     ready: !!globalThis.INK_APP && globalThis.INK_ARCHITECTURE?.buildId === globalThis.INK_BUILD_ID
   }),
   locationObject = globalThis.location,
+  verifyExpiredLease = false,
+  isForeground = () => globalThis.document?.visibilityState === 'visible',
   now = () => Date.now()
 } = {}) {
   if (typeof fetchImpl !== 'function' || typeof getTrustedOffer !== 'function'
@@ -85,14 +90,14 @@ export function createG2DirectBrowserTransport({
     return value;
   }
 
-  function ensurePaired(info = null) {
+  function ensurePaired(info = null, allowExpired = false) {
     if (disposed) throw fail('G2_TRANSPORT_DISPOSED');
     const actualBuild = checkReady();
     if (!session || !capability) throw fail('G2_SESSION_REQUIRED');
     if (session.buildId !== actualBuild || !targetGuard.matches()) {
-      wipe(); throw fail('G2_TARGET_CHANGED');
+      throw fail('G2_TARGET_CHANGED');
     }
-    if (session.expiresAt <= now()) { wipe(); throw fail('G2_SESSION_EXPIRED'); }
+    if (!allowExpired && session.expiresAt <= now()) throw fail('G2_SESSION_EXPIRED');
     if (info && (info.sessionId !== session.sessionId ||
         info.sourceSha !== SOURCE_SHA || !sameScope(info.scope))) throw fail('G2_SESSION_MISMATCH');
     return session;
@@ -136,9 +141,12 @@ export function createG2DirectBrowserTransport({
             || result.documentId !== target.documentId
             || result.pageId !== target.pageId
             || !Number.isSafeInteger(result.expiresAt)
-            || result.expiresAt <= now() || result.expiresAt > now() + 120_000)
+            || result.expiresAt <= now() || result.expiresAt > now() + SESSION_TTL_MS)
           throw fail('G2_PAIR_RECEIPT_INVALID');
-        if (!targetGuard.matches()) throw fail('G2_TARGET_CHANGED');
+        if (disposed || !targetGuard.matches()) {
+          try { await request('revoke', {sessionId:info.sessionId}, result.capability); } catch {}
+          throw fail('G2_TARGET_CHANGED');
+        }
         capability = result.capability; // in-memory only, NOT IndexedDB/localStorage
         session = Object.freeze({
           sessionId: info.sessionId, buildId: actualBuild,
@@ -155,17 +163,51 @@ export function createG2DirectBrowserTransport({
       }
     },
     async discover(info) {
-      const paired = ensurePaired(info);
+      const paired = ensurePaired(info, verifyExpiredLease);
+      if (verifyExpiredLease && paired.expiresAt <= now()) {
+        const proof = await request('discover', {sessionId:paired.sessionId,expiryCheck:true}, capability);
+        if (ensurePaired(info, true) !== paired) throw fail('G2_SESSION_MISMATCH');
+        if (proof.status === 'G2_LEASE_ELAPSED') throw fail('G2_LEASE_CONFIRMED_EXPIRED');
+        // The acknowledgement for the previous renewal may have been lost.
+        if (proof.status !== 'G2_LEASE_ACTIVE' || !Number.isSafeInteger(proof.expiresAt)
+            || proof.expiresAt <= now() || proof.expiresAt > now() + SESSION_TTL_MS)
+          throw fail('G2_LEASE_RECEIPT_INVALID');
+        session = Object.freeze({...paired, expiresAt:proof.expiresAt});
+        return null;
+      }
       if (delivery) throw fail('G2_DELIVERY_PENDING');
-      const result = await request('discover', {sessionId: paired.sessionId}, capability);
+      const renew = isForeground() && paired.expiresAt - now() <= RENEW_WINDOW_MS;
+      const result = await request('discover', {
+        sessionId: paired.sessionId,
+        ...(renew ? {renew:true} : {})
+      }, capability);
+      // A response in flight cannot authorize operations after revoke or a target switch.
+      if (ensurePaired(info) !== paired) throw fail('G2_SESSION_MISMATCH');
+      if (result.status !== 'G2_EMPTY' && result.status !== 'G2_DELIVERY')
+        throw fail('G2_DELIVERY_INVALID');
+      if (renew) {
+        if (!Number.isSafeInteger(result.expiresAt) || result.expiresAt <= paired.expiresAt
+            || result.expiresAt > now() + SESSION_TTL_MS)
+          throw fail('G2_LEASE_RECEIPT_INVALID');
+        session = Object.freeze({...paired, expiresAt:result.expiresAt});
+      }
       if (result.status === 'G2_EMPTY') return null;
       if (result.status !== 'G2_DELIVERY'
           || !validDelivery(result.delivery, paired.sessionId, now(), G2_SCOPE))
         throw fail('G2_DELIVERY_INVALID');
-      if (!targetGuard.permits(result.delivery.request)) throw fail('G2_TARGET_DENIED');
       delivery = result.delivery;
       // Existing Runtime Bridge independently validates session/Source SHA and request.
       return delivery;
+    },
+    authorizes(request) {
+      try {
+        ensurePaired();
+        const pending=delivery?.request;
+        return !!pending && pending.requestId===request.requestId
+          && pending.tool===request.tool
+          && stableJson(pending.input??{})===stableJson(request.input??{})
+          && targetGuard.permits(request);
+      } catch {return false;}
     },
     async publishResult(value) {
       const paired = ensurePaired();
@@ -176,6 +218,7 @@ export function createG2DirectBrowserTransport({
       if (!safe) throw fail('G2_RESULT_PROJECTION_DENIED');
       const result = await request('result', {sessionId: paired.sessionId, result: safe}, capability);
       if (result.status !== 'G2_ACCEPTED') throw fail('G2_RESULT_NOT_ACCEPTED');
+      if (ensurePaired() !== paired) throw fail('G2_SESSION_MISMATCH');
       if (safe.agentResult) targetGuard.record(safe.tool, safe.agentResult);
       // Explicit owner consent is two receipts on the SAME delivery.
       if (safe.status !== 'WAITING_CONSENT') delivery = null;
@@ -193,9 +236,10 @@ export function createG2DirectBrowserTransport({
       return {status:'G2_REVOKED'};
     },
     status() {
-      return {status: !session ? 'G2_SESSION_REQUIRED'
+      const targetMatches=!!session && targetGuard.matches() && getRuntime()?.buildId===session.buildId;
+      return {status: !targetMatches ? 'G2_SESSION_REQUIRED'
         : session.expiresAt <= now() ? 'G2_SESSION_EXPIRED' : 'G2_PAIRED',
-        paired: !!session && session.expiresAt > now(), pending: !!delivery};
+        paired: targetMatches && session.expiresAt > now(), pending: !!delivery};
     },
     dispose() { disposed = true; wipe(); }
   });

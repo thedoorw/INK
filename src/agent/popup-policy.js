@@ -45,7 +45,31 @@ export function validCall(data, challenge, sequence, now, expires, closed) {
   return !closed && now < expires && data?.challenge === challenge && Number.isSafeInteger(data.id)
     && data.id === sequence + 1 && ["pair", "discover", "publishResult", "revoke"].includes(data.method);
 }
-export function validRequestInput(tool, input) {
+export function validRequestInput(tool, input, direct = false) {
+  if(direct && (tool === "undo_ink" || tool === "redo_ink"))
+    return only(input, ["operationId"]) && safeId(input.operationId);
+  if(direct && tool === "propose_ink_edit"){
+    const task=input?.task, args=task?.arguments;
+    const color=value=>typeof value==="string" && /^#[0-9a-f]{6}$/i.test(value);
+    if(!only(input, ["task"]) || !only(task, ["taskId","operation","targets","arguments"])
+      || !safeId(task.taskId) || !Array.isArray(task.targets) || !color(args?.fill))return false;
+    if(task.operation==="path.repaint.v1")
+      return task.targets.length===1 && only(task.targets[0], ["pageId","layerId","objectId"])
+        && ["pageId","layerId","objectId"].every(key=>safeId(task.targets[0][key]))
+        && only(args, ["fill"]);
+    if(task.operation!=="path.create.v1" || task.targets.length)return false;
+    const coord=value=>finite(value,0,16000);
+    const size=value=>finite(value,1,16000);
+    if(args.shape==="circle")return only(args, ["shape","cx","cy","r","fill"])
+      && coord(args.cx) && coord(args.cy) && size(args.r);
+    if(args.shape==="rectangle")return only(args, ["shape","x","y","width","height","fill"])
+      && coord(args.x) && coord(args.y) && size(args.width) && size(args.height);
+    if(args.shape==="polygon" || args.shape==="polyline")
+      return only(args, ["shape","points","fill"]) && Array.isArray(args.points)
+        && args.points.length >= (args.shape==="polygon"?3:2) && args.points.length <= 128
+        && args.points.every(point=>only(point, ["x","y"]) && coord(point.x) && coord(point.y));
+    return false;
+  }
   if (tool === "get_ink_context" || tool === "get_ink_history" || tool === "undo_ink") {
     return input == null || (plain(input) && Object.keys(input).length === 0);
   }
@@ -71,7 +95,7 @@ export function validDelivery(delivery, sessionId, now, allowed = scope) {
     && shaPattern.test(delivery.observedRequestBlobSha)
     && r.schema === "INK-RUNTIME-REQUEST" && r.version === 1
     && r.sessionId === sessionId && r.expectedSourceSha === sourceSha
-    && allowed.includes(r.tool) && validRequestInput(r.tool, r.input)
+    && allowed.includes(r.tool) && validRequestInput(r.tool, r.input, allowed.includes("redo_ink"))
     && Number.isFinite(Date.parse(r.expiresAt)) && Date.parse(r.expiresAt) > now;
 }
 function historySummary(value) {
@@ -104,6 +128,7 @@ export function projectResult(value, delivery, sessionId, now, allowed = scope) 
     approve_ink_edit:["edit.approve","APPROVED"],
     execute_ink_edit:["edit.execute","EXECUTED"],
     get_ink_history:["history.inspect","COMPLETED"],
+    redo_ink:["history.redo",null],
     undo_ink:["history.undo",null]
   }[tool];
   if (!expected || r?.schema !== "INK_AGENT_RESULT" || r.version !== 1
@@ -124,15 +149,17 @@ export function projectResult(value, delivery, sessionId, now, allowed = scope) 
     // Native edit.execute: the normalized Native changedRefs are authoritative.
     const refs = safeRefs(r.changedRefs);
     if (inner?.proposalId !== delivery.request.input.proposalId
-      || inner.operation !== "path.create.v1" || inner.changed !== true
+      || !(inner.operation === "path.create.v1" || (allowed.includes("redo_ink")
+        && inner.operation === "path.repaint.v1")) || inner.changed !== true
       || !Array.isArray(r.changedRefs) || r.changedRefs.length !== 1 || refs.length !== 1) return null;
-    result.createdRefs = refs;
+    if(inner.operation === "path.repaint.v1")result.changedRefs = refs;
+    else result.createdRefs = refs;
     result.result = {proposalId:inner.proposalId,objectId:refs[0].objectId};
   } else if (tool === "get_ink_history") {
     const history = historySummary(r.result);
     if (!history) return null;
     result.result = history;
-  } else if (tool === "undo_ink") {
+  } else if (tool === "undo_ink" || tool === "redo_ink") {
     const before = historySummary(r.historyReceipt?.before);
     const after = historySummary(r.historyReceipt?.after);
     if (!before || !after || typeof r.historyReceipt?.applied !== "boolean"

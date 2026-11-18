@@ -4,12 +4,12 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "aa253c2d5f5955a16a7e830af81379164d730330",
-    "product_tree": "daddc188cf6e394884950ad028fa3a4e089cb1ac"
+    "exact_sha": "99a27f1e24430adf3a829c6b582599b444ff8798",
+    "product_tree": "582f7fd997d5ffbb5c5b9a5e2bdf8e474918563f"
   },
   "runtime": {
     "root": "/INK/",
-    "file_count": 410,
+    "file_count": 414,
     "files": [
       {
         "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "91780087ab09df46cd596e3761f00570b4282fb3750b3f46a54ce11ee67a766a"
+        "sha256": "b6f4d03632476971b5f819dd3592666823dc933873983787dfdb78ea2a225e7f"
       },
       {
         "path": "dist/ink.compat.js",
@@ -268,8 +268,8 @@
       },
       {
         "path": "service-worker-runtime.js",
-        "bytes": 15029,
-        "sha256": "7c3835a1f170450e0ca9937b549069d5f6c692b295972b97eedd550daafff998"
+        "bytes": 15269,
+        "sha256": "c64c3bcc530d4811c0244e345e311e1ca0beee572a99ace0cdf853a2a9962f7a"
       },
       {
         "path": "service-worker.js",
@@ -278,13 +278,13 @@
       },
       {
         "path": "src/agent/bridge-presence-client.mjs",
-        "bytes": 7232,
-        "sha256": "035e21642653d82f6fe14e509f8461cc6a7f1b7f53e6e709447afea8fae92e36"
+        "bytes": 8507,
+        "sha256": "b53e9323a9490ed262f983d6c7360fc914b37c286a7e722e41ad3bee542b97f6"
       },
       {
         "path": "src/agent/bridge-presence-startup.mjs",
-        "bytes": 1791,
-        "sha256": "b34d592659670a39f8f84bfe321c2cf8650aac87d6fc94c3fb7e4c04ec7675f4"
+        "bytes": 1855,
+        "sha256": "499c025e014c547ecfc6645d35a3543b7474ae19e493f53eb3bff8379db2249c"
       },
       {
         "path": "src/agent/capability-registry.js",
@@ -302,24 +302,39 @@
         "sha256": "49debe95df1a29594792e4385d1a1dd8a929fc8a6bc13f9f906f8949ee9e8407"
       },
       {
+        "path": "src/agent/g2-create-document.mjs",
+        "bytes": 1165,
+        "sha256": "78ba853869f9dfba6788d8b85478628545de1fcd3acfe11997b7adb196b9df58"
+      },
+      {
         "path": "src/agent/g2-direct-boot.mjs",
-        "bytes": 2211,
-        "sha256": "3368568c09afb717462fa49ee5c32c36b097d12c39f51da68527951efeabf443"
+        "bytes": 13119,
+        "sha256": "51c9c331541aa464aa587e1b1910c82075b4c90527f7064e433312c3ada5b686"
       },
       {
         "path": "src/agent/g2-direct-browser-transport.mjs",
-        "bytes": 9341,
-        "sha256": "d53a419345510707b07d56512eb10684a7902c442a20f18ae7b329af6e8fba42"
+        "bytes": 11692,
+        "sha256": "ca44b921890fec6817d9c43d945eeb27cd79abf49a7decb653ba34311360a9ff"
       },
       {
         "path": "src/agent/g2-direct-opt-in.js",
-        "bytes": 290,
-        "sha256": "92318c95bcea3332c2e624a4f207485743bcb9a3ef0a564786e042195f492d4a"
+        "bytes": 222,
+        "sha256": "669c2225cfbbeb427d563ff04db00e068ba2aa072f11d43ada651a757aed75ea"
+      },
+      {
+        "path": "src/agent/g2-direct-resume.mjs",
+        "bytes": 3774,
+        "sha256": "4208bc60344edcac10cbcb124bb680764295b230eb15feb041374232f19e8144"
       },
       {
         "path": "src/agent/g2-direct-runtime-startup.mjs",
-        "bytes": 6194,
-        "sha256": "f93ef835ac650c7dc5ace8815dfa2086d6797300e42c66a7b3d50797bc26b5fb"
+        "bytes": 6268,
+        "sha256": "b607fe6151aa1f1fca393dc95732e4320471a193121eb0e3c612a06803751611"
+      },
+      {
+        "path": "src/agent/g2-direct-session-guard.mjs",
+        "bytes": 3817,
+        "sha256": "781a855c7e11ce069fe2ac6e7ca8b661fe17cb8792f3ae47f5000d7d9bff1eec"
       },
       {
         "path": "src/agent/g2-direct-target-guard.mjs",
@@ -330,6 +345,11 @@
         "path": "src/agent/index.js",
         "bytes": 1203,
         "sha256": "639760787d7925f0a62b91d376c12678b651624f5c3ec860df43e2384b6e0e8e"
+      },
+      {
+        "path": "src/agent/ink-runtime-link.mjs",
+        "bytes": 3344,
+        "sha256": "3caa2372d952c46372d22a8b6c93ce5eeaeef7bc2ec6d87aff84d03f6d91a6ab"
       },
       {
         "path": "src/agent/output-handle-registry.js",
@@ -343,8 +363,8 @@
       },
       {
         "path": "src/agent/popup-policy.js",
-        "bytes": 8680,
-        "sha256": "ec2cdb47c4c11408bad820814219d4484f96171cd04357f822d833011b355fe2"
+        "bytes": 10530,
+        "sha256": "8dd31470db99126620f426e1169425d2dbf4135f0410631f7078b4eea5a541af"
       },
       {
         "path": "src/agent/public-creative-api.js",
@@ -373,8 +393,8 @@
       },
       {
         "path": "src/agent/runtime-bridge.js",
-        "bytes": 29337,
-        "sha256": "00838a2b70dc6c0a093f10707560903309ee680d4124015b39895752a250a16b"
+        "bytes": 29898,
+        "sha256": "beb3ff5c32c5c2b7c83084062e4acf2b5ad93f8c288163233afb376c0b82fcde"
       },
       {
         "path": "src/agent/visual-feedback.js",
@@ -1798,8 +1818,8 @@
       },
       {
         "path": "src/ui/ink017/menu-ui.js",
-        "bytes": 19224,
-        "sha256": "5ef5d7f9e229d46358c6fd9ccf41efcf3484057c6aa5108ce364fd47e0faff24"
+        "bytes": 19374,
+        "sha256": "7b32369cef789bcd47f780b3992dd5cbfab41e38ce723808c2b9b71d07b5bb5f"
       },
       {
         "path": "src/ui/ink017/native-host.js",
@@ -2062,32 +2082,33 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "6974555920d0ff227911842e0952e98c7f7e8582a323b1246e7e996d36013a92"
+    "package_digest_sha256": "c6b606a880f685662120e762fb9b0e7091370f297bcbb8b94faa8d08481c6be6"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "0955a8984226195c2d0f57e0cf5ca8275cd20f9c",
+    "exact_sha": "4ca2073f95cd76c2734b37089d749aa7bf6b3062",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
-    "manifest_sha256": "7f1807360b2598ffde08adf4ec9330a40ea98c83d3534929b0d80f9b2af5ad93"
+    "manifest_sha256": "f48c9a508e28abbc55ed735ba4f73305b65ed11291a6544f6bab968b73c07915"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "daddc188cf6e394884950ad028fa3a4e089cb1ac",
+    "source_tree": "582f7fd997d5ffbb5c5b9a5e2bdf8e474918563f",
     "runs": [
       {
-        "profile": "ink604-native-circle-windows-v1",
-        "id": 43594298929,
-        "workflow_path": ".github/workflows/ink-604-windows-native-circle.yml",
-        "workflow_blob": "548649f3f7a9dddea4e1210a8dcdfaa89be70e11",
-        "head_sha": "aeeb30ef290bd4abaf7135da68ab14bc741ccfd3"
+        "profile": "ink625-runtime-link-autopair-windows-v1",
+        "id": 44303594977,
+        "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
+        "workflow_blob": "573bb0f8452e76bd74c00bebc8c116428a2957ae",
+        "head_sha": "dbcad692e5d7c9e974ea7fcb1fcfec8ddd352316",
+        "tested_sha": "ed399b1e5af92758ad9c9d6ff7cfdabfa4107f1a"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "63547bf8b8de4b71af2e05d2010507d598eb22df",
+    "previous_target_commit": "125bb935e5d492ec9dae3c577f8767df869df6ea",
     "runtime_bytes_unchanged_from_package": true
   }
 }

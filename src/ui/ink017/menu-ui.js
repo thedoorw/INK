@@ -704,10 +704,10 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
    if(target.matches('[data-category]')){tabs[(tabs.indexOf(target)-1+tabs.length)%tabs.length]?.click();return;}
    menu.querySelector('[data-category="'+category+'"]')?.focus();
   }
-  if(e.key==='Enter'||e.key===' '){e.preventDefault();target.click();}
+  if((e.key==='Enter'||e.key===' ')&&!target.matches('[data-ink-g2-connect]')){e.preventDefault();target.click();}
  },{signal});
  document.addEventListener('pointerdown',e=>{if(wasOpen&&!menu.contains(e.target)&&!logo.contains(e.target))close();},{signal});
- const subscription=host.subscribe(()=>{if(!menu.hidden){const focus=document.activeElement?.dataset.command||document.activeElement?.dataset.submenu||document.activeElement?.dataset.category;render();if(focus)menu.querySelector('[data-command="'+CSS.escape(focus)+'"],[data-submenu="'+CSS.escape(focus)+'"],[data-category="'+CSS.escape(focus)+'"]')?.focus();}});
+ const subscription=host.subscribe(()=>{if(!menu.hidden){const connectFocused=document.activeElement?.hasAttribute('data-ink-g2-connect');if(connectFocused)return;const focus=document.activeElement?.dataset.command||document.activeElement?.dataset.submenu||document.activeElement?.dataset.category;render();if(focus)menu.querySelector('[data-command="'+CSS.escape(focus)+'"],[data-submenu="'+CSS.escape(focus)+'"],[data-category="'+CSS.escape(focus)+'"]')?.focus();}});
  signal.addEventListener('abort',subscription,{once:true});
  return {render,close,open};
 }
