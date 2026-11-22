@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
-import {blob,verifyPlan,qa637Only,qa637Event,verifyQa637} from './static-sync-core.mjs';
+import {blob,verifyPlan,qa637Only,qa637Event,verifyQa637,qa646Only,qa646Event,verifyQa646} from './static-sync-core.mjs';
 // Independently audited Windows #569 artifact: 429 files, exact source and
 // manifest bytes. These pins become trusted only after protected control/ merge.
 // No candidate-supplied value is trusted; this authorizes QA-only integrity,
@@ -11,6 +11,14 @@ import {blob,verifyPlan,qa637Only,qa637Event,verifyQa637} from './static-sync-co
 const QA637_TRUST=Object.freeze({
   sourceSha:'06860f134b514f84f76ee389d1805821fdd8b1a5',
   manifestSha256:'880379c9fb2aa8f21bc940b9af25b10ae08ba68274a95912ccd9a364f44984ba',
+  action:'deploy'
+});
+const QA646_TRUST=Object.freeze({
+  sourceSha:'99b045f7d58dc9aec29995d00ca0c42aa762647e',
+  sourceTree:'093650c37c08b0bc7a61dbde7430d76e89fe1677',
+  buildId:'src-785d2f76a6343a077ca4e2f2',
+  manifestSha256:'3c8d85a28cce2e86fb091406b34bb9a5aa0e1aa7381cd10f1ef4f72688d14110',
+  rendererPngSha256:'a2a72731b8ab270e1d9ca8f8b3f1cceefb10c5757a8be110c058523f641ce570',
   action:'deploy'
 });
 const CONTROL_PATHS=new Set([
@@ -23,13 +31,13 @@ const CONTROL_PATHS=new Set([
 export function isControlOnly(paths){
   return paths.length>0 && paths.every(p=>CONTROL_PATHS.has(p));
 }
-export function checkEvent(event,base,head,{documentationOnly=false,controlOnly=false,qa637Scope=false}={}){
+export function checkEvent(event,base,head,{documentationOnly=false,controlOnly=false,qa637Scope=false,qa646Scope=false}={}){
   const p=event.pull_request;
   assert.equal(event.repository?.full_name,'thedoorw/INK','REPO');
   assert.equal(p?.base?.repo?.full_name,'thedoorw/INK','BASE_REPO');
   assert.equal(p.head?.repo?.full_name,'thedoorw/INK','FORK_REJECTED');
   assert.equal(p.base.ref,'main','BASE_BRANCH');assert.equal(p.base.sha,base,'BASE_MOVED');assert.equal(p.head.sha,head,'HEAD_MOVED');
-  assert.ok(documentationOnly||(qa637Scope?p.head.ref.startsWith('qa-637/'):controlOnly?p.head.ref.startsWith('control/'):p.head.ref.startsWith('sync-009/')),'SYNC_BRANCH_REQUIRED');assert.equal(p.draft,false,'DRAFT_CANDIDATE');
+  assert.ok(documentationOnly||(qa646Scope?p.head.ref.startsWith('qa/cloud-draw-646-'):qa637Scope?p.head.ref.startsWith('qa-637/'):controlOnly?p.head.ref.startsWith('control/'):p.head.ref.startsWith('sync-009/')),'SYNC_BRANCH_REQUIRED');assert.equal(p.draft,false,'DRAFT_CANDIDATE');
   assert.equal(event.action==='closed',false,'CLOSED_PR');
 }
 export function gitSnapshot(root){
@@ -50,13 +58,21 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const documentationOnly=paths.length===1&&paths[0]==='README.md';
   const controlOnly=isControlOnly(paths);
   const qa637Scope=qa637Only(paths);
-  checkEvent(event,base.head,candidate.head,{documentationOnly,controlOnly,qa637Scope});
+  const qa646Scope=qa646Only(paths);
+  checkEvent(event,base.head,candidate.head,{documentationOnly,controlOnly,qa637Scope,qa646Scope});
   if(controlOnly){console.log(JSON.stringify({status:'CONTROL_ONLY_INDEPENDENT_REVIEW_REQUIRED',runtimeAndHistoricalTrustUnchanged:true,base:base.head,head:candidate.head,changedPaths:paths,release_authorized:false}));process.exit(0);}
   if(documentationOnly){console.log(JSON.stringify({status:'README_ONLY',noRuntimePublication:true,release_authorized:false}));process.exit(0);}
   if(qa637Scope){
     qa637Event(event,base.head,candidate.head);
     console.log(JSON.stringify(verifyQa637({
       baseFiles:base.files,candidateFiles:candidate.files,changedPaths:paths,trusted:QA637_TRUST
+    })));
+    process.exit(0);
+  }
+  if(qa646Scope){
+    qa646Event(event,base.head,candidate.head);
+    console.log(JSON.stringify(verifyQa646({
+      baseFiles:base.files,candidateFiles:candidate.files,changedPaths:paths,trusted:QA646_TRUST
     })));
     process.exit(0);
   }

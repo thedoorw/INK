@@ -204,3 +204,107 @@ export function verifyQa637({ baseFiles, candidateFiles, changedPaths, trusted }
     sourceSha: trusted.sourceSha, manifestSha256: trusted.manifestSha256,
     releaseAuthorized: false, oauthE2E: 'NOT_RUN' };
 }
+
+
+// #646 QA-only gate: trusted exact package hashes; never a product publish.
+export const QA646_ROOT = 'qa/cloud-draw-646/';
+const QA646_MANIFEST = QA646_ROOT + 'INK_CLOUD_DRAW_646_QA_MANIFEST.json';
+export function qa646Only(changedPaths) {
+  return changedPaths.length > 0 &&
+    changedPaths.every(p => p.startsWith(QA646_ROOT) && qa637SafePath(p));
+}
+export function qa646Event(event, baseSha, headSha) {
+  const pr = event.pull_request;
+  assert.equal(event.repository?.full_name, 'thedoorw/INK', 'QA646_REPO');
+  assert.equal(pr?.base?.repo?.full_name, 'thedoorw/INK', 'QA646_BASE_REPO');
+  assert.equal(pr?.head?.repo?.full_name, 'thedoorw/INK', 'QA646_FORK');
+  assert.equal(pr?.base?.ref, 'main', 'QA646_TARGET');
+  assert.equal(pr.base.sha, baseSha, 'QA646_BASE_MOVED');
+  assert.equal(pr.head.sha, headSha, 'QA646_HEAD_MOVED');
+  assert.ok(pr.head.ref.startsWith('qa/cloud-draw-646-'), 'QA646_BRANCH_REQUIRED');
+  assert.equal(pr.draft, false, 'QA646_DRAFT');
+  assert.notEqual(event.action, 'closed', 'QA646_CLOSED');
+}
+export function verifyQa646({baseFiles, candidateFiles, changedPaths, trusted}) {
+  assert.ok(baseFiles instanceof Map && candidateFiles instanceof Map, 'QA646_FILE_MAPS');
+  assert.ok(hex(trusted?.sourceSha, 40) && hex(trusted?.sourceTree, 40) &&
+    hex(trusted?.manifestSha256, 64) && /^src-[a-f0-9]{24}$/.test(trusted?.buildId || '') &&
+    hex(trusted?.rendererPngSha256, 64), 'QA646_TRUSTED_PINS_REQUIRED');
+  assert.equal(trusted.action, 'deploy', 'QA646_DEPLOY_ONLY');
+  assert.ok(qa646Only(changedPaths), 'QA646_PATH_ONLY');
+  const computed = [...new Set([...baseFiles.keys(), ...candidateFiles.keys()])]
+    .filter(p => baseFiles.get(p)?.sha !== candidateFiles.get(p)?.sha).sort();
+  assert.deepEqual([...changedPaths].sort(), computed, 'QA646_CHANGE_SET');
+  const baseCount = [...baseFiles.keys()].filter(p => p.startsWith(QA646_ROOT)).length;
+  assert.equal(baseCount, 0, 'QA646_ALREADY_PRESENT');
+  const current = [...candidateFiles.keys()].filter(p => p.startsWith(QA646_ROOT)).sort();
+  assert.ok(candidateFiles.has(QA646_MANIFEST), 'QA646_MANIFEST_MISSING');
+  for (const p of current) {
+    const f = candidateFiles.get(p);
+    assert.ok(qa637SafePath(p) && !forbidden.test(p), 'QA646_UNSAFE_FILE');
+    assert.equal(f.mode, '100644', 'QA646_REGULAR_FILE');
+    assert.ok(Buffer.isBuffer(f.bytes), 'QA646_BYTES');
+    assert.equal(blob(f.bytes), f.sha, 'QA646_BLOB:' + p);
+  }
+  const manifestBytes = candidateFiles.get(QA646_MANIFEST).bytes;
+  assert.equal(hash(manifestBytes), trusted.manifestSha256, 'QA646_MANIFEST_PIN');
+  const m = JSON.parse(manifestBytes.toString('utf8'));
+  assert.equal(m.schema, 'INK_CLOUD_DRAW_646_PRIVATE_QA_PACKAGE_V1', 'QA646_SCHEMA');
+  assert.equal(m.sourceCommit, trusted.sourceSha, 'QA646_SOURCE_PIN');
+  assert.equal(m.productSourceTree, trusted.sourceTree, 'QA646_SOURCE_TREE');
+  assert.equal(m.buildId, trusted.buildId, 'QA646_BUILD_ID');
+  assert.equal(m.rendererPngSha256, trusted.rendererPngSha256, 'QA646_RENDERER_PIN');
+  assert.equal(m.mode, 'ISOLATED_PREPARED_NOT_DEPLOYED', 'QA646_PACKAGE_STATE');
+  assert.equal(m.noOAuthCredentials, true, 'QA646_NO_CREDENTIALS');
+  assert.equal(m.notForPublicProduction, true, 'QA646_QA_ONLY');
+  assert.equal(m.realGoogleE2E, 'NOT_RUN', 'QA646_UNVERIFIED_OAUTH');
+  assert.equal(m.sharedOriginStorageRisk, 'MUST_USE_FRESH_BROWSER_PROFILE', 'QA646_STORAGE_RISK');
+  assert.equal(m.fileCount, 431, 'QA646_EXPECTED_FILE_COUNT');
+  assert.ok(Array.isArray(m.files) && m.files.length === 431, 'QA646_INVENTORY');
+  const inventory=[];
+  for (const row of m.files) {
+    assert.ok(qa637SafePath(row.path) && !forbidden.test(row.path), 'QA646_INVENTORY_PATH');
+    assert.ok(Number.isSafeInteger(row.bytes) && row.bytes >= 0 && hex(row.sha256, 64),
+      'QA646_INVENTORY_ROW');
+    const p=QA646_ROOT + row.path, f=candidateFiles.get(p);
+    assert.ok(f, 'QA646_FILE_MISSING:' + p);
+    assert.equal(f.mode, '100644', 'QA646_NON_REGULAR:' + p);
+    assert.equal(f.bytes.length, row.bytes, 'QA646_SIZE:' + p);
+    assert.equal(hash(f.bytes), row.sha256, 'QA646_DIGEST:' + p);
+    inventory.push(p);
+  }
+  assert.deepEqual(inventory, [...new Set(inventory)].sort((a,b)=>a.localeCompare(b)),
+    'QA646_DUPLICATE_OR_UNSORTED');
+  assert.deepEqual(current, [...inventory, QA646_MANIFEST].sort(),
+    'QA646_UNLISTED_OR_MISSING');
+  assert.deepEqual(computed, current, 'QA646_ONLY_ADDITIONS');
+  for (const name of ['index.html', 'service-worker-runtime.js',
+    'dist/startup/ink-boot.mjs', 'dist/startup/ink-shell.mjs',
+    'src/document/drive-native-link-startup.mjs', 'src/recipe/import-coordinates.js'])
+    assert.ok(inventory.includes(QA646_ROOT + name), 'QA646_REQUIRED:' + name);
+  const html=candidateFiles.get(QA646_ROOT+'index.html').bytes.toString('utf8');
+  assert.ok(html.includes('noindex,nofollow,noarchive') &&
+    html.includes('INK #646') &&
+    html.includes('name="ink-qa-private-source-sha" content="'+trusted.sourceSha+'"'),
+    'QA646_BANNER_AND_IDENTITY');
+  const sw=candidateFiles.get(QA646_ROOT+'service-worker-runtime.js').bytes.toString('utf8');
+  assert.ok(sw.includes('const required="/INK/qa/cloud-draw-646/"') &&
+    sw.includes('new URL(self.registration.scope).pathname!==required') &&
+    sw.includes('INK646_SW_SCOPE_REFUSED'), 'QA646_SW_SCOPE');
+  assert.ok(!/\bcaches\s*\.|\baddEventListener\s*\(\s*['"]fetch['"]/.test(sw),
+    'QA646_SW_CACHE_OR_INTERCEPT');
+  for (const [name,entry] of [['manifest.webmanifest','./index.html'],
+    ['manifest-portable.webmanifest','./index-standalone.html']]) {
+    const p=QA646_ROOT+name, f=candidateFiles.get(p);
+    assert.ok(f, 'QA646_MANIFEST_RELATIVE_MISSING:' + name);
+    const web=JSON.parse(f.bytes.toString('utf8'));
+    assert.equal(web.start_url,entry,'QA646_MANIFEST_START_LOCAL');
+    assert.equal(web.scope,'./','QA646_MANIFEST_SCOPE_LOCAL');
+    assert.ok(Array.isArray(web.icons) && web.icons.every(x=>typeof x.src==='string' &&
+      x.src.startsWith('./assets/') && qa637SafePath(x.src.slice(2))),
+      'QA646_MANIFEST_ICONS_LOCAL');
+  }
+  return {status:'QA646_INTEGRITY_PASS',action:'deploy',files:m.fileCount,
+    sourceSha:trusted.sourceSha,sourceTree:trusted.sourceTree,
+    manifestSha256:trusted.manifestSha256,releaseAuthorized:false,oauthE2E:'NOT_RUN'};
+}
