@@ -100,3 +100,107 @@ export function verifyPlan({base,candidateFiles,cfg,changedPaths}){
   for(const p of candidateFiles.keys())assert.ok(base.files.has(p)||expected.files.has(p),'UNMANAGED_FILE_ADDED');
   return {status:'INTEGRITY_PASS',build_id:id,source_sha:m.source.exact_sha,source_tree:m.source.product_tree,files:info.runtime.files.length,qa:'PRIVATE_EVIDENCE_REVIEW_REQUIRED',release_authorized:false};
 }
+// #637 QA-only gate: enabled only after independently pinned artifact and trusted-base cutover.
+
+export const QA637_ROOT = 'qa/cloud-draw-637/';
+const MANIFEST = QA637_ROOT + 'INK_DRIVE_637_PREVIEW_MANIFEST.json';
+const hex = (s, n) => typeof s === 'string' && new RegExp(`^[a-f0-9]{${n}}$`).test(s);
+const qa637SafePath = path => typeof path === 'string' && path.length > 0 &&
+  path === path.normalize('NFC') && !/[\\:\x00-\x1f\x7f]/.test(path) &&
+  path.split('/').every(part => part && part !== '.' && part !== '..' && !part.startsWith('.'));
+const forbidden = /\.(?:ink|psd|psb|ai|pem|p12|pfx|key|env|zip|tgz)$/i;
+
+export function qa637Only(changedPaths) {
+  return changedPaths.length > 0 && changedPaths.every(p => p.startsWith(QA637_ROOT) && qa637SafePath(p));
+}
+
+export function qa637Event(event, baseSha, headSha) {
+  const pr = event.pull_request;
+  assert.equal(event.repository?.full_name, 'thedoorw/INK', 'QA637_REPO');
+  assert.equal(pr?.base?.repo?.full_name, 'thedoorw/INK', 'QA637_BASE_REPO');
+  assert.equal(pr?.head?.repo?.full_name, 'thedoorw/INK', 'QA637_FORK');
+  assert.equal(pr?.base?.ref, 'main', 'QA637_TARGET');
+  assert.equal(pr.base.sha, baseSha, 'QA637_BASE_MOVED');
+  assert.equal(pr.head.sha, headSha, 'QA637_HEAD_MOVED');
+  assert.ok(pr.head.ref.startsWith('qa-637/'), 'QA637_BRANCH_REQUIRED');
+  assert.equal(pr.draft, false, 'QA637_DRAFT');
+  assert.notEqual(event.action, 'closed', 'QA637_CLOSED');
+}
+
+// `trusted` MUST be constants committed to the Public trusted BASE by an
+// independently reviewed control/ PR AFTER exact package build/certification.
+// Reading these values from the candidate manifest would be self-attestation.
+// {sourceSha, manifestSha256, action:'deploy'|'teardown'}
+export function verifyQa637({ baseFiles, candidateFiles, changedPaths, trusted }) {
+  assert.ok(baseFiles instanceof Map && candidateFiles instanceof Map, 'QA637_FILE_MAPS');
+  assert.ok(hex(trusted?.sourceSha, 40) && hex(trusted?.manifestSha256, 64), 'QA637_TRUSTED_PINS_REQUIRED');
+  assert.ok(['deploy', 'teardown'].includes(trusted.action), 'QA637_TRUSTED_ACTION');
+  assert.ok(qa637Only(changedPaths), 'QA637_PATH_ONLY');
+  const computed = [...new Set([...baseFiles.keys(), ...candidateFiles.keys()])]
+    .filter(p => baseFiles.get(p)?.sha !== candidateFiles.get(p)?.sha).sort();
+  assert.deepEqual([...changedPaths].sort(), computed, 'QA637_CHANGE_SET');
+
+  // Absolutely no production/control/other-QA diff, even metadata changes.
+  for (const path of computed) assert.ok(path.startsWith(QA637_ROOT), 'QA637_PRODUCTION_DIFF');
+  for (const [p, f] of candidateFiles) {
+    if (!p.startsWith(QA637_ROOT)) continue;
+    assert.ok(qa637SafePath(p) && !forbidden.test(p), 'QA637_UNSAFE_FILE');
+    assert.equal(f.mode, '100644', 'QA637_REGULAR_FILE');
+    assert.ok(Buffer.isBuffer(f.bytes), 'QA637_BYTES');
+  }
+
+  const current = trusted.action === 'deploy' ? candidateFiles : baseFiles;
+  const existing = [...current.keys()].filter(p => p.startsWith(QA637_ROOT)).sort();
+  assert.ok(current.has(MANIFEST), 'QA637_MANIFEST_MISSING');
+  const manifestBytes = current.get(MANIFEST).bytes;
+  assert.equal(hash(manifestBytes), trusted.manifestSha256, 'QA637_MANIFEST_PIN');
+  const manifest = JSON.parse(manifestBytes.toString('utf8'));
+  assert.equal(manifest.schema, 'INK_DRIVE_CATALOG_637_PUBLIC_QA_PACKAGE_V1', 'QA637_SCHEMA');
+  assert.equal(manifest.privateCandidateSha, trusted.sourceSha, 'QA637_SOURCE_PIN');
+  assert.equal(manifest.source, 'thedoorw/INK-Browser-QA', 'QA637_SOURCE_REPO');
+  assert.equal(manifest.intendedPath, '/INK/qa/cloud-draw-637/', 'QA637_INTENDED_PATH');
+  assert.equal(manifest.googleOAuthOrigin, 'https://thedoorw.github.io', 'QA637_ORIGIN');
+  assert.equal(manifest.googleOAuthScope, 'https://www.googleapis.com/auth/drive.file', 'QA637_SCOPE');
+  assert.equal(manifest.status, 'PREPARED_NOT_DEPLOYED', 'QA637_PACKAGE_STATE');
+  assert.ok(Array.isArray(manifest.files) && manifest.files.length >= 6, 'QA637_INVENTORY');
+  assert.equal(manifest.fileCount, manifest.files.length, 'QA637_FILE_COUNT');
+  const inventoried = [];
+  for (const row of manifest.files) {
+    assert.ok(qa637SafePath(row.path) && !forbidden.test(row.path), 'QA637_INVENTORY_PATH');
+    assert.ok(Number.isSafeInteger(row.bytes) && row.bytes >= 0 && hex(row.sha256, 64), 'QA637_INVENTORY_ROW');
+    const absolute = QA637_ROOT + row.path;
+    const f = current.get(absolute);
+    assert.ok(f, 'QA637_FILE_MISSING:' + absolute);
+    assert.equal(f.mode, '100644', 'QA637_NON_REGULAR:' + absolute);
+    assert.equal(f.bytes.length, row.bytes, 'QA637_SIZE:' + absolute);
+    assert.equal(hash(f.bytes), row.sha256, 'QA637_DIGEST:' + absolute);
+    inventoried.push(absolute);
+  }
+  assert.deepEqual(inventoried, [...new Set(inventoried)].sort((a, b) => a.localeCompare(b)), 'QA637_DUPLICATE_OR_UNSORTED');
+  assert.deepEqual(existing, [...inventoried, MANIFEST].sort(), 'QA637_UNLISTED_OR_MISSING');
+  for (const path of ['index.html', 'service-worker-runtime.js', 'drive-catalog-637-preview.css',
+    'dist/startup/ink-boot.mjs', 'dist/startup/ink-shell.mjs',
+    'src/document/drive-native-link-startup.mjs'])
+    assert.ok(inventoried.includes(QA637_ROOT + path), 'QA637_REQUIRED:' + path);
+  const html = current.get(QA637_ROOT + 'index.html').bytes.toString('utf8');
+  assert.ok(html.includes('id="ink637PreviewLabel"') && html.includes('noindex,nofollow,noarchive') &&
+    html.includes(`name="ink-637-candidate-sha" content="${trusted.sourceSha}"`), 'QA637_BANNER_AND_IDENTITY');
+  assert.ok(!/<link[^>]+rel=["']manifest["']/.test(html), 'QA637_PWA_MANIFEST');
+  const sw = current.get(QA637_ROOT + 'service-worker-runtime.js').bytes.toString('utf8');
+  assert.ok(sw.includes('INK637_PREVIEW_SW_NO_CACHE_V1') &&
+    sw.includes("EXPECTED_PATH='/INK/qa/cloud-draw-637/'") &&
+    sw.includes('navigationStrategy:\'network-only\''), 'QA637_SW_SCOPE');
+  assert.ok(!/\bcaches\s*\.|\baddEventListener\s*\(\s*['"]fetch['"]/.test(sw), 'QA637_SW_CACHE_OR_INTERCEPT');
+
+  const changed = new Set(computed);
+  if (trusted.action === 'deploy') {
+    assert.equal([...baseFiles.keys()].filter(p => p.startsWith(QA637_ROOT)).length, 0, 'QA637_ALREADY_PRESENT');
+    assert.deepEqual([...changed].sort(), existing, 'QA637_ONLY_ADDITIONS');
+  } else {
+    assert.equal([...candidateFiles.keys()].filter(p => p.startsWith(QA637_ROOT)).length, 0, 'QA637_TEARDOWN_INCOMPLETE');
+    assert.deepEqual([...changed].sort(), existing, 'QA637_ONLY_PINNED_REMOVAL');
+  }
+  return { status: 'QA637_INTEGRITY_PASS', action: trusted.action, files: manifest.fileCount,
+    sourceSha: trusted.sourceSha, manifestSha256: trusted.manifestSha256,
+    releaseAuthorized: false, oauthE2E: 'NOT_RUN' };
+}

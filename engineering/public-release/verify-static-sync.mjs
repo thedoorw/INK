@@ -3,7 +3,16 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
-import {blob,verifyPlan} from './static-sync-core.mjs';
+import {blob,verifyPlan,qa637Only,qa637Event,verifyQa637} from './static-sync-core.mjs';
+// Independently audited Windows #569 artifact: 429 files, exact source and
+// manifest bytes. These pins become trusted only after protected control/ merge.
+// No candidate-supplied value is trusted; this authorizes QA-only integrity,
+// never Pages publication or the official Static Sync009 runtime.
+const QA637_TRUST=Object.freeze({
+  sourceSha:'06860f134b514f84f76ee389d1805821fdd8b1a5',
+  manifestSha256:'880379c9fb2aa8f21bc940b9af25b10ae08ba68274a95912ccd9a364f44984ba',
+  action:'deploy'
+});
 const CONTROL_PATHS=new Set([
   '.github/workflows/ink-public-release-gate-001.yml',
   'engineering/public-release/static-sync-core.mjs',
@@ -14,13 +23,13 @@ const CONTROL_PATHS=new Set([
 export function isControlOnly(paths){
   return paths.length>0 && paths.every(p=>CONTROL_PATHS.has(p));
 }
-export function checkEvent(event,base,head,{documentationOnly=false,controlOnly=false}={}){
+export function checkEvent(event,base,head,{documentationOnly=false,controlOnly=false,qa637Scope=false}={}){
   const p=event.pull_request;
   assert.equal(event.repository?.full_name,'thedoorw/INK','REPO');
   assert.equal(p?.base?.repo?.full_name,'thedoorw/INK','BASE_REPO');
   assert.equal(p.head?.repo?.full_name,'thedoorw/INK','FORK_REJECTED');
   assert.equal(p.base.ref,'main','BASE_BRANCH');assert.equal(p.base.sha,base,'BASE_MOVED');assert.equal(p.head.sha,head,'HEAD_MOVED');
-  assert.ok(documentationOnly||(controlOnly?p.head.ref.startsWith('control/'):p.head.ref.startsWith('sync-009/')),'SYNC_BRANCH_REQUIRED');assert.equal(p.draft,false,'DRAFT_CANDIDATE');
+  assert.ok(documentationOnly||(qa637Scope?p.head.ref.startsWith('qa-637/'):controlOnly?p.head.ref.startsWith('control/'):p.head.ref.startsWith('sync-009/')),'SYNC_BRANCH_REQUIRED');assert.equal(p.draft,false,'DRAFT_CANDIDATE');
   assert.equal(event.action==='closed',false,'CLOSED_PR');
 }
 export function gitSnapshot(root){
@@ -40,9 +49,17 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const paths=[...new Set([...base.files.keys(),...candidate.files.keys()])].filter(p=>base.files.get(p)?.sha!==candidate.files.get(p)?.sha);
   const documentationOnly=paths.length===1&&paths[0]==='README.md';
   const controlOnly=isControlOnly(paths);
-  checkEvent(event,base.head,candidate.head,{documentationOnly,controlOnly});
+  const qa637Scope=qa637Only(paths);
+  checkEvent(event,base.head,candidate.head,{documentationOnly,controlOnly,qa637Scope});
   if(controlOnly){console.log(JSON.stringify({status:'CONTROL_ONLY_INDEPENDENT_REVIEW_REQUIRED',runtimeAndHistoricalTrustUnchanged:true,base:base.head,head:candidate.head,changedPaths:paths,release_authorized:false}));process.exit(0);}
   if(documentationOnly){console.log(JSON.stringify({status:'README_ONLY',noRuntimePublication:true,release_authorized:false}));process.exit(0);}
+  if(qa637Scope){
+    qa637Event(event,base.head,candidate.head);
+    console.log(JSON.stringify(verifyQa637({
+      baseFiles:base.files,candidateFiles:candidate.files,changedPaths:paths,trusted:QA637_TRUST
+    })));
+    process.exit(0);
+  }
   const cfg=JSON.parse(base.files.get('engineering/public-release/static-sync.allowlist.json').bytes);
   console.log(JSON.stringify(verifyPlan({base,candidateFiles:candidate.files,cfg,changedPaths:paths})));
 }
