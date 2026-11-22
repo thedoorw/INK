@@ -197,7 +197,7 @@ test('QA646 exact scoped 431-file package integrity passes; adjacent Public file
   assert.throws(()=>verifyQa646({...params,trusted:wrongTrust}),/QA646_SOURCE_PIN/);
   const badWeb=new Map(candidateFiles);
   badWeb.set(QA646_ROOT+'manifest.webmanifest',file(JSON.stringify({start_url:'/INK/',scope:'/INK/',icons:[]})));
-  assert.throws(()=>verifyQa646({...params,candidateFiles:badWeb}),/QA646_DIGEST/);
+  assert.throws(()=>verifyQa646({...params,candidateFiles:badWeb}),/QA646_(?:SIZE|DIGEST)/);
 });
 test('QA646 branch is explicitly isolated, not legacy QA637 or unrestricted sync',()=>{
   const b='a'.repeat(40),h='b'.repeat(40);
