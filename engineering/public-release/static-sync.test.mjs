@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {checkEvent,isControlOnly} from './verify-static-sync.mjs';
-import {makePlan,verifyPlan,blob,hash,canonical,safePath,allowed,verifyQa637,qa637Only,qa637Event,QA637_ROOT} from './static-sync-core.mjs';
+import {makePlan,verifyPlan,blob,hash,canonical,safePath,allowed,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
 import {createHash} from 'node:crypto';
 const cfg=JSON.parse(await readFile(new URL('./static-sync.allowlist.json',import.meta.url)));
 const sha=c=>c.repeat(40),file=s=>{const bytes=Buffer.from(s);return{bytes,sha:blob(bytes),mode:'100644'}};
@@ -146,3 +146,69 @@ test('control maintenance permits only exact verifier paths, never Runtime or hi
     e.pull_request.head.repo.full_name = 'thedoorw/INK';assert.throws(() => qa637Event(e, b, 'c'.repeat(40)), /QA637_HEAD_MOVED/);
   });
 }
+
+
+test('QA646 exact scoped 431-file package integrity passes; adjacent Public files preserved',()=>{
+  const trusted={
+    sourceSha:sha('a'),sourceTree:sha('b'),buildId:'src-'+('c'.repeat(24)),
+    rendererPngSha256:'d'.repeat(64),manifestSha256:'',action:'deploy'
+  };
+  const baseFiles=new Map([['index.html',file('UNTOUCHED_PRODUCTION')],['qa/cloud-draw-637/old.js',file('UNCHANGED_637')]]);
+  const candidateFiles=new Map(baseFiles);
+  const seed=new Map([
+    ['index.html',file('<meta name="robots" content="noindex,nofollow,noarchive"><meta name="ink-qa-private-source-sha" content="'+trusted.sourceSha+'"><body>INK #646 QA</body>')],
+    ['service-worker-runtime.js',file('const required="/INK/qa/cloud-draw-646/";if(new URL(self.registration.scope).pathname!==required)throw Error("INK646_SW_SCOPE_REFUSED");')],
+    ['dist/startup/ink-boot.mjs',file('BOOT')],
+    ['dist/startup/ink-shell.mjs',file('SHELL')],
+    ['src/document/drive-native-link-startup.mjs',file('DRIVE')],
+    ['src/recipe/import-coordinates.js',file('SVG')],
+    ['manifest.webmanifest',file(JSON.stringify({start_url:'./index.html',scope:'./',icons:[{src:'./assets/a.svg'}]}))],
+    ['manifest-portable.webmanifest',file(JSON.stringify({start_url:'./index-standalone.html',scope:'./',icons:[{src:'./assets/a.svg'}]}))]
+  ]);
+  for(let i=0;i<423;i++)seed.set('src/generated/qa-'+String(i).padStart(3,'0')+'.js',file('static '+i));
+  const rows=[...seed].sort((a,b)=>a[0].localeCompare(b[0])).map(([path,f])=>({
+    path,bytes:f.bytes.length,sha256:hash(f.bytes)
+  }));
+  const manifest={
+    schema:'INK_CLOUD_DRAW_646_PRIVATE_QA_PACKAGE_V1',
+    sourceCommit:trusted.sourceSha,productSourceTree:trusted.sourceTree,buildId:trusted.buildId,
+    rendererPngSha256:trusted.rendererPngSha256,mode:'ISOLATED_PREPARED_NOT_DEPLOYED',
+    noOAuthCredentials:true,notForPublicProduction:true,realGoogleE2E:'NOT_RUN',
+    sharedOriginStorageRisk:'MUST_USE_FRESH_BROWSER_PROFILE',
+    fileCount:431,files:rows
+  };
+  const manifestFile=file(JSON.stringify(manifest));
+  trusted.manifestSha256=hash(manifestFile.bytes);
+  for(const [p,f] of seed)candidateFiles.set(QA646_ROOT+p,f);
+  candidateFiles.set(QA646_ROOT+'INK_CLOUD_DRAW_646_QA_MANIFEST.json',manifestFile);
+  const changedPaths=[...candidateFiles.keys()].filter(p=>!baseFiles.has(p)).sort();
+  const params={baseFiles,candidateFiles,changedPaths,trusted};
+  assert.equal(qa646Only(changedPaths),true);
+  assert.equal(verifyQa646(params).status,'QA646_INTEGRITY_PASS');
+  assert.equal(baseFiles.get('index.html').sha,candidateFiles.get('index.html').sha);
+  const outside=new Map(candidateFiles);
+  outside.set('BUILD_INFO.json',file('ATTACK'));
+  assert.equal(qa646Only([...changedPaths,'BUILD_INFO.json']),false);
+  assert.throws(()=>verifyQa646({...params,candidateFiles:outside,changedPaths:[...changedPaths,'BUILD_INFO.json']}),/QA646_PATH_ONLY/);
+  const tampered=new Map(candidateFiles);
+  tampered.set(QA646_ROOT+'src/generated/qa-003.js',file('TAMPER'));
+  assert.throws(()=>verifyQa646({...params,candidateFiles:tampered}),/QA646_(?:SIZE|DIGEST)/);
+  const wrongTrust={...trusted,sourceSha:sha('f')};
+  assert.throws(()=>verifyQa646({...params,trusted:wrongTrust}),/QA646_SOURCE_PIN/);
+  const badWeb=new Map(candidateFiles);
+  badWeb.set(QA646_ROOT+'manifest.webmanifest',file(JSON.stringify({start_url:'/INK/',scope:'/INK/',icons:[]})));
+  assert.throws(()=>verifyQa646({...params,candidateFiles:badWeb}),/QA646_(?:SIZE|DIGEST)/);
+});
+test('QA646 branch is explicitly isolated, not legacy QA637 or unrestricted sync',()=>{
+  const b='a'.repeat(40),h='b'.repeat(40);
+  const event={repository:{full_name:'thedoorw/INK'},action:'opened',pull_request:{
+    base:{ref:'main',sha:b,repo:{full_name:'thedoorw/INK'}},
+    head:{ref:'qa/cloud-draw-646-exact-99b045f-20261122',sha:h,repo:{full_name:'thedoorw/INK'}},
+    draft:false
+  }};
+  assert.doesNotThrow(()=>qa646Event(event,b,h));
+  assert.doesNotThrow(()=>checkEvent(event,b,h,{qa646Scope:true}));
+  event.pull_request.head.ref='qa-637/fake';
+  assert.throws(()=>qa646Event(event,b,h),/QA646_BRANCH_REQUIRED/);
+  assert.throws(()=>checkEvent(event,b,h,{qa646Scope:true}),/SYNC_BRANCH_REQUIRED/);
+});
