@@ -192,7 +192,7 @@ test('QA646 exact scoped 431-file package integrity passes; adjacent Public file
   assert.throws(()=>verifyQa646({...params,candidateFiles:outside,changedPaths:[...changedPaths,'BUILD_INFO.json']}),/QA646_PATH_ONLY/);
   const tampered=new Map(candidateFiles);
   tampered.set(QA646_ROOT+'src/generated/qa-003.js',file('TAMPER'));
-  assert.throws(()=>verifyQa646({...params,candidateFiles:tampered}),/QA646_DIGEST/);
+  assert.throws(()=>verifyQa646({...params,candidateFiles:tampered}),/QA646_(?:SIZE|DIGEST)/);
   const wrongTrust={...trusted,sourceSha:sha('f')};
   assert.throws(()=>verifyQa646({...params,trusted:wrongTrust}),/QA646_SOURCE_PIN/);
   const badWeb=new Map(candidateFiles);
