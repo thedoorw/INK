@@ -1,0 +1,610 @@
+{
+  "format": "INK-BEHAVIOR-CANDIDATE-LIBRARY",
+  "version": "1.6.3",
+  "status": "VALIDATION REQUIRED",
+  "atomic": [
+    {
+      "behaviorId": "AT-VW-001",
+      "name": "APPLY_VECTOR_BRUSH",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-002",
+      "name": "SET_BRUSH_SCALE",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-003",
+      "name": "SET_STROKE_OPACITY",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-004",
+      "name": "SET_BLEND_MODE",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-005",
+      "name": "SEED_DETERMINISTIC_VARIATION",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-006",
+      "name": "APPLY_REVERSIBLE_FOLD",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-007",
+      "name": "EVALUATE_COMPOSITION_CONSTRAINT",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-008",
+      "name": "CREATE_ELLIPSE_FROM_IR",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "AT-VW-009",
+      "name": "CREATE_RECTANGLE_FROM_IR",
+      "input": "structured vector object or parameters",
+      "preconditions": [
+        "valid Stable ID"
+      ],
+      "operations": [
+        "validated canonical operation"
+      ],
+      "parameters": [
+        "operation-specific"
+      ],
+      "invariants": [
+        "Stable ID unless explicit creation"
+      ],
+      "failureConditions": [
+        "invalid or unresolved dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    }
+  ],
+  "composite": [
+    {
+      "behaviorId": "CP-VW-001",
+      "name": "CREATE_WATERCOLOR_PETAL",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "CP-VW-002",
+      "name": "ASSEMBLE_WATERCOLOR_COROLLA",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "CP-VW-003",
+      "name": "CREATE_WATERCOLOR_LEAF",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "CP-VW-004",
+      "name": "CREATE_WATERCOLOR_STEM",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "CP-VW-005",
+      "name": "BUILD_WATERCOLOR_PLANT",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "CP-VW-006",
+      "name": "RECOMPUTE_VECTOR_BRUSH_INSTANCE",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "CP-VW-007",
+      "name": "BUILD_DETERMINISTIC_SPIROGRAPH",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "CP-VW-008",
+      "name": "PRESERVE_POSTER_LAYOUT_ON_LOCAL_EDIT",
+      "input": "materials and editable paths",
+      "preconditions": [
+        "required material available"
+      ],
+      "operations": [
+        "compose atomic behaviors"
+      ],
+      "parameters": [
+        "seed",
+        "color",
+        "opacity",
+        "scale"
+      ],
+      "invariants": [
+        "unaffected IDs and hashes"
+      ],
+      "failureConditions": [
+        "missing asset or dependency"
+      ],
+      "cases": [
+        "Batch02 enhanced",
+        "VW benchmark"
+      ],
+      "validationState": "VALIDATION REQUIRED"
+    }
+  ],
+  "strategy": [
+    {
+      "behaviorId": "ST-VW-001",
+      "name": "PRESERVE_EDITABLE_PATH_BELOW_STYLE",
+      "input": "benchmark target",
+      "preconditions": [
+        "evidence classification available"
+      ],
+      "operations": [
+        "select validated behavior sequence"
+      ],
+      "parameters": [
+        "validation policy"
+      ],
+      "invariants": [
+        "no unsupported claim promoted"
+      ],
+      "failureConditions": [
+        "missing evidence"
+      ],
+      "cases": [
+        "Video mapping",
+        "VW-01–04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "ST-VW-002",
+      "name": "USE_TRANSPARENT_OVERLAP_FOR_DENSITY",
+      "input": "benchmark target",
+      "preconditions": [
+        "evidence classification available"
+      ],
+      "operations": [
+        "select validated behavior sequence"
+      ],
+      "parameters": [
+        "validation policy"
+      ],
+      "invariants": [
+        "no unsupported claim promoted"
+      ],
+      "failureConditions": [
+        "missing evidence"
+      ],
+      "cases": [
+        "Video mapping",
+        "VW-01–04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "ST-VW-003",
+      "name": "SEPARATE_VECTOR_STYLE_FROM_HYBRID_TEXTURE",
+      "input": "benchmark target",
+      "preconditions": [
+        "evidence classification available"
+      ],
+      "operations": [
+        "select validated behavior sequence"
+      ],
+      "parameters": [
+        "validation policy"
+      ],
+      "invariants": [
+        "no unsupported claim promoted"
+      ],
+      "failureConditions": [
+        "missing evidence"
+      ],
+      "cases": [
+        "Video mapping",
+        "VW-01–04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "ST-VW-004",
+      "name": "REJECT_UNKNOWN_BRUSH_INTERNALS",
+      "input": "benchmark target",
+      "preconditions": [
+        "evidence classification available"
+      ],
+      "operations": [
+        "select validated behavior sequence"
+      ],
+      "parameters": [
+        "validation policy"
+      ],
+      "invariants": [
+        "no unsupported claim promoted"
+      ],
+      "failureConditions": [
+        "missing evidence"
+      ],
+      "cases": [
+        "Video mapping",
+        "VW-01–04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "ST-VW-005",
+      "name": "SEED_ALL_PROCEDURAL_VARIATION",
+      "input": "benchmark target",
+      "preconditions": [
+        "evidence classification available"
+      ],
+      "operations": [
+        "select validated behavior sequence"
+      ],
+      "parameters": [
+        "validation policy"
+      ],
+      "invariants": [
+        "no unsupported claim promoted"
+      ],
+      "failureConditions": [
+        "missing evidence"
+      ],
+      "cases": [
+        "Video mapping",
+        "VW-01–04"
+      ],
+      "validationState": "VERIFIED"
+    },
+    {
+      "behaviorId": "ST-VW-006",
+      "name": "MEASURE_LAYOUT_BEFORE_LOCAL_UPDATE",
+      "input": "benchmark target",
+      "preconditions": [
+        "evidence classification available"
+      ],
+      "operations": [
+        "select validated behavior sequence"
+      ],
+      "parameters": [
+        "validation policy"
+      ],
+      "invariants": [
+        "no unsupported claim promoted"
+      ],
+      "failureConditions": [
+        "missing evidence"
+      ],
+      "cases": [
+        "Video mapping",
+        "VW-01–04"
+      ],
+      "validationState": "VERIFIED"
+    }
+  ]
+}

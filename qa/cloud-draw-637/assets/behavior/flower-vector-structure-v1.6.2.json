@@ -1,0 +1,122 @@
+{
+  "format": "INK-BEHAVIOR-LIBRARY-INCREMENT",
+  "version": "1.6.2-RC",
+  "sourceBenchmark": "INK_Flower_Benchmark_Batch_01",
+  "existingBehaviorMappings": {
+    "FLEURIFY_OUTLINE_FROM_CLOSED_PATH": ["PRESERVE_UNAFFECTED_OBJECTS"],
+    "ATOMIC_CREATE_PARAMETERIZED_PATH": ["CREATE_MATERIAL_INSTANCE"],
+    "COMPOSITE_BEND_TAPER_LEAF_OR_PETAL": ["CREATE_MATERIAL_INSTANCE", "UPDATE_LINKED_MATERIAL_INSTANCES"],
+    "STRATEGY_REUSE_TEMPLATE_BEFORE_REDRAW": ["CREATE_MATERIAL_INSTANCE", "DETACH_MATERIAL_INSTANCE"],
+    "ATOMIC_DUPLICATE_ROTATE_INSTANCE": ["RADIAL_REPEAT_WITH_STABLE_INSTANCES"],
+    "COMPOSITE_RADIAL_PETAL_ASSEMBLY": ["RADIAL_REPEAT_WITH_STABLE_INSTANCES", "UPDATE_REPEAT_INSTANCE_COUNT"],
+    "STRATEGY_INFER_REPEAT_UNIT_BEFORE_EXPANSION": ["RADIAL_REPEAT_WITH_STABLE_INSTANCES"],
+    "ATOMIC_SET_LAYER_ORDER": ["PRESERVE_UNAFFECTED_OBJECTS"],
+    "COMPOSITE_BUILD_MULTILAYER_COROLLA": ["RECOMPUTE_DEPENDENCY_SUBGRAPH", "PRESERVE_UNAFFECTED_OBJECTS"],
+    "STRATEGY_OUTER_TO_INNER_OCCLUSION": ["RECOMPUTE_DEPENDENCY_SUBGRAPH"],
+    "ATOMIC_CREATE_CURVED_STEM": ["CREATE_MATERIAL_INSTANCE"],
+    "COMPOSITE_PLACE_ASYMMETRIC_SIDE_LEAVES": ["UPDATE_PARENT_WITH_DEPENDENT_CHILDREN"],
+    "COMPOSITE_ASSEMBLE_BUD_CALYX": ["UPDATE_PARENT_WITH_DEPENDENT_CHILDREN"],
+    "STRATEGY_BUILD_REUSABLE_PLANT_UNIT": ["CREATE_MATERIAL_INSTANCE", "UPDATE_PARENT_WITH_DEPENDENT_CHILDREN"],
+    "ATOMIC_APPLY_OPACITY_WASH": ["PRESERVE_UNAFFECTED_OBJECTS"],
+    "COMPOSITE_VECTOR_WATERCOLOR_APPROXIMATION": ["PRESERVE_UNAFFECTED_OBJECTS"],
+    "STRATEGY_PRESERVE_STRUCTURE_RESTYLE_SURFACE": ["PRESERVE_UNAFFECTED_OBJECTS"]
+  },
+  "behaviors": [
+    {
+      "id": "CREATE_MATERIAL_INSTANCE",
+      "level": "Composite",
+      "input": "Material Template ID, parameter overrides, transform, semantic role",
+      "preconditions": ["Template exists", "Parameters satisfy template constraints"],
+      "parameters": ["templateId", "templateVersion", "parameterOverrides", "transform", "parentId"],
+      "steps": ["Resolve template parameters", "Create deterministic child geometry IDs", "Create native group instance", "Persist INSTANCE_OF and USES_MATERIAL relations"],
+      "invariants": ["Independent instance Stable ID", "Template provenance preserved"],
+      "failureConditions": ["Missing template", "Invalid parameter", "Duplicate instance ID"],
+      "dependencies": ["Material Library", "Document Model", "Stable ID"],
+      "validation": "VALIDATED"
+    },
+    {
+      "id": "UPDATE_LINKED_MATERIAL_INSTANCES",
+      "level": "Composite",
+      "input": "Template update or selected instance update",
+      "preconditions": ["Linked non-detached instances exist"],
+      "parameters": ["templateVersion", "instanceIds", "parameterOverrides"],
+      "steps": ["Update template or instance parameters", "Rebuild linked realized geometry", "Synchronize linked Repeat sources", "Preserve detached instances"],
+      "invariants": ["Instance IDs preserved", "Detached geometry unchanged"],
+      "failureConditions": ["Version invalid", "Unsupported parameter migration"],
+      "dependencies": ["Material Library", "Repeat Generator"],
+      "validation": "VALIDATED"
+    },
+    {
+      "id": "DETACH_MATERIAL_INSTANCE",
+      "level": "Composite",
+      "input": "Linked Material Instance",
+      "preconditions": ["Instance is linked"],
+      "parameters": ["instanceId"],
+      "steps": ["Remove live template relation", "Persist detached source metadata", "Retain current geometry and Stable IDs"],
+      "invariants": ["Visible geometry unchanged", "Object remains editable"],
+      "failureConditions": ["Instance not found", "Already detached"],
+      "dependencies": ["Material Instance"],
+      "validation": "VALIDATED"
+    },
+    {
+      "id": "RADIAL_REPEAT_WITH_STABLE_INSTANCES",
+      "level": "Composite",
+      "input": "Source object or Material Instance, generator parameters",
+      "preconditions": ["Stable generator ID", "Valid source"],
+      "parameters": ["count", "center", "ringIndex", "semanticRole", "recipeVersion"],
+      "steps": ["Calculate deterministic transforms", "Derive instance IDs from generator/source/ring/index/role/version", "Persist generator-instance descriptors", "Export unique SVG IDs"],
+      "invariants": ["Same input produces same IDs", "Existing indexes preserve IDs when count changes"],
+      "failureConditions": ["Missing generator ID", "Invalid count"],
+      "dependencies": ["Repeat", "Stable ID"],
+      "validation": "VALIDATED"
+    },
+    {
+      "id": "UPDATE_REPEAT_INSTANCE_COUNT",
+      "level": "Composite",
+      "input": "Repeat Generator and new count",
+      "preconditions": ["Generator exists"],
+      "parameters": ["count"],
+      "steps": ["Reconcile existing descriptors", "Preserve surviving index IDs", "Add or remove only required instances", "Record identity report"],
+      "invariants": ["Unrelated rings and center unchanged"],
+      "failureConditions": ["Count below one", "Unresolved generator dependency"],
+      "dependencies": ["Repeat Identity"],
+      "validation": "VALIDATED"
+    },
+    {
+      "id": "RECOMPUTE_DEPENDENCY_SUBGRAPH",
+      "level": "Strategy",
+      "input": "Changed target IDs and operation",
+      "preconditions": ["Dependency Graph complete and acyclic"],
+      "parameters": ["targets", "operation", "approvedFallbackScope"],
+      "steps": ["Resolve start nodes", "Traverse downstream dependency paths", "Build recompute set", "Reject over-recompute", "Store reasons and hashes"],
+      "invariants": ["No silent full-document fallback", "Unaffected nodes remain unchanged"],
+      "failureConditions": ["Unresolved dependency", "Cycle", "Missing target"],
+      "dependencies": ["Dependency Graph", "Local Recompute"],
+      "validation": "VALIDATED"
+    },
+    {
+      "id": "PRESERVE_UNAFFECTED_OBJECTS",
+      "level": "Strategy",
+      "input": "Before/after documents and recompute scope",
+      "preconditions": ["Stable object identities"],
+      "parameters": ["affectedObjectIds"],
+      "steps": ["Hash object-owned geometry and style", "Compare outside scope", "Reject unexpected changes", "Record preserved hashes"],
+      "invariants": ["Stable ID, geometry hash and style hash preserved outside scope"],
+      "failureConditions": ["Over-recompute detected"],
+      "dependencies": ["Stable Hash", "Local Recompute"],
+      "validation": "VALIDATED"
+    },
+    {
+      "id": "UPDATE_PARENT_WITH_DEPENDENT_CHILDREN",
+      "level": "Composite",
+      "input": "Parent transform or parameter update",
+      "preconditions": ["Hierarchy persisted"],
+      "parameters": ["parentId", "transform", "parameterOverrides"],
+      "steps": ["Update parent", "Traverse PARENT_OF/POSITIONED_RELATIVE_TO edges", "Preserve child local identity", "Re-render inherited transform"],
+      "invariants": ["Child IDs preserved", "Unrelated crown and sibling geometry remain unchanged"],
+      "failureConditions": ["Hierarchy cycle", "Missing parent"],
+      "dependencies": ["Hierarchy", "Dependency Graph"],
+      "validation": "VALIDATED"
+    }
+  ]
+}
