@@ -1,0 +1,96 @@
+{
+  "format": "INK-CAPABILITY-GAP-CANDIDATES",
+  "version": "1.6.3",
+  "gaps": [
+    {
+      "gapId": "GAP-VW-001",
+      "type": "Validation/Ground Truth",
+      "evidence": [
+        "named MP4 unavailable"
+      ],
+      "severity": "HIGH",
+      "minimumRemediation": "supply original MP4 and run frame timeline",
+      "merge": "video validation"
+    },
+    {
+      "gapId": "GAP-VW-002",
+      "type": "Brush asset dependency",
+      "evidence": [
+        "exact Illustrator brush definition unresolved"
+      ],
+      "severity": "HIGH",
+      "minimumRemediation": "license and package original brush asset",
+      "merge": "vector brush fidelity"
+    },
+    {
+      "gapId": "GAP-VW-003",
+      "type": "Hybrid vector/raster brush",
+      "evidence": [
+        "internal texture not observable"
+      ],
+      "severity": "MEDIUM",
+      "minimumRemediation": "asset inspection and classification",
+      "merge": "vector brush fidelity"
+    },
+    {
+      "gapId": "GAP-VW-004",
+      "type": "Paper texture",
+      "evidence": [
+        "paper layer is reference only"
+      ],
+      "severity": "MEDIUM",
+      "minimumRemediation": "minimal raster reference renderer with licensed asset",
+      "merge": "raster/hybrid"
+    },
+    {
+      "gapId": "GAP-VW-005",
+      "type": "Pigment simulation",
+      "evidence": [
+        "procedural vector overlap does not model paper absorption"
+      ],
+      "severity": "MEDIUM",
+      "minimumRemediation": "separate research benchmark",
+      "merge": "watercolor simulation"
+    },
+    {
+      "gapId": "GAP-VW-006",
+      "type": "Composition",
+      "evidence": [
+        "Batch02 poster imported SVG contains duplicate IDs and preservation check fails"
+      ],
+      "severity": "MEDIUM",
+      "minimumRemediation": "normalize imported duplicate IDs and semantic root ownership",
+      "merge": "composition/import"
+    },
+    {
+      "gapId": "GAP-VW-007",
+      "type": "JSX Translation",
+      "evidence": [
+        "Spirograph still has six unsupported operations"
+      ],
+      "severity": "MEDIUM",
+      "minimumRemediation": "expand only evidence-backed DOM/expression mappings",
+      "merge": "JSX IR"
+    },
+    {
+      "gapId": "GAP-VW-008",
+      "type": "Illustrator equivalence",
+      "evidence": [
+        "no Illustrator execution Ground Truth"
+      ],
+      "severity": "MEDIUM",
+      "minimumRemediation": "external host validation",
+      "merge": "Ground Truth"
+    },
+    {
+      "gapId": "GAP-VW-009",
+      "type": "Blend validation",
+      "evidence": [
+        "SVG/CSS blend mapped but Illustrator pixel equivalence unverified"
+      ],
+      "severity": "LOW",
+      "minimumRemediation": "cross-host pixel benchmark",
+      "merge": "Ground Truth"
+    }
+  ]
+}
