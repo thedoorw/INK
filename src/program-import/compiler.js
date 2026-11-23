@@ -1,5 +1,6 @@
 import { deterministicHash } from './canonical-operation.js';
 import { toUserTranslationStatus } from './workflow-ir.js';
+import { SVG_VIEWPORT_FRAME } from '../recipe/import-coordinates.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -80,6 +81,31 @@ function gapFor(operation, reason = null) {
   return 'CAPABILITY_MISSING';
 }
 
+// Root SVG viewport is explicit source geometry, unlike Native world-space
+// Recipes. Do not infer frames for SVG fragments or ambiguous dimensions.
+function svgViewportFrame(program) {
+  if (program.source?.format !== 'SVG_EXTENSION') return null;
+  const root = program.operations.find(operation => operation.canonicalOperation === 'document.create' && operation.sourceCommand === '<svg>');
+  if (!root) return null;
+  const attrs = root.parameters || {};
+  let box;
+  if (attrs.viewBox != null) {
+    box = String(attrs.viewBox).trim().split(/[\s,]+/).map(Number);
+    if (box.length !== 4 || box.some(value => !Number.isFinite(value)) || box[2] <= 0 || box[3] <= 0)
+      throw new Error('INK_SVG_VIEWBOX_INVALID');
+  } else if (attrs.width != null && attrs.height != null) {
+    // The SVG user-space viewport defaults to 0 0 width height without viewBox.
+    // Accept fixed CSS pixel dimensions only; percentages/units are ambiguous.
+    const width = String(attrs.width).trim(), height = String(attrs.height).trim();
+    if (!/^\d+(?:\.\d+)?(?:px)?$/i.test(width) || !/^\d+(?:\.\d+)?(?:px)?$/i.test(height)) return null;
+    box = [0, 0, parseFloat(width), parseFloat(height)];
+    if (box[2] <= 0 || box[3] <= 0) throw new Error('INK_SVG_VIEWBOX_INVALID');
+  } else {
+    return null;
+  }
+  return { kind: SVG_VIEWPORT_FRAME, viewBox: box, preserveAspectRatio: attrs.preserveAspectRatio || 'xMidYMid meet' };
+}
+
 export class ActionRecipeCompiler {
   constructor({ inkVersion = '1.5.0', schemaVersion = 3 } = {}) {
     this.inkVersion = inkVersion;
@@ -137,14 +163,15 @@ export class ActionRecipeCompiler {
       mapping.translationStatus = toUserTranslationStatus(mapping.status, { gapCategory: mapping.gapCategory });
       if (mapping.step && sourceWorkflow) mapping.step.sourceWorkflow = clone({ order: sourceWorkflow.order, condition: sourceWorkflow.condition, repeat: sourceWorkflow.repeat, dependency: sourceWorkflow.dependency, input: sourceWorkflow.input, output: sourceWorkflow.output, unsupportedStep: sourceWorkflow.unsupportedStep });
     }
-    // Adapters declare coordinate frames explicitly; unmarked geometry and
-    // external target roles retain their existing Native world coordinates.
+    // Only root SVG with an explicit viewport opts into SVG-to-world mapping;
+    // other imported Native/Illustrator frames retain their existing contracts.
+    const svgFrame = svgViewportFrame(program);
     const importedBindings = new Map();
     for (const { step } of mappings) {
-      const frame = step?.op === 'path' ? step.params?.attributes?.coordinateFrame : null;
+      const frame = step?.op === 'path' ? (step.params?.attributes?.coordinateFrame || svgFrame) : null;
       if (frame) {
-        step.params.coordinateFrame = frame;
-        if (step.produces?.key) importedBindings.set(step.produces.key, frame);
+        step.params.coordinateFrame = clone(frame);
+        if (step.produces?.key) importedBindings.set(step.produces.key, clone(frame));
       }
     }
     for (const { step } of mappings) {
