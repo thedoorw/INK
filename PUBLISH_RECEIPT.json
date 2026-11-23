@@ -1,13 +1,13 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "99a27f1e24430adf3a829c6b582599b444ff8798",
-  "source_tree": "582f7fd997d5ffbb5c5b9a5e2bdf8e474918563f",
-  "runtime_digest_sha256": "c6b606a880f685662120e762fb9b0e7091370f297bcbb8b94faa8d08481c6be6",
-  "package_manifest_sha256": "f48c9a508e28abbc55ed735ba4f73305b65ed11291a6544f6bab968b73c07915",
+  "source_sha": "0078a44f937efb2d0cd7e07e625fb17c9248ce85",
+  "source_tree": "b730b43116b9ce585e68aa5190f8ed9bd96e4e63",
+  "runtime_digest_sha256": "7b7395595ed6a318e905b7e01fd1d873562c6dd4a4c0194da89d89756b932cbf",
+  "package_manifest_sha256": "3f14dc3e60b8c21145f0ee27f3200680ca83d3821eee6ae5607d5c8afcb7e28f",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "125bb935e5d492ec9dae3c577f8767df869df6ea",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/625#issuecomment-6974188256",
+  "previous_target_commit": "3f6f029d19f87a34dadc33c26de621a8f82d50ac",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/662#issuecomment-7089229902",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -36,14 +36,14 @@
     {
       "path": "BUILD_INFO.json",
       "bytes": 75774,
-      "sha256": "4886a15aefb3688b97b5839f5b901176b05a8315b3c14b3b40e035149e5bfc08",
-      "git_blob_sha": "0190c3961466426a90ea5567005e899d24cc9e89"
+      "sha256": "0f90de24cd8a5698313dccf2a7462256ca88bd93f2aed307c0df002075e534e9",
+      "git_blob_sha": "93c50e5e594fc0a9a6777d4f136fd729f23d0d6b"
     },
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "b6f4d03632476971b5f819dd3592666823dc933873983787dfdb78ea2a225e7f",
-      "git_blob_sha": "cb7c8e7e48420c30efb544890f8ce17db9d64ca4"
+      "sha256": "9c8eab783cb8f760825a939a2aa82c5c17eeea8d960e29e28847545b094eb28e",
+      "git_blob_sha": "63bbc233fd11636b2e79f7f04fdbfe81cef295d2"
     },
     {
       "path": "dist/ink.compat.js",
@@ -239,15 +239,15 @@
     },
     {
       "path": "dist/startup/ink-boot.mjs",
-      "bytes": 2107743,
-      "sha256": "5cfc0b66e50b64d9f2196c17d0a6022880ab7f9abb2bf8ef158938c8a737d26a",
-      "git_blob_sha": "7ae5557b361d1f4731dfcb0f93ebd3753e3c64f1"
+      "bytes": 2110578,
+      "sha256": "196d9c3ea790cd6fffc5341da105d04a47a75337cadff0b8393516c0252b93ba",
+      "git_blob_sha": "81b63a82443688cd009e7f2faa5f8efb81199a66"
     },
     {
       "path": "dist/startup/ink-shell.mjs",
-      "bytes": 286954,
-      "sha256": "0beb42d6c8785f3524284d820fb20a2935b379b7ac6294e49afd6361f5f6830f",
-      "git_blob_sha": "e4f424e407030b2e59e925c612cf49e7028f07e1"
+      "bytes": 287104,
+      "sha256": "20e0a60b4efc03c1645df2e868f9b7bb47ad972783243f73564924dc2b2b4995",
+      "git_blob_sha": "7bfde28674be68a2719436a05736823c01b9ea6a"
     },
     {
       "path": "dist/startup/LICENSES/ag-psd-MIT.txt",
@@ -1721,9 +1721,9 @@
     },
     {
       "path": "src/program-import/compiler.js",
-      "bytes": 19903,
-      "sha256": "6897bad557c0768cfd2bea25942c60af721ada9b3755bf2de0197a7be1651d00",
-      "git_blob_sha": "a8c9c6fff626b66eb0a063acf1ec5f6c866b1296"
+      "bytes": 21479,
+      "sha256": "24daeb0a0055c34bb523b5c42d983f164fbbdbdbd4d818abc75d9bee4654e39e",
+      "git_blob_sha": "956b59c3afb1f22cd9e579290d4201b300c9f602"
     },
     {
       "path": "src/program-import/coverage-engine.js",
@@ -1889,9 +1889,9 @@
     },
     {
       "path": "src/recipe/import-coordinates.js",
-      "bytes": 999,
-      "sha256": "479679264db2fcb32f659f58a562c9e58e525d7fe337ec0ef40c866101bbf0a7",
-      "git_blob_sha": "9ca1c3ee35570cda953b5e6bc3fe43178d1b79ca"
+      "bytes": 2458,
+      "sha256": "a6160102e131cf64f6db0e02cf8af60137ce0a9d555d9f9756afa42cdb81ebef",
+      "git_blob_sha": "626d5030702200ffe713e1d4194fa34a81651bc6"
     },
     {
       "path": "src/recipe/recipe-asset.js",
