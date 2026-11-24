@@ -681,11 +681,12 @@ const iframe=document.getElementById('masterDockFrame');iframe.srcdoc="<!DOCTYPE
 const groups={"file":[[{"label":"新增文件…","key":"new"},{"label":"開啟文件…","key":"open"},{"label":"從 Google Drive 開啟作品…","key":"drive-open"},{"label":"儲存文件","key":"save","when":"doc"},{"label":"儲存到 Google Drive…","key":"drive-save","when":"doc"},{"label":"匯入影像…","key":"import-image","when":"doc"},{"label":"匯出","children":[{"label":"PNG…","key":"export:png"},{"label":"SVG…","key":"export:svg"},{"label":"PDF…","key":"export:pdf"}],"when":"doc","expandPreview":true},{"label":"開啟中的文件","dynamic":"sessions","when":"multi","expandPreview":true},{"label":"關閉文件…","key":"close","when":"doc"},{"label":"文件復原工具…","key":"recover"}]],"edit":[[{"label":"復原","key":"undo"},{"label":"重做","key":"redo"},{"label":"複製選取","key":"copy"},{"label":"貼上","key":"paste"},{"label":"刪除選取物件","key":"delete"},{"label":"複製物件","key":"duplicate"},{"label":"物件變形…","key":"transform"},{"label":"物件變形選項","key":"transform"},{"label":"對齊選取…","key":"align"},{"label":"偏好設定","children":[{"label":"品牌設定…","key":"branding"},{"label":"歷程記錄…","key":"history-limit"}]},{"label":"路徑節點操作","coreOnly":true,"children":[{"label":"插入／刪除節點","coreOnly":true},{"label":"角點／平滑／對稱","coreOnly":true},{"label":"簡化路徑","coreOnly":true},{"label":"細化路徑","coreOnly":true}]}]],"image":[[{"label":"選取影像色彩模式","children":[{"label":"RGB","key":"image-mode:RGB"},{"label":"CMYK","key":"image-mode:CMYK"},{"label":"Lab","key":"image-mode:Lab"}]},{"label":"既有調整項目","coreOnly":true,"children":[{"label":"亮度／對比度","coreOnly":true},{"label":"色階","coreOnly":true},{"label":"曲線","coreOnly":true},{"label":"色相／飽和度","coreOnly":true},{"label":"色彩平衡","coreOnly":true},{"label":"漸層對應","coreOnly":true}]},{"label":"進階調整運算","coreOnly":true,"children":[{"label":"曝光","coreOnly":true},{"label":"自然飽和度","coreOnly":true},{"label":"黑白","coreOnly":true},{"label":"相片濾鏡","coreOnly":true},{"label":"色版混合器","coreOnly":true},{"label":"色彩查詢","coreOnly":true},{"label":"負片","coreOnly":true},{"label":"色調分離","coreOnly":true},{"label":"臨界值","coreOnly":true},{"label":"可選顏色","coreOnly":true}]},{"label":"影像調整","key":"adjustments"},{"label":"選取影像位元深度","children":[{"label":"8 位元","key":"image-depth:8"},{"label":"16 位元","key":"image-depth:16"},{"label":"32 位元","key":"image-depth:32"}]},{"label":"影像尺寸（選取影像）…","key":"image-size"},{"label":"版面尺寸…","key":"canvas-size"},{"label":"裁切選取影像…","key":"crop"},{"label":"整份作品尺寸…","key":"artwork"},{"label":"輸出解析度…","key":"ppi"}]],"select":[[{"label":"物件選取／移動","coreOnly":true},{"label":"自由套索（物件）","coreOnly":true},{"label":"像素選取工具","coreOnly":true,"children":[{"label":"多邊形套索","coreOnly":true},{"label":"磁性套索","coreOnly":true},{"label":"魔術棒","coreOnly":true},{"label":"快速選取","coreOnly":true},{"label":"像素物件選取","coreOnly":true},{"label":"矩形像素選框","coreOnly":true},{"label":"橢圓像素選框","coreOnly":true}]},{"label":"選取合併模式","coreOnly":true,"children":[{"label":"建立新選取","coreOnly":true},{"label":"加入選取","coreOnly":true},{"label":"減去選取","coreOnly":true},{"label":"交集選取","coreOnly":true}]},{"label":"修改選取範圍","coreOnly":true,"children":[{"label":"平滑","coreOnly":true},{"label":"羽化","coreOnly":true},{"label":"擴張","coreOnly":true},{"label":"縮減","coreOnly":true}]},{"label":"清除暫存像素選取","coreOnly":true},{"label":"選取範圍轉遮色片","coreOnly":true}]],"filter":[[{"label":"基礎濾鏡","coreOnly":true,"children":[{"label":"高斯模糊","coreOnly":true},{"label":"銳利化","coreOnly":true},{"label":"高反差保留","coreOnly":true},{"label":"邊緣偵測","coreOnly":true},{"label":"顆粒雜訊","coreOnly":true},{"label":"紋理覆蓋","coreOnly":true}]},{"label":"進階濾鏡","coreOnly":true,"children":[{"label":"動態模糊","coreOnly":true},{"label":"中間值","coreOnly":true},{"label":"遮色片銳利化","coreOnly":true},{"label":"浮雕","coreOnly":true},{"label":"馬賽克","coreOnly":true},{"label":"最小值","coreOnly":true},{"label":"最大值","coreOnly":true},{"label":"減少雜訊","coreOnly":true}]},{"label":"液化","coreOnly":true}]],"view":[[{"label":"放大顯示","key":"zoom-in"},{"label":"縮小顯示","key":"zoom-out"},{"label":"符合內容","key":"fit"},{"label":"符合工作區域","key":"fit-artboard"},{"label":"100%","key":"100"},{"label":"200%","key":"200"},{"label":"多視圖配置","children":[{"label":"單一視圖","key":"view:1"},{"label":"兩個視圖","key":"view:2"},{"label":"四個視圖","key":"view:4"}]},{"label":"靠齊","key":"view:snap"},{"label":"靠齊至","children":[{"label":"參考線","key":"view:snap:guides"},{"label":"邊緣","key":"view:snap:edges"},{"label":"中心","key":"view:snap:centers"},{"label":"等距","key":"view:snap:equalDistance"}]},{"label":"參考線操作","coreOnly":true,"children":[{"label":"新增參考線…","coreOnly":true},{"label":"移動參考線","coreOnly":true},{"label":"顯示／隱藏","coreOnly":true},{"label":"鎖定／解除鎖定","coreOnly":true},{"label":"刪除參考線","coreOnly":true}]}]],"plugins":[[{"label":"Recipe 匯入與執行…","key":"recipe-review"},{"label":"即時協作","expandPreview":true,"children":[{"label":"連線 CHAT","key":"collaboration-review"}]}]],"window":[[{"label":"導覽器 面板","key":"panel:navigator"},{"label":"色彩 面板","key":"panel:color"},{"label":"色票 面板","key":"panel:swatches"},{"label":"字元 面板","key":"panel:character"},{"label":"段落 面板","key":"panel:paragraph"},{"label":"筆刷 面板","key":"panel:brushes"},{"label":"調整 面板","key":"panel:adjustments"},{"label":"圖層 面板","key":"panel:layers"},{"label":"歷程記錄 面板","key":"panel:history"},{"label":"路徑 面板","key":"panel:paths"}]]};
 const cats={file:'檔案',edit:'編輯',image:'影像',select:'選取',filter:'濾鏡',view:'檢視',plugins:'擴充',window:'視窗'};
 const menu=document.getElementById('mainMenu'),logo=document.getElementById('logoButton');
-const d={category:'file',expanded:'',count:1,hasDoc:true,connected:false};
+let connectionTimer;
+const d={category:'file',expanded:'',count:1,hasDoc:true,connection:'idle',driveSaved:new Set()};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const note=t=>{const n=document.getElementById('ur2Notice');n.textContent=t;n.hidden=false;setTimeout(()=>n.hidden=true,2400)};
 // Menu design interactions are local simulations. Native commands remain disabled.
-const previewActions=new Set(['new','branding','drive-save','recipe-review','collaboration-review']);
+const previewActions=new Set(['new','branding','drive-open','drive-save','recipe-review','collaboration-review']);
 function showMenuDraft(key){
  let dialog=document.getElementById('menuDesignDialog');
  if(!dialog){
@@ -695,14 +696,29 @@ function showMenuDraft(key){
   document.body.append(dialog);
  }
  const entries={
-  'drive-save':['儲存到 Google Drive', '<ul><li>未綁定 Drive：首次保存</li><li>已綁定 Drive：建立新版</li></ul>'],
-  'recipe-review':['Recipe 匯入與執行','<details><summary>選擇既有 Recipe</summary><p>從 Recipe 清單選取作品用的 Recipe。</p></details><details><summary>匯入來源</summary><p>選檔後先辨識格式，無法辨識時才顯示支援格式。預覽與核准後執行。</p></details>'],
+  'drive-save':['儲存到 Google Drive', '<p>目前文件：'+(d.count===2?'示意文件 2':'示意文件 A4')+'</p><button type="button" data-drive-save>'+(d.driveSaved.has(d.count)?'建立新版':'首次儲存')+'</button>'],
+  'recipe-review':['Recipe 匯入與執行','<details><summary>選擇既有 Recipe</summary><p>從 Recipe 清單選取作品用的 Recipe。</p></details><details><summary>匯入來源</summary><p><label>選擇來源檔 <input type="file" data-recipe-source></label></p><p data-recipe-status role="status"></p><label data-recipe-fallback hidden>來源格式 <select><option value="">請選擇</option><option>Photoshop Action</option><option>Illustrator JSX</option><option>Figma Skill</option><option>Canva 資料集</option></select></label><p>確認格式後，先預覽與核准，再執行。</p></details>'],
   'collaboration-review':['即時協作','<p>連線、取消與斷線狀態示意。</p>'],
   'drive-open':['從 Google Drive 開啟作品','<p>從已授權的私人作品清單開啟。</p>']
  };
  const [title,body]=entries[key];
  dialog.setAttribute('aria-label',title+'（草稿）');
  dialog.innerHTML='<strong>'+title+'</strong><p>互動草稿</p>'+body+'<form method="dialog"><button>關閉</button></form>';
+ dialog.querySelector('[data-drive-save]')?.addEventListener('click',event=>{
+  d.driveSaved.add(d.count);
+  dialog.close();
+  note(event.currentTarget.textContent+'完成（示意）');
+ });
+ const source=dialog.querySelector('[data-recipe-source]');
+ source?.addEventListener('change',()=>{
+  const file=source.files[0];
+  const extension=file?.name.split('.').pop().toLowerCase();
+  const format=new Map([['atn','Photoshop Action'],['jsx','Illustrator JSX']]).get(extension);
+  const fallback=dialog.querySelector('[data-recipe-fallback]');
+  fallback.hidden=!file||Boolean(format);
+  fallback.querySelector('select').value='';
+  dialog.querySelector('[data-recipe-status]').textContent=format?'辨識為 '+format:file?'請選擇來源格式':'';
+ });
  if(!dialog.open)dialog.showModal();
 }
 document.addEventListener('ink-menu-design-preview',e=>showMenuDraft(e.detail));
@@ -716,7 +732,7 @@ function item(x){
  return '<div class="menu-item-host"><button type="button" class="menu-row'+(x.coreOnly?' menu-row-core':'')+'" role="menuitem" title="'+stateHint+'" '+(preview?'data-preview-only="true" ':'')+(ch?'data-msub="'+esc(x.label)+'" aria-haspopup="menu" aria-expanded="'+open+'"':x.key?'data-mcmd="'+esc(x.key)+'"':'')+' '+(valid?'':'disabled aria-disabled="true"')+'><span class="menu-label">'+label+'</span>'+(ch?'<span class="menu-chevron" aria-hidden="true">›</span>':'')+'</button>'+(open?'<div class="menu-submenu" role="menu">'+ch.map(item).join('')+'</div>':'')+'</div>';
 }
 function render(){
- menu.innerHTML='<div class="menu-grid"><nav class="menu-categories" role="tablist" aria-label="功能表分類">'+Object.entries(cats).map(([k,v])=>'<button type="button" class="menu-category'+(d.category===k?' active':'')+'" data-mcat="'+k+'" role="tab" aria-selected="'+(d.category===k)+'">'+v+'</button>').join('')+'</nav><div class="menu-panes"><div class="menu-pane" role="menu">'+groups[d.category].map(g=>'<div class="menu-group">'+g.filter(x=>x.when==='multi'?d.count>1:x.when==='doc'?d.hasDoc:true).map(x=>item(x.label==='即時協作'&&d.connected?{label:'已連線 CHAT（示意）｜斷線',key:'collaboration-review'}:x)).join('')+'</div>').join('')+'</div></div></div>';
+ menu.innerHTML='<div class="menu-grid"><nav class="menu-categories" role="tablist" aria-label="功能表分類">'+Object.entries(cats).map(([k,v])=>'<button type="button" class="menu-category'+(d.category===k?' active':'')+'" data-mcat="'+k+'" role="tab" aria-selected="'+(d.category===k)+'">'+v+'</button>').join('')+'</nav><div class="menu-panes"><div class="menu-pane" role="menu">'+groups[d.category].map(g=>'<div class="menu-group">'+g.filter(x=>x.when==='multi'?d.count>1:x.when==='doc'?d.hasDoc:true).map(x=>item(x.label==='即時協作'&&d.connection!=='idle'?{label:d.connection==='pending'?'正在連線 CHAT · 取消':'已連線 CHAT · 斷線',key:'collaboration-review'}:x)).join('')+'</div>').join('')+'</div></div></div>';
 }
 function close(){menu.hidden=true;d.expanded='';logo.setAttribute('aria-expanded','false')}
 function open(){menu.hidden=false;d.expanded='';logo.setAttribute('aria-expanded','true');render()}
@@ -740,12 +756,27 @@ menu.addEventListener('click',e=>{
  const c=e.target.closest('[data-mcat]'),sub=e.target.closest('[data-msub]'),action=e.target.closest('[data-mcmd]');
  if(c){d.category=c.dataset.mcat;d.expanded='';render()}
  else if(sub&&!sub.disabled){d.expanded=d.expanded===sub.dataset.msub?'':sub.dataset.msub;render()}
- else if(action&&!action.disabled){const k=action.dataset.mcmd;close();if(k==='new')mockNew();else if(k==='branding')window.INK_MASTER_BRANDING_OPEN?.();else if(k==='collaboration-review'){d.connected=!d.connected;note(d.connected?'已連線 CHAT（示意）':'已斷線（示意）');open()}else showMenuDraft(k)}
+ else if(action&&!action.disabled){const k=action.dataset.mcmd;close();if(k==='new')mockNew();else if(k==='branding')window.INK_MASTER_BRANDING_OPEN?.();else if(k==='collaboration-review'){const before=d.connection;
+ d.connection=before==='idle'?'pending':'idle';
+ open();
+ if(before==='idle'){
+  connectionTimer=setTimeout(()=>{
+   d.connection='connected';
+   const focused=menu.contains(document.activeElement);
+   if(!menu.hidden)render();
+   if(focused)menu.querySelector('[data-mcmd="collaboration-review"]')?.focus();
+   note('已連線 CHAT（示意）');
+  },3500);
+ }else{
+  clearTimeout(connectionTimer);
+  note(before==='pending'?'已取消連線（示意）':'已斷線（示意）');
+ }
+ menu.querySelector('[data-mcmd="collaboration-review"],[data-msub="即時協作"]')?.focus()}else showMenuDraft(k)}
 });
 menu.addEventListener('pointerover',e=>{
  const c=e.target.closest('[data-mcat]'),sub=e.target.closest('[data-msub]');
  if(c&&c.dataset.mcat!==d.category){d.category=c.dataset.mcat;d.expanded='';render()}
- if(sub&&!sub.disabled&&d.expanded!==sub.dataset.msub){d.expanded=sub.dataset.msub;render()}
+ if(!['file','plugins'].includes(d.category)&&sub&&!sub.disabled&&d.expanded!==sub.dataset.msub){d.expanded=sub.dataset.msub;render()}
 });
 document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!logo.contains(e.target))close()});
 document.addEventListener('keydown',e=>{
@@ -759,7 +790,7 @@ document.addEventListener('keydown',e=>{
 });
 window.INK_UI_MASTER_DRAFT={version:'0.1',status:'MERGED_HANDOFF_PENDING_SECTIONS_ACTIVE',native:false,
  sources:{UI1:'v4.1',UI2:'v006 (provisional)',UI3:'R2.11'},
- menuExecution:{native:false,previewOnly:['new','branding'],disabledByDefault:true},
+ menuExecution:{native:false,previewOnly:[...previewActions],disabledByDefault:true},
  inspect:()=>({categories:Object.keys(groups).length,menuRoots:Object.values(groups).flat(2).length,menuDetails:Object.values(groups).flat(2).reduce((sum,row)=>sum+(row.children?.length||0),0),ur2Tools:window.INK_UR2_PREVIEW_006?.snapshot?.().tools??null,ur3Dock:!!iframe.contentDocument?.querySelector('.dock'),documentPreview:d.hasDoc})
 };
 })();
