@@ -637,7 +637,7 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
   if(key==='drive-recover')return Boolean(host.app?.driveLinkStartup);
   if(key==='drive-save'||key==='drive-save-revision')
     return Boolean(host.app?.driveLinkStartup)&&v.hasDoc;
-  if(['new','open','about','branding','native-tools','recover','history-limit'].includes(key)||key.startsWith('panel:'))return true;
+  if(['new','open','open-location','about','branding','native-tools','recover','history-limit'].includes(key)||key.startsWith('panel:'))return true;
   if(!v.hasDoc)return false;
   if(key.startsWith('session:'))return v.sessions.some(x=>x.sessionId===key.slice(8));
   if(key==='align')return !v.s.object?.locked&&(v.s.target?.refs?.length||0)>=2;
@@ -656,10 +656,25 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
   const activeValue=item.key==='view:snap'?v.snapEnabled:item.key?.startsWith('view:snap:')?v.snapCategories[item.key.slice(10)]===true:item.key?.startsWith('image-mode:')?v.rasterInfo?.colorMode===item.key.slice(11):item.key?.startsWith('image-depth:')?v.rasterInfo?.bitDepth===Number(item.key.slice(12)):false;
   return `<div class="menu-item-host"><button type="button" class="menu-row${item.coreOnly?' menu-row-core':''}" role="menuitem" ${children?'data-submenu="'+esc(item.label)+'" aria-haspopup="menu" aria-expanded="'+Boolean(expanded)+'"':item.coreOnly?'':'data-command="'+esc(item.key)+'"'} ${valid?'':'disabled aria-disabled="true"'}><span class="menu-label">${esc(item.label)}${activeValue?' ✓':''}</span>${item.shortcut?'<span class="menu-shortcut">'+esc(item.shortcut)+'</span>':''}${children?'<span class="menu-chevron" aria-hidden="true">›</span>':''}</button>${children&&expanded?'<div class="menu-submenu" role="menu" aria-label="'+esc(item.label)+'">'+children.map(x=>renderRow(x,v,true)).join('')+'</div>':''}</div>`;
  };
+ const desktopMenu=matchMedia('(min-width:761px) and (min-height:481px), (min-width:761px) and (pointer:fine)');
+ const desktopFile=[
+  [{label:'新增文件…',key:'new'},{label:'開啟…',key:'open-location'},{label:'開啟中的文件',dynamic:'sessions',when:'multi'}],
+  [{label:'儲存',key:'save',when:'doc'},{label:'另存為…',key:'save-location',when:'doc'}],
+  [{label:'匯入影像…',key:'import-image',when:'doc'},{label:'匯出',children:groups.file[0].find(item=>item.children).children,when:'doc'}],
+  [{label:'關閉文件…',key:'close',when:'doc'},{label:'文件復原工具…',key:'recover'}]
+ ];
+ const desktopPlugins=[[{
+  label:'Recipe',children:[{label:'選擇既有 Recipe',key:'recipe-engine'},{label:'匯入 Recipe…',key:'recipe-workflow'}]
+ }]];
+ const visibleGroups=v=>{
+  if(desktopMenu.matches&&category==='file')return desktopFile.map(group=>group.filter(item=>item.when==='multi'?v.sessions.length>1:item.when==='doc'?v.hasDoc:true)).filter(group=>group.length);
+  if(desktopMenu.matches&&category==='plugins')return desktopPlugins;
+  return category==='window'?[...groups.window,...(v.sessions.length?[v.sessions.map(x=>({label:(x.title||'Untitled')+(x.active?' ✓':''),key:'session:'+x.sessionId}))]:[])]:groups[category];
+ };
  const render=()=>{
   if(menu.hidden)return;
   const v=state();
-  menu.innerHTML=`<div class="menu-grid"><nav class="menu-categories" role="tablist" aria-orientation="vertical" aria-label="Application menu categories">${Object.keys(groups).map(k=>'<button class="menu-category'+(category===k?' active':'')+'" role="tab" data-category="'+k+'" aria-selected="'+(category===k)+'">'+esc(categoryNames[k])+'</button>').join('')}</nav><div class="menu-panes"><div class="menu-pane" role="menu" aria-label="${esc(category)}">${(category==='window'?[...groups.window,...(v.sessions.length?[v.sessions.map(x=>({label:(x.title||'Untitled')+(x.active?' ✓':''),key:'session:'+x.sessionId}))]:[])]:groups[category]).map(group=>'<div class="menu-group">'+group.map(item=>renderRow(item,v)).join('')+'</div>').join('')}</div></div></div>`;
+  menu.innerHTML=`<div class="menu-grid"><nav class="menu-categories" role="tablist" aria-orientation="vertical" aria-label="Application menu categories">${Object.keys(groups).map(k=>'<button class="menu-category'+(category===k?' active':'')+'" role="tab" data-category="'+k+'" aria-selected="'+(category===k)+'">'+esc(categoryNames[k])+'</button>').join('')}</nav><div class="menu-panes"><div class="menu-pane" role="menu" aria-label="${esc(category)}">${visibleGroups(v).map(group=>'<div class="menu-group">'+group.map(item=>renderRow(item,v)).join('')+'</div>').join('')}</div></div></div>`;
  };
  const close=(restore=false)=>{menu.hidden=true;logo.setAttribute('aria-expanded','false');submenu=null;wasOpen=false;if(restore)logo.focus();};
  const open=()=>{menu.hidden=false;logo.setAttribute('aria-expanded','true');wasOpen=true;render();menu.querySelector('[data-category="'+category+'"]')?.focus();};

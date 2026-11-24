@@ -139,7 +139,7 @@ export function createDriveNativeLinks(app, { getAccessToken, fetchImpl = global
           nativeFingerprint:inspectDocument(app.doc).fingerprint,persisted:true };
       });
     },
-    async saveAsRevision() {
+    async saveAsRevision({filename}={}) {
       return exclusive(async () => {
         const source = app.doc;
         if (!app.documentOpen) fail('INK_LINK_NO_NATIVE_DOCUMENT');
@@ -153,7 +153,8 @@ export function createDriveNativeLinks(app, { getAccessToken, fetchImpl = global
         if (bytes.length > MAX_BYTES) fail('INK_LINK_SIZE_LIMIT');
         const sha256 = await digest(bytes), parent = bindings.get(source.id)||app.sessions?.active?.()?.values.driveLinkIdentity;
         // Immutable revisions avoid cross-client lost updates. Never PATCH/overwrite a file.
-        const metadata = {name:'INK-'+source.id+'-'+sha256.slice(0,12)+'.ink',mimeType:'application/json',
+        const stem=typeof filename==='string'?filename.trim().replace(/\.ink$/i,'').trim().slice(0,180):'';
+        const metadata = {name:(stem||'INK-'+source.id+'-'+sha256.slice(0,12))+'.ink',mimeType:'application/json',
           appProperties:{nativeDocumentId:source.id,nativeSha256:sha256,...(parent?{nativeParentFile:parent.fileId}:{})}};
         const boundary = 'ink_'+crypto.randomUUID().replaceAll('-','');
         const multipart = new Blob(['--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n',
