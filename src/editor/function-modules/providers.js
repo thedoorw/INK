@@ -43,7 +43,7 @@ export function createDocumentIOModule(version='1.0.0'){
     const p=ctx.services;
     ctx.command('document.new.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER',{documentPolicy:'MAY_REPLACE_DOCUMENT',async:true}),run:(args,envelope,execution)=>p.newDocument(args,execution)});
     ctx.command('document.open.v1',{...meta('PRESERVE_EXISTING_ROUTE','FULL_RENDER',{async:true,documentPolicy:'MAY_REPLACE_DOCUMENT'}),validate:args=>{if(!args.file)throw Object.assign(new Error('File required'),{code:'ARGUMENTS_INVALID'});},run:(args,envelope,execution)=>p.open(args.file,execution)});
-    ctx.command('document.save.v1',{...meta('NONE','OUTPUT_ONLY',{async:true}),run:(args,envelope,execution)=>p.save(execution)});
+    ctx.command('document.save.v1',{...meta('NONE','OUTPUT_ONLY',{async:true}),run:(args,envelope,execution)=>p.save(execution,typeof args?.filename==='string'?args.filename:null)});
     ctx.command('export.png.v1',{...meta('NONE','OUTPUT_ONLY',{async:true}),run:(args,envelope,execution)=>p.exportPNG(args,execution)});
     ctx.selector('document.current',()=>p.current());
   });

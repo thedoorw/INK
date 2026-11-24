@@ -80,7 +80,7 @@ export function mountNativeShell(app,root){
   overlay.querySelector('[data-key="format"]').value=format;
   overlay.querySelector('[data-apply]').textContent='Export';
  }
- const command=async key=>{
+ const command=async (key,{filename}={})=>{
   menuUi?.close(menu.contains(document.activeElement));const s=host.getSnapshot();
   if(key==='native-tools'){const panel=root.querySelector('#nativeFunctionDialog');panel.hidden=false;(panel.querySelector('[data-recovery-key]')||panel.querySelector('button'))?.focus();return}
   if(key==='recover')return command('native-tools');
@@ -97,15 +97,29 @@ export function mountNativeShell(app,root){
     return {ok:false,code:'INK_DRIVE_FIRST_PARTY_NOT_READY'};
    }
    const intent=key==='drive-recover'?'recover':key==='drive-save-revision'?'save-revision':'save';
-   return mounted.service.showPanel(intent);
+   return mounted.service.showPanel(intent,{filename});
   }
   if(/^view:[124]$/.test(key))return run('session.view.layout.v1',{layout:Number(key.slice(5))});
   if(key.startsWith('session:'))return run('session.activate.v1',{sessionId:key.slice(8)});
   if(key==='undo'||key==='redo')return run('history.'+key+'.v1');
+  if(key==='open-location'||key==='save-location'){
+   const opening=key==='open-location';
+   const title=opening?'開啟':'另存為';
+   const name=opening?'':'<label class="field-row"><span>名稱</span><input data-key="filename" maxlength="180" value="'+esc(host.select('document.current')?.title||s.docs[0]?.title||'INK')+'"></label>';
+   dialog(title,'<label class="field-row"><span>位置</span><select data-key="location"><option value="local">這台裝置</option><option value="drive">Google Drive</option></select></label>'+name,({location,filename})=>{
+    if(!opening&&!filename?.trim())return {ok:false,error:{message:'請輸入名稱。'}};
+    close();
+    const target=location==='drive'?(opening?'drive-recover':'drive-save-revision'):(opening?'open':'save');
+    return command(target,{filename});
+   });
+   overlay.querySelector('[data-cancel]').textContent='取消';
+   overlay.querySelector('[data-apply]').textContent=title;
+   return;
+  }
   if(key==='new')return openSizeRoute('new');
   if(key==='open')return $('#openFile').click();if(key==='import-image'){importTarget={target:host.target(),layerId:s.docs[0]?.selection};return $('#importImageFile').click()}
   if(key==='close')return closeDocumentDialog();
-  if(key==='save')return run('document.save.v1');if(key.startsWith('export:'))return exportDialog(key.slice(7));
+  if(key==='save')return run('document.save.v1',filename?{filename}:undefined);if(key.startsWith('export:'))return exportDialog(key.slice(7));
   if(key==='copy'||key==='paste')return run('session.'+key+'.v1');
   if(key==='branding'){globalThis.dispatchEvent(new Event('ink:branding-open'));return}
   if(key==='ppi'||key==='artwork'||key==='canvas-size')return openSizeRoute(key==='canvas-size'?'canvas':key);

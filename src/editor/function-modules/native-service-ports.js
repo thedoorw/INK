@@ -192,9 +192,9 @@ export function createNativeFunctionServicePorts(app){
         if(opened===false)throw Object.assign(new Error('Project open failed'),{code:'COMMAND_FAILED'});
         return{changed:true,result:{documentId:app.doc?.id||null,title:app.doc?.title||null}};
       },
-      save:async execution=>{
+      save:async (execution,filename)=>{
         execution?.assertDocumentCurrent?.();
-        const saved=await app.saveProject?.(execution);
+        const saved=await app.saveProject?.(execution,filename);
         if(saved===false)throw Object.assign(new Error('Project save failed'),{code:'COMMAND_FAILED'});
         execution?.assertDocumentCurrent?.();
         return{changed:false,result:{saved:true}};

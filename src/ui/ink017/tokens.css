@@ -31,6 +31,10 @@
 .completion-anchor{fill:var(--surface);stroke:var(--accent);stroke-width:1}
 .main-menu{position:absolute;z-index:80;left:6px;top:48px;width:280px;max-width:calc(100% - var(--rail-width) - 8px);padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002;color:var(--primary)}
 .menu-grid{display:grid;grid-template-columns:55px minmax(0,1fr);gap:6px;align-items:start}
+@media (min-width:761px) and (min-height:481px), (min-width:761px) and (pointer:fine){
+  #mainMenu.main-menu{left:var(--rail-width);top:0;width:max-content}
+  #mainMenu .menu-grid{grid-template-columns:64px minmax(104px,max-content)}
+}
 .menu-categories{display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line);padding-right:6px}
 .menu-category,.menu-row{border:0;border-radius:var(--radius);background:transparent;min-height:0;font-size:var(--text);font-weight:var(--weight);color:var(--primary)}
  .menu-category{display:block;height:28px;width:100%;padding:0 6px;text-align:left}
@@ -46,6 +50,12 @@
 .menu-shortcut{font-size:var(--text-tiny);color:var(--secondary);margin-left:auto;flex-shrink:0}
 .menu-chevron{font-size:15px;color:var(--secondary);line-height:1;margin-left:3px;flex-shrink:0}
 .menu-submenu{position:relative;left:auto;top:auto;z-index:auto;width:auto;max-width:100%;margin-left:7px;padding:3px 0 3px 5px;background:var(--surface);border:0;border-left:2px solid var(--line);border-radius:0;box-shadow:none}
+/* Approved desktop Master: submenus fly out beyond the primary pane; keep the compact inline fallback for touch/mobile. */
+@media (min-width:761px) and (min-height:481px), (min-width:761px) and (pointer:fine){
+ #mainMenu .menu-pane:has(.menu-submenu){max-height:calc(100dvh - 40px);overflow:visible}
+ #mainMenu .menu-submenu{position:absolute;left:calc(100% - 1px);top:-6px;z-index:85;width:184px;max-width:none;margin-left:7px;padding:6px 6px 6px 5px;background:var(--surface);border:1px solid var(--border);border-left:2px solid #ddd;border-radius:8px;box-shadow:0 8px 24px #0002}
+ #mainMenu .menu-submenu .menu-row{min-height:28px}
+}
 .menu-category:focus-visible,.menu-row:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
 .menu-row.menu-row-core{color:var(--secondary)}.menu-row.menu-row-core:disabled{color:var(--disabled);opacity:.75}.menu-row.menu-row-core[aria-haspopup="menu"]{cursor:pointer}.menu-submenu .menu-row{min-height:26px;height:auto;padding-block:4px}
 .overlay{position:absolute;z-index:90;inset:0;display:grid;place-items:center;background:#0002}.dialog{position:relative;width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 24px);background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 30px #0003;display:flex;flex-direction:column;overflow:hidden}.dialog-header{height:var(--dialog-header-height);flex:0 0 var(--dialog-header-height);padding:0 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);font-size:var(--text-dialog);font-weight:var(--weight-strong);touch-action:none;cursor:move}.dialog-close{height:28px;min-height:28px;width:28px;flex:0 0 28px;border:0;padding:0;display:grid;place-items:center;background:transparent;color:var(--secondary)}.dialog-body{padding:var(--dialog-body-padding);overflow:auto;min-height:0}.dialog-footer{height:var(--dialog-footer-height);flex:0 0 var(--dialog-footer-height);display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 12px;border-top:1px solid var(--line)}.dialog-footer button{min-height:var(--action-height);min-width:var(--action-min-width);padding:0 10px}.dialog-footer button.primary{background:var(--primary);color:var(--surface);border-color:var(--primary);font-weight:var(--weight-strong)}.dialog-footer button.primary:hover{background:#111}.dialog-footer [data-cancel],.dialog-footer [data-close-choice="cancel"],.dialog-footer [data-size-cancel]{background:var(--surface);color:var(--secondary);border-color:var(--border)}.primary{background:var(--accent);color:white;border-color:var(--accent)}.pref-tabs{display:flex;gap:4px;margin-bottom:16px}.pref-tabs .active{background:var(--accent-soft)}.branding-preview{height:56px;display:flex;align-items:center;gap:8px}.branding-preview img{max-width:48px;max-height:48px}.logo-image{width:24px;height:24px;object-fit:contain}.file-row{margin:8px 0}.file-row input{height:auto}.dialog .field-row{grid-template-columns:120px minmax(0,1fr)}.dialog-body input:not([type=checkbox]):not([type=radio]),.dialog-body select{height:var(--action-height);min-height:var(--action-height)}#toast{position:absolute;z-index:100;bottom:72px;left:50%;transform:translateX(-50%);max-width:90%;padding:8px 12px;border-radius:6px;background:var(--primary);color:white;pointer-events:none}#toast:empty{display:none}
@@ -275,6 +285,8 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 /* Navigator: centre a single undistorted document preview, without a full-workspace raster. */
 .right-dock .panel-host[data-panel=navigator] .navigator-preview-frame{display:flex;flex:1 1 auto;align-items:center;justify-content:center;min-height:0;overflow:hidden;background:var(--ps-panel);padding:3px 2px}
 .right-dock .panel-host[data-panel=navigator] .navigator-preview{flex:0 1 auto;min-width:0;min-height:0;margin:0;height:auto;max-width:100%;max-height:100%;border:1px solid var(--ps-divider);background:var(--ps-panel-soft)}
+/* Preserve Master thumbnail colors without altering Native pan or empty-state behavior. */
+.right-dock .panel-host[data-panel=navigator] .navigator-preview:not(.empty-preview){background-color:#f5f5f5!important;border-color:#d6d6d6}
 .right-dock .panel-host[data-panel=navigator] .navigator-preview.empty-preview{border-color:transparent;background:transparent}
 #shell .right-dock .panel-host[data-panel=navigator] .navigator-preview img{width:100%;height:100%;object-fit:contain;display:block}
 .right-dock .panel-host[data-panel=navigator] .navigator-controls{flex:0 0 26px;margin-top:3px}
@@ -448,3 +460,5 @@ html.ui017-loading #app{visibility:hidden}html.ui017-loading .ink-boot-gate{disp
 #shell .right-dock .panel-host[data-panel=layers] .layer-controls>fieldset{display:block;border:0;padding:0;margin:0;min-width:0}
 #shell .right-dock .panel-host[data-panel=layers] .layer-native-lock-row{grid-column:1 / -1}
 
+
+.navigator-viewport{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}

@@ -82,7 +82,9 @@ export async function mountDriveNativeLink(app,{config,ready,documentObject=docu
     save.textContent='儲存新版本並取得連結';
     return receipt;
   }
+  let requestedFilename;
   async function saveArtwork(){
+    const filename=requestedFilename;
     if(!app.documentOpen)throw Object.assign(new Error('INK_LINK_NO_NATIVE_DOCUMENT'),{code:'INK_LINK_NO_NATIVE_DOCUMENT'});
     if(!isCurrentPinnedDocument())
       throw Object.assign(new Error('INK_LINK_PINNED_DOCUMENT_NOT_OPENED'),{code:'INK_LINK_PINNED_DOCUMENT_NOT_OPENED'});
@@ -91,7 +93,7 @@ export async function mountDriveNativeLink(app,{config,ready,documentObject=docu
     // Native sessions may change while GIS consent is pending.
     if(!isCurrentPinnedDocument())
       throw Object.assign(new Error('INK_LINK_PINNED_DOCUMENT_NOT_OPENED'),{code:'INK_LINK_PINNED_DOCUMENT_NOT_OPENED'});
-    const receipt=await client.saveAsRevision();
+    const receipt=await client.saveAsRevision({filename});
     currentIdentity=parseDriveNativeLink(receipt.link);
     pinnedOpenConfirmed=true;
     link.href=receipt.link;link.hidden=false;link.focus();
@@ -104,7 +106,8 @@ export async function mountDriveNativeLink(app,{config,ready,documentObject=docu
   // Menu routing only reveals this real, accessible first-party dialog. An
   // additional click on the original button is deliberate: GIS consent must
   // start in a genuine user activation on an authorized INK origin.
-  function showPanel(intent='save'){
+  function showPanel(intent='save',{filename}={}){
+    requestedFilename=filename;
     if(!['save','save-revision','recover','open'].includes(intent))
       throw Object.assign(new Error('INK_LINK_MENU_INTENT_INVALID'),{code:'INK_LINK_MENU_INTENT_INVALID'});
     const maySave=refreshSaveEligibility();
