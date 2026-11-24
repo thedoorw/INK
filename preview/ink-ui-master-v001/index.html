@@ -40,9 +40,9 @@
 .menu-pane{max-height:calc(100dvh - 40px);overflow:visible}
 .menu-group+.menu-group{border-top:1px solid var(--line);padding-top:3px;margin-top:3px}
 .menu-item-host{position:relative}
-.menu-row{width:100%;height:28px;display:flex;align-items:center;gap:4px;text-align:left;padding:0 6px;white-space:nowrap}
+.menu-row{width:100%;min-height:28px;display:flex;align-items:center;gap:4px;text-align:left;padding:4px 6px}
 .menu-row:disabled{opacity:1;color:var(--secondary);cursor:default}.menu-row[data-preview-only="true"]{color:var(--secondary)}.menu-row[data-preview-only="true"] .menu-preview-suffix{font-size:var(--text-tiny);color:var(--secondary)}.menu-row:disabled .menu-shortcut,.menu-row:disabled .menu-chevron{color:var(--secondary)}.menu-row[data-command^="export:"]:not(:disabled) .menu-label{font-weight:var(--weight-strong)}
-.menu-label{flex:1 1 auto;min-width:0;overflow:visible;text-overflow:clip;white-space:nowrap}
+.menu-label{flex:1 1 auto;min-width:0;white-space:normal;overflow-wrap:anywhere}.menu-row .menu-chevron{flex:none}
 .menu-shortcut{font-size:var(--text-tiny);color:var(--secondary);margin-left:auto;flex-shrink:0}
 .menu-chevron{font-size:16px;color:var(--secondary);line-height:1;margin-left:auto}
 .menu-submenu{position:absolute;left:calc(100% - 1px);top:-6px;z-index:85;width:184px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px #0002}
@@ -727,7 +727,7 @@ function item(x){
  let ch=x.children||(x.dynamic==='sessions'&&d.count>1?[{label:'示意文件 A4',coreOnly:true},{label:'示意文件 2',coreOnly:true}]:null);
  const valid=ch?(x.expandPreview||ch.some(wired)):wired(x),open=!!ch&&d.expanded===x.label;
  const preview=valid&&(!!x.key||!!ch);
- const label=esc(x.label)+(wired(x)?'<span class="menu-preview-suffix">（草稿）</span>':'');
+ const label=esc(x.label);
  const stateHint=valid?'僅 Master 草稿可互動，不執行 Native 命令':'尚未接入 Master Native；此項不可操作';
  return '<div class="menu-item-host"><button type="button" class="menu-row'+(x.coreOnly?' menu-row-core':'')+'" role="menuitem" title="'+stateHint+'" '+(preview?'data-preview-only="true" ':'')+(ch?'data-msub="'+esc(x.label)+'" aria-haspopup="menu" aria-expanded="'+open+'"':x.key?'data-mcmd="'+esc(x.key)+'"':'')+' '+(valid?'':'disabled aria-disabled="true"')+'><span class="menu-label">'+label+'</span>'+(ch?'<span class="menu-chevron" aria-hidden="true">›</span>':'')+'</button>'+(open?'<div class="menu-submenu" role="menu">'+ch.map(item).join('')+'</div>':'')+'</div>';
 }
