@@ -852,7 +852,7 @@ menu.addEventListener('click',e=>{
 menu.addEventListener('pointerover',e=>{
  const c=e.target.closest('[data-mcat]'),sub=e.target.closest('[data-msub]');
  if(c&&c.dataset.mcat!==d.category){d.category=c.dataset.mcat;d.expanded='';render()}
- if(!['file','plugins'].includes(d.category)&&sub&&!sub.disabled&&d.expanded!==sub.dataset.msub){d.expanded=sub.dataset.msub;render()}
+ if(e.pointerType==='mouse'&&sub&&!sub.disabled&&d.expanded!==sub.dataset.msub){d.expanded=sub.dataset.msub;render()}
 });
 document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!logo.contains(e.target))close()});
 document.addEventListener('keydown',e=>{
