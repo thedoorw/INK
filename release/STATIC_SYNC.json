@@ -4,50 +4,50 @@
   "action": "publish",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "fc0b9831ecb3f1df1036d66497d291e83f4f2307",
-    "product_tree": "4c8e17d16a2b2985e795d3ed497de25420783abd"
+    "exact_sha": "afc58a2a965824eb0b649a55201ed782409c0f1e",
+    "product_tree": "6dba38659f6e52ebed2a3203dd03db2be81b95c3"
   },
-  "build_id": "src-399668aa9c24e53334a5ab3d",
-  "runtime_digest_sha256": "6ce4f0129c3f732cd346a93831ff494d647e47d7f5bc7688b6770b28424312b4",
+  "build_id": "src-e1cc251bf1723172a0f84db7",
+  "runtime_digest_sha256": "eba45e71f73039cb3d4467bb877fbe6c2dc9cecc3356d6108647d8ee5c377c94",
   "package_manifest_sha256": "ccd5551553acbebe57b89a723dd680afa0a95d61a3a649e72e3d327f67555f74",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
   "target": {
     "repo": "thedoorw/INK",
     "branch": "main",
-    "expected_head": "0f354b7ccf87e83e20d3dda0d6c63220be0e8213",
-    "expected_tree": "bfe9c076c52ea3c206d269ca2d57dd430e3b4c72",
-    "prior_receipt_sha256": "2e4c13c6b3345483d03ab445b7f5c9328cd1bedc34fac118d1eb284994344f87"
+    "expected_head": "e01123566da08ff159931a7caa86045bd8f6ea93",
+    "expected_tree": "25c930c37d5ac42dbf49fbabcb91d3c448ca19f0",
+    "prior_receipt_sha256": "9823433fefd4ea6f96d318c2ec6bfb9613ffb5ff2fc6f009faaf24bbdb923ad8"
   },
   "qualification": {
-    "source_tree": "4c8e17d16a2b2985e795d3ed497de25420783abd",
+    "source_tree": "6dba38659f6e52ebed2a3203dd03db2be81b95c3",
     "runs": [
       {
-        "profile": "ink684-rebuilt-startup-ui-windows-v1",
-        "id": 45415307265,
+        "profile": "ink689-navigator-matte-windows-v1",
+        "id": 45520305251,
         "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
-        "workflow_blob": "a85e92e999c952905174ec38defbdfcd0a17671f",
-        "head_sha": "0ead76ab1040a6dae931b03512f0a139b6d107b0",
-        "tested_sha": "71f68b5ac5c1914ed38f700d40e2cdf5a1c96bc6"
+        "workflow_blob": "7335ed376487264efb9d379c5f0d4587ba790812",
+        "head_sha": "f8b7b9d3b7a01824da30d2ff347c2185ba153dcf",
+        "tested_sha": "41bd8fef62ac8a1f16b4458d935020fe80989196"
       }
     ]
   },
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/684",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/689",
   "rollback": {
-    "public_commit": "0f354b7ccf87e83e20d3dda0d6c63220be0e8213",
-    "receipt_sha256": "2e4c13c6b3345483d03ab445b7f5c9328cd1bedc34fac118d1eb284994344f87",
-    "source_sha": "0078a44f937efb2d0cd7e07e625fb17c9248ce85",
-    "source_tree": "b730b43116b9ce585e68aa5190f8ed9bd96e4e63"
+    "public_commit": "e01123566da08ff159931a7caa86045bd8f6ea93",
+    "receipt_sha256": "9823433fefd4ea6f96d318c2ec6bfb9613ffb5ff2fc6f009faaf24bbdb923ad8",
+    "source_sha": "fc0b9831ecb3f1df1036d66497d291e83f4f2307",
+    "source_tree": "4c8e17d16a2b2985e795d3ed497de25420783abd"
   },
   "files": [
     {
       "path": "BUILD_INFO.json",
-      "bytes": 75772,
-      "sha256": "aae026469347ae62d1232d3e7a8d22dc40f2d7367132d9ee8dbd499040a1a1cd"
+      "bytes": 75769,
+      "sha256": "6cb0644c642681e5045ba7c4be1e20d637676110a4461ad3b17854eaade314ce"
     },
     {
       "path": "PUBLISH_RECEIPT.json",
       "bytes": 98344,
-      "sha256": "9823433fefd4ea6f96d318c2ec6bfb9613ffb5ff2fc6f009faaf24bbdb923ad8"
+      "sha256": "77c132d04fbd120cfc11258e543f290c06e8dc7d540ac5c01b0b57cffd83a599"
     },
     {
       "path": "assets/INK_MARK_SOURCE_W-300.jpg",
@@ -72,7 +72,7 @@
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "050d398e6c348a1af28391d93fc55d718903814d4ba3cd886d1b8a690d80e3ba"
+      "sha256": "765cbc4a3d82a94b80eb3d1e10f92c12eadb70398530e102eb1ea88fd5b9a7b9"
     },
     {
       "path": "dist/ink.compat.js",
@@ -256,8 +256,8 @@
     },
     {
       "path": "dist/startup/ink-boot.mjs",
-      "bytes": 2110703,
-      "sha256": "4ffc141cf7abbd499d58ae8a2cec062ab3620eabdfc3bf36a1d57ca2f35b3f8a"
+      "bytes": 2110792,
+      "sha256": "27b758aceeb86918b830f10615327c4cb54ab3e897454ae240ee3a2acf142623"
     },
     {
       "path": "dist/startup/ink-shell.mjs",
@@ -911,8 +911,8 @@
     },
     {
       "path": "src/editor/function-modules/native-service-ports.js",
-      "bytes": 35562,
-      "sha256": "0e0fdf737fbcf39f7144700d85df7bd99e35279fbd74401a4848ad07a26c9ca8"
+      "bytes": 35591,
+      "sha256": "c98aa0150327f1b0191f0dcb218efa7df20c970ab1e6008933a0912b84459481"
     },
     {
       "path": "src/editor/function-modules/providers.js",
@@ -1361,8 +1361,8 @@
     },
     {
       "path": "src/ink.js",
-      "bytes": 182991,
-      "sha256": "d1676a6f6c6a312209138602068f17a18f6c9ea76841d930c77bf4f5583dd2fa"
+      "bytes": 183052,
+      "sha256": "6072d9faa36beef56993fa7b66e39134cc13e49cd90edfb91fbbcd9a5b48d31e"
     },
     {
       "path": "src/input/device-validation.js",
@@ -2120,7 +2120,5 @@
       "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
     }
   ],
-  "deletions": [
-    "dist/startup/chunks/drive-native-link-startup-5HKIKCXP.mjs"
-  ]
+  "deletions": []
 }
