@@ -1,13 +1,13 @@
 {
   "schema": "INK_PUBLICATION_RECEIPT_V1",
   "action": "publish",
-  "source_sha": "afc58a2a965824eb0b649a55201ed782409c0f1e",
-  "source_tree": "6dba38659f6e52ebed2a3203dd03db2be81b95c3",
-  "runtime_digest_sha256": "eba45e71f73039cb3d4467bb877fbe6c2dc9cecc3356d6108647d8ee5c377c94",
+  "source_sha": "1a0a27628ffaff47b303f8ab93ed1fdddc0474ba",
+  "source_tree": "f93f8a2a49ac03dc58cfde9eeefa81df8b332e80",
+  "runtime_digest_sha256": "150e9e78e77937a6681046932387fc7c88c70e7d7def7a55f6a56f3e7a578b04",
   "package_manifest_sha256": "ccd5551553acbebe57b89a723dd680afa0a95d61a3a649e72e3d327f67555f74",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "e01123566da08ff159931a7caa86045bd8f6ea93",
-  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/689",
+  "previous_target_commit": "5ec5c54f086eb2d7d02e52aaeb729b808f37d867",
+  "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/pull/690#issuecomment-7150254674",
   "managed_files": [
     {
       "path": "assets/favicon.png",
@@ -35,15 +35,15 @@
     },
     {
       "path": "BUILD_INFO.json",
-      "bytes": 75769,
-      "sha256": "6cb0644c642681e5045ba7c4be1e20d637676110a4461ad3b17854eaade314ce",
-      "git_blob_sha": "3bf1f1ed0c7df83ad71b63e4a3db811b52cc5dcd"
+      "bytes": 75762,
+      "sha256": "58b4fc7816b28cccbcd1a526f242bc86c8363d18a2f751759d1ebb622fe4915e",
+      "git_blob_sha": "9de853fff993343ed49069f1abe68d58d6979819"
     },
     {
       "path": "build-identity.js",
       "bytes": 224,
-      "sha256": "765cbc4a3d82a94b80eb3d1e10f92c12eadb70398530e102eb1ea88fd5b9a7b9",
-      "git_blob_sha": "fcef37035ba2720c1063b690c4db680b6978ffd7"
+      "sha256": "87691b78aa314a1c9ddc1ed8c8c5e90ce0d5e513ae00c205e18a937005bbebb2",
+      "git_blob_sha": "3c0dab7fb316ce9411e6eb5030d3a0badd89d041"
     },
     {
       "path": "dist/ink.compat.js",
@@ -245,9 +245,9 @@
     },
     {
       "path": "dist/startup/ink-shell.mjs",
-      "bytes": 292378,
-      "sha256": "681b7def3398c4dc04a194d53eb112564ef14701c7370987274112bcd6a1fdc9",
-      "git_blob_sha": "e4d315860034d4e3c9fd55fba352af274cebe889"
+      "bytes": 294590,
+      "sha256": "b1ab4665155f402143590568f28dace186078749f3ecfd1db239f83ab5824170",
+      "git_blob_sha": "5f769fcf6622ca64ee7e243ba2c4d7ef55e3285b"
     },
     {
       "path": "dist/startup/LICENSES/ag-psd-MIT.txt",
@@ -2237,9 +2237,9 @@
     },
     {
       "path": "src/ui/ink017/panels/layers.js",
-      "bytes": 9960,
-      "sha256": "88291ffb2f15e5cd4ccb3a7f694f9f47bdd6bf708fac142b91e3392e0a95850a",
-      "git_blob_sha": "a0ade91d18800d6d122f7e69774b334a29bc8369"
+      "bytes": 12448,
+      "sha256": "245744d58cf456878d9c42f77c2c09178a51d54ed99afde265afd2b58581d17f",
+      "git_blob_sha": "d5664227aca0af19f7adb4f656616f4ffaca8665"
     },
     {
       "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
