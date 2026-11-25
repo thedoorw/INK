@@ -215,7 +215,7 @@ export function createNativeFunctionServicePorts(app){
     }),
     pageLayout:Object.freeze({
       active:()=>{const page=activePage(app);return page?{id:page.id,name:page.name,activeLayerId:page.activeLayerId,artboard:page.artboard,paper:page.paper,camera:page.camera,workspace:page.workspace,guides:clone(page.guides||[])}:null;},
-      preview:(width=220,height=150)=>{const page=activePage(app);if(!page)return null;const w=Math.max(48,Math.min(512,Math.round(Number(width)||220))),h=Math.max(36,Math.min(384,Math.round(Number(height)||150))),geometry=thumbnailPreviewGeometry(page,w,h,7),layoutMatrix=app.renderer?.layoutViewportMatrix?.(page),dataUrl=app.renderer?.renderThumbnail?.(page,w,h);return dataUrl&&Array.isArray(layoutMatrix)?{pageId:page.id,...geometry,layoutMatrix:clone(layoutMatrix),dataUrl}:null;},
+      preview:(width=220,height=150)=>{const page=activePage(app);if(!page)return null;const w=Math.max(48,Math.min(512,Math.round(Number(width)||220))),h=Math.max(36,Math.min(384,Math.round(Number(height)||150))),geometry=thumbnailPreviewGeometry(page,w,h,7),layoutMatrix=app.renderer?.layoutViewportMatrix?.(page),dataUrl=app.renderer?.renderThumbnail?.(page,w,h,{transparentBackground:true});return dataUrl&&Array.isArray(layoutMatrix)?{pageId:page.id,...geometry,layoutMatrix:clone(layoutMatrix),dataUrl}:null;},
       byId:id=>clone(app?.doc?.pages?.find(item=>item.id===id)||null),
       list:()=>clone((app?.doc?.pages||[]).map(item=>({id:item.id,name:item.name,active:item.id===app?.doc?.activePageId,layerCount:item.layers?.length||0,objectCount:(item.layers||[]).reduce((sum,current)=>sum+(current.objects?.length||0),0)}))),
       requirePage:id=>requirePage(app,id),
