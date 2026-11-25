@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {classifyPath, verifyUiOnly} from './ownership.mjs';
+import {classifyPath, verifyUiOnly, inspectGitDiff} from './ownership.mjs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {execFileSync} from 'node:child_process';
 const sha=c=>c.repeat(40);
 const one=(path='src/ui/ink017/menu-ui.js')=>({path,oldMode:'100644',newMode:'100644',oldSha:sha('a'),newSha:sha('b')});
 const check=(changes=[one()],files=changes.map(x=>x.path))=>verifyUiOnly({base:sha('1'),head:sha('2'),changes,files});
@@ -26,4 +30,18 @@ test('modes, source identity and complete diff required',()=>{
   assert.throws(()=>check([one()],[]),/INCOMPLETE_DIFF/);
   assert.throws(()=>check([one()],['src/ui/ink017/tokens.css']),/DIFF_PATH_MISMATCH/);
   assert.throws(()=>verifyUiOnly({base:'main',head:sha('2'),changes:[one()],files:['src/ui/ink017/menu-ui.js']}),/BASE_SHA/);
+});
+test('trusted complete Git diff succeeds for UI edit, fails on hidden Core edit',()=>{
+  const dir=mkdtempSync(join(tmpdir(),'ink703-'));
+  const git=(...args)=>execFileSync('git',['-C',dir,...args],{encoding:'utf8'}).trim();
+  const write=(p,content)=>{mkdirSync(join(dir,p.split('/').slice(0,-1).join('/')),{recursive:true});writeFileSync(join(dir,p),content);};
+  try {
+    git('init');git('config','user.name','INK Test');git('config','user.email','ink-test@example.invalid');
+    write('src/ui/ink017/menu-ui.js','old');write('src/core/geometry.js','core');
+    git('add','.');git('commit','-m','base');const base=git('rev-parse','HEAD');
+    write('src/ui/ink017/menu-ui.js','new');git('add','.');git('commit','-m','ui');const ui=git('rev-parse','HEAD');
+    assert.equal(inspectGitDiff(dir,base,ui).status,'UI_ONLY_SCOPE_PASS');
+    write('src/core/geometry.js','tamper');git('add','.');git('commit','-m','hidden core');
+    assert.throws(()=>inspectGitDiff(dir,base,git('rev-parse','HEAD')),/PROTECTED_PATH/);
+  } finally {rmSync(dir,{recursive:true,force:true});}
 });
