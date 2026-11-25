@@ -4,8 +4,8 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "afc58a2a965824eb0b649a55201ed782409c0f1e",
-    "product_tree": "6dba38659f6e52ebed2a3203dd03db2be81b95c3"
+    "exact_sha": "1a0a27628ffaff47b303f8ab93ed1fdddc0474ba",
+    "product_tree": "f93f8a2a49ac03dc58cfde9eeefa81df8b332e80"
   },
   "runtime": {
     "root": "/INK/",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "765cbc4a3d82a94b80eb3d1e10f92c12eadb70398530e102eb1ea88fd5b9a7b9"
+        "sha256": "87691b78aa314a1c9ddc1ed8c8c5e90ce0d5e513ae00c205e18a937005bbebb2"
       },
       {
         "path": "dist/ink.compat.js",
@@ -223,8 +223,8 @@
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 292378,
-        "sha256": "681b7def3398c4dc04a194d53eb112564ef14701c7370987274112bcd6a1fdc9"
+        "bytes": 294590,
+        "sha256": "b1ab4665155f402143590568f28dace186078749f3ecfd1db239f83ab5824170"
       },
       {
         "path": "dist/startup/parsers/ag-psd.mjs",
@@ -1863,8 +1863,8 @@
       },
       {
         "path": "src/ui/ink017/panels/layers.js",
-        "bytes": 9960,
-        "sha256": "88291ffb2f15e5cd4ccb3a7f694f9f47bdd6bf708fac142b91e3392e0a95850a"
+        "bytes": 12448,
+        "sha256": "245744d58cf456878d9c42f77c2c09178a51d54ed99afde265afd2b58581d17f"
       },
       {
         "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
@@ -2082,11 +2082,11 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "eba45e71f73039cb3d4467bb877fbe6c2dc9cecc3356d6108647d8ee5c377c94"
+    "package_digest_sha256": "150e9e78e77937a6681046932387fc7c88c70e7d7def7a55f6a56f3e7a578b04"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "a25aafb0f7ef5da8cd8fbfc0f038ef5eb354a399",
+    "exact_sha": "1a0a27628ffaff47b303f8ab93ed1fdddc0474ba",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
@@ -2094,21 +2094,21 @@
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "6dba38659f6e52ebed2a3203dd03db2be81b95c3",
+    "source_tree": "f93f8a2a49ac03dc58cfde9eeefa81df8b332e80",
     "runs": [
       {
-        "profile": "ink689-navigator-matte-windows-v1",
-        "id": 45520305251,
+        "profile": "ink-ui-release-windows-v1",
+        "id": 45529769854,
         "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
         "workflow_blob": "7335ed376487264efb9d379c5f0d4587ba790812",
-        "head_sha": "f8b7b9d3b7a01824da30d2ff347c2185ba153dcf",
-        "tested_sha": "41bd8fef62ac8a1f16b4458d935020fe80989196"
+        "head_sha": "ce3308bcbb165b2eb2071ebca12c2b123fbb16ca",
+        "tested_sha": "c7f2d7b8877d90e152354ef192c80cc5cb93e5dc"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "e01123566da08ff159931a7caa86045bd8f6ea93",
+    "previous_target_commit": "5ec5c54f086eb2d7d02e52aaeb729b808f37d867",
     "runtime_bytes_unchanged_from_package": true
   }
 }
