@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {classifyPath, verifyUiOnly, inspectGitDiff} from './ownership.mjs';
+import {classifyPath, verifyUiOnly, inspectGitDiff, verifyCoreMirror} from './ownership.mjs';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -44,4 +44,21 @@ test('trusted complete Git diff succeeds for UI edit, fails on hidden Core edit'
     write('src/core/geometry.js','tamper');git('add','.');git('commit','-m','hidden core');
     assert.throws(()=>inspectGitDiff(dir,base,git('rev-parse','HEAD')),/PROTECTED_PATH/);
   } finally {rmSync(dir,{recursive:true,force:true});}
+});
+test('Core overlay preserves exact Public UI, and rejects overwrite, deletion or hidden diff',()=>{
+  const blob=(s,mode='100644')=>({sha:sha(s),mode});
+  const base=new Map([['src/ui/ink017/menu-ui.js',blob('a')],['src/ui/ink017/tokens.css',blob('b')],['src/core/geometry.js',blob('c')]]);
+  const candidate=new Map(base);candidate.set('src/core/geometry.js',blob('d'));
+  const verify=(c,paths=['src/core/geometry.js'])=>verifyCoreMirror({publicBase:base,publicCandidate:c,coreChangedPaths:paths});
+  assert.equal(verify(candidate).status,'CORE_SYNC_PRESERVES_PUBLIC_UI');
+  const overwrite=new Map(candidate);overwrite.set('src/ui/ink017/menu-ui.js',blob('e'));
+  assert.throws(()=>verify(overwrite),/PUBLIC_UI_OVERWRITE/);
+  const deleted=new Map(candidate);deleted.delete('src/ui/ink017/tokens.css');
+  assert.throws(()=>verify(deleted),/PUBLIC_UI_REMOVED/);
+  const symlink=new Map(candidate);symlink.set('src/ui/ink017/menu-ui.js',blob('a','120000'));
+  assert.throws(()=>verify(symlink),/PUBLIC_UI_CANDIDATE_MODE/);
+  assert.throws(()=>verify(candidate,['src/core/geometry.js','src/core/history.js']),/CORE_FULL_DIFF_MISMATCH/);
+  assert.throws(()=>verify(candidate,['src/ui/ink017/menu-ui.js']),/CORE_SYNC_UI_PATH/);
+  assert.throws(()=>verify(candidate,['src/ui/ink017/shell.js']),/SHARED_CLOSURE_REQUIRES_RELEASE/);
+  assert.throws(()=>verify(candidate,['.github/workflows/release.yml']),/CORE_PATH_NOT_ALLOWLISTED/);
 });
