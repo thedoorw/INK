@@ -1,7 +1,7 @@
 // INK Menu UI 001. Presentation-only menu: Native commands and selectors remain authoritative.
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 // INK v4.1: SOURCE-backed 8-category catalogue; coreOnly entries have no command.
-const categoryNames={"file":"檔案","edit":"編輯","image":"影像","select":"選取","filter":"濾鏡","view":"檢視","plugins":"擴充工具","window":"視窗"};
+const categoryNames={"file":"檔案","edit":"編輯","image":"影像","select":"選取","filter":"濾鏡","view":"檢視","plugins":"擴充·","window":"視窗"};
 const groups={
  "file": [
   [
