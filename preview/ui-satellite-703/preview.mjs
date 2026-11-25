@@ -24,8 +24,14 @@ const selectors=Object.freeze({
 });
 const mockHost=Object.freeze({
  kind:'MOCK_PREVIEW',
- app:Object.freeze({page:()=>({snap:{enabled:true,categories:{}}}),toast:message=>{status.textContent=String(message)}}),
- provider:Object.freeze({image:Object.freeze({selectedInfo:()=>null})}),
+ menuApi:Object.freeze({
+  selectedRasterInfo:()=>null,
+  snapState:()=>({enabled:true,categories:{}}),
+  canInvokeWorkTools:()=>false,
+  driveAvailable:()=>false,
+  isCurrentRuntime:()=>true,
+  notify:message=>{status.textContent=String(message)}
+ }),
  getSnapshot:()=>noop,
  getHistory:()=>({index:0,entries:[{index:0,label:'Preview only'}]}),
  select:key=>selectors[key]??null,
