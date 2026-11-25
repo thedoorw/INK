@@ -48,7 +48,7 @@ export function inspectGitDiff(root, base, head) {
   assert.equal(git(root,'rev-parse',`${base}^{commit}`), base, 'BASE_NOT_FOUND');
   assert.equal(git(root,'rev-parse',`${head}^{commit}`), head, 'HEAD_NOT_FOUND');
   assert.equal(git(root,'merge-base',base,head), base, 'NOT_ANCESTOR');
-  const raw = git(root,'diff','--raw','-z','--no-renames',base,head).split('\0');
+  const raw = git(root,'diff','--raw','--abbrev=40','-z','--no-renames',base,head).split('\0');
   const changes = [];
   for(let i=0;i<raw.length-1;i+=2){
     const m = /^:(\d{6}) (\d{6}) ([a-f0-9]{40}) ([a-f0-9]{40}) ([A-Z])$/.exec(raw[i]);
