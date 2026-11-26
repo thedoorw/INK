@@ -7,16 +7,29 @@ import {mountDev2SafetyGuard,dev2OptionsMarkup,mountDev2Options} from './dev2/in
 import {dev3OptionsMarkup,mountDev3Options} from './dev3/tools-context-dev3.mjs';
 import {mountCompletionTools,completionOptionsMarkup,mountCompletionOptions} from './completion-tools.js';
 
+// Historical presenters remain the fallback for isolated Native/test mounts.
+// The canonical Runtime supplies these two display-only callbacks from
+// Public shell.js; command/availability/state ownership remains here.
+const fallbackRailMarkup=groups=>groups.map(g=>'<div class="tool-cell'+(g.items.length>1?' tool-group-cell':'')+'"><button type="button" class="tool-button" data-group="'+g.id+'" aria-label="'+esc(g.label)+'"'+(g.items.length>1?' aria-haspopup="menu" aria-expanded="false" aria-controls="toolGroupMenu"':'')+'>'+g.items[0].icon+'</button></div>').join('');
+function fallbackRailButton(button,{group,item,available,active}){
+ button.innerHTML=item.icon;button.title=item.label+(group.items.length>1?'（按住或右鍵展開）':'');button.setAttribute('aria-label',item.label);button.disabled=!available;button.setAttribute('aria-pressed',String(active));button.classList.toggle('active',active);
+}
+
 // One Native Popover presenter for all tool groups. This replaces the former
 // drawing-only presenter; Native tool/selection/raster owners remain unchanged.
-export function mountToolsWorkbench(root,host,feedback,signal){
+export function mountToolsWorkbench(root,host,feedback,signal,presentation){
  const rail=root.querySelector('.tool-area'),bar=root.querySelector('.context-float');
  const identity=root.querySelector('#contextIdentity'),controls=root.querySelector('#contextControls'),toggle=root.querySelector('#contextToggle');
  const rt=host.app?.uiComposition?.rasterTools;
+ const presenter=typeof presentation?.renderToolRail==='function'&&typeof presentation?.updateToolRailButton==='function'?presentation:{renderToolRail:fallbackRailMarkup,updateToolRailButton:fallbackRailButton};
+ // A detached, frozen display DTO prevents Public callbacks from mutating the
+ // registry objects used by the compiled Core command/availability controller.
+ const displayGroups=Object.freeze(TOOL_GROUPS.map(g=>Object.freeze({id:g.id,label:g.label,items:Object.freeze(g.items.map(item=>Object.freeze({id:item.id,label:item.label,icon:item.icon})))})));
+ const displayById=new Map(displayGroups.map(g=>[g.id,g]));
  let disposed=false,frame=0,mount=null,optionAbort=null,signature='',viewContext=null,lastNativeTool=host.getSnapshot().tool;
  let hold=null,suppressClick=false,opener=null,menuGroup=null;
  const remembered=new Map(),buttons=new Map();
- rail.innerHTML=TOOL_GROUPS.map(g=>'<div class="tool-cell'+(g.items.length>1?' tool-group-cell':'')+'"><button type="button" class="tool-button" data-group="'+g.id+'" aria-label="'+esc(g.label)+'"'+(g.items.length>1?' aria-haspopup="menu" aria-expanded="false" aria-controls="toolGroupMenu"':'')+'>'+g.items[0].icon+'</button></div>').join('');
+ rail.innerHTML=presenter.renderToolRail(displayGroups);
  const menu=document.createElement('div');menu.id='toolGroupMenu';menu.className='drawing-tool-menu';menu.setAttribute('popover','manual');menu.setAttribute('role','menu');root.append(menu);
  for(const button of rail.querySelectorAll('[data-group]'))buttons.set(button.dataset.group,button);
  controls.innerHTML='<div id="contextToolOptions"></div><div id="transformControls" hidden></div>';
@@ -125,7 +138,8 @@ export function mountToolsWorkbench(root,host,feedback,signal){
   if(active)remembered.set(active.group.id,active.item.id);
   for(const g of TOOL_GROUPS){
    const button=buttons.get(g.id),item=g.items.find(t=>t.id===remembered.get(g.id))||g.items.find(t=>toolAvailability(host,g,t).available)||g.items[0];
-   button.innerHTML=item.icon;button.title=item.label+(g.items.length>1?'（按住或右鍵展開）':'');button.setAttribute('aria-label',item.label);button.disabled=!g.items.some(t=>toolAvailability(host,g,t).available);button.setAttribute('aria-pressed',String(context?.group.id===g.id));button.classList.toggle('active',context?.group.id===g.id);
+   const shown=displayById.get(g.id),shownItem=shown.items.find(t=>t.id===item.id);
+   presenter.updateToolRailButton(button,{group:shown,item:shownItem,available:g.items.some(t=>toolAvailability(host,g,t).available),active:context?.group.id===g.id});
   }
   identity.textContent=context?.item?.label||'工具';toggle.disabled=!s.docs.length;
   const completed=completion.snapshot();

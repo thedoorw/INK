@@ -4,8 +4,8 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "3534c34c77ac9be7d9df88e24167be0b2ca91dc9",
-    "product_tree": "7c221c6b0bc2ee1b7386e698fe17d8a5cd95c7c6"
+    "exact_sha": "d19943ae9e3511f25db24e11f22b17d2a6d75adb",
+    "product_tree": "5b2e519fbbb4422a2d3944b615852f8b000f51d2"
   },
   "runtime": {
     "root": "/INK/",
@@ -34,7 +34,7 @@
       {
         "path": "build-identity.js",
         "bytes": 224,
-        "sha256": "9c3b47805af2b4e6515737bc58f46d5ae86ff7df2e7c81aa19eb789b783fb096"
+        "sha256": "e8fa37934198f45c6ad4089f2733b2867902790fb0f649f76393010e2d85d28c"
       },
       {
         "path": "dist/ink.compat.js",
@@ -64,7 +64,7 @@
       {
         "path": "dist/startup/asset-inventory.js",
         "bytes": 1960,
-        "sha256": "1641582aa9b824569e724faf374d7ba70f36e7456359bd6490c07b590561328d"
+        "sha256": "c6401e51084d7bec709116a100f411d0b37c76b6bbee1bbff57731e9f1453f60"
       },
       {
         "path": "dist/startup/chunks/ag-psd-native-T5IN2KCV.mjs",
@@ -127,11 +127,6 @@
         "sha256": "58eaa8a0b4c41b8184d93a0b7529bece302ac1a9f54e7d03c257b513fe1ed638"
       },
       {
-        "path": "dist/startup/chunks/chunk-GQSI2AZC.mjs",
-        "bytes": 67641,
-        "sha256": "23626184f66818dac6109ffc31a98ab8ddfacceb057ab74c1465376323b496ab"
-      },
-      {
         "path": "dist/startup/chunks/chunk-JPRMRFJS.mjs",
         "bytes": 9224,
         "sha256": "c5e11a9b1e8cce907942af76e6162183c27208689f6c21eba0ba0482974428db"
@@ -150,6 +145,11 @@
         "path": "dist/startup/chunks/chunk-KL42EZHH.mjs",
         "bytes": 6917,
         "sha256": "a14f39cf6f22cd2999ce5af0745f1c5370f32842627215ab356734fe3a5f115a"
+      },
+      {
+        "path": "dist/startup/chunks/chunk-LSCRO7G7.mjs",
+        "bytes": 67641,
+        "sha256": "8c447c1e5026ff7b94bb07fc120b5109f866c017777f194688cd560f8bdc875f"
       },
       {
         "path": "dist/startup/chunks/chunk-PCK5DDAF.mjs",
@@ -214,12 +214,12 @@
       {
         "path": "dist/startup/ink-boot.mjs",
         "bytes": 2111412,
-        "sha256": "bdd575aaf5739d35740aabbe7d2182d5d368c52c0a9b7160d69c258bac20a05d"
+        "sha256": "a75ae9774dc3d22e3b52ef4754e210c72d9d2e27e74766b03438312440539e3e"
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 278649,
-        "sha256": "f2a3d2265ff872a141321a7667dd2309c2d964ab94b48e98329b18e11eff716c"
+        "bytes": 186593,
+        "sha256": "859a21de3c8c8bb6909dfa8bf97390a8dbd254936f63b27e272e9fec70cb9e7b"
       },
       {
         "path": "dist/startup/parsers/ag-psd.mjs",
@@ -263,8 +263,8 @@
       },
       {
         "path": "service-worker-runtime.js",
-        "bytes": 15666,
-        "sha256": "7c3c11f14654af4d0656668452445de45ddd06a65ef847a6709368f8a06587b4"
+        "bytes": 15718,
+        "sha256": "03bd630ebf430ccab1369a21b44567e6bad28922ac369f0761742f7cb038a21a"
       },
       {
         "path": "service-worker.js",
@@ -1803,8 +1803,8 @@
       },
       {
         "path": "src/ui/ink017/entry.js",
-        "bytes": 4660,
-        "sha256": "ab846bb21184ac3b8c77906e75a26622cd85242e9f6ee0ddb4d961c596b4d4dd"
+        "bytes": 5005,
+        "sha256": "fde2956a25370d9f0a016a544e4c2770e51962cba17ea3be37703436eea65de8"
       },
       {
         "path": "src/ui/ink017/markup.html",
@@ -1818,8 +1818,8 @@
       },
       {
         "path": "src/ui/ink017/native-host.js",
-        "bytes": 11350,
-        "sha256": "5f1fe1f47471cfb5717cd7ed36b06f02a6bca56993afda397adb4f9913979e20"
+        "bytes": 11376,
+        "sha256": "1045e506d590c5e39a466048d417eff5aa24423c1eda4a79078bd88759d6b20b"
       },
       {
         "path": "src/ui/ink017/native-provider.js",
@@ -1908,8 +1908,8 @@
       },
       {
         "path": "src/ui/ink017/shell.js",
-        "bytes": 18746,
-        "sha256": "5098d51189db0f76310a01faeb98b39f9c295704a6e2c47f47ebc5967c390889"
+        "bytes": 19797,
+        "sha256": "76bcdc1d204b20f838436bf2c69c739494c372325a55027aa10845eb1d10e12f"
       },
       {
         "path": "src/ui/ink017/tokens.css",
@@ -1968,8 +1968,8 @@
       },
       {
         "path": "src/ui/ink017/tool-slices/workbench.js",
-        "bytes": 14640,
-        "sha256": "dfa38e7269df68e4b39132183e602df38f248d039944c0e9d0ffe037a5baa5d0"
+        "bytes": 15814,
+        "sha256": "347ea0a9e2ac50530d805d4b506bb0409575623fc3ccb10abc687400722a9150"
       },
       {
         "path": "src/ui/minimal-composition.js",
@@ -2082,41 +2082,41 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "f3903f7a338cc41f77aa3f8e7db8fc515df88f95cff6413c82a28bc740841f8d"
+    "package_digest_sha256": "8865d53171196ed1975063424587fe16d304e5d97ccd4943025ae5f6565b137a"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "61b17f8a393acbb43f9375adb6c410d49a709ac9",
+    "exact_sha": "996382d79b11fc5093effd0d2d6b0b555bbcdff5",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
-    "manifest_sha256": "5429fb68d10ad4655cd3ba9c4398b88e60e0d5efb586014f5f4c67c4424aff8c"
+    "manifest_sha256": "2c5232af7e687a201ac7fae9963e69ae8487404c09d61b593aafe02fa415bb73"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
-    "source_tree": "7c221c6b0bc2ee1b7386e698fe17d8a5cd95c7c6",
+    "source_tree": "5b2e519fbbb4422a2d3944b615852f8b000f51d2",
     "runs": [
       {
-        "profile": "ink703-seam-compiled-windows-v1",
-        "id": 45614790153,
+        "profile": "ink703-full-shell-pwa-windows-v1",
+        "id": 45751047469,
         "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
-        "workflow_blob": "912c301727ffa03f88adbc1e90063a901ef8fada",
-        "head_sha": "aa623b6ca2729d1cba1aed942eae6127139488a0",
-        "tested_sha": "b78b51f85914896c4faa9c80ce97c99b3258e804"
+        "workflow_blob": "7160813d3554c61cbe1334a3f8cdcb3f1d7073e5",
+        "head_sha": "5b4fe74db9338570962c5da8639cc49069c93f0b",
+        "tested_sha": "5d7d19381d3228d3504d9f8a59897a2ac58fc66d"
       },
       {
-        "profile": "ink703-seam-visual-native-windows-v1",
-        "id": 45630742934,
+        "profile": "ink703-full-shell-native-windows-v1",
+        "id": 45753492097,
         "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
-        "workflow_blob": "57a94b26c21ee0f878432aac778088ffc13d9ed8",
-        "head_sha": "a4b5d1cac3f88ea787e82fce0b8cafd4a7d89c8c",
-        "tested_sha": "b78b51f85914896c4faa9c80ce97c99b3258e804"
+        "workflow_blob": "f8640c3bbddae8089706117f6355514048a77dba",
+        "head_sha": "36a56f00ad7ae627ccb43c5fd1dcb4f141b7935f",
+        "tested_sha": "5d7d19381d3228d3504d9f8a59897a2ac58fc66d"
       }
     ]
   },
   "publication": {
     "kind": "publish",
-    "previous_target_commit": "2969aaa1e4882275e05da5d4e2f451b84fd8e3b4",
+    "previous_target_commit": "c495a3f913cfd7a28f150ec779836a068c739512",
     "runtime_bytes_unchanged_from_package": true
   }
 }

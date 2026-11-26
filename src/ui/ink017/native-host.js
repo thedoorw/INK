@@ -103,7 +103,7 @@ export function createNativeHost(app){
    notify:message=>app.toast?.(message)
   })
  });
- const host={kind:'NATIVE',shellApi,navigator,execute,select,target,getSnapshot,getHistory,dispatch,subscribe(f){listeners.add(f);return()=>listeners.delete(f)},subscribeCommands(f){receipts.add(f);return()=>receipts.delete(f)},getSelection:()=>select('selection.current'),getCapabilities:()=>({core:'available',history:'available',renderer:'available'}),dispose(){cancelAnimationFrame(raf);unsub();listeners.clear();receipts.clear();provider.dispose()},mountToolsWorkbench:(root,feedback,signal)=>mountToolsWorkbench(root,legacyToolHost,feedback,signal),mountMenuUi:(factory,options)=>{if(typeof factory!=='function')throw Error('INK_UI_MENU_MODULE_CONTRACT');return factory({...options,host:menuHost})}};
+ const host={kind:'NATIVE',shellApi,navigator,execute,select,target,getSnapshot,getHistory,dispatch,subscribe(f){listeners.add(f);return()=>listeners.delete(f)},subscribeCommands(f){receipts.add(f);return()=>receipts.delete(f)},getSelection:()=>select('selection.current'),getCapabilities:()=>({core:'available',history:'available',renderer:'available'}),dispose(){cancelAnimationFrame(raf);unsub();listeners.clear();receipts.clear();provider.dispose()},mountToolsWorkbench:(root,feedback,signal,presentation)=>mountToolsWorkbench(root,legacyToolHost,feedback,signal,presentation),mountMenuUi:(factory,options)=>{if(typeof factory!=='function')throw Error('INK_UI_MENU_MODULE_CONTRACT');return factory({...options,host:menuHost})}};
  const legacyToolHost=Object.assign(Object.create(host),{app,provider});
  return host;
 }
