@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {checkEvent,isControlOnly} from './verify-static-sync.mjs';
-import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
+import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,uiBundlePaths,verifyUiBundleOnlyPlan,expectedUiBundleMetadata,PUBLIC_UI_PRESENTATION_PATHS,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
 import {createHash} from 'node:crypto';
 const cfg=JSON.parse(await readFile(new URL('./static-sync.allowlist.json',import.meta.url)));
 const sha=c=>c.repeat(40),file=s=>{const bytes=Buffer.from(s);return{bytes,sha:blob(bytes),mode:'100644'}};
@@ -451,4 +451,116 @@ test('QA646 branch is explicitly isolated, not legacy QA637 or unrestricted sync
   event.pull_request.head.ref='qa-637/fake';
   assert.throws(()=>qa646Event(event,b,h),/QA646_BRANCH_REQUIRED/);
   assert.throws(()=>checkEvent(event,b,h,{qa646Scope:true}),/SYNC_BRANCH_REQUIRED/);
+});
+
+// #703 V2 Public-owned presentation source. This is a source-only trusted
+// verifier test; the real Browser/SW A→B→offline evidence is a separate gate.
+const BUNDLE_SHELL='src/ui/ink017/shell.js';
+const BUNDLE_COLOR='src/ui/ink017/panels/color.js';
+const BUNDLE_TOKENS='src/ui/ink017/tokens.css';
+const BUNDLE_META=['BUILD_INFO.json','PUBLISH_RECEIPT.json','pages-build-identity.txt'];
+const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
+const bundleWorker=()=>`const SOURCE_SHELL=[${PUBLIC_UI_PRESENTATION_PATHS.map(p=>JSON.stringify('./'+p)).join(',')}];networkFirstAsset(event.request);`;
+const runtimeRows=files=>[...files].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}))
+  .sort((a,b)=>a.path.localeCompare(b.path,'en'));
+function bundleFixture({missingCharacterSW=false}={}){
+ const s=inputs();
+ s.sourceFiles.set('dist/startup/ink-shell.mjs',file(
+  'await import(new URL("./shell.js",new URL("src/ui/ink017/entry.js",document.baseURI).href).href);'));
+ s.sourceFiles.set('service-worker-runtime.js',file(missingCharacterSW?
+  bundleWorker().replace('"./src/ui/ink017/panels/character-typography.js",',''):
+  bundleWorker()));
+ for(const p of PUBLIC_UI_PRESENTATION_PATHS)s.sourceFiles.set(p,file(p===BUNDLE_SHELL?bundleShell():
+  p===UI_MENU?menuSource('snapState','Public A'):p.endsWith('.html')?'<main>INK</main>':
+  p.endsWith('.css')?':root{--ink-color:blue}':`export const label=${JSON.stringify(p)};`));
+ s.build.runtime.files=runtimeRows(s.sourceFiles);
+ s.build.runtime.file_count=s.sourceFiles.size;
+ s.build.runtime.package_digest_sha256=hash(Buffer.from(canonical(s.build.runtime.files)));
+ const first=makePlan(s),base={head:sha('4'),tree:sha('5'),files:stage(s,first)};
+ const candidateFiles=new Map(base.files);
+ candidateFiles.set(BUNDLE_COLOR,file('export const label="Public B color";'));
+ candidateFiles.set(BUNDLE_TOKENS,file(':root{--ink-color:green}'));
+ if(missingCharacterSW)return {base,candidateFiles};
+ const metadata=expectedUiBundleMetadata({base,candidateFiles,cfg});
+ candidateFiles.set('BUILD_INFO.json',metadata.buildItem);
+ candidateFiles.set('PUBLISH_RECEIPT.json',metadata.receiptItem);
+ candidateFiles.set('pages-build-identity.txt',metadata.identityItem);
+ const changedPaths=[...metadata.changedUiPaths,...BUNDLE_META].sort();
+ return {base,candidateFiles,metadata,changedPaths};
+}
+function verifyBundle(x){return verifyUiBundleOnlyPlan({...x,cfg});}
+test('V2 Public UI-only color/tokens changes preserve Native/Core exact bytes and rotate full SW identity',()=>{
+ const x=bundleFixture();
+ assert.equal(uiBundlePaths(x.changedPaths),true);
+ assert.equal(uiOnlyPaths(x.changedPaths),false);
+ const verdict=verifyBundle(x);
+ assert.equal(verdict.status,'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
+ assert.equal(verdict.corePreserved,true);assert.equal(verdict.releaseAuthorized,false);
+ const before=JSON.parse(x.base.files.get('BUILD_INFO.json').bytes);
+ const after=JSON.parse(x.candidateFiles.get('BUILD_INFO.json').bytes);
+ assert.equal(after.ui_release.schema,'INK703_PUBLIC_UI_RELEASE_V2');
+ assert.deepEqual(after.ui_release.files.map(r=>r.path),PUBLIC_UI_PRESENTATION_PATHS);
+ assert.equal(after.source.exact_sha,before.source.exact_sha);
+ assert.notEqual(after.runtime.package_digest_sha256,before.runtime.package_digest_sha256);
+ assert.equal(x.candidateFiles.get('pages-build-identity.txt').bytes.toString('utf8'),
+  pagesRevisionForDigest(after.runtime.package_digest_sha256)+'\n');
+ for(const [p,f] of x.base.files)if(!x.changedPaths.includes(p))
+  assert.equal(x.candidateFiles.get(p).sha,f.sha,'Core or UI unmodified '+p);
+});
+test('V2 Public A→B→A rollback and Core C sync preserve all 18 Public presentation paths',()=>{
+ const x=bundleFixture();
+ const baseB={head:sha('6'),tree:sha('7'),files:x.candidateFiles};
+ const rollback=new Map(baseB.files);
+ rollback.set(BUNDLE_COLOR,x.base.files.get(BUNDLE_COLOR));
+ rollback.set(BUNDLE_TOKENS,x.base.files.get(BUNDLE_TOKENS));
+ const rollbackMeta=expectedUiBundleMetadata({base:baseB,candidateFiles:rollback,cfg});
+ rollback.set('BUILD_INFO.json',rollbackMeta.buildItem);
+ rollback.set('PUBLISH_RECEIPT.json',rollbackMeta.receiptItem);
+ rollback.set('pages-build-identity.txt',rollbackMeta.identityItem);
+ assert.equal(verifyUiBundleOnlyPlan({base:baseB,candidateFiles:rollback,cfg,
+  changedPaths:[...rollbackMeta.changedUiPaths,...BUNDLE_META]}).status,
+  'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
+ assert.notEqual(rollbackMeta.pagesRevision,x.metadata.pagesRevision);
+ const baseC={head:sha('8'),tree:sha('9'),files:x.candidateFiles};
+ const published=JSON.parse(baseC.files.get('BUILD_INFO.json').bytes);
+ const sourceFiles=new Map(published.runtime.files.map(row=>[row.path,baseC.files.get(row.path)]));
+ sourceFiles.set('index.html',file('<html>Private Core C</html>'));
+ sourceFiles.set(BUNDLE_COLOR,x.base.files.get(BUNDLE_COLOR));
+ const nextBuild=structuredClone(published);
+ delete nextBuild.ui_release;delete nextBuild.dual_source;
+ delete nextBuild.qualification;delete nextBuild.publication;
+ nextBuild.source.exact_sha=sha('e');nextBuild.source.product_tree=sha('f');
+ nextBuild.runtime.files=runtimeRows(sourceFiles);
+ nextBuild.runtime.file_count=sourceFiles.size;
+ nextBuild.runtime.package_digest_sha256=hash(Buffer.from(canonical(nextBuild.runtime.files)));
+ const plan=makePlan({build:nextBuild,sourceFiles,base:baseC,cfg,
+  qualification:{source_tree:nextBuild.source.product_tree,runs:[{id:703}]},
+  authorityReference:'https://github.com/thedoorw/INK-Browser-QA/issues/703'});
+ const candidate=new Map([...baseC.files,...plan.files]);
+ for(const p of plan.deletions)candidate.delete(p);
+ assert.equal(plan.manifest.dual_source.schema,'INK703_DUAL_SOURCE_PUBLISH_V2');
+ for(const p of PUBLIC_UI_PRESENTATION_PATHS)
+  assert.equal(candidate.get(p).sha,baseC.files.get(p).sha,'Public UI B kept '+p);
+ assert.notEqual(candidate.get('index.html').sha,baseC.files.get('index.html').sha);
+ assert.equal(verifyPlan({base:baseC,candidateFiles:candidate,cfg,
+  changedPaths:plan.changes}).status,'DUAL_SOURCE_INTEGRITY_PASS');
+});
+test('V2 Public rejects Core imports, computed globals, forged metadata and missing panel offline closure',()=>{
+ for(const [code,error] of [
+  [bundleShell()+"import '../../core/app.js';",/DUAL_PRESENTATION_CORE_IMPORT/],
+  [bundleShell()+"await import(window.plugin);",/DUAL_PRESENTATION_UNREVIEWED_IMPORT/],
+  [bundleShell()+"globalThis['INK_APP'];",/DUAL_PRESENTATION_COMPUTED_GLOBAL/],
+  [bundleShell()+"new URL('../native-host.js',import.meta.url);",/DUAL_PRESENTATION_UNREVIEWED_URL/]
+ ]){
+  const x=bundleFixture();x.candidateFiles.set(BUNDLE_SHELL,file(code));
+  assert.throws(()=>expectedUiBundleMetadata({base:x.base,candidateFiles:x.candidateFiles,cfg}),error);
+ }
+ const x=bundleFixture();
+ const forged=new Map(x.candidateFiles);forged.set('BUILD_INFO.json',file('{}'));
+ assert.throws(()=>verifyBundle({...x,candidateFiles:forged}),/UI_BUNDLE_METADATA/);
+ const extra=new Map(x.candidateFiles);extra.set('src/ui/ink017/native-host.js',file('evil'));
+ assert.throws(()=>verifyBundle({...x,candidateFiles:extra}),/UI_BUNDLE_FULL_TREE/);
+ const missing=bundleFixture({missingCharacterSW:true});
+ assert.throws(()=>expectedUiBundleMetadata({...missing,cfg}),
+  /UI_BRIDGE_SW_OFFLINE_PRESENTATION:.*character-typography/);
 });
