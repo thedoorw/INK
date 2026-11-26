@@ -194,8 +194,31 @@ export function assertPresentationClosure(files){
   assert.ok(!/<\s*(?:script|iframe)\b|\bon[a-z]+\s*=/.test(markup),
     'DUAL_PRESENTATION_MARKUP_EXEC');
   const css=files.get('src/ui/ink017/tokens.css').bytes.toString('utf8');
-  assert.ok(!/@import\s|url\s*\(\s*['"]?\s*(?:https?:|\/\/|data:)/i.test(css),
-    'DUAL_PRESENTATION_REMOTE_CSS');
+  assert.ok(!/@import\s/i.test(css),'DUAL_PRESENTATION_REMOTE_CSS');
+  const urlCalls=[...css.matchAll(/\burl\s*\(/gi)];
+  const parsedUrls=[...css.matchAll(/\burl\s*\(\s*(?:"([^"]*)"|'([^']*)'|([^)]*))\s*\)/gi)];
+  assert.equal(parsedUrls.length,urlCalls.length,'DUAL_PRESENTATION_CSS_URL_PARSE');
+  for(const match of parsedUrls){
+    const value=(match[1]??match[2]??match[3]).trim();
+    if(!/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value))continue;
+    assert.ok(value.startsWith('data:image/svg+xml,')&&value.length<=16384,
+      'DUAL_PRESENTATION_REMOTE_CSS');
+    let decoded;
+    try{decoded=decodeURIComponent(value.slice('data:image/svg+xml,'.length));}
+    catch{throw Error('DUAL_PRESENTATION_SVG_ESCAPE');}
+    assert.ok(/^\s*<svg\b[\s\S]*<\/svg>\s*$/.test(decoded),
+      'DUAL_PRESENTATION_SVG_SHAPE');
+    const tags=[...decoded.matchAll(/<\s*\/?\s*([A-Za-z][\w:-]*)\b/g)]
+      .map(m=>m[1].toLowerCase());
+    const permitted=new Set(['svg','path','circle','rect','line','polyline',
+      'polygon','g','defs','lineargradient','stop']);
+    assert.ok(tags.length>1&&tags.every(tag=>permitted.has(tag))&&
+      !/<[!?]|\bon[a-z]+\s*=|\b(?:href|xlink:href)\s*=|\b(?:script|foreignobject)\b/i.test(decoded),
+      'DUAL_PRESENTATION_SVG_UNSAFE');
+    const withoutNamespace=decoded.replace(/\bxmlns\s*=\s*(['"])http:\/\/www\.w3\.org\/2000\/svg\1/g,'');
+    assert.ok(!/(?:https?:|javascript:|data:|url\s*\()/i.test(withoutNamespace),
+      'DUAL_PRESENTATION_SVG_EXTERNAL_REF');
+  }
 }
 function verifiedUiLease(base,prior,cfg){
   const ui=prior.ui_release;
