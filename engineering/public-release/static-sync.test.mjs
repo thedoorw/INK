@@ -458,6 +458,7 @@ test('QA646 branch is explicitly isolated, not legacy QA637 or unrestricted sync
 const BUNDLE_SHELL='src/ui/ink017/shell.js';
 const BUNDLE_COLOR='src/ui/ink017/panels/color.js';
 const BUNDLE_TOKENS='src/ui/ink017/tokens.css';
+const REAL_SVG_ICON="url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2012%2012'%3E%3Cpath%20d='M2.5%204.5%206%208%209.5%204.5'%20fill='none'%20stroke='%23666666'%20stroke-width='1.25'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E\")";
 const BUNDLE_META=['BUILD_INFO.json','PUBLISH_RECEIPT.json','pages-build-identity.txt'];
 const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
 const bundleWorker=()=>`const SOURCE_SHELL=[${PUBLIC_UI_PRESENTATION_PATHS.map(p=>JSON.stringify('./'+p)).join(',')}];networkFirstAsset(event.request);`;
@@ -563,4 +564,27 @@ test('V2 Public rejects Core imports, computed globals, forged metadata and miss
  const missing=bundleFixture({missingCharacterSW:true});
  assert.throws(()=>expectedUiBundleMetadata({...missing,cfg}),
   /UI_BRIDGE_SW_OFFLINE_PRESENTATION:.*character-typography/);
+});
+test('V2 Public accepts shipped inline SVG icon but rejects network/data HTML/onload CSS',()=>{
+ const safe=bundleFixture();
+ safe.candidateFiles.set(BUNDLE_TOKENS,file(':root{--ink-color:green}.icon{background:'+REAL_SVG_ICON+'}'));
+ const metadata=expectedUiBundleMetadata({base:safe.base,candidateFiles:safe.candidateFiles,cfg});
+ safe.candidateFiles.set('BUILD_INFO.json',metadata.buildItem);
+ safe.candidateFiles.set('PUBLISH_RECEIPT.json',metadata.receiptItem);
+ safe.candidateFiles.set('pages-build-identity.txt',metadata.identityItem);
+ assert.equal(verifyUiBundleOnlyPlan({...safe,cfg,
+  changedPaths:[...metadata.changedUiPaths,...BUNDLE_META]}).status,
+  'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
+ for(const css of [
+  'url(https://evil.example/ink.svg)',
+  'url(//evil.example/ink.svg)',
+  'url(data:text/html,%3Cscript%3Ealert(1)%3C/script%3E)',
+  'url("data:image/svg+xml,%3Csvg%20onload%3D%27alert(1)%27%3E%3Cpath/%3E%3C/svg%3E")',
+  '@import url("./unreviewed.css")'
+ ]){
+  const bad=bundleFixture();
+  bad.candidateFiles.set(BUNDLE_TOKENS,file(':root{--ink-color:red}.icon{background:'+css+'}'));
+  assert.throws(()=>expectedUiBundleMetadata({base:bad.base,
+   candidateFiles:bad.candidateFiles,cfg}),/DUAL_PRESENTATION_(?:REMOTE_CSS|SVG_UNSAFE)/,css);
+ }
 });
