@@ -20,7 +20,7 @@ export function updateToolRailButton(button,{group,item,available,active}){
 // options layout. Core retains the commands, availability and event handlers.
 // Keep data-group, data-variant, data-action and input identifiers intact.
 export function renderToolMenu(group,items){
- return items.map(item=>'<button type="button" class="drawing-tool-option" role="menuitemradio" data-variant="'+item.id+'" aria-checked="'+String(item.active)+'"'+(item.available?'':' disabled')+' title="'+esc(item.available?item.label:item.reason||'Unavailable')+'">'+item.icon+'<span>'+esc(item.label)+'</span></button>').join('');
+ return items.map(item=>'<button type="button" class="drawing-tool-option" data-ui-presentation="public" role="menuitemradio" data-variant="'+item.id+'" aria-checked="'+String(item.active)+'"'+(item.available?'':' disabled')+' title="'+esc(item.available?item.label:item.reason||'Unavailable')+'">'+item.icon+'<span>'+esc(item.label)+'</span></button>').join('');
 }
 export function updateToolContextIdentity(element,{label}){element.textContent=label;}
 export function decorateToolOptions(element,{groupId,itemId}){
