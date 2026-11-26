@@ -19,6 +19,7 @@ const SOURCE_SHELL = Object.freeze([
   ...self.INK_STARTUP_ASSETS,
   './src/ui/ink017/entry.js',
   './src/ui/ink017/markup.html',
+  './src/ui/ink017/menu-ui.js',
   './src/ui/ink017/native-host.js',
   './src/ui/ink017/native-provider.js',
   './src/ui/ink017/panels/adjustments.js',
@@ -377,6 +378,13 @@ async function networkFirstAsset(request, cacheWrites) {
   } catch (_) {}
   const runtime = await caches.open(RUNTIME_CACHE);
   const shell = await caches.open(SHELL_CACHE);
+  // A version-pinned module must never fall back to the same path's stale
+  // queryless cache entry. Offline mismatch is an explicit load failure.
+  const url = new URL(request.url);
+  const exactOnly = url.search && /\.(?:m?js)$/.test(url.pathname);
+  if (exactOnly) return await runtime.match(request)
+    || await shell.match(request)
+    || Response.error();
   return await runtime.match(request)
     || await runtime.match(request, { ignoreSearch: true })
     || await shell.match(request)

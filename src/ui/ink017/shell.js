@@ -1,9 +1,10 @@
-import {mountToolsWorkbench} from './tool-slices/workbench.js';
-import {mountMenuUi} from './menu-ui.js';
 import {mountDock} from './right-dock.js';
 import {createNativeHost} from './native-host.js';
 import {esc,selected,field,iconButton,drag} from './shared-controls.js';
-export function mountNativeShell(app,root){
+export async function mountNativeShell(app,root){
+ // External Public-owned UI uses the same canonical source in preview and Runtime.
+ const {mountMenuUi}=await import(new URL('./menu-ui.js',import.meta.url).href);
+ if(typeof mountMenuUi!=='function')throw Error('INK_UI_MENU_MODULE_CONTRACT');
  const host=createNativeHost(app),$=s=>root.querySelector(s),dock=mountDock($('#rightDock'),host),abort=new AbortController(),{signal}=abort;
  const menu=$('#mainMenu'),overlay=$('#overlay');let dialogAbort,importTarget,menuUi=null,dialogReturnFocus=null;
  const feedback=message=>{const toast=$('#ui017Toast');toast.textContent=message;clearTimeout(feedback.timer);feedback.timer=setTimeout(()=>toast.textContent='',4000)};
@@ -19,7 +20,7 @@ export function mountNativeShell(app,root){
  function imageDialog(kind){const s=host.getSnapshot(),t=host.target(),o=s.object,d=s.docs[0];if(kind!=='canvas-size'&&(!o?.raster||o.locked)){feedback('Select an unlocked image');return}
   const canvas=kind==='canvas-size',crop=kind==='crop',w=canvas?d.width:o.raster.width,h=canvas?d.height:o.raster.height;
   const selectedImage=!canvas&&!crop;
-  const rasterInfo=host.provider.image.selectedInfo();
+  const rasterInfo=host.shellApi.selectedRasterInfo();
   if(!canvas&&(rasterInfo?.bitDepth!==8||rasterInfo?.colorMode!=='RGB')){feedback('Resize and crop require an 8-bit RGB raster');return}
   const imageInfo=selectedImage?`<p class="dialog-copy">Selected raster: ${esc(w)} × ${esc(h)} px. Only nearest-neighbor pixel resampling is available; document and artwork dimensions are unchanged.</p>`:'';
   const aspectLock=selectedImage?'<label class="field-row"><span>Lock aspect ratio</span><input type="checkbox" data-image-aspect-lock checked aria-label="Lock selected image aspect ratio"></label>':'';
@@ -73,7 +74,7 @@ export function mountNativeShell(app,root){
   const doc=host.select('document.current')||{};
   if(!doc.open){feedback('Open a document before export');return}
   dialog('Export','<label class="field-row"><span>Format</span><select data-key="format"><option value="png">PNG</option><option value="svg">SVG</option><option value="pdf">PDF</option></select></label><p class="dialog-copy">Artboard · background included</p>',async ({format})=>{
-   const result=await host.app.runExportRequest({format,scope:'artboard',background:true,entryPolicy:'minimal'});
+   const result=await host.shellApi.exportArtboard(format);
    if(!result?.completed)throw Error('Export did not complete');
    feedback('Exported '+result.name);return {ok:true};
   });
@@ -88,16 +89,15 @@ export function mountNativeShell(app,root){
    // Only route into the existing first-party INK Drive service. The menu
    // opens its visible dialog; GIS auth and Native IO remain on the original
    // buttons requiring an actual user click, never on the menu dispatch.
-   const mounted=await host.app.driveLinkStartup;
-   if(typeof mounted?.service?.showPanel!=='function'){
+   const intent=key==='drive-recover'?'recover':key==='drive-save-revision'?'save-revision':'save';
+   const result=await host.shellApi.openDrivePanel(intent,{filename});
+   if(result?.code==='INK_DRIVE_FIRST_PARTY_NOT_READY'){
     // Show the existing first-party diagnostic (SDK/config not available)
     // in the same top-layer dialog rather than leave it clipped offscreen.
-    if(mounted?.panel&&!mounted.panel.open)mounted.panel.showModal();
-    feedback(mounted?.status==='AUTH_CONFIGURATION_REQUIRED'?'INK Google Drive 授權尚未設定':'INK Google Drive 尚未就緒');
-    return {ok:false,code:'INK_DRIVE_FIRST_PARTY_NOT_READY'};
+    feedback(result.status==='AUTH_CONFIGURATION_REQUIRED'?'INK Google Drive 授權尚未設定':'INK Google Drive 尚未就緒');
+    return result;
    }
-   const intent=key==='drive-recover'?'recover':key==='drive-save-revision'?'save-revision':'save';
-   return mounted.service.showPanel(intent,{filename});
+   return result;
   }
   if(/^view:[124]$/.test(key))return run('session.view.layout.v1',{layout:Number(key.slice(5))});
   if(key.startsWith('session:'))return run('session.activate.v1',{sessionId:key.slice(8)});
@@ -127,19 +127,19 @@ export function mountNativeShell(app,root){
   if(key==='zoom-in'||key==='zoom-out')return run('view.zoom.by.v1',{factor:key==='zoom-in'?1.2:1/1.2});
   if(key==='fit')return run('view.fit.content.v1');if(key==='100')return run('view.zoom.set.v1',{scale:1});
   if(key==='200')return run('view.zoom.set.v1',{scale:2});
-  if(key==='view:snap'){const enabled=host.app.page?.()?.snap?.enabled!==false;return run('page.snap.set.v1',{key:'enabled',value:!enabled});}
-  if(key.startsWith('view:snap:')){const category=key.slice(10);if(!['guides','edges','centers','equalDistance'].includes(category))return;const enabled=host.app.page?.()?.snap?.categories?.[category]===true;return run('page.snap.set.v1',{key:category,value:!enabled});}
+  if(key==='view:snap'){const enabled=host.shellApi.snapState().enabled!==false;return run('page.snap.set.v1',{key:'enabled',value:!enabled});}
+  if(key.startsWith('view:snap:')){const category=key.slice(10);if(!['guides','edges','centers','equalDistance'].includes(category))return;const enabled=host.shellApi.snapState().categories?.[category]===true;return run('page.snap.set.v1',{key:category,value:!enabled});}
   if(key==='adjustments')return dock.activate('adjustments');
   if(['image-size','crop'].includes(key))return imageDialog(key);
-  if(key.startsWith('image-mode:')||key.startsWith('image-depth:')){const target=host.target(),info=host.provider.image.selectedInfo();if(!info){feedback('Select an unlocked raster image');return}const mode=key.startsWith('image-mode:');const value=mode?key.slice(11):Number(key.slice(12));if(mode?info.colorMode===value:info.bitDepth===value)return{ok:true,changed:false};return run(mode?'ui017.image.mode.v1':'ui017.image.depth.v1',{target,...(mode?{mode:value}:{depth:value})});}
+  if(key.startsWith('image-mode:')||key.startsWith('image-depth:')){const target=host.target(),info=host.shellApi.selectedRasterInfo();if(!info){feedback('Select an unlocked raster image');return}const mode=key.startsWith('image-mode:');const value=mode?key.slice(11):Number(key.slice(12));if(mode?info.colorMode===value:info.bitDepth===value)return{ok:true,changed:false};return run(mode?'ui017.image.mode.v1':'ui017.image.depth.v1',{target,...(mode?{mode:value}:{depth:value})});}
   if(key==='transform'){host.dispatch({type:'tool.set',value:'select',source:'menu.transform'});contextToolbar.expand(true);return}
   if(key==='duplicate'||key==='delete')return host.dispatch({type:'layer.'+key,object:true,target:host.target(),source:'context'});
-  if(key==='align'){const t=host.target();if(t.refs.length<2){feedback('Select at least two objects');return}return dialog('Align',field('mode','Align','left','text',['left','centerX','right','top','centerY','bottom','distributeX','distributeY']),a=>{host.provider.requireSelection(t);return run('object.align.v1',{...a,targetRefs:t.refs.map(r=>({...r,pageId:t.pageId}))})})}
-  if(key==='history-limit'){const value=host.provider.native.preferencesSnapshot().historyLimit;return dialog('History limit',field('historyLimit','Retained steps',String(value),'text',['20','30','50']),async a=>{const limit=Number(a.historyLimit);if(![20,30,50].includes(limit))throw Error('Choose 20, 30 or 50 steps');host.provider.native.applyPreferences({historyLimit:limit});return{ok:true}})}
+  if(key==='align'){const t=host.target();if(t.refs.length<2){feedback('Select at least two objects');return}return dialog('Align',field('mode','Align','left','text',['left','centerX','right','top','centerY','bottom','distributeX','distributeY']),a=>{host.shellApi.requireSelection(t);return run('object.align.v1',{...a,targetRefs:t.refs.map(r=>({...r,pageId:t.pageId}))})})}
+  if(key==='history-limit'){const value=host.shellApi.preferences().historyLimit;return dialog('History limit',field('historyLimit','Retained steps',String(value),'text',['20','30','50']),async a=>{const limit=Number(a.historyLimit);if(![20,30,50].includes(limit))throw Error('Choose 20, 30 or 50 steps');host.shellApi.applyPreferences({historyLimit:limit});return{ok:true}})}
   if(key==='about')return dialog('INK','<p>INK</p>',async()=>({ok:true}));
   if(key.startsWith('panel:'))return dock.activate(key.slice(6));
  };
- menuUi=mountMenuUi({menu,logo:$('#logoButton'),host,invoke:command,signal});
+ menuUi=host.mountMenuUi(mountMenuUi,{menu,logo:$('#logoButton'),invoke:command,signal});
  $('#quickUndo').addEventListener('click',()=>command('undo'),{signal});$('#quickRedo').addEventListener('click',()=>command('redo'),{signal});$('#railToggle').addEventListener('click',()=>root.classList.toggle('rail-double'),{signal});
  $('#colorState').addEventListener('click',()=>dock.activate('color'),{signal});$('#resetColors').addEventListener('click',()=>host.dispatch({type:'paint.reset',source:'rail'}),{signal});$('#swapColors').addEventListener('click',()=>host.dispatch({type:'paint.swap',source:'rail'}),{signal});
  $('#openFile').accept='.ink,.json,.psd,.psb,.ai';$('#openFile').addEventListener('change',e=>{const file=e.target.files[0];if(file)run('document.open.v1',{file});e.target.value=''},{signal});
@@ -169,7 +169,7 @@ export function mountNativeShell(app,root){
   $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
   contextToolbar.render(s);
  }
- const contextToolbar=mountToolsWorkbench(root,host,feedback,signal);
+ const contextToolbar=host.mountToolsWorkbench(root,feedback,signal);
  const syncBrandName=()=>{
   const name=globalThis.INK_BRANDING?.getName?.()||'INK';
   $('#logoButton').title=name;
@@ -179,7 +179,7 @@ export function mountNativeShell(app,root){
  syncBrandName();
  globalThis.dispatchEvent(new Event('ink:ui-shell-mounted'));
  const unsubscribe=host.subscribe(render);render(host.getSnapshot());
- return{host,dock,command,dispose(){host.app.illustratorPagesBridge?.dispose?.();sizeRouteCleanup?.();unsubscribe();abort.abort();close();contextToolbar.dispose();dock.unmount();host.dispose()}};
+ return{host,dock,command,dispose(){host.shellApi.disposePageBridge();sizeRouteCleanup?.();unsubscribe();abort.abort();close();contextToolbar.dispose();dock.unmount();host.dispose()}};
 }
 
 

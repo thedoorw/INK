@@ -19,8 +19,8 @@ export default lifecycle('navigator',(s,h)=>{
  if(previewEl){const pw=Number(previewEl.dataset.previewWidth),ph=Number(previewEl.dataset.previewHeight);if(pw>0&&ph>0){previewEl.style.width=pw+'px';previewEl.style.height=ph+'px';previewEl.style.maxWidth='100%';previewEl.style.maxHeight='100%';}}
  const viewport=previewEl?.querySelector('.navigator-viewport');
  const polygon=viewport?.querySelector('polygon');
- const renderer=h.app?.renderer;
- if(viewport&&renderer&&matchMedia('(min-width:761px) and (min-height:481px), (min-width:761px) and (pointer:fine)').matches){
+ const navigator=h.navigator;
+ if(viewport&&navigator&&matchMedia('(min-width:761px) and (min-height:481px), (min-width:761px) and (pointer:fine)').matches){
   const preview=h.select('page.preview',{width:Number(previewEl.dataset.previewWidth),height:Number(previewEl.dataset.previewHeight)});
   const {fitBounds,scale,width,height}=preview;
   const img=previewEl.querySelector('img');
@@ -30,34 +30,16 @@ export default lifecycle('navigator',(s,h)=>{
   previewEl.style.userSelect='none';
   img.draggable=false;
   const origin={x:fitBounds.x+fitBounds.w/2,y:fitBounds.y+fitBounds.h/2};
-  const midpoint=[width/2,height/2];
   const updateViewport=()=>{
-   const camera=renderer.camera();
-   const corners=[[0,0],[renderer.width,0],[renderer.width,renderer.height],[0,renderer.height]];
-   const projected=corners.map(([x,y])=>{
-    const point=renderer.screenToDisplayWorld(x,y,camera,{left:0,top:0});
-    return [midpoint[0]+(point.x-origin.x)*scale,midpoint[1]+(point.y-origin.y)*scale];
-   });
-   const left=(width-fitBounds.w*scale)/2,top=(height-fitBounds.h*scale)/2;
-   const paper=[[left,top],[width-left,top],[width-left,height-top],[left,height-top]];
-   const fullPage=paper.every(([x,y])=>projected.every(([ax,ay],i)=>{
-    const [bx,by]=projected[(i+1)%projected.length];
-    return (bx-ax)*(y-ay)-(by-ay)*(x-ax)>=-0.01;
-   }));
-   const points=fullPage?paper:projected;
-   polygon.setAttribute('points',points.map(point=>point.join(',')).join(' '));
+   const points=navigator.read({width,height,fitBounds,scale});
+   if(points)polygon.setAttribute('points',points.map(point=>point.join(',')).join(' '));
   };
   const pan=event=>{
    const rect=viewport.getBoundingClientRect();
    const ratio=Math.min(rect.width/width,rect.height/height);
    const x=(event.clientX-rect.left-rect.width/2)/ratio;
    const y=(event.clientY-rect.top-rect.height/2)/ratio;
-   const world={x:origin.x+x/scale,y:origin.y+y/scale};
-   const camera=renderer.camera();
-   const cos=Math.cos(camera.rotation),sin=Math.sin(camera.rotation);
-   const dx=-camera.x-(world.x*cos-world.y*sin)*camera.scale;
-   const dy=-camera.y-(world.x*sin+world.y*cos)*camera.scale;
-   h.dispatch({type:'camera.patch',patch:{x:dx,y:dy},source:'navigator'});
+   navigator.pan({offsetX:x,offsetY:y,originX:origin.x,originY:origin.y,scale});
   };
   const finishPan=()=>{
    if(r.dataset.navigatorPanning!=='true')return;

@@ -1,13 +1,32 @@
 import {installNativeUiProvider} from './native-provider.js';
 import {createUiB002ColorRuntime} from '../../editor/function-modules/ui-b-002-tools-runtime.js';
+import {createNavigatorHostPort} from './navigator-host-port.mjs';
+import {mountToolsWorkbench} from './tool-slices/workbench.js';
 const clone=x=>x==null?x:JSON.parse(JSON.stringify(x));
 export function createNativeHost(app){
  const provider=installNativeUiProvider(app),listeners=new Set(),receipts=new Set();
  const colorRuntime=createUiB002ColorRuntime(app,{notify:()=>app.commands.notify('native-color')});
+ const navigator=createNavigatorHostPort(app.renderer,c=>dispatch(c));
  let aspect=false,activeAdjustment=null; // view/editor state only
  const select=(id,args={})=>app.commands.select(id,args);
  const target=()=>provider.capture();
  const execute=(id,args={})=>app.commands.execute(id,args,'human-ui');
+ // Shell-facing capabilities: the UI never receives the underlying app or provider.
+ const shellApi={
+  selectedRasterInfo:()=>provider.image.selectedInfo(),
+  requireSelection:t=>provider.requireSelection(t),
+  snapState:()=>clone(app.page?.()?.snap||{}),
+  preferences:()=>clone(provider.native.preferencesSnapshot()),
+  applyPreferences:patch=>provider.native.applyPreferences(patch),
+  exportArtboard:format=>app.runExportRequest({format,scope:'artboard',background:true,entryPolicy:'minimal'}),
+  async openDrivePanel(intent,{filename}={}){
+   const mounted=await app.driveLinkStartup;
+   if(typeof mounted?.service?.showPanel==='function')return mounted.service.showPanel(intent,{filename});
+   if(mounted?.panel&&!mounted.panel.open)mounted.panel.showModal();
+   return {ok:false,code:'INK_DRIVE_FIRST_PARTY_NOT_READY',status:mounted?.status};
+  },
+  disposePageBridge:()=>app.illustratorPagesBridge?.dispose?.()
+ };
  function getSnapshot(){
   const p=app.page(),open=!!app.documentOpen,color=select('tool.color'),settings=select('tool.settings'),b=app.renderer.selectionWorldBounds?.(),found=app.selectedObjects?.()||[],single=found.length===1?found[0]:null,o=single?.object;
   const t=target();let object=o?{id:o.id,objectId:o.id,target:t,type:o.type,locked:!!single.layer.locked||!!o.locked,x:b?.x??0,y:b?.y??0,w:b?.w??0,h:b?.h??0,rotate:Math.atan2((single.worldMatrix||o.matrix)[1],(single.worldMatrix||o.matrix)[0])*180/Math.PI,font:o.fontFamily||'system-ui',weight:o.fontWeight||400,size:o.fontSize||32,leading:(o.lineHeight||1.25)*(o.fontSize||32),tracking:o.tracking||0,textColor:o.color||'#202020',text:o.text||'',align:o.paragraph?.align||o.paragraphAlign||'left',paragraph:clone(o.paragraph||{}),textBox:clone(o.textBox),textPresentation:clone(o.textPresentation||{}),textRuns:clone(o.textRuns||[]),kerningPairs:clone(o.kerningPairs||[]),fill:o.type==='path'?o.fill:o.fillColor||o.color,blendMode:o.blendMode||'source-over',adjustments:clone(o.adjustments||[]),raster:clone(o.rasterState?.colorRaster?{width:o.rasterState.colorRaster.width,height:o.rasterState.colorRaster.height}:null)}:null;
@@ -69,5 +88,22 @@ export function createNativeHost(app){
   }catch(e){r={ok:false,changed:false,error:{code:e.code||'CAPABILITY_UNAVAILABLE',message:e.message}}}
   const result={...r,error:r?.error?.message||r?.error};for(const f of receipts)f({...c,result});emit();return result;
  }
- return {kind:'NATIVE',app,provider,execute,select,target,getSnapshot,getHistory,dispatch,subscribe(f){listeners.add(f);return()=>listeners.delete(f)},subscribeCommands(f){receipts.add(f);return()=>receipts.delete(f)},getSelection:()=>select('selection.current'),getCapabilities:()=>({core:'available',history:'available',renderer:'available'}),dispose(){cancelAnimationFrame(raf);unsub();listeners.clear();receipts.clear();provider.dispose()}};
+ // Only the existing Menu/Tools adapters receive these original Native owners.
+ // The publicly returned Host and Dock/Shell never expose app/provider.
+ // The Public-owned menu receives only read capabilities and narrow UI state.
+ // Keep raw Native owners exclusively in the Private Tools adapter.
+ const menuHost=Object.freeze({getSnapshot,getHistory,select,
+  subscribe:f=>{listeners.add(f);return()=>listeners.delete(f)},
+  menuApi:Object.freeze({
+   selectedRasterInfo:shellApi.selectedRasterInfo,
+   snapState:shellApi.snapState,
+   canInvokeWorkTools:()=>typeof app.inkPublicApi?.tools?.invoke==='function',
+   driveAvailable:()=>Boolean(app.driveLinkStartup),
+   isCurrentRuntime:()=>globalThis.INK_APP===app,
+   notify:message=>app.toast?.(message)
+  })
+ });
+ const host={kind:'NATIVE',shellApi,navigator,execute,select,target,getSnapshot,getHistory,dispatch,subscribe(f){listeners.add(f);return()=>listeners.delete(f)},subscribeCommands(f){receipts.add(f);return()=>receipts.delete(f)},getSelection:()=>select('selection.current'),getCapabilities:()=>({core:'available',history:'available',renderer:'available'}),dispose(){cancelAnimationFrame(raf);unsub();listeners.clear();receipts.clear();provider.dispose()},mountToolsWorkbench:(root,feedback,signal)=>mountToolsWorkbench(root,legacyToolHost,feedback,signal),mountMenuUi:(factory,options)=>{if(typeof factory!=='function')throw Error('INK_UI_MENU_MODULE_CONTRACT');return factory({...options,host:menuHost})}};
+ const legacyToolHost=Object.assign(Object.create(host),{app,provider});
+ return host;
 }
