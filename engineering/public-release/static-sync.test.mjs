@@ -198,6 +198,29 @@ test('trusted 009 mixed-source candidate preserves Public menu and independently
  assert.equal(verifyPlan({base:x.base,candidateFiles:x.candidateFiles,cfg,changedPaths:x.plan.changes}).status,
   'DUAL_SOURCE_INTEGRITY_PASS');
 });
+test('next Private Core release fails closed if compiled shell loses the external Public menu import',()=>{
+ const x=dualCoreFixture();
+ x.opts.sourceFiles.set('dist/startup/ink-shell.mjs',file('compiled Private menu copied inside shell'));
+ const rows=[...x.opts.sourceFiles].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}))
+  .sort((a,b)=>a.path.localeCompare(b.path,'en'));
+ x.opts.build.runtime.files=rows;
+ x.opts.build.runtime.package_digest_sha256=hash(Buffer.from(canonical(rows)));
+ assert.throws(()=>makePlan(x.opts),/UI_BRIDGE_NOT_INSTALLED/);
+});
+test('next Private Core release fails closed if SW loses menu offline closure or network-first',()=>{
+ for(const [workerBody,pattern] of [
+  ['function networkFirstAsset(request){};networkFirstAsset(event.request);',/UI_BRIDGE_SW_OFFLINE_MISSING/],
+  ['const SOURCE_SHELL=["./src/ui/ink017/menu-ui.js"];function cacheOnly(request){};',/UI_BRIDGE_SW_NETWORK_FIRST_MISSING/]
+ ]){
+  const x=dualCoreFixture();
+  x.opts.sourceFiles.set('service-worker-runtime.js',file(workerBody));
+  const rows=[...x.opts.sourceFiles].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}))
+   .sort((a,b)=>a.path.localeCompare(b.path,'en'));
+  x.opts.build.runtime.files=rows;
+  x.opts.build.runtime.package_digest_sha256=hash(Buffer.from(canonical(rows)));
+  assert.throws(()=>makePlan(x.opts),pattern);
+ }
+});
 test('mixed-source candidate rejects Public menu overwrite, forged metadata, stale pages and unexpected Core paths',()=>{
  const x=dualCoreFixture();
  const tamper=(path,value)=>{const changed=new Map(x.candidateFiles);changed.set(path,file(value));return changed};
