@@ -1908,8 +1908,8 @@
       },
       {
         "path": "src/ui/ink017/shell.js",
-        "bytes": 19797,
-        "sha256": "76bcdc1d204b20f838436bf2c69c739494c372325a55027aa10845eb1d10e12f"
+        "bytes": 20861,
+        "sha256": "fab4086a102a932515a64897d6f5b168cf8e21b9e68d01d7f741fc821e1e2774"
       },
       {
         "path": "src/ui/ink017/tokens.css",
@@ -2082,7 +2082,7 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "303b0d2f587b62949fb7785c3674806c74b7982e571ff7dcd51dfdd6a9832449"
+    "package_digest_sha256": "f9b14bcf7e99f98e7791f82adf92226f7c8b47bca6a0ac9eaa360fde2c9c4ea1"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
@@ -2095,8 +2095,8 @@
   "ui_release": {
     "schema": "INK703_PUBLIC_UI_RELEASE_V2",
     "repo": "thedoorw/INK",
-    "base_head": "a0f1b01b2feb67c58c5b4fe3256436a93545e319",
-    "base_tree": "6dfce2661412ea778cbdeb7dea878039df2505c1",
+    "base_head": "e20ee80c65471a341de4993c384488659173a4d9",
+    "base_tree": "3e738f9fdbc25cf098c5a5503fdd0ab7aa79dcba",
     "files": [
       {
         "path": "src/ui/ink017/markup.html",
@@ -2196,9 +2196,9 @@
       },
       {
         "path": "src/ui/ink017/shell.js",
-        "bytes": 19797,
-        "sha256": "76bcdc1d204b20f838436bf2c69c739494c372325a55027aa10845eb1d10e12f",
-        "git_blob_sha": "917205087860c537a9595cc891ed3e2e99f4fd7e"
+        "bytes": 20861,
+        "sha256": "fab4086a102a932515a64897d6f5b168cf8e21b9e68d01d7f741fc821e1e2774",
+        "git_blob_sha": "c8435bf3def1bd7e4faf463d79e2a24192cc387d"
       },
       {
         "path": "src/ui/ink017/tokens.css",
@@ -2207,14 +2207,14 @@
         "git_blob_sha": "771886b82339d8c387b15b2fef1cd68b340c02cb"
       }
     ],
-    "version": "ui-603abf9f96db24a83f3e1d47"
+    "version": "ui-137c9e4bb7808ce3020271e7"
   },
   "dual_source": {
     "schema": "INK703_DUAL_SOURCE_PUBLISH_V2",
     "private_runtime_digest_sha256": "a4ad0305a15080318260b445d8342425423b0cd2a24dfe7b205ebae38c936710",
-    "composite_runtime_digest_sha256": "303b0d2f587b62949fb7785c3674806c74b7982e571ff7dcd51dfdd6a9832449",
-    "ui_release_version": "ui-603abf9f96db24a83f3e1d47",
-    "pages_build_identity": "bfec74172c1033b9a116a4eb58eac82652044831"
+    "composite_runtime_digest_sha256": "f9b14bcf7e99f98e7791f82adf92226f7c8b47bca6a0ac9eaa360fde2c9c4ea1",
+    "ui_release_version": "ui-137c9e4bb7808ce3020271e7",
+    "pages_build_identity": "237137f78c0ae9dc0af8191869493052b5a7873e"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
@@ -2231,8 +2231,8 @@
     ]
   },
   "publication": {
-    "kind": "publish",
-    "previous_target_commit": "0755f17c8051b53d83230e7c18374412e4a18d4f",
+    "kind": "ui-only",
+    "previous_target_commit": "e20ee80c65471a341de4993c384488659173a4d9",
     "runtime_bytes_unchanged_from_package": false
   }
 }
