@@ -1,6 +1,7 @@
 // Shared trusted-base integrity checks. Never executes product code or grants QA/release authority.
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import path from 'node:path';
 export const hash=b=>createHash('sha256').update(b).digest('hex');
 export const blob=b=>createHash('sha1').update(Buffer.from(`blob ${b.length}\0`)).update(b).digest('hex');
 export const canonical=v=>Array.isArray(v)?'['+v.map(canonical).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}':JSON.stringify(v);
@@ -56,30 +57,186 @@ export function validateBase(base,cfg){
 const PAGES_BUILD_IDENTITY='pages-build-identity.txt';
 const DUAL_SOURCE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V1';
 const UI_RELEASE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V1';
+export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
+  'src/ui/ink017/markup.html',
+  'src/ui/ink017/menu-ui.js',
+  'src/ui/ink017/panels/adjustments.js',
+  'src/ui/ink017/panels/brushes.js',
+  'src/ui/ink017/panels/character-typography.js',
+  'src/ui/ink017/panels/character.js',
+  'src/ui/ink017/panels/color.js',
+  'src/ui/ink017/panels/history.js',
+  'src/ui/ink017/panels/layers.js',
+  'src/ui/ink017/panels/navigator-zoom-curve.mjs',
+  'src/ui/ink017/panels/navigator.js',
+  'src/ui/ink017/panels/paragraph.js',
+  'src/ui/ink017/panels/paths.js',
+  'src/ui/ink017/panels/swatches.js',
+  'src/ui/ink017/right-dock.js',
+  'src/ui/ink017/shared-controls.js',
+  'src/ui/ink017/shell.js',
+  'src/ui/ink017/tokens.css'
+].sort());
+export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
+export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
+const SHELL_PATH='src/ui/ink017/shell.js';
+export function leasedRows(ui){
+  return ui.schema===PUBLIC_UI_BUNDLE_SCHEMA?ui.files:[{
+    path:ui.path,bytes:ui.bytes,sha256:ui.sha256,git_blob_sha:ui.git_blob_sha
+  }];
+}
+export function dualSchemaForUi(ui){
+  return ui.schema===PUBLIC_UI_BUNDLE_SCHEMA?DUAL_BUNDLE_SCHEMA:DUAL_SOURCE_SCHEMA;
+}
+// A deliberately conservative lexer mask: only executable tokens are used
+// when deciding whether Public UI modules import or call beyond their lane.
+// Unlike a grep over source, strings, comments and HTML template contents do
+// not accidentally grant import authority. Template expressions are inspected.
+function executableMask(source){
+  const chars=source.split('');
+  const blank=i=>{if(chars[i]!=='\n'&&chars[i]!=='\r')chars[i]=' ';};
+  function quoted(i,quote){
+    blank(i++);
+    while(i<source.length){
+      if(source[i]==='\\'){blank(i++);if(i<source.length)blank(i++);continue;}
+      const c=source[i];blank(i++);if(c===quote)break;
+    }
+    return i;
+  }
+  function line(i){blank(i++);blank(i++);while(i<source.length&&source[i]!=='\n'&&source[i]!=='\r')blank(i++);return i;}
+  function block(i){blank(i++);blank(i++);while(i<source.length){if(source[i]==='*'&&source[i+1]==='/'){blank(i++);blank(i++);break;}blank(i++);}return i;}
+  function template(i){
+    blank(i++);
+    while(i<source.length){
+      if(source[i]==='\\'){blank(i++);if(i<source.length)blank(i++);continue;}
+      if(source[i]==='`'){blank(i++);break;}
+      if(source[i]==='$'&&source[i+1]==='{'){
+        blank(i++);blank(i++);i=code(i,true);continue;
+      }
+      blank(i++);
+    }
+    return i;
+  }
+  function code(i,inTemplate=false){
+    let depth=0;
+    while(i<source.length){
+      const c=source[i],n=source[i+1];
+      if(c==='\''||c==='"'){i=quoted(i,c);continue;}
+      if(c==='/'&&n==='/'){i=line(i);continue;}
+      if(c==='/'&&n==='*'){i=block(i);continue;}
+      if(c==='`'){i=template(i);continue;}
+      if(inTemplate&&c==='{'){depth++;i++;continue;}
+      if(inTemplate&&c==='}'){
+        if(depth===0){blank(i++);return i;}
+        depth--;i++;continue;
+      }
+      i++;
+    }
+    return i;
+  }
+  code(0);
+  return chars.join('');
+}
+export function assertPresentationClosure(files){
+  const owned=new Set(PUBLIC_UI_PRESENTATION_PATHS);
+  for(const p of owned){
+    const f=files.get(p);
+    assert.ok(f?.mode==='100644'&&Buffer.isBuffer(f.bytes),
+      'DUAL_PRESENTATION_FILE_MISSING:'+p);
+    if(!/\.m?js$/.test(p)||p===PUBLIC_UI_MENU)continue;
+    const src=f.bytes.toString('utf8');
+    const executable=executableMask(src);
+    // No command/Core/module loader authority is implicit in a Public path.
+    assert.ok(!/\b(?:eval|Function|fetch|XMLHttpRequest|WebSocket)\s*\(|\b(?:INK_APP|inkPublicApi)\b/.test(executable),
+      'DUAL_PRESENTATION_FORBIDDEN_API:'+p);
+    // Computed properties would hide the sensitive property name from the
+    // executable token mask (it intentionally blanks quoted strings).
+    assert.ok(!/\b(?:window|globalThis|self|document\.defaultView)\s*(?:\?\.)?\s*\[/.test(executable),
+      'DUAL_PRESENTATION_COMPUTED_GLOBAL:'+p);
+    const menuAnchor=/^import\s*\(\s*new\s+URL\s*\(\s*["']\.\/menu-ui\.js["']\s*,\s*import\.meta\.url\s*\)\.href\s*\)/;
+    const specs=[];
+    let menuCalls=0;
+    for(const match of executable.matchAll(/\bimport\b/g)){
+      const tail=src.slice(match.index);
+      if(/^import\s*\.\s*meta\b/.test(tail)){
+        assert.equal(p,SHELL_PATH,'DUAL_PRESENTATION_IMPORT_META:'+p);
+        continue;
+      }
+      if(menuAnchor.test(tail)){
+        assert.equal(p,SHELL_PATH,'DUAL_PRESENTATION_MENU_DYNAMIC_SCOPE');
+        menuCalls++;
+        continue;
+      }
+      const staticSource=tail.match(/^import\s+(?:\{[^{}]*\}|\*\s+as\s+[\w$]+|[\w$]+(?:\s*,\s*\{[^{}]*\})?)\s+from\s*(["'])([^"']+)\1/);
+      const sideEffect=tail.match(/^import\s*(["'])([^"']+)\1/);
+      const spec=staticSource?.[2]??sideEffect?.[2];
+      assert.ok(spec,'DUAL_PRESENTATION_UNREVIEWED_IMPORT:'+p);
+      specs.push(spec);
+    }
+    const urlCalls=[...executable.matchAll(/\bnew\s+(?:URL|Worker|SharedWorker)\s*\(/g)];
+    assert.ok(urlCalls.length===0||p===SHELL_PATH&&menuCalls===1&&
+      urlCalls.length===1&&/\bnew\s+URL\s*\(/.test(urlCalls[0][0]),
+      'DUAL_PRESENTATION_UNREVIEWED_URL:'+p);
+    for(const match of executable.matchAll(/\bexport\s+(?:\*|\{[^{}]*\})\s+from\s*/g)){
+      const spec=src.slice(match.index+match[0].length).match(/^(["'])([^"']+)\1/);
+      assert.ok(spec,'DUAL_PRESENTATION_REEXPORT_INVALID:'+p);
+      specs.push(spec[2]);
+    }
+    for(const spec of specs){
+      assert.ok(spec.startsWith('./')||spec.startsWith('../'),
+        'DUAL_PRESENTATION_NONLOCAL_IMPORT:'+p+'->'+spec);
+      const resolved=path.posix.normalize(path.posix.join(path.posix.dirname(p),spec));
+      assert.ok(owned.has(resolved),'DUAL_PRESENTATION_CORE_IMPORT:'+p+'->'+resolved);
+    }
+    if(p===SHELL_PATH)assert.equal(menuCalls,1,'DUAL_PRESENTATION_MENU_DYNAMIC_REQUIRED');
+  }
+  const markup=files.get('src/ui/ink017/markup.html').bytes.toString('utf8');
+  assert.ok(!/<\s*(?:script|iframe)\b|\bon[a-z]+\s*=/.test(markup),
+    'DUAL_PRESENTATION_MARKUP_EXEC');
+  const css=files.get('src/ui/ink017/tokens.css').bytes.toString('utf8');
+  assert.ok(!/@import\s|url\s*\(\s*['"]?\s*(?:https?:|\/\/|data:)/i.test(css),
+    'DUAL_PRESENTATION_REMOTE_CSS');
+}
 function verifiedUiLease(base,prior,cfg){
   const ui=prior.ui_release;
-  assert.equal(ui?.schema,UI_RELEASE_SCHEMA,'UI_LEASE_SCHEMA');
+  assert.ok(ui?.schema===UI_RELEASE_SCHEMA||ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA,
+    'UI_LEASE_SCHEMA');
   assert.equal(ui.repo,'thedoorw/INK','UI_LEASE_REPO');
   assert.ok(sha(ui.base_head)&&sha(ui.base_tree),'UI_LEASE_ORIGINAL_BASE');
-  assert.equal(ui.path,PUBLIC_UI_MENU,'UI_LEASE_SCOPE');
-  assert.ok(sha(ui.git_blob_sha)&&sha256(ui.sha256)&&
-    Number.isSafeInteger(ui.bytes)&&ui.bytes>0,'UI_LEASE_BLOB_FIELDS');
-  const unsigned={schema:ui.schema,repo:ui.repo,base_head:ui.base_head,
-    base_tree:ui.base_tree,path:ui.path,git_blob_sha:ui.git_blob_sha,
-    sha256:ui.sha256,bytes:ui.bytes};
+  let unsigned;
+  if(ui.schema===PUBLIC_UI_BUNDLE_SCHEMA){
+    assert.ok(Array.isArray(ui.files),'UI_LEASE_FILES');
+    assert.deepEqual(ui.files.map(row=>row.path),PUBLIC_UI_PRESENTATION_PATHS,
+      'UI_LEASE_EXACT_PRESENTATION_PATHS');
+    for(const row of ui.files){
+      assert.deepEqual(Object.keys(row).sort(),
+        ['path','git_blob_sha','sha256','bytes'].sort(),'UI_LEASE_ROW_FIELDS');
+      assert.ok(sha(row.git_blob_sha)&&sha256(row.sha256)&&
+        Number.isSafeInteger(row.bytes)&&row.bytes>0,'UI_LEASE_BLOB_FIELDS:'+row.path);
+    }
+    unsigned={schema:ui.schema,repo:ui.repo,base_head:ui.base_head,
+      base_tree:ui.base_tree,files:ui.files};
+  }else{
+    assert.equal(ui.path,PUBLIC_UI_MENU,'UI_LEASE_SCOPE');
+    assert.ok(sha(ui.git_blob_sha)&&sha256(ui.sha256)&&
+      Number.isSafeInteger(ui.bytes)&&ui.bytes>0,'UI_LEASE_BLOB_FIELDS');
+    unsigned={schema:ui.schema,repo:ui.repo,base_head:ui.base_head,
+      base_tree:ui.base_tree,path:ui.path,git_blob_sha:ui.git_blob_sha,
+      sha256:ui.sha256,bytes:ui.bytes};
+  }
   assert.deepEqual(Object.keys(ui).sort(),[...Object.keys(unsigned),'version'].sort(),
     'UI_LEASE_EXACT_FIELDS');
   assert.equal(ui.version,'ui-'+hash(Buffer.from(canonical(unsigned))).slice(0,24),
     'UI_LEASE_VERSION');
-  const menu=base.files.get(PUBLIC_UI_MENU);
-  assert.ok(menu?.mode==='100644','UI_BASE_MENU_REQUIRED');
-  assert.equal(menu.sha,ui.git_blob_sha,'UI_BASE_MENU_BLOB');
-  assert.equal(hash(menu.bytes),ui.sha256,'UI_BASE_MENU_HASH');
-  assert.equal(menu.bytes.length,ui.bytes,'UI_BASE_MENU_BYTES');
   const managed=new Map(prior.managed_files.map(r=>[r.path,r]));
-  assert.deepEqual(managed.get(PUBLIC_UI_MENU),
-    {path:ui.path,bytes:ui.bytes,sha256:ui.sha256,git_blob_sha:ui.git_blob_sha},
-    'UI_BASE_MENU_MANAGED_ROW');
+  for(const row of leasedRows(ui)){
+    const file=base.files.get(row.path);
+    assert.ok(file?.mode==='100644','UI_BASE_FILE_REQUIRED:'+row.path);
+    assert.equal(file.sha,row.git_blob_sha,'UI_BASE_BLOB:'+row.path);
+    assert.equal(hash(file.bytes),row.sha256,'UI_BASE_HASH:'+row.path);
+    assert.equal(file.bytes.length,row.bytes,'UI_BASE_BYTES:'+row.path);
+    assert.deepEqual(managed.get(row.path),row,'UI_BASE_MANAGED_ROW:'+row.path);
+  }
   assert.ok(!managed.has(PAGES_BUILD_IDENTITY),'PAGES_MUST_BE_UNMANAGED');
   const before=parsed(base.files,'BUILD_INFO.json');
   assert.deepEqual(before.ui_release,ui,'UI_BASE_BUILD_LEASE');
@@ -96,7 +253,7 @@ function verifiedUiLease(base,prior,cfg){
   // the composite digest and Pages revision in both metadata documents.
   if(prior.dual_source!==undefined||before.dual_source!==undefined){
     const d=prior.dual_source;
-    assert.equal(d?.schema,DUAL_SOURCE_SCHEMA,'UI_BASE_DUAL_SCHEMA');
+    assert.equal(d?.schema,dualSchemaForUi(ui),'UI_BASE_DUAL_SCHEMA');
     assert.deepEqual(before.dual_source,d,'UI_BASE_DUAL_RECEIPT_DRIFT');
     assert.ok(sha256(d.private_runtime_digest_sha256),'UI_BASE_PRIVATE_DIGEST');
     assert.equal(d.composite_runtime_digest_sha256,prior.runtime_digest_sha256,
@@ -127,11 +284,13 @@ function makeDualPlan(args,prior,buildId,{privateRuntimeDigest}={}){
   const originalDigest=privateRuntimeDigest??build.runtime.package_digest_sha256;
   assert.ok(sha256(originalDigest),'DUAL_PRIVATE_RUNTIME_DIGEST');
   const mixed=new Map(sourceFiles);
-  assert.ok(mixed.has(PUBLIC_UI_MENU),'DUAL_PRIVATE_MENU_MISSING');
-  mixed.set(PUBLIC_UI_MENU,base.files.get(PUBLIC_UI_MENU));
+  for(const row of leasedRows(lease)){
+    assert.ok(mixed.has(row.path),'DUAL_PRIVATE_UI_MISSING:'+row.path);
+    mixed.set(row.path,base.files.get(row.path));
+  }
   // The next Private Core runtime must keep consuming Public UI externally.
   // A valid menu lease cannot rescue a bundled shell or stale SW strategy.
-  verifyUiBridgeFiles(mixed);
+  verifyUiBridgeFiles(mixed,lease);
   const runtimePaths=[...mixed.keys()].sort();
   const runtimeRows=rowsOf(mixed,runtimePaths);
   const digest=hash(Buffer.from(canonical(runtimeRows)));
@@ -140,7 +299,7 @@ function makeDualPlan(args,prior,buildId,{privateRuntimeDigest}={}){
   composite.runtime={...composite.runtime,files:runtimeRows,file_count:runtimeRows.length,
     package_digest_sha256:digest};
   validateBuild(composite,mixed,cfg);
-  const dualSource={schema:DUAL_SOURCE_SCHEMA,
+  const dualSource={schema:dualSchemaForUi(lease),
     private_runtime_digest_sha256:originalDigest,
     composite_runtime_digest_sha256:digest,
     ui_release_version:lease.version,pages_build_identity:revision};
@@ -217,11 +376,11 @@ export function makePlan({build,sourceFiles,base,cfg,qualification,authorityRefe
   return {schema:'INK_STATIC_SYNC_PLAN_V1',disposition:same&&action==='publish'?'ALREADY_PUBLISHED':'DRAFT_REQUIRED',manifest,files:next,changes,deletions};
 }
 function verifyDualPlan({base,candidateFiles,cfg,changedPaths},prior,m){
-  verifiedUiLease(base,prior,cfg);
+  const lease=verifiedUiLease(base,prior,cfg);
   assert.equal(m.schema,'INK_STATIC_SYNC_V1','DUAL_SYNC_SCHEMA');
   assert.equal(m.intent,'draft-pr-only','DUAL_INTENT');
   assert.ok(['publish','rollback'].includes(m.action),'DUAL_ACTION');
-  assert.equal(m.dual_source?.schema,DUAL_SOURCE_SCHEMA,'DUAL_MANIFEST_REQUIRED');
+  assert.equal(m.dual_source?.schema,dualSchemaForUi(lease),'DUAL_MANIFEST_REQUIRED');
   assert.equal(m.target?.repo,'thedoorw/INK','DUAL_TARGET_REPO');
   assert.equal(m.target?.branch,'main','DUAL_TARGET_BRANCH');
   assert.equal(m.target.expected_head,base.head,'DUAL_STALE_BASE');
@@ -235,12 +394,14 @@ function verifyDualPlan({base,candidateFiles,cfg,changedPaths},prior,m){
     runtime.set(r.path,candidateFiles.get(r.path));
   }
   const buildId=validateBuild(info,runtime,cfg);
-  verifyUiBridgeFiles(runtime);
+  verifyUiBridgeFiles(runtime,lease);
   assert.equal(m.build_id,buildId,'DUAL_BUILD_ID');
   assert.deepEqual(info.ui_release,prior.ui_release,'DUAL_UI_LEASE_NOT_PRESERVED');
-  assert.equal(runtime.get(PUBLIC_UI_MENU)?.sha,
-    base.files.get(PUBLIC_UI_MENU)?.sha,'DUAL_PUBLIC_MENU_OVERWRITE');
-  assert.equal(info.dual_source?.schema,DUAL_SOURCE_SCHEMA,'DUAL_BUILD_EXTENSION_REQUIRED');
+  for(const row of leasedRows(lease))
+    assert.equal(runtime.get(row.path)?.sha,base.files.get(row.path)?.sha,
+      'DUAL_PUBLIC_UI_OVERWRITE:'+row.path);
+  assert.equal(info.dual_source?.schema,dualSchemaForUi(lease),
+    'DUAL_BUILD_EXTENSION_REQUIRED');
   assert.ok(sha256(info.dual_source.private_runtime_digest_sha256),
     'DUAL_PRIVATE_RUNTIME_DIGEST');
   const previousBuild=structuredClone(info);
@@ -431,16 +592,27 @@ function checkedMenu(f){
 function verifyInstalledUiBridge(base){
   verifyUiBridgeFiles(base.files);
 }
-function verifyUiBridgeFiles(files){
+function verifyUiBridgeFiles(files,ui){
   const shell=files.get('dist/startup/ink-shell.mjs');
   assert.ok(shell?.mode==='100644'&&Buffer.isBuffer(shell.bytes),'UI_BRIDGE_SHELL_MISSING');
-  assert.match(shell.bytes.toString('utf8'),
-    /import\(new URL\(["']\.\/menu-ui\.js["'],new URL\(["']src\/ui\/ink017\/shell\.js["'],document\.baseURI\)\.href\)\.href\)/,
-    'UI_BRIDGE_NOT_INSTALLED');
+  if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA){
+    assert.match(shell.bytes.toString('utf8'),
+      /import\(new URL\(["']\.\/shell\.js["'],new URL\(["']src\/ui\/ink017\/entry\.js["'],document\.baseURI\)\.href\)\.href\)/,
+      'UI_BRIDGE_EXTERNAL_SHELL_NOT_INSTALLED');
+    assertPresentationClosure(files);
+  }else{
+    assert.match(shell.bytes.toString('utf8'),
+      /import\(new URL\(["']\.\/menu-ui\.js["'],new URL\(["']src\/ui\/ink017\/shell\.js["'],document\.baseURI\)\.href\)\.href\)/,
+      'UI_BRIDGE_NOT_INSTALLED');
+  }
   const worker=files.get('service-worker-runtime.js');
   assert.ok(worker?.mode==='100644'&&Buffer.isBuffer(worker.bytes),'UI_BRIDGE_SW_MISSING');
   const source=worker.bytes.toString('utf8');
   assert.match(source,/['"]\.\/src\/ui\/ink017\/menu-ui\.js['"]/,'UI_BRIDGE_SW_OFFLINE_MISSING');
+  if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA)
+    for(const p of PUBLIC_UI_PRESENTATION_PATHS)
+      assert.ok(source.includes(JSON.stringify('./'+p))||source.includes("'./"+p+"'"),
+        'UI_BRIDGE_SW_OFFLINE_PRESENTATION:'+p);
   assert.match(source,/networkFirstAsset\(event\.request/,'UI_BRIDGE_SW_NETWORK_FIRST_MISSING');
 }
 export function verifyUiOnlyPlan({base,candidateFiles,cfg,changedPaths}){
@@ -467,6 +639,111 @@ export function verifyUiOnlyPlan({base,candidateFiles,cfg,changedPaths}){
   return Object.freeze({status:'PUBLIC_UI_ONLY_INTEGRITY_PASS',releaseAuthorized:false,
     corePreserved:true,changedPaths:actual,uiVersion:expected.uiLease.version,pagesRevision:expected.pagesRevision,
     priorPublicHead:base.head});
+}
+
+// #703 next-stage candidate. A trusted, finite presentation graph is leased
+// atomically even when only one of its UI files changes. No Core/Native file
+// becomes Public-owned. This branch does not authorize publication.
+const UI_BUNDLE_PATH_SET=new Set(PUBLIC_UI_PRESENTATION_PATHS);
+const UI_BUNDLE_METADATA=Object.freeze(['BUILD_INFO.json','PUBLISH_RECEIPT.json',PAGES_IDENTITY]);
+export function uiBundlePaths(paths){
+  return Array.isArray(paths)&&paths.length>=4&&
+    new Set(paths).size===paths.length&&
+    UI_BUNDLE_METADATA.every(p=>paths.includes(p))&&
+    paths.some(p=>UI_BUNDLE_PATH_SET.has(p))&&
+    paths.every(p=>UI_BUNDLE_PATH_SET.has(p)||UI_BUNDLE_METADATA.includes(p));
+}
+export function expectedUiBundleMetadata({base,candidateFiles,cfg}){
+  const prior=validateBase(base,cfg);
+  const before=parsed(base.files,'BUILD_INFO.json');
+  const runtimePaths=before.runtime?.files?.map(r=>r.path);
+  assert.ok(Array.isArray(runtimePaths),'UI_BUNDLE_BASE_RUNTIME');
+  assert.deepEqual(runtimePaths,[...new Set(runtimePaths)].sort(),'UI_BUNDLE_RUNTIME_ORDER');
+  for(const p of PUBLIC_UI_PRESENTATION_PATHS)
+    assert.ok(runtimePaths.includes(p),'UI_BUNDLE_SOURCE_NOT_PUBLISHED:'+p);
+  const original=new Map(runtimePaths.map(p=>[p,base.files.get(p)]));
+  validateBuild(before,original,cfg);
+  assert.equal(before.runtime.package_digest_sha256,prior.runtime_digest_sha256,
+    'UI_BUNDLE_BASE_RECEIPT_DIGEST');
+  if(prior.ui_release!==undefined||before.ui_release!==undefined)
+    verifiedUiLease(base,prior,cfg);
+  const mixed=new Map(original);
+  let uiChanged=0;
+  for(const p of PUBLIC_UI_PRESENTATION_PATHS){
+    const item=candidateFiles.get(p);
+    assert.ok(item?.mode==='100644'&&Buffer.isBuffer(item.bytes),
+      'UI_BUNDLE_MISSING:'+p);
+    if(item.sha!==original.get(p)?.sha)uiChanged++;
+    mixed.set(p,item);
+  }
+  assert.ok(uiChanged>0,'UI_BUNDLE_UNCHANGED');
+  if(candidateFiles.get(PUBLIC_UI_MENU)?.sha!==base.files.get(PUBLIC_UI_MENU)?.sha)
+    checkedMenu(candidateFiles.get(PUBLIC_UI_MENU));
+  verifyUiBridgeFiles(mixed,{schema:PUBLIC_UI_BUNDLE_SCHEMA});
+  const rows=rowsOf(mixed,runtimePaths);
+  const runtimeDigest=hash(Buffer.from(canonical(rows)));
+  const lease={schema:PUBLIC_UI_BUNDLE_SCHEMA,repo:'thedoorw/INK',
+    base_head:base.head,base_tree:base.tree,
+    files:PUBLIC_UI_PRESENTATION_PATHS.map(p=>{
+      const f=mixed.get(p);return {path:p,bytes:f.bytes.length,
+        sha256:hash(f.bytes),git_blob_sha:f.sha};
+    })};
+  lease.version='ui-'+hash(Buffer.from(canonical(lease))).slice(0,24);
+  const build=structuredClone(before);
+  build.runtime={...build.runtime,files:rows,file_count:rows.length,
+    package_digest_sha256:runtimeDigest};
+  build.ui_release=lease;
+  const pagesRevision=pagesRevisionForDigest(runtimeDigest);
+  if(before.dual_source!==undefined){
+    build.dual_source={...before.dual_source,schema:DUAL_BUNDLE_SCHEMA,
+      composite_runtime_digest_sha256:runtimeDigest,
+      ui_release_version:lease.version,pages_build_identity:pagesRevision};
+  }
+  build.publication={kind:'ui-only',previous_target_commit:base.head,
+    runtime_bytes_unchanged_from_package:false};
+  validateBuild(build,mixed,cfg);
+  const buildBytes=json(build),buildItem={mode:'100644',bytes:buildBytes,sha:blob(buildBytes)};
+  const receipt=structuredClone(prior);
+  receipt.action='ui-only';receipt.previous_target_commit=base.head;
+  receipt.runtime_digest_sha256=runtimeDigest;
+  receipt.ui_release=structuredClone(lease);
+  if(build.dual_source)receipt.dual_source=structuredClone(build.dual_source);
+  const managedRows=new Map(receipt.managed_files.map(r=>[r.path,r]));
+  for(const f of lease.files)managedRows.set(f.path,f);
+  managedRows.set('BUILD_INFO.json',{path:'BUILD_INFO.json',bytes:buildBytes.length,
+    sha256:hash(buildBytes),git_blob_sha:buildItem.sha});
+  receipt.managed_files=[...managedRows.values()].sort((a,b)=>a.path.localeCompare(b.path,'en'));
+  const receiptBytes=json(receipt),receiptItem={mode:'100644',bytes:receiptBytes,
+    sha:blob(receiptBytes)};
+  const identityBytes=Buffer.from(pagesRevision+'\n');
+  const identityItem={mode:'100644',bytes:identityBytes,sha:blob(identityBytes)};
+  return {buildItem,receiptItem,identityItem,uiLease:lease,pagesRevision,
+    changedUiPaths:PUBLIC_UI_PRESENTATION_PATHS.filter(p=>
+      base.files.get(p)?.sha!==candidateFiles.get(p)?.sha)};
+}
+export function verifyUiBundleOnlyPlan({base,candidateFiles,cfg,changedPaths}){
+  assert.ok(uiBundlePaths(changedPaths),'UI_BUNDLE_SCOPE');
+  checkFiles(base.files);checkFiles(candidateFiles);
+  assert.deepEqual([...candidateFiles.keys()].sort(),
+    [...new Set([...base.files.keys(),PAGES_IDENTITY])].sort(),'UI_BUNDLE_FULL_TREE');
+  const expected=expectedUiBundleMetadata({base,candidateFiles,cfg});
+  for(const [p,f] of [['BUILD_INFO.json',expected.buildItem],
+    ['PUBLISH_RECEIPT.json',expected.receiptItem],
+    [PAGES_IDENTITY,expected.identityItem]])
+    assert.equal(candidateFiles.get(p)?.sha,f.sha,'UI_BUNDLE_METADATA:'+p);
+  for(const [p,f] of base.files){
+    if(UI_BUNDLE_PATH_SET.has(p)||UI_BUNDLE_METADATA.includes(p))continue;
+    assert.equal(candidateFiles.get(p)?.sha,f.sha,'UI_BUNDLE_CORE_DRIFT:'+p);
+  }
+  const actual=[...new Set([...base.files.keys(),...candidateFiles.keys()])]
+    .filter(p=>base.files.get(p)?.sha!==candidateFiles.get(p)?.sha).sort();
+  assert.deepEqual(actual,[...changedPaths].sort(),'UI_BUNDLE_CHANGED_PATHS');
+  assert.deepEqual(actual,[...expected.changedUiPaths,...UI_BUNDLE_METADATA].sort(),
+    'UI_BUNDLE_UNEXPECTED_DIFF');
+  validateBase({...base,files:candidateFiles},cfg);
+  return Object.freeze({status:'PUBLIC_UI_BUNDLE_INTEGRITY_PASS',releaseAuthorized:false,
+    corePreserved:true,changedPaths:actual,uiVersion:expected.uiLease.version,
+    pagesRevision:expected.pagesRevision,priorPublicHead:base.head});
 }
 // #637 QA-only gate: enabled only after independently pinned artifact and trusted-base cutover.
 
