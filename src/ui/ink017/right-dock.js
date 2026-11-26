@@ -12,7 +12,7 @@ import {drag} from './shared-controls.js';
 export function mountDock(root,host){
  const modules={navigator,color,swatches,adjustments,character,paragraph,layers,history,brushes,paths};
  const groups=[['navigator','swatches','color'],['character','paragraph','brushes','adjustments'],['layers','history','paths']];
- const labels={navigator:'導覽器',color:'顏色',swatches:'色票',character:'字元',paragraph:'段落',brushes:'筆刷',adjustments:'調整',layers:'圖層',history:'步驟記錄',paths:'路徑'};
+ const labels={navigator:'導覽器',color:'顏色',swatches:'色票',character:'字元',paragraph:'段落',brushes:'筆刷',adjustments:'調整',layers:'圖層',history:'歷史記錄',paths:'路徑'};
  const active=['navigator','character','layers'];let expandedZone=null;const abort=new AbortController();
  // Photoshop geometry: one tab line in each of three stacks; the trailing menu belongs to the active panel.
  // Only the existing real expand/restore action is offered in the first menu; other PS commands follow later.
