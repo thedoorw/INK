@@ -129,6 +129,9 @@ function makeDualPlan(args,prior,buildId,{privateRuntimeDigest}={}){
   const mixed=new Map(sourceFiles);
   assert.ok(mixed.has(PUBLIC_UI_MENU),'DUAL_PRIVATE_MENU_MISSING');
   mixed.set(PUBLIC_UI_MENU,base.files.get(PUBLIC_UI_MENU));
+  // The next Private Core runtime must keep consuming Public UI externally.
+  // A valid menu lease cannot rescue a bundled shell or stale SW strategy.
+  verifyUiBridgeFiles(mixed);
   const runtimePaths=[...mixed.keys()].sort();
   const runtimeRows=rowsOf(mixed,runtimePaths);
   const digest=hash(Buffer.from(canonical(runtimeRows)));
@@ -232,6 +235,7 @@ function verifyDualPlan({base,candidateFiles,cfg,changedPaths},prior,m){
     runtime.set(r.path,candidateFiles.get(r.path));
   }
   const buildId=validateBuild(info,runtime,cfg);
+  verifyUiBridgeFiles(runtime);
   assert.equal(m.build_id,buildId,'DUAL_BUILD_ID');
   assert.deepEqual(info.ui_release,prior.ui_release,'DUAL_UI_LEASE_NOT_PRESERVED');
   assert.equal(runtime.get(PUBLIC_UI_MENU)?.sha,
@@ -425,12 +429,15 @@ function checkedMenu(f){
   verifyMenuHostContract(f.bytes.toString('utf8'));
 }
 function verifyInstalledUiBridge(base){
-  const shell=base.files.get('dist/startup/ink-shell.mjs');
+  verifyUiBridgeFiles(base.files);
+}
+function verifyUiBridgeFiles(files){
+  const shell=files.get('dist/startup/ink-shell.mjs');
   assert.ok(shell?.mode==='100644'&&Buffer.isBuffer(shell.bytes),'UI_BRIDGE_SHELL_MISSING');
   assert.match(shell.bytes.toString('utf8'),
     /import\(new URL\(["']\.\/menu-ui\.js["'],new URL\(["']src\/ui\/ink017\/shell\.js["'],document\.baseURI\)\.href\)\.href\)/,
     'UI_BRIDGE_NOT_INSTALLED');
-  const worker=base.files.get('service-worker-runtime.js');
+  const worker=files.get('service-worker-runtime.js');
   assert.ok(worker?.mode==='100644'&&Buffer.isBuffer(worker.bytes),'UI_BRIDGE_SW_MISSING');
   const source=worker.bytes.toString('utf8');
   assert.match(source,/['"]\.\/src\/ui\/ink017\/menu-ui\.js['"]/,'UI_BRIDGE_SW_OFFLINE_MISSING');
