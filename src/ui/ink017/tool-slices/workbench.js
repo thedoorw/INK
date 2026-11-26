@@ -14,6 +14,7 @@ const fallbackRailMarkup=groups=>groups.map(g=>'<div class="tool-cell'+(g.items.
 function fallbackRailButton(button,{group,item,available,active}){
  button.innerHTML=item.icon;button.title=item.label+(group.items.length>1?'（按住或右鍵展開）':'');button.setAttribute('aria-label',item.label);button.disabled=!available;button.setAttribute('aria-pressed',String(active));button.classList.toggle('active',active);
 }
+const fallbackToolMenu=(group,items)=>items.map(item=>'<button type="button" class="drawing-tool-option" role="menuitemradio" data-variant="'+item.id+'" aria-checked="'+String(item.active)+'"'+(item.available?'':' disabled')+' title="'+esc(item.available?item.label:item.reason||'Unavailable')+'">'+item.icon+'<span>'+esc(item.label)+'</span></button>').join('');
 
 // One Native Popover presenter for all tool groups. This replaces the former
 // drawing-only presenter; Native tool/selection/raster owners remain unchanged.
@@ -61,7 +62,12 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
   closeMenu();menuGroup=group;opener=button;
   menu.setAttribute('aria-label',group.label);
   const active=activeToolContext(host);
-  menu.innerHTML=group.items.map(t=>{const a=toolAvailability(host,group,t);return '<button type="button" class="drawing-tool-option" role="menuitemradio" data-variant="'+t.id+'" aria-checked="'+String(active?.group.id===group.id&&active.item?.id===t.id)+'"'+(a.available?'':' disabled')+' title="'+esc(a.available?t.label:a.reason||'Unavailable')+'">'+t.icon+'<span>'+esc(t.label)+'</span></button>'}).join('');
+  // UI receives detached display metadata; activation and availability remain
+  // exclusively with the Private Native workbench.
+  const menuItems=Object.freeze(group.items.map(t=>{const a=toolAvailability(host,group,t);return Object.freeze({id:t.id,label:t.label,icon:t.icon,available:!!a.available,reason:String(a.reason||''),active:active?.group.id===group.id&&active.item?.id===t.id})}));
+  const shown=displayById.get(group.id);
+  menu.innerHTML=(typeof presenter.renderToolMenu==='function'?presenter.renderToolMenu(shown,menuItems):fallbackToolMenu(shown,menuItems));
+  if(JSON.stringify([...menu.querySelectorAll('button[data-variant]')].map(b=>b.dataset.variant))!==JSON.stringify(menuItems.map(t=>t.id)))throw Error('INK_UI_TOOL_MENU_CONTRACT');
   position(menu,button);menu.showPopover();menu.style.top=Math.min(parseFloat(menu.style.top),Math.max(8,innerHeight-menu.getBoundingClientRect().height-8))+'px';button.setAttribute('aria-expanded','true');
   const items=[...menu.querySelectorAll('button:not(:disabled)')];items[(index+items.length)%items.length]?.focus();
  }
@@ -122,6 +128,9 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
   else if(group.owner===2)mount=mountDev2Options(options,host,item.id,{subscribeUpdates:false,onFeedback:feedback,onCancel:()=>{viewContext=null;choose(TOOL_GROUPS[0],TOOL_GROUPS[0].items[0])},onApplied:()=>{viewContext=null;signature='';schedule()}});
   else{mount=mountDev3Options(options,host,feedback,{subscribeUpdates:false});mount.render(group.id,item.id);}
   arrangeOptions();
+  // All Native option receivers have been mounted before Public presentation
+  // decorates labels/layout. Stable input identifiers and listeners stay Core-owned.
+  presenter.decorateToolOptions?.(options,Object.freeze({groupId:group.id,itemId:item.id}));
  }
  function setExpanded(value){expanded=value;bar.classList.toggle('expanded',value);toggle.setAttribute('aria-expanded',String(value));toggle.setAttribute('aria-label',value?'收合工具選項':'展開工具選項');toggle.title=toggle.getAttribute('aria-label');signature='';schedule();toggle.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="'+(value?'M6 9l6 6 6-6':'M6 15l6-6 6 6')+'" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';}
  toggle.addEventListener('click',()=>setExpanded(!expanded),{signal});
@@ -141,7 +150,9 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
    const shown=displayById.get(g.id),shownItem=shown.items.find(t=>t.id===item.id);
    presenter.updateToolRailButton(button,{group:shown,item:shownItem,available:g.items.some(t=>toolAvailability(host,g,t).available),active:context?.group.id===g.id});
   }
-  identity.textContent=context?.item?.label||'工具';toggle.disabled=!s.docs.length;
+  if(typeof presenter.updateToolContextIdentity==='function')presenter.updateToolContextIdentity(identity,Object.freeze({groupId:context?.group.id||null,itemId:context?.item?.id||null,label:context?.item?.label||'工具'}));
+  else identity.textContent=context?.item?.label||'工具';
+  toggle.disabled=!s.docs.length;
   const completed=completion.snapshot();
   const next=JSON.stringify([context?.group.id,context?.item.id,completed.id,completed.count,completed.pixels,completed.options,completed.selection?.source,completed.selection?.bounds,targetKey(),s.object,s.docs[0]?.guides,s.docs[0]?.camera,s.toolOptions,host.select('tool.options'),host.select('tool.settings',{tool:s.tool}),rt?.rasterOptions?.(),rt?.sourceInfo?.(),host.select('path.current'),host.app?.strokeEdit?.nodeIndices?.size]);
   if(next!==signature){
@@ -151,6 +162,7 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
   }
  }
  const offHost=host.subscribe(schedule),offRaster=rt?.subscribe?.(schedule);
+ presenter.decorateToolWorkbench?.(root,Object.freeze({rail,bar,menu,options}));
  setExpanded(true);render();
  function dispose(){if(disposed)return;disposed=true;if(frame)cancelAnimationFrame(frame);clearHold();closeMenu();observer.disconnect();stopOptions();toolbarCustomization.dispose();offHost?.();offRaster?.();safety?.dispose();menu.remove();}
  signal.addEventListener('abort',dispose,{once:true});
