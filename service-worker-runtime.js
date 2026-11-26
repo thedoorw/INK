@@ -25,6 +25,7 @@ const SOURCE_SHELL = Object.freeze([
   './src/ui/ink017/panels/adjustments.js',
   './src/ui/ink017/panels/brushes.js',
   './src/ui/ink017/panels/character.js',
+  './src/ui/ink017/panels/character-typography.js',
   './src/ui/ink017/panels/color.js',
   './src/ui/ink017/panels/history.js',
   './src/ui/ink017/panels/layers.js',

@@ -1,4 +1,4 @@
-import {mountNativeShell} from './shell.js';
+import {createNativeHost} from './native-host.js';
 import {dismissSizeDialog} from '../minimal-test-shell/modules.js';
 
 // INK017 owns the outer keydown route; the native size-dialog module owns
@@ -39,7 +39,11 @@ export async function mountInk017(app){
  if(utilities){const panel=document.createElement('section');panel.id='nativeFunctionDialog';panel.className='native-function-dialog';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Document tools');panel.setAttribute('aria-modal','true');const header=document.createElement('header');header.className='dialog-header';const title=document.createElement('h2');title.textContent='Document tools';const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Close Document tools');close.className='dialog-close native-function-close';header.append(title,close);bindNativeFunctionPanelDismissal(panel,shell,close);panel.append(header,utilities);utilities.hidden=false;shell.append(panel);}
  app.el.app.classList.remove('ink-minimal-app');app.el.app.classList.add('ink017-native-app');
  const wrap=app.el.wrap;shell.querySelector('#artboardStage').append(wrap);document.querySelector('#app').append(shell);
- const ui=await mountNativeShell(app,shell);app.renderer.resize();document.documentElement.classList.remove('ui017-loading');document.documentElement.dataset.inkShellReady='true';document.getElementById('inkBootGate')?.remove();globalThis.INK_UI017=ui;return ui;
+ // Keep the Core-owned Native adapter in the compiled startup entry. The
+ // presentation shell and its dock/panels load from Public's canonical URL.
+ const {mountNativeShell}=await import(new URL('./shell.js',import.meta.url).href);
+ if(typeof mountNativeShell!=='function')throw Error('INK_UI_SHELL_MODULE_CONTRACT');
+ const ui=await mountNativeShell(createNativeHost(app),shell);app.renderer.resize();document.documentElement.classList.remove('ui017-loading');document.documentElement.dataset.inkShellReady='true';document.getElementById('inkBootGate')?.remove();globalThis.INK_UI017=ui;return ui;
 }
 if(typeof window!=='undefined'){
  const showBootError=error=>{

@@ -1,11 +1,28 @@
 import {mountDock} from './right-dock.js';
-import {createNativeHost} from './native-host.js';
 import {esc,selected,field,iconButton,drag} from './shared-controls.js';
-export async function mountNativeShell(app,root){
+
+// Public presentation of the existing Native-owned tool registry. These
+// callbacks receive detached display metadata only; Core chooses tools and
+// computes availability in the compiled Workbench.
+export function renderToolRail(groups){
+ return groups.map(g=>'<div class="tool-cell'+(g.items.length>1?' tool-group-cell':'')+'"><button type="button" class="tool-button" data-group="'+g.id+'" aria-label="'+esc(g.label)+'"'+(g.items.length>1?' aria-haspopup="menu" aria-expanded="false" aria-controls="toolGroupMenu"':'')+'>'+g.items[0].icon+'</button></div>').join('');
+}
+export function updateToolRailButton(button,{group,item,available,active}){
+ button.innerHTML=item.icon;
+ button.title=item.label+(group.items.length>1?'（按住或右鍵展開）':'');
+ button.setAttribute('aria-label',item.label);
+ button.disabled=!available;
+ button.setAttribute('aria-pressed',String(active));
+ button.classList.toggle('active',active);
+}
+
+// Public-owned presentation depends on the narrow adapter supplied by the
+// compiled Core entry; never construct or import a second Native host here.
+export async function mountNativeShell(host,root){
  // External Public-owned UI uses the same canonical source in preview and Runtime.
  const {mountMenuUi}=await import(new URL('./menu-ui.js',import.meta.url).href);
  if(typeof mountMenuUi!=='function')throw Error('INK_UI_MENU_MODULE_CONTRACT');
- const host=createNativeHost(app),$=s=>root.querySelector(s),dock=mountDock($('#rightDock'),host),abort=new AbortController(),{signal}=abort;
+ const $=s=>root.querySelector(s),dock=mountDock($('#rightDock'),host),abort=new AbortController(),{signal}=abort;
  const menu=$('#mainMenu'),overlay=$('#overlay');let dialogAbort,importTarget,menuUi=null,dialogReturnFocus=null;
  const feedback=message=>{const toast=$('#ui017Toast');toast.textContent=message;clearTimeout(feedback.timer);feedback.timer=setTimeout(()=>toast.textContent='',4000)};
  const run=async(id,args={})=>{const r=await host.execute(id,args);if(!r.ok)feedback(r.error.message);return r};
@@ -169,7 +186,7 @@ export async function mountNativeShell(app,root){
   $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
   contextToolbar.render(s);
  }
- const contextToolbar=host.mountToolsWorkbench(root,feedback,signal);
+ const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton});
  const syncBrandName=()=>{
   const name=globalThis.INK_BRANDING?.getName?.()||'INK';
   $('#logoButton').title=name;
