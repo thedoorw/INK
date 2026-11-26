@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
-import {blob,verifyPlan,qa637Only,qa637Event,verifyQa637,qa646Only,qa646Event,verifyQa646} from './static-sync-core.mjs';
+import {blob,verifyPlan,uiOnlyPaths,verifyUiOnlyPlan,qa637Only,qa637Event,verifyQa637,qa646Only,qa646Event,verifyQa646} from './static-sync-core.mjs';
 // Independently audited Windows #569 artifact: 429 files, exact source and
 // manifest bytes. These pins become trusted only after protected control/ merge.
 // No candidate-supplied value is trusted; this authorizes QA-only integrity,
@@ -31,13 +31,13 @@ const CONTROL_PATHS=new Set([
 export function isControlOnly(paths){
   return paths.length>0 && paths.every(p=>CONTROL_PATHS.has(p));
 }
-export function checkEvent(event,base,head,{documentationOnly=false,controlOnly=false,qa637Scope=false,qa646Scope=false}={}){
+export function checkEvent(event,base,head,{documentationOnly=false,controlOnly=false,uiOnlyScope=false,qa637Scope=false,qa646Scope=false}={}){
   const p=event.pull_request;
   assert.equal(event.repository?.full_name,'thedoorw/INK','REPO');
   assert.equal(p?.base?.repo?.full_name,'thedoorw/INK','BASE_REPO');
   assert.equal(p.head?.repo?.full_name,'thedoorw/INK','FORK_REJECTED');
   assert.equal(p.base.ref,'main','BASE_BRANCH');assert.equal(p.base.sha,base,'BASE_MOVED');assert.equal(p.head.sha,head,'HEAD_MOVED');
-  assert.ok(documentationOnly||(qa646Scope?p.head.ref.startsWith('qa/cloud-draw-646-'):qa637Scope?p.head.ref.startsWith('qa-637/'):controlOnly?p.head.ref.startsWith('control/'):p.head.ref.startsWith('sync-009/')),'SYNC_BRANCH_REQUIRED');assert.equal(p.draft,false,'DRAFT_CANDIDATE');
+  assert.ok(documentationOnly||(uiOnlyScope?p.head.ref.startsWith('ui-703/'):qa646Scope?p.head.ref.startsWith('qa/cloud-draw-646-'):qa637Scope?p.head.ref.startsWith('qa-637/'):controlOnly?p.head.ref.startsWith('control/'):p.head.ref.startsWith('sync-009/')),'SYNC_BRANCH_REQUIRED');assert.equal(p.draft,false,'DRAFT_CANDIDATE');
   assert.equal(event.action==='closed',false,'CLOSED_PR');
 }
 export function gitSnapshot(root){
@@ -57,11 +57,17 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const paths=[...new Set([...base.files.keys(),...candidate.files.keys()])].filter(p=>base.files.get(p)?.sha!==candidate.files.get(p)?.sha);
   const documentationOnly=paths.length===1&&paths[0]==='README.md';
   const controlOnly=isControlOnly(paths);
+  const uiOnlyScope=uiOnlyPaths(paths);
   const qa637Scope=qa637Only(paths);
   const qa646Scope=qa646Only(paths);
-  checkEvent(event,base.head,candidate.head,{documentationOnly,controlOnly,qa637Scope,qa646Scope});
+  checkEvent(event,base.head,candidate.head,{documentationOnly,controlOnly,uiOnlyScope,qa637Scope,qa646Scope});
   if(controlOnly){console.log(JSON.stringify({status:'CONTROL_ONLY_INDEPENDENT_REVIEW_REQUIRED',runtimeAndHistoricalTrustUnchanged:true,base:base.head,head:candidate.head,changedPaths:paths,release_authorized:false}));process.exit(0);}
   if(documentationOnly){console.log(JSON.stringify({status:'README_ONLY',noRuntimePublication:true,release_authorized:false}));process.exit(0);}
+  if(uiOnlyScope){
+    const cfg=JSON.parse(base.files.get('engineering/public-release/static-sync.allowlist.json').bytes);
+    console.log(JSON.stringify(verifyUiOnlyPlan({base,candidateFiles:candidate.files,cfg,changedPaths:paths})));
+    process.exit(0);
+  }
   if(qa637Scope){
     qa637Event(event,base.head,candidate.head);
     console.log(JSON.stringify(verifyQa637({
