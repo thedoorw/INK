@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {classifyPath, verifyUiOnly, inspectGitDiff, verifyCoreMirror} from './ownership.mjs';
+import {classifyPath, verifyUiOnly, inspectGitDiff, verifyCoreMirror, verifyMenuHostContract} from './ownership.mjs';
 import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -8,6 +8,16 @@ import {execFileSync} from 'node:child_process';
 const sha=c=>c.repeat(40);
 const one=(path='src/ui/ink017/menu-ui.js')=>({path,oldMode:'100644',newMode:'100644',oldSha:sha('a'),newSha:sha('b')});
 const check=(changes=[one()],files=changes.map(x=>x.path))=>verifyUiOnly({base:sha('1'),head:sha('2'),changes,files});
+test('menu contract admits the restricted menuApi but rejects legacy Core object reach-through',()=>{
+  const valid="export function mountMenuUi({menu,logo,host,invoke,signal}){return host.menuApi.selectedRasterInfo();}\n";
+  assert.equal(verifyMenuHostContract(valid).status,'MENU_RESTRICTED_HOST_CONTRACT_PASS');
+  assert.throws(()=>verifyMenuHostContract(valid.replace('host.menuApi.selectedRasterInfo()', 'host.provider.image.selectedInfo()')),/MENU_HOST_API_REQUIRED|MENU_LEGACY_CORE_ACCESS/);
+  assert.throws(()=>verifyMenuHostContract(valid+'host.app.history()'),/MENU_LEGACY_CORE_ACCESS/);
+  assert.throws(()=>verifyMenuHostContract(valid+'host["provider"]'),/MENU_LEGACY_CORE_ACCESS/);
+  assert.throws(()=>verifyMenuHostContract(valid+'host[unknown]'),/MENU_DYNAMIC_HOST_ACCESS/);
+  assert.throws(()=>verifyMenuHostContract('export function notMenu(){return host.menuApi.snapState()}'),/MENU_EXPORT_CONTRACT/);
+  assert.throws(()=>verifyMenuHostContract(valid+'\0'),/MENU_SOURCE_INVALID/);
+});
 test('one actual UI source path is admitted, without publication permission',()=>{
   assert.deepEqual(check().changedPaths,['src/ui/ink017/menu-ui.js']);
   assert.equal(check().releaseAuthorized,false);
@@ -37,10 +47,13 @@ test('trusted complete Git diff succeeds for UI edit, fails on hidden Core edit'
   const write=(p,content)=>{mkdirSync(join(dir,p.split('/').slice(0,-1).join('/')),{recursive:true});writeFileSync(join(dir,p),content);};
   try {
     git('init');git('config','user.name','INK Test');git('config','user.email','ink-test@example.invalid');
-    write('src/ui/ink017/menu-ui.js','old');write('src/core/geometry.js','core');
+    write('src/ui/ink017/menu-ui.js',"export function mountMenuUi({menu,logo,host,invoke,signal}){return host.menuApi.selectedRasterInfo();}\n");write('src/core/geometry.js','core');
     git('add','.');git('commit','-m','base');const base=git('rev-parse','HEAD');
-    write('src/ui/ink017/menu-ui.js','new');git('add','.');git('commit','-m','ui');const ui=git('rev-parse','HEAD');
+    write('src/ui/ink017/menu-ui.js',"export function mountMenuUi({menu,logo,host,invoke,signal}){return host.menuApi.selectedRasterInfo();}\n// updated menu label\n");git('add','.');git('commit','-m','ui');const ui=git('rev-parse','HEAD');
     assert.equal(inspectGitDiff(dir,base,ui).status,'UI_ONLY_SCOPE_PASS');
+    write('src/ui/ink017/menu-ui.js',"export function mountMenuUi({menu,logo,host,invoke,signal}){return host.provider.image.selectedInfo()}\n");
+    git('add','.');git('commit','-m','legacy menu rejected');
+    assert.throws(()=>inspectGitDiff(dir,base,git('rev-parse','HEAD')),/MENU_HOST_API_REQUIRED|MENU_LEGACY_CORE_ACCESS/);
     write('src/core/geometry.js','tamper');git('add','.');git('commit','-m','hidden core');
     assert.throws(()=>inspectGitDiff(dir,base,git('rev-parse','HEAD')),/PROTECTED_PATH/);
   } finally {rmSync(dir,{recursive:true,force:true});}
