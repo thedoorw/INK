@@ -158,6 +158,97 @@ test('Public-only exact bytes, old receipt and complete tree are fail-closed',()
  const unsafeSW=new Map(x.base.files);unsafeSW.set('service-worker-runtime.js',file('const SOURCE_SHELL=[];'));
  assert.throws(()=>verifyUiOnlyPlan({...x,base:{...x.base,files:unsafeSW},cfg}),/UI_BRIDGE_SW_OFFLINE_MISSING/);
 });
+
+function dualCoreFixture(){
+ const ui=uiOnlyFixture();
+ const base={head:sha('8'),tree:sha('9'),files:ui.candidateFiles};
+ const current=JSON.parse(base.files.get('BUILD_INFO.json').bytes);
+ const sourceFiles=new Map(current.runtime.files.map(r=>[r.path,base.files.get(r.path)]));
+ sourceFiles.set(UI_MENU,file(menuSource('snapState','Private has older menu A')));
+ sourceFiles.set('index.html',file('<html>new Private Core</html>'));
+ const build=structuredClone(current);
+ delete build.ui_release;delete build.dual_source;delete build.qualification;delete build.publication;
+ build.source.exact_sha=sha('e');build.source.product_tree=sha('f');
+ const rows=[...sourceFiles].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}))
+  .sort((a,b)=>a.path.localeCompare(b.path,'en'));
+ build.runtime.files=rows;build.runtime.file_count=rows.length;
+ build.runtime.package_digest_sha256=hash(Buffer.from(canonical(rows)));
+ build.package.manifest_sha256='3'.repeat(64);
+ const qualification={source_tree:build.source.product_tree,runs:[{id:703}]};
+ const opts={build,sourceFiles,base,cfg,qualification,
+  authorityReference:'https://github.com/thedoorw/INK-Browser-QA/issues/703'};
+ const plan=makePlan(opts);
+ const candidateFiles=new Map([...base.files,...plan.files]);
+ for(const removed of plan.deletions)candidateFiles.delete(removed);
+ return {ui,opts,base,plan,candidateFiles};
+}
+test('trusted 009 mixed-source candidate preserves Public menu and independently reconstructs full blob plan',()=>{
+ const x=dualCoreFixture();
+ assert.equal(x.plan.manifest.dual_source.schema,'INK703_DUAL_SOURCE_PUBLISH_V1');
+ assert.equal(x.candidateFiles.get(UI_MENU).sha,x.base.files.get(UI_MENU).sha);
+ assert.notEqual(x.candidateFiles.get(UI_MENU).sha,x.opts.sourceFiles.get(UI_MENU).sha);
+ const info=JSON.parse(x.candidateFiles.get('BUILD_INFO.json').bytes);
+ const receipt=JSON.parse(x.candidateFiles.get('PUBLISH_RECEIPT.json').bytes);
+ assert.deepEqual(info.dual_source,receipt.dual_source);
+ assert.deepEqual(info.dual_source,x.plan.manifest.dual_source);
+ assert.deepEqual(info.ui_release,receipt.ui_release);
+ assert.equal(receipt.managed_files.some(r=>r.path==='pages-build-identity.txt'),false);
+ assert.equal(x.candidateFiles.get('pages-build-identity.txt').bytes.toString('utf8'),
+  pagesRevisionForDigest(info.runtime.package_digest_sha256)+'\n');
+ assert.equal(verifyPlan({base:x.base,candidateFiles:x.candidateFiles,cfg,changedPaths:x.plan.changes}).status,
+  'DUAL_SOURCE_INTEGRITY_PASS');
+});
+test('mixed-source candidate rejects Public menu overwrite, forged metadata, stale pages and unexpected Core paths',()=>{
+ const x=dualCoreFixture();
+ const tamper=(path,value)=>{const changed=new Map(x.candidateFiles);changed.set(path,file(value));return changed};
+ assert.throws(()=>verifyPlan({base:x.base,
+  candidateFiles:tamper(UI_MENU,menuSource('snapState','Private overwritten Public menu')),
+  cfg,changedPaths:x.plan.changes}),/RUNTIME_ROWS|DUAL_PUBLIC_MENU_OVERWRITE|DUAL_EXPECTED_FILE/);
+ assert.throws(()=>verifyPlan({base:x.base,
+  candidateFiles:tamper('PUBLISH_RECEIPT.json','{}'),cfg,changedPaths:x.plan.changes}),
+  /DUAL_EXPECTED_FILE|DUAL_RECEIPT/);
+ assert.throws(()=>verifyPlan({base:x.base,
+  candidateFiles:tamper('pages-build-identity.txt',sha('0')+'\n'),cfg,changedPaths:x.plan.changes}),
+  /DUAL_EXPECTED_FILE|DUAL_PAGES_REVISION/);
+ const malicious= new Map(x.candidateFiles);malicious.set('src/core/phantom.js',file('unauthorized Core'));
+ assert.throws(()=>verifyPlan({base:x.base,candidateFiles:malicious,cfg,
+  changedPaths:[...x.plan.changes,'src/core/phantom.js']}),/DUAL_UNEXPECTED_DIFF|DUAL_UNMANAGED_FILE_ADDED/);
+ const stale={...x.base,head:sha('0')};
+ assert.throws(()=>verifyPlan({base:stale,candidateFiles:x.candidateFiles,cfg,
+  changedPaths:x.plan.changes}),/DUAL_STALE_BASE/);
+});
+test('Core→UI→Core chain updates dual-source digest/Pages revision while retaining private provenance and menu lease',()=>{
+ const x=dualCoreFixture();
+ const coreB={head:sha('a'),tree:sha('b'),files:x.candidateFiles};
+ const prevInfo=JSON.parse(coreB.files.get('BUILD_INFO.json').bytes);
+ const prevReceipt=JSON.parse(coreB.files.get('PUBLISH_RECEIPT.json').bytes);
+ const menuC=file(menuSource('driveAvailable','new public menu C'));
+ const meta=expectedUiOnlyMetadata({base:coreB,candidateMenu:menuC,cfg});
+ const uiFiles=new Map(coreB.files);
+ uiFiles.set(UI_MENU,menuC);uiFiles.set('BUILD_INFO.json',meta.buildItem);
+ uiFiles.set('PUBLISH_RECEIPT.json',meta.receiptItem);
+ uiFiles.set('pages-build-identity.txt',meta.identityItem);
+ assert.equal(verifyUiOnlyPlan({base:coreB,candidateFiles:uiFiles,cfg,
+  changedPaths:UI_ONLY_CHANGE}).status,'PUBLIC_UI_ONLY_INTEGRITY_PASS');
+ const nextInfo=JSON.parse(uiFiles.get('BUILD_INFO.json').bytes);
+ const nextReceipt=JSON.parse(uiFiles.get('PUBLISH_RECEIPT.json').bytes);
+ assert.equal(nextInfo.dual_source.private_runtime_digest_sha256,
+  prevInfo.dual_source.private_runtime_digest_sha256);
+ assert.equal(nextInfo.dual_source.composite_runtime_digest_sha256,
+  nextInfo.runtime.package_digest_sha256);
+ assert.equal(nextInfo.dual_source.pages_build_identity,meta.pagesRevision);
+ assert.equal(nextInfo.dual_source.ui_release_version,nextInfo.ui_release.version);
+ assert.deepEqual(nextInfo.dual_source,nextReceipt.dual_source);
+ assert.notEqual(nextInfo.dual_source.pages_build_identity,prevReceipt.dual_source.pages_build_identity);
+ const future=dualCoreFixture();
+ future.opts.base={head:sha('c'),tree:sha('d'),files:uiFiles};
+ const nextCore=makePlan(future.opts);
+ const coreFiles=new Map([...uiFiles,...nextCore.files]);
+ for(const removed of nextCore.deletions)coreFiles.delete(removed);
+ assert.equal(coreFiles.get(UI_MENU).sha,menuC.sha);
+ assert.equal(verifyPlan({base:future.opts.base,candidateFiles:coreFiles,cfg,
+  changedPaths:nextCore.changes}).status,'DUAL_SOURCE_INTEGRITY_PASS');
+});
   // Public Gate001 QA-only exact-pinned integrity regression suite.
 {
   
