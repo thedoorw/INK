@@ -16,6 +16,20 @@ export function updateToolRailButton(button,{group,item,available,active}){
  button.classList.toggle('active',active);
 }
 
+// The Public UI may adjust the complete visible Tools rail, popover and
+// options layout. Core retains the commands, availability and event handlers.
+// Keep data-group, data-variant, data-action and input identifiers intact.
+export function renderToolMenu(group,items){
+ return items.map(item=>'<button type="button" class="drawing-tool-option" role="menuitemradio" data-variant="'+item.id+'" aria-checked="'+String(item.active)+'"'+(item.available?'':' disabled')+' title="'+esc(item.available?item.label:item.reason||'Unavailable')+'">'+item.icon+'<span>'+esc(item.label)+'</span></button>').join('');
+}
+export function updateToolContextIdentity(element,{label}){element.textContent=label;}
+export function decorateToolOptions(element,{groupId,itemId}){
+ element.dataset.uiPresentation='public';
+ element.dataset.uiGroup=groupId;
+ element.dataset.uiItem=itemId;
+}
+export function decorateToolWorkbench(root){root.dataset.uiToolsOwner='public';}
+
 // Public-owned presentation depends on the narrow adapter supplied by the
 // compiled Core entry; never construct or import a second Native host here.
 export async function mountNativeShell(host,root){
@@ -186,7 +200,7 @@ export async function mountNativeShell(host,root){
   $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
   contextToolbar.render(s);
  }
- const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton});
+ const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton,renderToolMenu,updateToolContextIdentity,decorateToolOptions,decorateToolWorkbench});
  const syncBrandName=()=>{
   const name=globalThis.INK_BRANDING?.getName?.()||'INK';
   $('#logoButton').title=name;
