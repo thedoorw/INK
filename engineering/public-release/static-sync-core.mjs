@@ -100,6 +100,149 @@ export function verifyPlan({base,candidateFiles,cfg,changedPaths}){
   for(const p of candidateFiles.keys())assert.ok(base.files.has(p)||expected.files.has(p),'UNMANAGED_FILE_ADDED');
   return {status:'INTEGRITY_PASS',build_id:id,source_sha:m.source.exact_sha,source_tree:m.source.product_tree,files:info.runtime.files.length,qa:'PRIVATE_EVIDENCE_REVIEW_REQUIRED',release_authorized:false};
 }
+
+// #703 Phase 2 candidate: a trusted-base verifier, never PR-authored code.
+// Exactly one presentation module may change; BuildInfo and receipt are
+// deterministic bookkeeping computed from the complete Git blob inventories.
+const PUBLIC_UI_MENU='src/ui/ink017/menu-ui.js';
+const PAGES_IDENTITY='pages-build-identity.txt';
+const UI_ONLY_CHANGED=Object.freeze([PUBLIC_UI_MENU,'BUILD_INFO.json','PUBLISH_RECEIPT.json',PAGES_IDENTITY].sort());
+export function uiOnlyPaths(paths){
+  return Array.isArray(paths)&&paths.length===UI_ONLY_CHANGED.length&&
+    paths.every(p=>typeof p==='string')&&
+    canonical([...paths].sort())===canonical(UI_ONLY_CHANGED);
+}
+export function verifyMenuHostContract(source){
+  assert.ok(typeof source==='string'&&source.length>0&&source.length<512*1024&&
+    !source.includes('\0'),'UI_MENU_SOURCE_INVALID');
+  assert.match(source,/export\s+function\s+mountMenuUi\s*\(\s*\{\s*menu\s*,\s*logo\s*,\s*host\s*,\s*invoke\s*,\s*signal\s*\}\s*\)/,
+    'UI_MENU_EXPORT_CONTRACT');
+  assert.match(source,/\bhost\.menuApi\.[a-zA-Z_$][\w$]*\s*\(/,'UI_MENU_RESTRICTED_API_REQUIRED');
+  assert.doesNotMatch(source,/\bhost\s*(?:\.\s*(?:app|provider)\b|\[)/,'UI_MENU_RAW_CORE_ACCESS');
+  assert.doesNotMatch(source,/(?:^|\n)\s*import\s|\bimport\s*\(/,'UI_MENU_EXTERNAL_IMPORT');
+  assert.doesNotMatch(source,/\b(?:globalThis|window)\s*\.\s*INK_APP\b/,'UI_MENU_CORE_GLOBAL');
+  return 'MENU_HOST_CONTRACT_PASS';
+}
+export function pagesRevisionForDigest(runtimeDigest){
+  assert.ok(sha256(runtimeDigest),'INK703_PAGES_RUNTIME_DIGEST');
+  return createHash('sha1').update('INK703-PWA:'+runtimeDigest).digest('hex');
+}
+export function expectedUiOnlyMetadata({base,candidateMenu,cfg}){
+  const prior=validateBase(base,cfg);checkedMenu(candidateMenu);
+  const oldMenu=base.files.get(PUBLIC_UI_MENU);
+  assert.ok(oldMenu&&oldMenu.sha!==candidateMenu.sha,'UI_MENU_UNCHANGED');
+  const before=parsed(base.files,'BUILD_INFO.json');
+  assert.equal(before.schema,'INK_PUBLIC_BUILD_INFO_V3','UI_BASE_BUILD_SCHEMA');
+  assert.ok(Array.isArray(before.runtime?.files),'UI_BASE_RUNTIME');
+  const paths=before.runtime.files.map(x=>x.path);
+  assert.ok(paths.includes(PUBLIC_UI_MENU),'UI_MENU_NOT_IN_RUNTIME');
+  assert.equal(before.runtime.file_count,paths.length,'UI_BASE_RUNTIME_COUNT');
+  const byPath=new Map(before.runtime.files.map(x=>[x.path,x]));
+  assert.equal(byPath.size,paths.length,'UI_BASE_RUNTIME_DUPLICATES');
+  const runtimeFiles=new Map();
+  for(const r of before.runtime.files){
+    const f=base.files.get(r.path);
+    assert.ok(f&&r.sha256===hash(f.bytes)&&r.bytes===f.bytes.length,'UI_BASE_RUNTIME_DRIFT:'+r.path);
+    runtimeFiles.set(r.path,f);
+  }
+  validateBuild(before,runtimeFiles,cfg);
+  assert.equal(hash(Buffer.from(canonical(before.runtime.files))),before.runtime.package_digest_sha256,'UI_BASE_RUNTIME_DIGEST');
+  assert.equal(prior.runtime_digest_sha256,before.runtime.package_digest_sha256,'UI_BASE_RECEIPT_DIGEST');
+  // The first UI release may follow a legacy 009 receipt without a Pages
+  // identity. Every subsequent UI release must carry an intact dual identity.
+  const previousIdentity=base.files.get(PAGES_IDENTITY);
+  if(previousIdentity||prior.ui_release||before.ui_release){
+    assert.ok(previousIdentity?.mode==='100644'&&Buffer.isBuffer(previousIdentity.bytes),
+      'UI_BASE_PAGES_IDENTITY_MISSING');
+    assert.equal(blob(previousIdentity.bytes),previousIdentity.sha,'UI_BASE_PAGES_BLOB_DRIFT');
+    assert.equal(previousIdentity.bytes.toString('utf8'),
+      pagesRevisionForDigest(before.runtime.package_digest_sha256)+'\n','UI_BASE_PAGES_IDENTITY_DRIFT');
+    assert.ok(prior.ui_release&&before.ui_release,'UI_BASE_UI_RELEASE_MISSING');
+    assert.equal(canonical(prior.ui_release),canonical(before.ui_release),'UI_BASE_UI_RELEASE_DRIFT');
+    assert.equal(prior.ui_release.git_blob_sha,oldMenu.sha,'UI_BASE_MENU_LEASE_BLOB');
+    assert.equal(prior.ui_release.sha256,hash(oldMenu.bytes),'UI_BASE_MENU_LEASE_DIGEST');
+    assert.equal(prior.ui_release.bytes,oldMenu.bytes.length,'UI_BASE_MENU_LEASE_SIZE');
+  }
+  const menuRow={path:PUBLIC_UI_MENU,sha256:hash(candidateMenu.bytes),bytes:candidateMenu.bytes.length};
+  const uiLease={schema:'INK703_PUBLIC_UI_RELEASE_V1',repo:'thedoorw/INK',base_head:base.head,
+    base_tree:base.tree,path:PUBLIC_UI_MENU,git_blob_sha:candidateMenu.sha,
+    sha256:menuRow.sha256,bytes:menuRow.bytes};
+  uiLease.version='ui-'+hash(Buffer.from(canonical(uiLease))).slice(0,24);
+  const build=structuredClone(before);
+  build.runtime.files=before.runtime.files.map(r=>r.path===PUBLIC_UI_MENU?menuRow:r);
+  build.runtime.package_digest_sha256=hash(Buffer.from(canonical(build.runtime.files)));
+  build.ui_release=uiLease;
+  build.publication={kind:'ui-only',previous_target_commit:base.head,
+    runtime_bytes_unchanged_from_package:false};
+  const mixedFiles=new Map(runtimeFiles);mixedFiles.set(PUBLIC_UI_MENU,candidateMenu);
+  validateBuild(build,mixedFiles,cfg);
+  // The original Private package manifest remains the Core evidence identity;
+  // the Public UI overlay is independently identified by ui_release.
+  const buildBytes=json(build),buildItem={mode:'100644',bytes:buildBytes,sha:blob(buildBytes)};
+  const receipt=structuredClone(prior);
+  receipt.action='ui-only';
+  receipt.previous_target_commit=base.head;
+  receipt.runtime_digest_sha256=build.runtime.package_digest_sha256;
+  receipt.ui_release=uiLease;
+  const rows=new Map(receipt.managed_files.map(r=>[r.path,r]));
+  const withGit=(r,f)=>({...r,git_blob_sha:f.sha});
+  rows.set(PUBLIC_UI_MENU,withGit(menuRow,candidateMenu));
+  rows.set('BUILD_INFO.json',withGit({path:'BUILD_INFO.json',bytes:buildBytes.length,sha256:hash(buildBytes)},buildItem));
+  receipt.managed_files=[...rows.values()].sort((a,b)=>a.path.localeCompare(b.path,'en'));
+  const receiptBytes=json(receipt),receiptItem={mode:'100644',bytes:receiptBytes,sha:blob(receiptBytes)};
+  // A deployed Pages revision changes the worker script query (?build=pages-<SHA>)
+  // and therefore both cache namespaces without rebuilding Private Core.
+  // Derive it from the COMPLETE mixed Runtime digest, not merely the menu SHA:
+  // a later Private Core update must rotate the same namespace as a UI update.
+  // Deliberately keep this generated identity outside managed_files: current
+  // Private 009 preserves unknown Public files but retires absent managed ones.
+  const pagesRevision=pagesRevisionForDigest(build.runtime.package_digest_sha256);
+  const identityBytes=Buffer.from(pagesRevision+'\n');
+  const identityItem={mode:'100644',bytes:identityBytes,sha:blob(identityBytes)};
+  return {buildItem,receiptItem,identityItem,pagesRevision,uiLease,menuItem:candidateMenu};
+}
+function checkedMenu(f){
+  assert.ok(f?.mode==='100644'&&Buffer.isBuffer(f.bytes),'UI_MENU_MODE');
+  assert.equal(blob(f.bytes),f.sha,'UI_MENU_BLOB_DRIFT');
+  verifyMenuHostContract(f.bytes.toString('utf8'));
+}
+function verifyInstalledUiBridge(base){
+  const shell=base.files.get('dist/startup/ink-shell.mjs');
+  assert.ok(shell?.mode==='100644'&&Buffer.isBuffer(shell.bytes),'UI_BRIDGE_SHELL_MISSING');
+  assert.match(shell.bytes.toString('utf8'),
+    /import\(new URL\(["']\.\/menu-ui\.js["'],new URL\(["']src\/ui\/ink017\/shell\.js["'],document\.baseURI\)\.href\)\.href\)/,
+    'UI_BRIDGE_NOT_INSTALLED');
+  const worker=base.files.get('service-worker-runtime.js');
+  assert.ok(worker?.mode==='100644'&&Buffer.isBuffer(worker.bytes),'UI_BRIDGE_SW_MISSING');
+  const source=worker.bytes.toString('utf8');
+  assert.match(source,/['"]\.\/src\/ui\/ink017\/menu-ui\.js['"]/,'UI_BRIDGE_SW_OFFLINE_MISSING');
+  assert.match(source,/networkFirstAsset\(event\.request/,'UI_BRIDGE_SW_NETWORK_FIRST_MISSING');
+}
+export function verifyUiOnlyPlan({base,candidateFiles,cfg,changedPaths}){
+  assert.ok(uiOnlyPaths(changedPaths),'UI_ONLY_EXACT_PATHS');
+  checkFiles(base.files);checkFiles(candidateFiles);
+  assert.deepEqual([...candidateFiles.keys()].sort(),
+    [...new Set([...base.files.keys(),PAGES_IDENTITY])].sort(),'UI_ONLY_FULL_TREE_PATHS');
+  verifyInstalledUiBridge(base);
+  const menuItem=candidateFiles.get(PUBLIC_UI_MENU);
+  const expected=expectedUiOnlyMetadata({base,candidateMenu:menuItem,cfg});
+  assert.equal(candidateFiles.get('BUILD_INFO.json')?.sha,expected.buildItem.sha,'UI_ONLY_BUILD_IDENTITY');
+  assert.equal(candidateFiles.get('PUBLISH_RECEIPT.json')?.sha,expected.receiptItem.sha,'UI_ONLY_RECEIPT_IDENTITY');
+  assert.equal(candidateFiles.get(PAGES_IDENTITY)?.sha,expected.identityItem.sha,'UI_ONLY_PAGES_IDENTITY');
+  assert.equal(candidateFiles.get(PAGES_IDENTITY)?.bytes.toString('utf8'),expected.pagesRevision+'\n','UI_ONLY_PAGES_IDENTITY_BYTES');
+  for(const [p,f] of base.files){
+    if(UI_ONLY_CHANGED.includes(p))continue;
+    assert.equal(candidateFiles.get(p)?.sha,f.sha,'UI_ONLY_CORE_DRIFT:'+p);
+  }
+  const actual=[...new Set([...base.files.keys(),...candidateFiles.keys()])]
+    .filter(p=>base.files.get(p)?.sha!==candidateFiles.get(p)?.sha).sort();
+  assert.deepEqual(actual,UI_ONLY_CHANGED,'UI_ONLY_ACTUAL_DIFF');
+  // Guarantees that a future 009 validateBase can consume this Public HEAD.
+  validateBase({...base,files:candidateFiles},cfg);
+  return Object.freeze({status:'PUBLIC_UI_ONLY_INTEGRITY_PASS',releaseAuthorized:false,
+    corePreserved:true,changedPaths:actual,uiVersion:expected.uiLease.version,pagesRevision:expected.pagesRevision,
+    priorPublicHead:base.head});
+}
 // #637 QA-only gate: enabled only after independently pinned artifact and trusted-base cutover.
 
 export const QA637_ROOT = 'qa/cloud-draw-637/';
