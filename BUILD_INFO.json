@@ -4,8 +4,8 @@
   "role": "public-runtime-mirror",
   "source": {
     "repo": "thedoorw/INK-Browser-QA",
-    "exact_sha": "d19943ae9e3511f25db24e11f22b17d2a6d75adb",
-    "product_tree": "5b2e519fbbb4422a2d3944b615852f8b000f51d2"
+    "exact_sha": "d39221d412cad91fb8589f3f6e07e89ad0a890cf",
+    "product_tree": "80b48663f88ee40f992de7f93132c7ecc18be8ea"
   },
   "runtime": {
     "root": "/INK/",
@@ -218,8 +218,8 @@
       },
       {
         "path": "dist/startup/ink-shell.mjs",
-        "bytes": 186593,
-        "sha256": "859a21de3c8c8bb6909dfa8bf97390a8dbd254936f63b27e272e9fec70cb9e7b"
+        "bytes": 187573,
+        "sha256": "ac84e9f74b42ed789ff206cc07bd2d39034fe414a65fe65072c6241ff3334fd9"
       },
       {
         "path": "dist/startup/parsers/ag-psd.mjs",
@@ -1968,8 +1968,8 @@
       },
       {
         "path": "src/ui/ink017/tool-slices/workbench.js",
-        "bytes": 15814,
-        "sha256": "347ea0a9e2ac50530d805d4b506bb0409575623fc3ccb10abc687400722a9150"
+        "bytes": 17094,
+        "sha256": "9ea384a6fc4902d3820d56fee9c6b453de7ab33cc749be59ffa6f601ec67bfbf"
       },
       {
         "path": "src/ui/minimal-composition.js",
@@ -2082,42 +2082,15 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "67ec27259279177d7de885158d2dae28f5f0f810b93656259e548ef70a3a9649"
+    "package_digest_sha256": "303b0d2f587b62949fb7785c3674806c74b7982e571ff7dcd51dfdd6a9832449"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
-    "exact_sha": "996382d79b11fc5093effd0d2d6b0b555bbcdff5",
+    "exact_sha": "8477d751f912ca8c6c9162f90c6e0c041e610594",
     "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69"
   },
   "package": {
     "manifest_sha256": "2c5232af7e687a201ac7fae9963e69ae8487404c09d61b593aafe02fa415bb73"
-  },
-  "qualification": {
-    "status": "REVIEW_REQUIRED",
-    "source_tree": "5b2e519fbbb4422a2d3944b615852f8b000f51d2",
-    "runs": [
-      {
-        "profile": "ink703-full-shell-pwa-windows-v1",
-        "id": 45751047469,
-        "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
-        "workflow_blob": "7160813d3554c61cbe1334a3f8cdcb3f1d7073e5",
-        "head_sha": "5b4fe74db9338570962c5da8639cc49069c93f0b",
-        "tested_sha": "5d7d19381d3228d3504d9f8a59897a2ac58fc66d"
-      },
-      {
-        "profile": "ink703-full-shell-native-windows-v1",
-        "id": 45753492097,
-        "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
-        "workflow_blob": "f8640c3bbddae8089706117f6355514048a77dba",
-        "head_sha": "36a56f00ad7ae627ccb43c5fd1dcb4f141b7935f",
-        "tested_sha": "5d7d19381d3228d3504d9f8a59897a2ac58fc66d"
-      }
-    ]
-  },
-  "publication": {
-    "kind": "ui-only",
-    "previous_target_commit": "a0f1b01b2feb67c58c5b4fe3256436a93545e319",
-    "runtime_bytes_unchanged_from_package": false
   },
   "ui_release": {
     "schema": "INK703_PUBLIC_UI_RELEASE_V2",
@@ -2235,5 +2208,31 @@
       }
     ],
     "version": "ui-603abf9f96db24a83f3e1d47"
+  },
+  "dual_source": {
+    "schema": "INK703_DUAL_SOURCE_PUBLISH_V2",
+    "private_runtime_digest_sha256": "a4ad0305a15080318260b445d8342425423b0cd2a24dfe7b205ebae38c936710",
+    "composite_runtime_digest_sha256": "303b0d2f587b62949fb7785c3674806c74b7982e571ff7dcd51dfdd6a9832449",
+    "ui_release_version": "ui-603abf9f96db24a83f3e1d47",
+    "pages_build_identity": "bfec74172c1033b9a116a4eb58eac82652044831"
+  },
+  "qualification": {
+    "status": "REVIEW_REQUIRED",
+    "source_tree": "80b48663f88ee40f992de7f93132c7ecc18be8ea",
+    "runs": [
+      {
+        "profile": "ink753-full-ui-presenter-windows-v1",
+        "id": 45773397711,
+        "workflow_path": ".github/workflows/ink-runtime-batch-windows.yml",
+        "workflow_blob": "6c50eb5007c9cb0ce9e557e81cd0e0926fafd464",
+        "head_sha": "26b943c93f86ab0cc81a4d6cfd8822bc467657c6",
+        "tested_sha": "3869fc319c47ae61724e670411e7ea8cb6debe10"
+      }
+    ]
+  },
+  "publication": {
+    "kind": "publish",
+    "previous_target_commit": "0755f17c8051b53d83230e7c18374412e4a18d4f",
+    "runtime_bytes_unchanged_from_package": false
   }
 }
