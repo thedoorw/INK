@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {checkEvent,isControlOnly} from './verify-static-sync.mjs';
-import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,uiBundlePaths,verifyUiBundleOnlyPlan,expectedUiBundleMetadata,PUBLIC_UI_PRESENTATION_PATHS,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
+import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,uiBundlePaths,verifyUiBundleOnlyPlan,expectedUiBundleMetadata,PUBLIC_UI_PRESENTATION_PATHS,PUBLIC_UI_SHARED_CONTROL_EXPORTS,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
 import {createHash} from 'node:crypto';
 const cfg=JSON.parse(await readFile(new URL('./static-sync.allowlist.json',import.meta.url)));
 const sha=c=>c.repeat(40),file=s=>{const bytes=Buffer.from(s);return{bytes,sha:blob(bytes),mode:'100644'}};
@@ -456,6 +456,7 @@ test('QA646 branch is explicitly isolated, not legacy QA637 or unrestricted sync
 // #703 V2 Public-owned presentation source. This is a source-only trusted
 // verifier test; the real Browser/SW A→B→offline evidence is a separate gate.
 const BUNDLE_SHELL='src/ui/ink017/shell.js';
+const BUNDLE_SHARED='src/ui/ink017/shared-controls.js';
 const BUNDLE_COLOR='src/ui/ink017/panels/color.js';
 const BUNDLE_TOKENS='src/ui/ink017/tokens.css';
 const REAL_SVG_ICON="url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2012%2012'%3E%3Cpath%20d='M2.5%204.5%206%208%209.5%204.5'%20fill='none'%20stroke='%23666666'%20stroke-width='1.25'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E\")";
@@ -472,6 +473,7 @@ function bundleFixture({missingCharacterSW=false}={}){
   bundleWorker().replace('"./src/ui/ink017/panels/character-typography.js",',''):
   bundleWorker()));
  for(const p of PUBLIC_UI_PRESENTATION_PATHS)s.sourceFiles.set(p,file(p===BUNDLE_SHELL?bundleShell():
+  p===BUNDLE_SHARED?PUBLIC_UI_SHARED_CONTROL_EXPORTS.map(name=>`export const ${name}=()=>{};`).join('\n'):
   p===UI_MENU?menuSource('snapState','Public A'):p.endsWith('.html')?'<main>INK</main>':
   p.endsWith('.css')?':root{--ink-color:blue}':`export const label=${JSON.stringify(p)};`));
  s.build.runtime.files=runtimeRows(s.sourceFiles);
@@ -551,7 +553,8 @@ test('V2 Public rejects Core imports, computed globals, forged metadata and miss
   [bundleShell()+"import '../../core/app.js';",/DUAL_PRESENTATION_CORE_IMPORT/],
   [bundleShell()+"await import(window.plugin);",/DUAL_PRESENTATION_UNREVIEWED_IMPORT/],
   [bundleShell()+"globalThis['INK_APP'];",/DUAL_PRESENTATION_COMPUTED_GLOBAL/],
-  [bundleShell()+"new URL('../native-host.js',import.meta.url);",/DUAL_PRESENTATION_UNREVIEWED_URL/]
+  [bundleShell()+"new URL('../native-host.js',import.meta.url);",/DUAL_PRESENTATION_UNREVIEWED_URL/],
+  [bundleShell()+`const quote=/["']/;\nimport '../../core/app.js';`,/DUAL_PRESENTATION_CORE_IMPORT/]
  ]){
   const x=bundleFixture();x.candidateFiles.set(BUNDLE_SHELL,file(code));
   assert.throws(()=>expectedUiBundleMetadata({base:x.base,candidateFiles:x.candidateFiles,cfg}),error);
@@ -564,6 +567,44 @@ test('V2 Public rejects Core imports, computed globals, forged metadata and miss
  const missing=bundleFixture({missingCharacterSW:true});
  assert.throws(()=>expectedUiBundleMetadata({...missing,cfg}),
   /UI_BRIDGE_SW_OFFLINE_PRESENTATION:.*character-typography/);
+});
+test('V2 Public rejects missing shared helper ESM export before an incompatible UI-only merge',()=>{
+ const x=bundleFixture();
+ x.candidateFiles.set(BUNDLE_SHARED,file('export const esc=s=>s;'));
+ assert.throws(()=>expectedUiBundleMetadata({base:x.base,candidateFiles:x.candidateFiles,cfg}),
+  /DUAL_PRESENTATION_SHARED_API:/);
+ assert.equal(PUBLIC_UI_PRESENTATION_PATHS.includes('src/ui/ink017/tool-slices/workbench.js'),false);
+ assert.equal(PUBLIC_UI_PRESENTATION_PATHS.includes('src/ui/ink017/panels/properties.js'),false);
+});
+test('V2 Public accepts a same-closure rail-only shell presentation edit',()=>{
+ const x=bundleFixture();
+ x.candidateFiles.set(BUNDLE_COLOR,x.base.files.get(BUNDLE_COLOR));
+ x.candidateFiles.set(BUNDLE_TOKENS,x.base.files.get(BUNDLE_TOKENS));
+ x.candidateFiles.set(BUNDLE_SHELL,file(bundleShell()+'\n// reviewed Public rail label\n'));
+ const expected=expectedUiBundleMetadata({base:x.base,candidateFiles:x.candidateFiles,cfg});
+ x.candidateFiles.set('BUILD_INFO.json',expected.buildItem);
+ x.candidateFiles.set('PUBLISH_RECEIPT.json',expected.receiptItem);
+ x.candidateFiles.set('pages-build-identity.txt',expected.identityItem);
+ const changed=[...expected.changedUiPaths,...BUNDLE_META].sort();
+ const verdict=verifyUiBundleOnlyPlan({...x,cfg,changedPaths:changed});
+ assert.equal(verdict.status,'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
+ assert.equal(verdict.corePreserved,true);
+ assert.deepEqual(expected.changedUiPaths,[BUNDLE_SHELL]);
+});
+test('V2 accepts canonical published tokens.css inline SVG while rejecting remote icons',async t=>{
+ let canonicalCss;
+ try{canonicalCss=await readFile(new URL('../../src/ui/ink017/tokens.css',import.meta.url),'utf8');}
+ catch(error){if(error.code==='ENOENT'){t.skip('full Public checkout required for canonical CSS bytes');return;}throw error;}
+ assert.ok((canonicalCss.match(/data:image\/svg\+xml,/g)||[]).length>=7);
+ const x=bundleFixture();
+ x.candidateFiles.set(BUNDLE_TOKENS,file(canonicalCss+'\n:root{--ink-public-b:1}\n'));
+ const expected=expectedUiBundleMetadata({base:x.base,candidateFiles:x.candidateFiles,cfg});
+ x.candidateFiles.set('BUILD_INFO.json',expected.buildItem);
+ x.candidateFiles.set('PUBLISH_RECEIPT.json',expected.receiptItem);
+ x.candidateFiles.set('pages-build-identity.txt',expected.identityItem);
+ assert.equal(verifyUiBundleOnlyPlan({...x,cfg,
+  changedPaths:[...expected.changedUiPaths,...BUNDLE_META].sort()}).status,
+  'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
 });
 test('V2 Public accepts shipped inline SVG icon but rejects network/data HTML/onload CSS',()=>{
  const safe=bundleFixture();

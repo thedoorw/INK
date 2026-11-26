@@ -80,6 +80,14 @@ export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
 export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
 export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
 const SHELL_PATH='src/ui/ink017/shell.js';
+const SHARED_CONTROLS_PATH='src/ui/ink017/shared-controls.js';
+// A Public style/update is not allowed to break the ESM helper ABI required
+// by the external shell/panels (and originally consumed by compiled Tools).
+export const PUBLIC_UI_SHARED_CONTROL_EXPORTS=Object.freeze([
+  'activeDoc','drag','esc','field','icon','iconButton','lifecycle',
+  'nativeToolEmptyState','range','selected','selectedFields','selectedLayer',
+  'wireFields','wireNativeToolEmptyState','wireRange'
+]);
 export function leasedRows(ui){
   return ui.schema===PUBLIC_UI_BUNDLE_SCHEMA?ui.files:[{
     path:ui.path,bytes:ui.bytes,sha256:ui.sha256,git_blob_sha:ui.git_blob_sha
@@ -117,6 +125,25 @@ function executableMask(source){
     }
     return i;
   }
+  function regexLiteral(i){
+    blank(i++);let inClass=false;
+    while(i<source.length){
+      const c=source[i];
+      if(c==='\\'){blank(i++);if(i<source.length)blank(i++);continue;}
+      if(c==='[')inClass=true;
+      if(c===']')inClass=false;
+      blank(i++);
+      if(c==='/'&&!inClass)break;
+    }
+    while(i<source.length&&/[a-z]/i.test(source[i]))blank(i++);
+    return i;
+  }
+  function startsRegex(i){
+    let previous=i-1;
+    while(previous>=0&&/\s/.test(source[previous]))previous--;
+    return previous<0||/[=([{,:;!?&|+*%^~<>-]/.test(source[previous])||
+      /\b(?:return|throw|case|yield|await)\s*$/.test(source.slice(Math.max(0,i-16),i));
+  }
   function code(i,inTemplate=false){
     let depth=0;
     while(i<source.length){
@@ -124,6 +151,9 @@ function executableMask(source){
       if(c==='\''||c==='"'){i=quoted(i,c);continue;}
       if(c==='/'&&n==='/'){i=line(i);continue;}
       if(c==='/'&&n==='*'){i=block(i);continue;}
+      // A regex character class may include quotes. Mask it as one token so
+      // later Core imports remain visible to the executable closure scan.
+      if(c==='/'&&startsRegex(i)){i=regexLiteral(i);continue;}
       if(c==='`'){i=template(i);continue;}
       if(inTemplate&&c==='{'){depth++;i++;continue;}
       if(inTemplate&&c==='}'){
@@ -146,6 +176,12 @@ export function assertPresentationClosure(files){
     if(!/\.m?js$/.test(p)||p===PUBLIC_UI_MENU)continue;
     const src=f.bytes.toString('utf8');
     const executable=executableMask(src);
+    if(p===SHARED_CONTROLS_PATH){
+      const exports=new Set([...executable.matchAll(/\bexport\s+(?:async\s+)?(?:const|let|function|class)\s+([A-Za-z_$][\w$]*)\b/g)]
+        .map(match=>match[1]));
+      for(const name of PUBLIC_UI_SHARED_CONTROL_EXPORTS)
+        assert.ok(exports.has(name),'DUAL_PRESENTATION_SHARED_API:'+name);
+    }
     // No command/Core/module loader authority is implicit in a Public path.
     assert.ok(!/\b(?:eval|Function|fetch|XMLHttpRequest|WebSocket)\s*\(|\b(?:INK_APP|inkPublicApi)\b/.test(executable),
       'DUAL_PRESENTATION_FORBIDDEN_API:'+p);
