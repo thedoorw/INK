@@ -1899,7 +1899,7 @@
       {
         "path": "src/ui/ink017/right-dock.js",
         "bytes": 9891,
-        "sha256": "f432d4360dcff46917e7d035499e8ac222a6f96bfe141b423982df221f43157e"
+        "sha256": "1c28269a1c5c7436b78a9b320f20f25813a280c603663bef3e7c6c83da61f989"
       },
       {
         "path": "src/ui/ink017/shared-controls.js",
@@ -2082,7 +2082,7 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "8865d53171196ed1975063424587fe16d304e5d97ccd4943025ae5f6565b137a"
+    "package_digest_sha256": "67ec27259279177d7de885158d2dae28f5f0f810b93656259e548ef70a3a9649"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
@@ -2115,8 +2115,125 @@
     ]
   },
   "publication": {
-    "kind": "publish",
-    "previous_target_commit": "c495a3f913cfd7a28f150ec779836a068c739512",
-    "runtime_bytes_unchanged_from_package": true
+    "kind": "ui-only",
+    "previous_target_commit": "a0f1b01b2feb67c58c5b4fe3256436a93545e319",
+    "runtime_bytes_unchanged_from_package": false
+  },
+  "ui_release": {
+    "schema": "INK703_PUBLIC_UI_RELEASE_V2",
+    "repo": "thedoorw/INK",
+    "base_head": "a0f1b01b2feb67c58c5b4fe3256436a93545e319",
+    "base_tree": "6dfce2661412ea778cbdeb7dea878039df2505c1",
+    "files": [
+      {
+        "path": "src/ui/ink017/markup.html",
+        "bytes": 1961,
+        "sha256": "e512af3eac60c4b241b0f2bc0b17b0276aa5a8a425e7983481c48d3d4116ebae",
+        "git_blob_sha": "6c1c7444a2056bb86b1d8e30c600640e79406bd7"
+      },
+      {
+        "path": "src/ui/ink017/menu-ui.js",
+        "bytes": 20455,
+        "sha256": "0118ed04fd44cc49fcdfdfd6dc21bac7bf4771eb6555d54e3c406ef6a9dce189",
+        "git_blob_sha": "363c64075e6de8a7ac1c12944b3cd68e7b9781b9"
+      },
+      {
+        "path": "src/ui/ink017/panels/adjustments.js",
+        "bytes": 7318,
+        "sha256": "f5b7101e92267688d66672a7d1a4a4758f754d129e5ad5e6b5d81f30de7adc26",
+        "git_blob_sha": "62b3c31e127e269d6e21bc43540f101e4b74a79a"
+      },
+      {
+        "path": "src/ui/ink017/panels/brushes.js",
+        "bytes": 4780,
+        "sha256": "da35d7c54bd1307229635b40ee26cbda186981a5fbfffac188b8a2ba1bbcd7d9",
+        "git_blob_sha": "8a663a6a1b00499776536f6d05e7a17c71a61ce2"
+      },
+      {
+        "path": "src/ui/ink017/panels/character-typography.js",
+        "bytes": 1966,
+        "sha256": "2590d0d7d76d661aeca8c2ee8d82c20ec70ea3b12a57f61a6061632b24be665c",
+        "git_blob_sha": "eeba1bf67e97bc24f2d02cdd76f7570041dc9f6b"
+      },
+      {
+        "path": "src/ui/ink017/panels/character.js",
+        "bytes": 9439,
+        "sha256": "6e192ae3e370075334d6097f0883d5b15fea9fa63221700c016806847cc0a226",
+        "git_blob_sha": "4b0c51dbdf4e97c0150085bc21ee368c09a8f72e"
+      },
+      {
+        "path": "src/ui/ink017/panels/color.js",
+        "bytes": 5547,
+        "sha256": "1e9addf6c8407e9cd7c4954bc8bb9867b5e70a5aaa0ef8e3479a2845c4dea980",
+        "git_blob_sha": "9ee6f11483cbf98feba6662267d3186996b3b9b5"
+      },
+      {
+        "path": "src/ui/ink017/panels/history.js",
+        "bytes": 2323,
+        "sha256": "6bbcd9f45a14052a5bc69d7e35b9e21b9590343f7f96d09ce8ae2393cf497ae8",
+        "git_blob_sha": "17a4123bdc810361038558e4fed2a49e9f49a709"
+      },
+      {
+        "path": "src/ui/ink017/panels/layers.js",
+        "bytes": 12448,
+        "sha256": "245744d58cf456878d9c42f77c2c09178a51d54ed99afde265afd2b58581d17f",
+        "git_blob_sha": "d5664227aca0af19f7adb4f656616f4ffaca8665"
+      },
+      {
+        "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
+        "bytes": 2611,
+        "sha256": "c0bb7b959147085bc43207555639f42c3aafb69d55a8add30fa0851b1bfd221c",
+        "git_blob_sha": "f6c2da784fd7e7e2d5c35c8539806313a3a99aa1"
+      },
+      {
+        "path": "src/ui/ink017/panels/navigator.js",
+        "bytes": 7802,
+        "sha256": "4121222d31568bcfd12243654676d864607c26bde178c0ae4f6e3aa122787419",
+        "git_blob_sha": "c09aae766b9e36225beaaf1a1805aebc9c138891"
+      },
+      {
+        "path": "src/ui/ink017/panels/paragraph.js",
+        "bytes": 3572,
+        "sha256": "c368aeb846fec5ff4ba414b471e91f950716cf0baefcd997ae2076695fbc561e",
+        "git_blob_sha": "45a410e95a4b4dff1553256a62b504dcaa56775f"
+      },
+      {
+        "path": "src/ui/ink017/panels/paths.js",
+        "bytes": 2096,
+        "sha256": "76b8463ab88ddc81531eca9b60fe45937572b9e89539509fdcea25b1c5b1061e",
+        "git_blob_sha": "6ef3623a8f418bfdf444eee081ed634b8880f7a8"
+      },
+      {
+        "path": "src/ui/ink017/panels/swatches.js",
+        "bytes": 3780,
+        "sha256": "09480238157083ffdc40523933af38e023cc6093703bffde5b4bb9905c3de209",
+        "git_blob_sha": "89c5fc17b9bccff62bdca1d441d0111dc8a79251"
+      },
+      {
+        "path": "src/ui/ink017/right-dock.js",
+        "bytes": 9891,
+        "sha256": "1c28269a1c5c7436b78a9b320f20f25813a280c603663bef3e7c6c83da61f989",
+        "git_blob_sha": "c594a1da258c749e59ff59ab27b83db28788b184"
+      },
+      {
+        "path": "src/ui/ink017/shared-controls.js",
+        "bytes": 6588,
+        "sha256": "5ab40b5a13aaee98956e0e143c8396253ad884855316feb7e9daebefaa3af654",
+        "git_blob_sha": "77a529560ebb485bd0666b297400a593b45bee95"
+      },
+      {
+        "path": "src/ui/ink017/shell.js",
+        "bytes": 19797,
+        "sha256": "76bcdc1d204b20f838436bf2c69c739494c372325a55027aa10845eb1d10e12f",
+        "git_blob_sha": "917205087860c537a9595cc891ed3e2e99f4fd7e"
+      },
+      {
+        "path": "src/ui/ink017/tokens.css",
+        "bytes": 84537,
+        "sha256": "3e2817a86fa713751d74ec31d40d3d7fb0dbf767dcd1336cd9179b52875957c8",
+        "git_blob_sha": "771886b82339d8c387b15b2fef1cd68b340c02cb"
+      }
+    ],
+    "version": "ui-603abf9f96db24a83f3e1d47"
   }
 }
