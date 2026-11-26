@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {checkEvent,isControlOnly} from './verify-static-sync.mjs';
-import {makePlan,verifyPlan,blob,hash,canonical,safePath,allowed,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
+import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
 import {createHash} from 'node:crypto';
 const cfg=JSON.parse(await readFile(new URL('./static-sync.allowlist.json',import.meta.url)));
 const sha=c=>c.repeat(40),file=s=>{const bytes=Buffer.from(s);return{bytes,sha:blob(bytes),mode:'100644'}};
@@ -31,6 +31,132 @@ test('control maintenance permits only exact verifier paths, never Runtime or hi
  for(const path of ['index.html','BUILD_INFO.json','release/CANDIDATE.sig','engineering/public-release/policy.json','.github/workflows/other.yml','engineering/public-release/extra.mjs'])
   assert.equal(isControlOnly(['engineering/public-release/verify-static-sync.mjs',path]),false);
  assert.equal(isControlOnly([]),false);
+});
+
+// #703 Public-only UI release: menu source is the single user-authored file;
+// BUILD_INFO and PUBLISH_RECEIPT are exact outputs of trusted-base math.
+const UI_MENU='src/ui/ink017/menu-ui.js';
+const UI_ONLY_CHANGE=['BUILD_INFO.json','PUBLISH_RECEIPT.json',UI_MENU,'pages-build-identity.txt'].sort();
+const menuSource=(api,label)=>`// ${label}\nexport function mountMenuUi({menu,logo,host,invoke,signal}){return host.menuApi.${api}();}\n`;
+function uiOnlyFixture(){
+ const s=inputs();s.sourceFiles.set(UI_MENU,file(menuSource('snapState','Public baseline A')));
+ s.sourceFiles.set('dist/startup/ink-shell.mjs',file('await import(new URL("./menu-ui.js",new URL("src/ui/ink017/shell.js",document.baseURI).href).href);'));
+ s.sourceFiles.set('service-worker-runtime.js',file('const SOURCE_SHELL=["./src/ui/ink017/menu-ui.js"];function networkFirstAsset(request){};networkFirstAsset(event.request);'));
+ const rows=[...s.sourceFiles].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)})).sort((a,b)=>a.path.localeCompare(b.path,'en'));
+ s.build.runtime.files=rows;s.build.runtime.file_count=rows.length;
+ s.build.runtime.package_digest_sha256=hash(Buffer.from(canonical(rows)));
+ const first=makePlan(s),base={head:sha('4'),tree:sha('5'),files:stage(s,first)};
+ const nextMenu=file(menuSource('selectedRasterInfo','approved Public B'));
+ const metadata=expectedUiOnlyMetadata({base,candidateMenu:nextMenu,cfg});
+ const candidateFiles=new Map(base.files);
+ candidateFiles.set(UI_MENU,nextMenu);
+ candidateFiles.set('BUILD_INFO.json',metadata.buildItem);
+ candidateFiles.set('PUBLISH_RECEIPT.json',metadata.receiptItem);
+ candidateFiles.set('pages-build-identity.txt',metadata.identityItem);
+ return {base,candidateFiles,nextMenu,metadata,changedPaths:UI_ONLY_CHANGE};
+}
+test('Public-only menu + deterministic metadata pass; next Private 009 validateBase accepts full bytes',()=>{
+ const x=uiOnlyFixture();
+ assert.equal(uiOnlyPaths(x.changedPaths),true);
+ const result=verifyUiOnlyPlan({...x,cfg});
+ assert.equal(result.status,'PUBLIC_UI_ONLY_INTEGRITY_PASS');
+ assert.equal(result.corePreserved,true);assert.equal(result.releaseAuthorized,false);
+ assert.equal(validateBase({...x.base,files:x.candidateFiles},cfg).ui_release.version,x.metadata.uiLease.version);
+ const expectedPagesRevision=createHash('sha1').update('INK703-PWA:'+generatedRuntimeDigest(x)).digest('hex');
+ assert.equal(x.candidateFiles.get('pages-build-identity.txt').bytes.toString('utf8'),expectedPagesRevision+'\n');
+ // The PWA controller selects ?build=pages-<composite Core+UI revision>.
+ assert.equal('pages-'+x.candidateFiles.get('pages-build-identity.txt').bytes.toString('utf8').trim(),
+  'pages-'+expectedPagesRevision);
+ for(const [p,f] of x.base.files)if(!x.changedPaths.includes(p))assert.equal(x.candidateFiles.get(p).sha,f.sha);
+ const generated=JSON.parse(x.candidateFiles.get('BUILD_INFO.json').bytes);
+ assert.equal(generated.source.exact_sha,JSON.parse(x.base.files.get('BUILD_INFO.json').bytes).source.exact_sha);
+ assert.notEqual(generated.runtime.package_digest_sha256,JSON.parse(x.base.files.get('BUILD_INFO.json').bytes).runtime.package_digest_sha256);
+});
+function generatedRuntimeDigest(fixtureValue){
+ return JSON.parse(fixtureValue.candidateFiles.get('BUILD_INFO.json').bytes).runtime.package_digest_sha256;
+}
+test('A→B→C UI-only revisions rotate Pages worker cache key while Core identity remains fixed',()=>{
+ const first=uiOnlyFixture();
+ const aBuild=JSON.parse(first.base.files.get('BUILD_INFO.json').bytes);
+ const bBuild=JSON.parse(first.candidateFiles.get('BUILD_INFO.json').bytes);
+ const revA=pagesRevisionForDigest(aBuild.runtime.package_digest_sha256);
+ const revB=pagesRevisionForDigest(bBuild.runtime.package_digest_sha256);
+ assert.notEqual(revA,revB);
+ assert.equal(first.metadata.pagesRevision,revB);
+ const nextBase={head:sha('6'),tree:sha('7'),files:first.candidateFiles};
+ const menuC=file(menuSource('driveAvailable','approved Public C'));
+ const metaC=expectedUiOnlyMetadata({base:nextBase,candidateMenu:menuC,cfg});
+ const next=new Map(nextBase.files);
+ next.set(UI_MENU,menuC);next.set('BUILD_INFO.json',metaC.buildItem);
+ next.set('PUBLISH_RECEIPT.json',metaC.receiptItem);next.set('pages-build-identity.txt',metaC.identityItem);
+ assert.equal(verifyUiOnlyPlan({base:nextBase,candidateFiles:next,cfg,changedPaths:UI_ONLY_CHANGE}).status,
+  'PUBLIC_UI_ONLY_INTEGRITY_PASS');
+ assert.notEqual(revB,metaC.pagesRevision);
+ assert.equal(bBuild.source.exact_sha,JSON.parse(next.get('BUILD_INFO.json').bytes).source.exact_sha);
+ assert.notEqual('ink-build-pages-'+revB+'-shell','ink-build-pages-'+metaC.pagesRevision+'-shell');
+ // This is an identity/cache-namespace contract test, not a live offline SW test.
+});
+test('a Core-only runtime digest change rotates Pages identity even with identical menu blob',()=>{
+ const x=uiOnlyFixture(),digest=generatedRuntimeDigest(x),revised='f'.repeat(64);
+ assert.notEqual(pagesRevisionForDigest(digest),pagesRevisionForDigest(revised));
+ assert.equal(pagesRevisionForDigest(revised).length,40);
+});
+test('second UI release rejects stale Pages identity and missing prior UI lease',()=>{
+ const x=uiOnlyFixture(),menuC=file(menuSource('driveAvailable','next C'));
+ const prior={head:sha('6'),tree:sha('7'),files:new Map(x.candidateFiles)};
+ prior.files.set('pages-build-identity.txt',file(sha('0')+'\n'));
+ assert.throws(()=>expectedUiOnlyMetadata({base:prior,candidateMenu:menuC,cfg}),/UI_BASE_PAGES_IDENTITY_DRIFT/);
+ prior.files.delete('pages-build-identity.txt');
+ assert.throws(()=>expectedUiOnlyMetadata({base:prior,candidateMenu:menuC,cfg}),/UI_BASE_PAGES_IDENTITY_MISSING/);
+});
+test('Public-only branch uses exact-head, same-repo, non-Draft gate',()=>{
+ const base=sha('4'),head=sha('6');
+ const event={repository:{full_name:'thedoorw/INK'},action:'synchronize',
+  pull_request:{draft:false,base:{sha:base,ref:'main',repo:{full_name:'thedoorw/INK'}},
+   head:{sha:head,ref:'ui-703/menu-b',repo:{full_name:'thedoorw/INK'}}}};
+ assert.doesNotThrow(()=>checkEvent(event,base,head,{uiOnlyScope:true}));
+ event.pull_request.head.ref='sync-009/pretend-ui';assert.throws(()=>checkEvent(event,base,head,{uiOnlyScope:true}),/SYNC_BRANCH_REQUIRED/);
+ event.pull_request.head.ref='ui-703/menu-b';event.pull_request.draft=true;assert.throws(()=>checkEvent(event,base,head,{uiOnlyScope:true}),/DRAFT_CANDIDATE/);
+ event.pull_request.draft=false;event.pull_request.base.sha=sha('7');assert.throws(()=>checkEvent(event,base,head,{uiOnlyScope:true}),/BASE_MOVED/);
+});
+test('Public-only scope excludes shell, Core, tokens and extra changes',()=>{
+ for(const changed of [[],[UI_MENU],[UI_MENU,'BUILD_INFO.json'],
+  [UI_MENU,'BUILD_INFO.json','PUBLISH_RECEIPT.json'],
+  [...UI_ONLY_CHANGE,'src/core/ink.js'],[...UI_ONLY_CHANGE,'src/ui/ink017/tokens.css'],
+  [...UI_ONLY_CHANGE,'dist/startup/ink-shell.mjs']])assert.equal(uiOnlyPaths(changed),false);
+});
+test('Public-only menu rejects old unrestricted host API and external imports',()=>{
+ for(const body of [menuSource('snapState','ok')+'host.app;',menuSource('snapState','ok')+'host["provider"];',
+   'import {x} from "../../core/x.js";\n'+menuSource('snapState','ok'),
+   menuSource('snapState','ok')+'window.INK_APP;',
+   'export function mountMenuUi(host){return host.menuApi.snapState()}'])
+  assert.throws(()=>verifyMenuHostContract(body));
+ assert.equal(verifyMenuHostContract(menuSource('snapState','safe')),'MENU_HOST_CONTRACT_PASS');
+});
+test('Public-only exact bytes, old receipt and complete tree are fail-closed',()=>{
+ const x=uiOnlyFixture();
+ const corruptBuild=new Map(x.candidateFiles);corruptBuild.set('BUILD_INFO.json',file('forged'));
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:corruptBuild,cfg}),/UI_ONLY_BUILD_IDENTITY/);
+ const corruptReceipt=new Map(x.candidateFiles);corruptReceipt.set('PUBLISH_RECEIPT.json',file('forged'));
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:corruptReceipt,cfg}),/UI_ONLY_RECEIPT_IDENTITY/);
+ const oldIdentity=new Map(x.candidateFiles);oldIdentity.set('pages-build-identity.txt',file(sha('0')+'\n'));
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:oldIdentity,cfg}),/UI_ONLY_PAGES_IDENTITY/);
+ const noIdentity=new Map(x.candidateFiles);noIdentity.delete('pages-build-identity.txt');
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:noIdentity,cfg}),/UI_ONLY_FULL_TREE_PATHS/);
+ const extra=new Map(x.candidateFiles);extra.set('src/core/phantom.js',file('malicious'));
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:extra,cfg}),/UI_ONLY_FULL_TREE_PATHS/);
+ const altered=new Map(x.candidateFiles);altered.set('src/core/native.js',file('private'));
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:altered,cfg}),/UI_ONLY_FULL_TREE_PATHS/);
+ const stale={...x.base,head:sha('9')};
+ assert.throws(()=>verifyUiOnlyPlan({...x,base:stale,cfg}),/UI_ONLY_BUILD_IDENTITY/);
+ const wrongSha=new Map(x.candidateFiles);wrongSha.set(UI_MENU,{...x.nextMenu,sha:sha('0')});
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:wrongSha,cfg}),/BLOB_MISMATCH/);
+ const badMode=new Map(x.candidateFiles);badMode.set(UI_MENU,{...x.nextMenu,mode:'120000'});
+ assert.throws(()=>verifyUiOnlyPlan({...x,candidateFiles:badMode,cfg}),/NON_REGULAR_FILE/);
+ const legacyShell=new Map(x.base.files);legacyShell.set('dist/startup/ink-shell.mjs',file('menu bundled in Core'));
+ assert.throws(()=>verifyUiOnlyPlan({...x,base:{...x.base,files:legacyShell},cfg}),/UI_BRIDGE_NOT_INSTALLED/);
+ const unsafeSW=new Map(x.base.files);unsafeSW.set('service-worker-runtime.js',file('const SOURCE_SHELL=[];'));
+ assert.throws(()=>verifyUiOnlyPlan({...x,base:{...x.base,files:unsafeSW},cfg}),/UI_BRIDGE_SW_OFFLINE_MISSING/);
 });
   // Public Gate001 QA-only exact-pinned integrity regression suite.
 {
