@@ -40,6 +40,24 @@ export function verifyUiOnly({base, head, files, changes}) {
   return Object.freeze({status:'UI_ONLY_SCOPE_PASS', base, head, changedPaths:[...names].sort(), releaseAuthorized:false});
 }
 
+// Review-only seam compatibility check. The Native host intentionally passes a
+// restricted menuHost, not the underlying app/provider objects.
+export function verifyMenuHostContract(source) {
+  assert.ok(typeof source === 'string' && source.length > 0 &&
+    source.length < 512 * 1024 && !source.includes('\0'), 'MENU_SOURCE_INVALID');
+  assert.match(source,
+    /export\s+function\s+mountMenuUi\s*\(\s*\{\s*menu\s*,\s*logo\s*,\s*host\s*,\s*invoke\s*,\s*signal\s*\}\s*\)/,
+    'MENU_EXPORT_CONTRACT');
+  assert.match(source, /\bhost\.menuApi\.[a-zA-Z_$][\w$]*\s*\(/,
+    'MENU_HOST_API_REQUIRED');
+  assert.doesNotMatch(source,
+    /\bhost\s*(?:\.\s*(?:app|provider)\b|\[\s*['"](?:app|provider)['"]\s*\])/,
+    'MENU_LEGACY_CORE_ACCESS');
+  // Dynamic host indexing cannot be certified from a source-only review.
+  assert.doesNotMatch(source, /\bhost\s*\[/, 'MENU_DYNAMIC_HOST_ACCESS');
+  return Object.freeze({status:'MENU_RESTRICTED_HOST_CONTRACT_PASS',releaseAuthorized:false});
+}
+
 const git = (root, ...args) => execFileSync('git', ['-C',root,...args], {encoding:'utf8',maxBuffer:16*1024*1024}).trim();
 
 // Derive the complete changed set from trusted Git trees; never consume a PR-authored allowlist.
@@ -57,7 +75,15 @@ export function inspectGitDiff(root, base, head) {
     assert.equal(m[5], 'M', 'ADD_DELETE_RENAME_REJECTED');
     changes.push({path:raw[i+1],oldMode:m[1],newMode:m[2],oldSha:m[3],newSha:m[4]});
   }
-  return verifyUiOnly({base,head,changes,files:changes.map(c=>c.path)});
+  const scope=verifyUiOnly({base,head,changes,files:changes.map(c=>c.path)});
+  for(const entry of changes.filter(c=>c.path==='src/ui/ink017/menu-ui.js')){
+    const bytes=execFileSync('git',['-C',root,'cat-file','blob',entry.newSha],
+      {maxBuffer:512*1024});
+    const source=bytes.toString('utf8');
+    assert.ok(Buffer.from(source,'utf8').equals(bytes),'MENU_UTF8_REQUIRED');
+    verifyMenuHostContract(source);
+  }
+  return scope;
 }
 
 // Validate a proposed Private Core -> Public overlay from *complete* trusted tree
