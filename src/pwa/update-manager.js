@@ -114,6 +114,17 @@ export class ServiceWorkerUpdateManager {
     return this.emit({ offlineReuse: true });
   }
 
+  async updateSettledRegistration(desiredScriptURL) {
+    // register(desiredScriptURL) already initiates a new-worker install.
+    // Calling update() before that install settles can instead update the
+    // still-active previous script, reversing a release or rollback.
+    const registration = this.registration;
+    if (registration?.active?.scriptURL !== desiredScriptURL ||
+        registration.installing || registration.waiting) return false;
+    await registration.update();
+    return true;
+  }
+
   async register() {
     if (!this.supported()) { this.state = 'unsupported'; return this.emit(); }
     this.state = 'registering'; this.emit();
@@ -131,8 +142,9 @@ export class ServiceWorkerUpdateManager {
         updateViaCache: 'none'
       });
       this.registration.addEventListener?.('updatefound', () => this.trackInstalling(this.registration.installing));
-      await this.registration.update();
-      this.waiting = this.registration.waiting || null;
+      await this.updateSettledRegistration(this.resolvedScriptURL);
+      this.waiting = this.registration.waiting?.scriptURL === this.resolvedScriptURL
+        ? this.registration.waiting : null;
       if (this.waiting && this.autoActivate) this.activateUpdate();
       else this.state = this.waiting ? 'update-ready' : 'ready';
       try { await this.refreshWorkerIdentity(); } catch {}
@@ -189,22 +201,27 @@ export class ServiceWorkerUpdateManager {
   async checkForUpdate() {
     if (!this.registration) return { ...this.emit(), checked: false };
     try {
-      const previousBuildId = this.buildId;
       await this.resolvePublishedIdentity();
       const desiredScriptURL = this.scriptURLForBuild();
-      const currentScriptURL = this.registration?.active?.scriptURL
-        || this.registration?.waiting?.scriptURL
-        || this.registration?.installing?.scriptURL
-        || this.resolvedScriptURL;
-      if (this.buildId && this.buildId !== previousBuildId && desiredScriptURL !== currentScriptURL) {
-        this.resolvedScriptURL = desiredScriptURL;
+      this.resolvedScriptURL = desiredScriptURL;
+      // A pending desired worker takes precedence over the still-active old
+      // build; conversely, active drift must recover even if buildId was
+      // already updated by an earlier (failed or superseded) check.
+      const installingScriptURL = this.registration?.installing?.scriptURL;
+      const waitingScriptURL = this.registration?.waiting?.scriptURL;
+      const currentScriptURL = [installingScriptURL, waitingScriptURL].includes(desiredScriptURL)
+        ? desiredScriptURL
+        : installingScriptURL || waitingScriptURL
+        || this.registration?.active?.scriptURL || null;
+      if (this.buildId && desiredScriptURL !== currentScriptURL) {
         this.registration = await navigator.serviceWorker.register(desiredScriptURL, {
           scope: this.scope,
           updateViaCache: 'none'
         });
       }
-      await this.registration.update();
-      this.waiting = this.registration.waiting || this.waiting;
+      await this.updateSettledRegistration(desiredScriptURL);
+      this.waiting = this.registration.waiting?.scriptURL === desiredScriptURL
+        ? this.registration.waiting : null;
       if (this.waiting) {
         this.state = 'update-ready';
         if (this.autoActivate) this.activateUpdate();
@@ -218,7 +235,9 @@ export class ServiceWorkerUpdateManager {
   }
 
   activateUpdate() {
-    const worker = this.registration?.waiting || this.waiting;
+    const desiredScriptURL = this.scriptURLForBuild();
+    const worker = [this.registration?.waiting, this.waiting].find(candidate =>
+      candidate?.scriptURL === desiredScriptURL && candidate.state === 'installed');
     if (!worker) return false;
     worker.postMessage({ type: 'INK_SKIP_WAITING' });
     this.state = 'activating';

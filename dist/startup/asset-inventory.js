@@ -33,7 +33,6 @@ self.INK_STARTUP_ASSETS = Object.freeze([
   "./dist/startup/chunks/psd-layered-DBYJA7RD.mjs",
   "./dist/startup/chunks/runtime-test-bridge-RJJ44CI3.mjs",
   "./dist/startup/chunks/vectorcraft-native-NVR7MGJ5.mjs",
-  "./dist/startup/chunks/work-runtime-read-controls-EQLOVAVJ.mjs",
   "./dist/startup/ink-boot.mjs",
   "./dist/startup/ink-shell.mjs",
   "./dist/startup/parsers/ag-psd.mjs",
