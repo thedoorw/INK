@@ -1,7 +1,7 @@
 // INK Menu UI 001. Presentation-only menu: Native commands and selectors remain authoritative.
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 // INK v4.1: SOURCE-backed 8-category catalogue; coreOnly entries have no command.
-const categoryNames={"file":"檔案","edit":"編輯","image":"影像","select":"選取","filter":"濾鏡","view":"檢視","plugins":"擴充","window":"視窗"};
+const categoryNames={"file":"檔案","edit":"編輯","image":"影像","select":"選取","filter":"濾鏡","view":"檢視","plugins":"擴充·","window":"視窗"};
 const groups={
  "file": [
   [
@@ -625,18 +625,18 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
  const state=()=>{
   const s=host.getSnapshot(),h=host.getHistory(),doc=host.select('document.current')||{},transfer=host.select('session.transfer')||{},sessions=host.select('session.list')||[];
   const active=sessions.find(x=>x.active);
-  const rasterInfo=host.provider.image.selectedInfo();
-  const snapEnabled=host.app.page?.()?.snap?.enabled!==false,snapCategories=host.app.page?.()?.snap?.categories||{};
+  const rasterInfo=host.menuApi.selectedRasterInfo();
+  const snap=host.menuApi.snapState(),snapEnabled=snap?.enabled!==false,snapCategories=snap?.categories||{};
   return {s,h,doc,transfer,active,sessions,hasDoc:!!s.docs.length&&doc.open!==false,rasterInfo,snapEnabled,snapCategories};
  };
  const enabled=(key,v)=>{
   if(!key)return false;
-  if(['recipe-workflow','recipe-engine','translate-photoshop','translate-illustrator','translate-figma','translate-canva'].includes(key))return typeof host.app?.inkPublicApi?.tools?.invoke==='function';
+  if(['recipe-workflow','recipe-engine','translate-photoshop','translate-illustrator','translate-figma','translate-canva'].includes(key))return host.menuApi.canInvokeWorkTools();
   // Visible even when unconfigured, disabled unless the existing first-party
   // Drive startup is installed. Never surface a false "connected" state.
-  if(key==='drive-recover')return Boolean(host.app?.driveLinkStartup);
+  if(key==='drive-recover')return host.menuApi.driveAvailable();
   if(key==='drive-save'||key==='drive-save-revision')
-    return Boolean(host.app?.driveLinkStartup)&&v.hasDoc;
+    return host.menuApi.driveAvailable()&&v.hasDoc;
   if(['new','open','open-location','about','branding','native-tools','recover','history-limit'].includes(key)||key.startsWith('panel:'))return true;
   if(!v.hasDoc)return false;
   if(key.startsWith('session:'))return v.sessions.some(x=>x.sessionId===key.slice(8));
@@ -687,12 +687,12 @@ export function mountMenuUi({menu,logo,host,invoke,signal}){
   if(parent&&!parent.disabled){const label=parent.dataset.submenu;submenu=submenu===label?null:label;render();menu.querySelector('[data-submenu="'+CSS.escape(label)+'"]')?.focus();return;}
   if(command&&!command.disabled){const key=command.dataset.command;close();Promise.resolve().then(async()=>{
    if(['recipe-workflow','recipe-engine','translate-photoshop','translate-illustrator','translate-figma','translate-canva'].includes(key)){
-    if(globalThis.INK_APP!==host.app)throw Error('INK_WORK_RUNTIME_IDENTITY_MISMATCH');
+    if(!host.menuApi.isCurrentRuntime())throw Error('INK_WORK_RUNTIME_IDENTITY_MISMATCH');
     const {mountWorkExtensionControls}=await import('../../agent/work-runtime-read-controls.mjs');
     return mountWorkExtensionControls({entry:key,globalObject:globalThis,documentObject:document});
    }
    return invoke(key);
-  }).catch(error=>host.app?.toast?.(error.message||String(error))); }
+  }).catch(error=>host.menuApi.notify(error.message||String(error))); }
  },{signal});
  menu.addEventListener('pointerover',e=>{
   const tab=e.target.closest('[data-category]');if(tab&&tab.dataset.category!==category){selectCategory(tab.dataset.category);return;}
