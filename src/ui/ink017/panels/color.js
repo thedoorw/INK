@@ -21,14 +21,16 @@ export default lifecycle('color',s=>{
  const hue=Math.round(c.h),enabled=available?'':' disabled';
  return '<div class="ps-color-visual-row" aria-label="顏色">' +
   '<div class="ps-color-chips"><div class="panel-color-chips">' +
-  '<span class="ps-native-color-chip ps-native-color-chip-background" style="background-color:'+s.paint.background+'"><input type="color" aria-label="Background" title="背景色" value="'+s.paint.background+'"'+(s.capabilities?.background?'':' disabled')+'></span>' +
-  '<span class="ps-native-color-chip ps-native-color-chip-foreground" style="background-color:'+s.paint.foreground+'"><input type="color" aria-label="Foreground" title="前景色" value="'+s.paint.foreground+'"'+enabled+'></span></div></div>' +
+  '<span class="ps-native-color-chip ps-native-color-chip-background"><input type="color" aria-label="Background" title="背景色" value="'+s.paint.background+'"'+(s.capabilities?.background?'':' disabled')+'></span>' +
+  '<span class="ps-native-color-chip ps-native-color-chip-foreground"><input type="color" aria-label="Foreground" title="前景色" value="'+s.paint.foreground+'"'+enabled+'></span></div></div>' +
   '<div class="ps-native-color-gradient"><div class="color-plane" role="group" tabindex="'+(available?0:-1)+'" aria-disabled="'+(!available)+'" aria-label="Color spectrum saturation and value" aria-description="左右調整飽和度，上下調整明度"><span class="color-plane-marker" aria-hidden="true"></span></div>' +
   '<div class="ps-native-hue" role="slider" tabindex="'+(available?0:-1)+'" aria-disabled="'+(!available)+'" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="360" aria-valuenow="'+hue+'" aria-label="Hue" title="拖曳色相箭頭或色條"><span class="ps-native-hue-indicator" aria-hidden="true"></span></div></div></div>';
 },(r,h,signal)=>{
  const available=!!h.getSnapshot().capabilities?.foreground;
  const plane=r.querySelector('.color-plane'),point=r.querySelector('.color-plane-marker'),track=r.querySelector('.ps-native-hue'),indicator=track.querySelector('.ps-native-hue-indicator');
  const initial=hexToHsv(h.getSnapshot().paint.foreground,preferredHue);
+ const backgroundChip=r.querySelector('.ps-native-color-chip-background');
+ backgroundChip.style.backgroundColor=h.getSnapshot().paint.background;
  let pending=null,previewHue=initial.h;
  const patch=color=>h.dispatch({type:'paint.patch',patch:{foreground:color},source:'color'});
  const current=()=>hexToHsv(h.getSnapshot().paint.foreground,preferredHue);

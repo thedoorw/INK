@@ -1853,8 +1853,8 @@
       },
       {
         "path": "src/ui/ink017/panels/color.js",
-        "bytes": 5547,
-        "sha256": "1e9addf6c8407e9cd7c4954bc8bb9867b5e70a5aaa0ef8e3479a2845c4dea980"
+        "bytes": 5598,
+        "sha256": "67c3915f39f643a61c27e6c67e482d911ddfc9faee7dfdfb80d6ad85a8360dea"
       },
       {
         "path": "src/ui/ink017/panels/history.js",
@@ -1863,8 +1863,8 @@
       },
       {
         "path": "src/ui/ink017/panels/layers.js",
-        "bytes": 12448,
-        "sha256": "245744d58cf456878d9c42f77c2c09178a51d54ed99afde265afd2b58581d17f"
+        "bytes": 12489,
+        "sha256": "854a6340f304e2b8a75ca690d46ea6bd066c2ceb3ffaefa6217cac564812c629"
       },
       {
         "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
@@ -2082,7 +2082,7 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "333e7a17e35ef10790bece82a3be2336cb7883203658ee0857c9c4bd009c695d"
+    "package_digest_sha256": "813e02bb7b8365b512ce4a08c36b95d3799650006b5a9ec1c5db40ba2468213d"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
@@ -2136,9 +2136,9 @@
       },
       {
         "path": "src/ui/ink017/panels/color.js",
-        "bytes": 5547,
-        "sha256": "1e9addf6c8407e9cd7c4954bc8bb9867b5e70a5aaa0ef8e3479a2845c4dea980",
-        "git_blob_sha": "9ee6f11483cbf98feba6662267d3186996b3b9b5"
+        "bytes": 5598,
+        "sha256": "67c3915f39f643a61c27e6c67e482d911ddfc9faee7dfdfb80d6ad85a8360dea",
+        "git_blob_sha": "85c15b38476aee12c2a3b01f5c0044421a5c6c1a"
       },
       {
         "path": "src/ui/ink017/panels/history.js",
@@ -2148,9 +2148,9 @@
       },
       {
         "path": "src/ui/ink017/panels/layers.js",
-        "bytes": 12448,
-        "sha256": "245744d58cf456878d9c42f77c2c09178a51d54ed99afde265afd2b58581d17f",
-        "git_blob_sha": "d5664227aca0af19f7adb4f656616f4ffaca8665"
+        "bytes": 12489,
+        "sha256": "854a6340f304e2b8a75ca690d46ea6bd066c2ceb3ffaefa6217cac564812c629",
+        "git_blob_sha": "7aafc0bc2ee1a9ea43a390633f342a1793f4b7c3"
       },
       {
         "path": "src/ui/ink017/panels/navigator-zoom-curve.mjs",
@@ -2207,14 +2207,14 @@
         "git_blob_sha": "771886b82339d8c387b15b2fef1cd68b340c02cb"
       }
     ],
-    "version": "ui-5b346fdbd05ca2c8c58adc67"
+    "version": "ui-93c94b72ce72a637cdc8f0a2"
   },
   "dual_source": {
     "schema": "INK703_DUAL_SOURCE_PUBLISH_V2",
     "private_runtime_digest_sha256": "a4ad0305a15080318260b445d8342425423b0cd2a24dfe7b205ebae38c936710",
-    "composite_runtime_digest_sha256": "333e7a17e35ef10790bece82a3be2336cb7883203658ee0857c9c4bd009c695d",
-    "ui_release_version": "ui-5b346fdbd05ca2c8c58adc67",
-    "pages_build_identity": "a09258993fdbbddb14fb579f217fa7ce938f173c"
+    "composite_runtime_digest_sha256": "813e02bb7b8365b512ce4a08c36b95d3799650006b5a9ec1c5db40ba2468213d",
+    "ui_release_version": "ui-93c94b72ce72a637cdc8f0a2",
+    "pages_build_identity": "39b7a81cd42c0e81b643b20f5f3e7aa866dbfd0f"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",

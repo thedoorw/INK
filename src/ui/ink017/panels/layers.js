@@ -24,7 +24,10 @@ export default lifecycle('layers',s=>{const d=activeDoc(s);if(!d)return '<div cl
   input.maxLength=200;
   input.dataset.layerRename='';
   input.setAttribute('aria-label','圖層名稱');
-  input.style.cssText='width:100%;min-width:0;box-sizing:border-box;font:inherit';
+  input.style.width='100%';
+  input.style.minWidth='0';
+  input.style.boxSizing='border-box';
+  input.style.font='inherit';
   const draggable=row.draggable;
   let finished=false;
   const finish=(save,restoreFocus)=>{
