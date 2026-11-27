@@ -10,12 +10,12 @@ function makeState(fixture){
  const isImage=fixture==='image',isText=fixture==='text',locked=fixture==='locked';
  const layers=[
   {id:'mock-layer-1',name:isText?'標題文字':isImage?'照片':'圖層 1',type:isText?'text':isImage?'image':'path',visible:true,locked:false,opacity:100,preview:null},
-  {id:'mock-layer-2',name:'背景',type:'shape',visible:true,locked:true,opacity:100,preview:null}
+  ...(locked?[{id:'mock-layer-2',name:'背景',type:'shape',visible:true,locked:true,opacity:100,preview:null}]:[])
  ];
  const doc=active?{id:'mock-a4',name:'A4 · MOCK',title:'A4 · MOCK',width:210,height:297,ppi:300,units:'mm',artboard:{widthMm:210,heightMm:297,ppi:300,unit:'mm'},selection:locked?'mock-layer-2':'mock-layer-1',layers,camera:{zoom:100,x:0,y:0},guides:[],canvasMode:'document'}:null;
  return{kind:'MOCK',docs:doc?[doc]:[],activeDoc:doc?.id||null,
   object:selection?{id:'mock-object',objectId:'mock-object',type:isImage?'image':isText?'text':'path',locked,x:35,y:40,w:80,h:90,rotate:0,fill:'#d7eafa',blendMode:'source-over',adjustments:[],raster:isImage?{width:800,height:1200}:null,font:'Arial',weight:400,size:32,leading:40,tracking:0,textColor:'#202020',text:'INK UI',align:'left',paragraph:{align:'left',indentLeft:0},target:target()}:null,
-  target:target(),tool:isImage?'brush':isText?'text':'select',paint:{foreground:'#000000',background:'#ffffff',alpha:100},
+  target:target(),tool:isImage?'brush':isText?'text':'pen',paint:{foreground:'#000000',background:'#ffffff',alpha:100},
   swatches:[{id:'recent',name:'Recent colors',open:true,colors:['#202020','#ffffff','#b63c36','#d18b2f','#d7c64b','#3d875d','#2f718f','#594f9a']}],
   swatchSelection:'recent',toolOptions:{'brush.size':12,'select.aspect':0},
   guides:{show:true,lock:false,snap:true},layout:1,adjustmentEditorId:null,
@@ -112,6 +112,10 @@ export function createMockHost(){
  const setFixture=fixture=>{
   if(!supportedFixtures.has(fixture))fixture='a4';
   state=makeState(fixture);index=0;entries=[{index:0,label:'History start'}];
+  if(fixture==='selection'){
+   entries.push({index:1,label:'繪製幾何'});
+   index=1;
+  }
   if(fixture==='history'){
    entries.push({index:1,label:'Mock stroke 1'},{index:2,label:'Mock stroke 2'},{index:3,label:'Mock layer update'});
    index=3;
@@ -126,7 +130,7 @@ export function createMockHost(){
   if(name==='page.preview')return null;
   if(name==='path.list')return{paths:[]};
   if(name==='tool.presets')return{status:'AVAILABLE',tool:'brush',selected:null,presets:[]};
-  if(name==='tool.settings')return{size:12,opacity:.88,flow:.82,smoothing:.46,pressure:.95,taper:.42,wetness:.36,grain:.18};
+  if(name==='tool.settings')return{size:12,opacity:.88,flow:.82,smoothing:.46,pressure:.95,taper:.42,wetness:.36,bristle:.18};
   return null;
  };
  const record=label=>{entries=entries.slice(0,index+1);index++;entries.push({index,label});notify()};
