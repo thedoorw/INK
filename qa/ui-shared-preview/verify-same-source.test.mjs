@@ -21,7 +21,7 @@ const files=new Map();
 for(const path of [...parts.map(x=>ui+x),ui+'tool-slices/toolbar-customizer.js',ui+'tool-slices/workbench.js',
   'stage-runtime.css',
   'src/ui/minimal-test-shell/modules.js','src/document/artboard.js',
-  'src/ui/branding-settings.js',preview+'index.html',
+  'src/ui/branding-settings.js',preview+'index.html',preview+'preview.css',
   preview+'preview-entry.js',preview+'mock-host.js']){
   files.set(path,await readFile(join(root,path),'utf8'));
 }
@@ -58,7 +58,7 @@ const reader=(patch={})=>({
   assert.equal(typeof text,'string',`Missing test fixture: ${path}`);
   return{text,blob:(pins.has(path)&&!(path in patch))?pins.get(path):blob(text)};
  },
- async children(){return ['index.html','mock-host.js','preview-entry.js']}
+ async children(){return ['index.html','mock-host.js','preview-entry.js','preview.css']}
 });
 const codeOf=async (updates={})=>{
  try{return (await verifySameSource(reader(updates))).status}
@@ -69,6 +69,10 @@ test('canonical 18-path presentation graph shares one path/blob',async()=>{
  const r=await verifySameSource(reader(),{scope:'presentation',expectedHead:'a'.repeat(40)});
  assert.equal(r.status,'PRESENTATION_SOURCE_PASS');
  assert.equal(r.sharedFiles.length,18);
+ assert.ok(!r.sharedFiles.some(item=>item.path===preview+'preview.css'));
+ assert.deepEqual(r.previewOnlyStylesheet,{
+  path:preview+'preview.css',git_blob_sha:'68d82b1e19a88e1934aae8486073096843fde28b'
+ });
  assert.ok(r.esmReached.includes(ui+'shell.js'));
  assert.ok(r.esmReached.includes(ui+'menu-ui.js'));
  assert.ok(r.esmReached.includes(ui+'panels/history.js'));
@@ -132,9 +136,29 @@ test('preview cannot inline a second copy of the shell markup',async()=>{
  assert.equal(await codeOf({[path]:text}),'COPIED_SHELL_MARKUP');
 });
 test('preview-only CSS cannot override real Dock geometry',async()=>{
- const path=preview+'index.html';
- const text=files.get(path).replace('</style>', '.dock-zone{width:123px}</style>');
+ const path=preview+'preview.css';
+ const text=files.get(path)+'\n.dock-zone{width:123px}\n';
  assert.equal(await codeOf({[path]:text}),'PREVIEW_UI_CSS_COPY');
+});
+test('missing or empty Preview-only stylesheet fails closed',async()=>{
+ const path=preview+'index.html';
+ const html=files.get(path);
+ assert.equal(await codeOf({[path]:html.replace('  <link rel="stylesheet" href="./preview.css">\n','')}),
+  'PREVIEW_STYLESHEET_COPY');
+ assert.equal(await codeOf({[preview+'preview.css']:''}),'PREVIEW_CSS_MISSING');
+ const missing={...reader(),async children(){return ['index.html','mock-host.js','preview-entry.js']}};
+ await assert.rejects(verifySameSource(missing),error=>
+  error instanceof SameSourceError&&error.code==='PREVIEW_EXTRA_SOURCE_FILES');
+});
+test('Mock Preview must enforce Real strict style CSP without inline style',async()=>{
+ const path=preview+'index.html';
+ const html=files.get(path);
+ assert.match(html,/style-src 'self';/);
+ assert.doesNotMatch(html,/unsafe-inline|<style\b|\bstyle\s*=/i);
+ assert.equal(await codeOf({[path]:html.replace("style-src 'self';","style-src 'self' 'unsafe-inline';")}),
+  'PREVIEW_CSP_MUST_MATCH_REAL');
+ assert.equal(await codeOf({[path]:html.replace('</head>','<style>.preview-page{display:none}</style></head>')}),
+  'PREVIEW_CSP_INLINE_STYLE');
 });
 test('Mock must not import Native tool registry / Core',async()=>{
  const path=preview+'mock-host.js';

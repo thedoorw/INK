@@ -40,7 +40,7 @@ const NATIVE_TOOL_IDS=Object.freeze([
 const FILES=Object.freeze([
   'index.html','src/ui/ink017/entry.js','dist/startup/ink-shell.mjs',
   'stage-runtime.css',NATIVE_STATE,ARTBOARD_SOURCE,BRAND_CONTROLLER,
-  PREVIEW+'index.html',PREVIEW+'preview-entry.js',PREVIEW+'mock-host.js',
+  PREVIEW+'index.html',PREVIEW+'preview.css',PREVIEW+'preview-entry.js',PREVIEW+'mock-host.js',
   SAFE_TOOLBAR_UI,NATIVE_WORKBENCH,...LEASED
 ]);
 
@@ -109,30 +109,35 @@ function mustLoadCanonical(preview,real,expected){
   demand(real===expected,'REAL_SOURCE_DRIFT',`${real} != ${expected}`);
 }
 
-function checkPreviewHtml(html){
+function checkPreviewHtml(html,previewCss){
   demand(/<script\b[^>]*\bsrc=["']\.\/preview-entry\.js["']/i.test(html),
     'PREVIEW_ENTRY_MISSING');
+  demand(/style-src 'self';/.test(html)&&!/'unsafe-inline'/.test(html),
+    'PREVIEW_CSP_MUST_MATCH_REAL');
   const css=[...html.matchAll(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']([^"']+)["']/gi)]
     .map(m=>m[1]);
-  demand(css.length===2,'PREVIEW_STYLESHEET_COPY',css.join(','));
+  demand(css.length===3,'PREVIEW_STYLESHEET_COPY',css.join(','));
   mustLoadCanonical(localPath(PREVIEW+'index.html',css[0]),'stage-runtime.css','stage-runtime.css');
   mustLoadCanonical(localPath(PREVIEW+'index.html',css[1]),UI+'tokens.css',UI+'tokens.css');
+  demand(localPath(PREVIEW+'index.html',css[2])===PREVIEW+'preview.css',
+    'PREVIEW_STYLESHEET_COPY',css[2]);
+  demand(previewCss.trim().length>0&&previewCss.includes('{'),
+    'PREVIEW_CSS_MISSING');
   const scripts=[...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)].map(m=>m[1]);
   demand(scripts.length===1&&scripts[0]==='./preview-entry.js',
     'PREVIEW_MUST_IMPORT_LEASED_VIEWS',scripts.join(','));
   demand(!/<(?:div|section|main|aside|header|footer)\b[^>]*\bid=["'](?:shell|rightDock|mainMenu|workspace)["']/i.test(html),
     'COPIED_SHELL_MARKUP');
   const inlineStyles=[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]);
-  demand(inlineStyles.length<=1,'PREVIEW_STYLESHEET_COPY','multiple inline sheets');
+  demand(inlineStyles.length===0&&!/\bstyle\s*=/i.test(html),
+    'PREVIEW_CSP_INLINE_STYLE','inline CSS prohibited under Real CSP');
   // Preview-only controls/page placeholders may be styled locally. Actual
   // UI geometry stays exclusively in the canonical tokens.css Git blob.
-  for(const cssText of inlineStyles){
-    for(const match of cssText.matchAll(/(?:^|})\s*([^{}]+)\s*\{/g)){
-      for(const selector of match[1].split(',')){
-        const s=selector.trim();
-        demand(/^(?:#mockControls(?:\s+.+)?|html\[data-preview-clean=["']true["']\]\s+#mockControls|\.preview-page|\.preview-empty)$/.test(s),
-          'PREVIEW_UI_CSS_COPY',s);
-      }
+  for(const match of previewCss.matchAll(/(?:^|})\s*([^{}]+)\s*\{/g)){
+    for(const selector of match[1].split(',')){
+      const s=selector.trim();
+      demand(/^(?:#mockControls(?:\s+.+)?|html\[data-preview-clean=["']true["']\]\s+#mockControls|\.preview-page|\.preview-empty)$/.test(s),
+        'PREVIEW_UI_CSS_COPY',s);
     }
   }
 }
@@ -273,9 +278,9 @@ export async function verifySameSource(reader,{scope='presentation',expectedHead
   const contents=new Map(results);
   const get=p=>contents.get(p).text;
   const children=await reader.children(PREVIEW);
-  demand(children.slice().sort().join('|')===['index.html','mock-host.js','preview-entry.js'].join('|'),
+  demand(children.slice().sort().join('|')===['index.html','mock-host.js','preview-entry.js','preview.css'].sort().join('|'),
     'PREVIEW_EXTRA_SOURCE_FILES',children.join(','));
-  checkPreviewHtml(get(PREVIEW+'index.html'));
+  checkPreviewHtml(get(PREVIEW+'index.html'),get(PREVIEW+'preview.css'));
   checkPreviewEntrypoint(get(PREVIEW+'preview-entry.js'),get(PREVIEW+'mock-host.js'));
   demand(!importsOf(get(NATIVE_STATE)).some(spec=>localPath(NATIVE_STATE,spec)===SHARED_VIEW)&&
     /globalThis\.INK_SIZE_DIALOG_VIEW\?\.renderNewDocumentSizeDialog/.test(get(NATIVE_STATE)),
@@ -311,6 +316,7 @@ export async function verifySameSource(reader,{scope='presentation',expectedHead
   const shared=LEASED.map(path=>({path,git_blob_sha:contents.get(path).blob}));
   const report={schema:'INK765_SAME_SOURCE_AUDIT_V1',scope,commit:reader.head,
     status:'PRESENTATION_SOURCE_PASS',sharedFiles:shared,esmReached:reached,
+    previewOnlyStylesheet:{path:PREVIEW+'preview.css',git_blob_sha:contents.get(PREVIEW+'preview.css').blob},
     browserVisualParity:'NOT_VERIFIED_BY_STATIC_GUARD',
     previewHost:'MOCK_ONLY',realHost:'NATIVE_ONLY',
     sharedAuxiliaryFiles:['stage-runtime.css',SAFE_TOOLBAR_UI].map(path=>({path,git_blob_sha:contents.get(path).blob})),

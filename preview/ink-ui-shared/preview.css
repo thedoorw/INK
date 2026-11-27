@@ -1,0 +1,5 @@
+#mockControls{position:fixed;bottom:10px;left:54px;z-index:120;background:#fff;color:#222;border:1px solid #bbb;border-radius:5px;padding:5px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 64px);font:12px system-ui;box-shadow:0 2px 9px #0002}
+#mockControls button,#mockControls select{min-height:25px;max-width:180px}#mockControls output{font-size:11px;color:#666}
+html[data-preview-clean="true"] #mockControls{display:none}
+.preview-page{background:#fff;width:min(42vh,45%);aspect-ratio:210/297;box-shadow:0 3px 18px #0002;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.preview-empty{font:14px system-ui;color:#777;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap}
