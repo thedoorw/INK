@@ -36,7 +36,7 @@ const NATIVE_TOOL_SOURCE_BLOBS=Object.freeze({
  'tool-slices/completion-tools.js':'231ee540ef7a9849b4bbb255fe0626d0e681a8ff',
  'tool-slices/dev1/catalog.js':'2a445686f3dff82336c3d984eba0ada252a58cb6',
  'tool-slices/dev2/index.mjs':'920d96506e06217d3d7de78a26e768ec1d2b4811',
- 'tool-slices/dev3/tools-context-dev3.mjs':'3db1fbfa2d337c54eafff055f5369026b6e60234'
+ 'tool-slices/dev3/tools-context-dev3.mjs':'12be3a89e31063eb504f631794add97f040d4894'
 });
 const icon=(body,styled=false)=>'<svg viewBox="0 0 24 24"'+(styled?' fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"':'')+' aria-hidden="true">'+(body.startsWith('<')?body:'<path d="'+body+'"/>')+'</svg>';
 const row=(id,label,shape,variants,styled=false)=>({id,label,items:variants.map(([itemId,itemLabel,body=shape])=>({id:itemId,label:itemLabel,icon:icon(body,styled)}))});
@@ -279,7 +279,8 @@ export function createMockHost(){
   // store. File preset IO is disabled; nothing reaches browser storage.
   const memory={value:null,getItem(){return this.value},setItem(_key,value){this.value=value}};
   const customizer=mountToolbarCustomizer(root,grouped,{
-   signal,onLayoutChanged:update,feedback,storage:memory,allowPresetFiles:false
+   signal,onLayoutChanged:update,feedback,storage:memory,allowPresetFiles:false,
+   presentation:presentation.toolbarCustomizerView
   });
   const unsub=()=>subscribers.delete(update);subscribers.add(update);signal.addEventListener('abort',unsub,{once:true});
   setExpanded(true);update();

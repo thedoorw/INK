@@ -63,11 +63,14 @@ test('both Native and Mock source paths use one Public renderer',async()=>{
  const shell=await readFile(new URL('../../src/ui/ink017/shell.js',import.meta.url),'utf8');
  const dev3=await readFile(new URL('../../src/ui/ink017/tool-slices/dev3/tools-context-dev3.mjs',import.meta.url),'utf8');
  const workbench=await readFile(new URL('../../src/ui/ink017/tool-slices/workbench.js',import.meta.url),'utf8');
- assert.match(native,/renderDev1DrawingOptions\(cfg\.label,settings\)/);
+ assert.match(native,/renderDrawingOptions\(cfg\.label,settings\)/);
  assert.match(mock,/presentation\.renderDev1DrawingOptions\(item\.label,select\('tool\.settings'\)\)/);
- assert.match(shell,/renderDev1DrawingOptions,renderDev3ShapeOptions,arrangeToolOptions,decorateToolOptions/);
- assert.match(dev3,/renderDev3ShapeOptions\(o,selectedShape\)/);
+ assert.match(shell,/renderDev1DrawingOptions,renderDev3ShapeOptions,arrangeToolOptions,toolbarCustomizerView,decorateToolOptions/);
+ assert.match(dev3,/renderShapeOptions\(o,selectedShape\)/);
  assert.match(mock,/presentation\.renderDev3ShapeOptions\(select\('tool\.options'\)/);
- assert.match(workbench,/arrangeToolOptions\(options,bar,optionAbort\.signal,\{expanded\}\)/);
+ assert.match(workbench,/renderDev1Options\(s,host,publicView\.drawing\)/);
+ assert.match(workbench,/renderShapeOptions:publicView\.shape/);
+ assert.match(workbench,/publicView\.arrange\(options,bar,optionAbort\.signal,\{expanded\}\)/);
+ assert.match(workbench,/presentation:publicView\.customizer/);
  assert.equal(typeof arrangeToolOptions,'function');
 });

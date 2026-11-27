@@ -15,7 +15,10 @@ export function normalizeToolbarArrangement(value,groups){
 // `storage` and `allowPresetFiles` are optional UI-only Host seams. Native
 // keeps its existing browser persistence/export behavior by default. The
 // isolated Mock Preview injects an in-memory store and disables file IO.
-export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedback,storage,allowPresetFiles=true}={}){
+export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedback,storage,allowPresetFiles=true,presentation}={}){
+ if(typeof presentation?.createDialog!=='function'||
+    typeof presentation?.createRow!=='function'||
+    typeof presentation?.status!=='function')throw Error('INK_PUBLIC_TOOLBAR_VIEW_REQUIRED');
  const store=storage??{
   getItem:key=>localStorage.getItem(key),
   setItem:(key,value)=>localStorage.setItem(key,value)
@@ -23,22 +26,14 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
  const rail=root.querySelector('.tool-area'),button=root.querySelector('#railCustomize');
  if(!rail||!button)throw Error('Toolbar customizer requires the existing rail and launcher');
  const cells=new Map([...rail.querySelectorAll('[data-group]')].map(el=>[el.dataset.group,el.closest('.tool-cell')]));
- const byId=new Map(groups.map(group=>[group.id,group]));
+ const byId=new Map(groups.map(group=>[group.id,Object.freeze({
+  id:group.id,label:group.label,icon:String(group.items?.[0]?.icon||'')
+ })]));
  let state=normalizeToolbarArrangement(null,groups),draft=null,origin=null;
  try{state=normalizeToolbarArrangement(JSON.parse(store.getItem(KEY)||'null'),groups);}catch{ /* Storage unavailable: retain defaults. */ }
 
- const dialog=document.createElement('dialog');
- dialog.className='ink-toolbar-customize';
- dialog.setAttribute('aria-label','自訂工具列');
- dialog.innerHTML='<header class="ink-toolbar-customize-head"><strong>自訂工具列</strong><button type="button" data-tb-action="cancel" aria-label="關閉">×</button></header>'+
-  '<p class="ink-toolbar-customize-description">自訂單欄工具組的排列與顯示。隱藏的工具可隨時從右側移回，所有 Native 工具功能仍保留。</p>'+
-  '<div class="ink-toolbar-customize-columns"><section><h3>工具列</h3><div class="ink-toolbar-customize-list" data-tb-list="visible"></div></section>'+
-  '<section><h3>輔助項目工具</h3><div class="ink-toolbar-customize-list" data-tb-list="extra"></div></section></div>'+
-  '<p class="ink-toolbar-customize-status" role="status" aria-live="polite"></p>'+
-  '<footer class="ink-toolbar-customize-actions"><button type="button" data-tb-action="reset">恢復預設</button>'+
-  '<button type="button" data-tb-action="save">儲存預設…</button><button type="button" data-tb-action="load">載入預設…</button>'+
-  '<span class="ink-toolbar-customize-actions-spacer"></span><button type="button" data-tb-action="cancel">取消</button>'+
-  '<button type="button" class="ink-toolbar-customize-primary" data-tb-action="apply">完成</button></footer>';
+ const dialog=presentation.createDialog(document);
+ if(dialog?.tagName!=='DIALOG')throw Error('INK_PUBLIC_TOOLBAR_DIALOG_CONTRACT');
  const fileInput=document.createElement('input');
  fileInput.type='file';fileInput.accept='.json,application/json';fileInput.hidden=true;
  dialog.append(fileInput);root.append(dialog);
@@ -56,29 +51,16 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
  }
  function message(value){dialog.querySelector('[role=status]').textContent=value;}
  function close(){if(dialog.open)dialog.close();draft=null;origin?.focus?.();}
- function row(id,kind,index){
-  const g=byId.get(id),el=document.createElement('div');
-  el.className='ink-toolbar-customize-row';
-  const picture=document.createElement('span');picture.className='ink-toolbar-customize-icon';picture.innerHTML=g.items[0].icon;picture.setAttribute('aria-hidden','true');
-  const label=document.createElement('span');label.className='ink-toolbar-customize-label';label.textContent=g.label;
-  el.append(picture,label);
-  function action(name,labelText,disabled=false){
-   const b=document.createElement('button');b.type='button';b.textContent=labelText;b.dataset.tbAction=name;b.dataset.tbId=id;
-   b.disabled=disabled;b.setAttribute('aria-label',g.label+'：'+labelText);el.append(b);
-  }
-  if(kind==='visible'){
-   action('up','↑',index===0);action('down','↓',index===draft.visible.length-1);
-   action('hide','移出',draft.visible.length===1);
-  } else action('show','加入');
-  return el;
- }
+ const row=(id,kind,index)=>presentation.createRow(document,{
+  group:byId.get(id),kind,index,visibleLength:draft.visible.length
+ });
  function repaint(){
   for(const kind of ['visible','extra']){
    const list=dialog.querySelector('[data-tb-list='+kind+']');
    list.replaceChildren(...draft[kind].map((id,i)=>row(id,kind,i)));
    if(!draft[kind].length)list.textContent=kind==='visible'?'尚無工具':'沒有輔助工具';
   }
-  message('顯示 '+draft.visible.length+' 組工具，輔助 '+draft.extra.length+' 組。設定只影響此瀏覽器的工具列。');
+  message(presentation.status(draft));
  }
  function open(){
   if(dialog.open)return;

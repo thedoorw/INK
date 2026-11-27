@@ -18,7 +18,7 @@ const parts=[
  'panels/swatches.js','right-dock.js','shared-controls.js','shell.js','tokens.css'
 ];
 const files=new Map();
-for(const path of [...parts.map(x=>ui+x),ui+'tool-slices/toolbar-customizer.js',ui+'tool-slices/workbench.js',
+for(const path of [...parts.map(x=>ui+x),ui+'tool-slices/toolbar-customizer.js',ui+'tool-slices/toolbar-customizer-view.js',ui+'tool-slices/workbench.js',
   'stage-runtime.css','src/ui/minimal-test-shell/size-dialog-view.js',
   'src/ui/minimal-test-shell/modules.js','src/document/artboard.js',
   'src/ui/branding-view.js','src/ui/branding-settings.js',preview+'index.html',
@@ -42,6 +42,8 @@ files.set('index.html',`<link rel="stylesheet" href="stage-runtime.css">
  <link rel="preload" href="src/ui/ink017/markup.html">
  <script src="src/ui/branding-view.js" defer></script>
  <script src="src/ui/branding-settings.js" defer></script>
+ <script type="module" src="src/ui/minimal-test-shell/size-dialog-view.js"></script>
+ <script type="module" src="dist/startup/ink-boot.mjs"></script>
  <script type="module" src="dist/startup/ink-shell.mjs"></script>`);
 files.set(ui+'entry.js',`const markup=await fetch(new URL('./markup.html',import.meta.url));
  const {mountNativeShell}=await import(new URL('./shell.js',import.meta.url).href);`);
@@ -90,7 +92,8 @@ test('Preview and Real must load canonical stage CSS for dialogs',async()=>{
 });
 test('Preview and Real new-document UI must use one pure template',async()=>{
  const path='src/ui/minimal-test-shell/modules.js';
- const text=files.get(path).replace("from './size-dialog-view.js'","from './copy-size-dialog-view.js'");
+ const text=files.get(path).replace('globalThis.INK_SIZE_DIALOG_VIEW?.renderNewDocumentSizeDialog',
+   'globalThis.INK_FAKE_VIEW?.renderNewDocumentSizeDialog');
  assert.notEqual(text,files.get(path));
  assert.equal(await codeOf({[path]:text}),'REAL_NEW_DOCUMENT_VIEW_DRIFT');
 });
@@ -150,9 +153,9 @@ test('shared toolbar UI renderer must not acquire Native dependencies',async()=>
  const text="import '../../document/storage.js';\n"+files.get(path);
  assert.equal(await codeOf({[path]:text}),'SHARED_TOOLBAR_NATIVE_DEPENDENCY');
 });
-test('Real workbench must still load the same toolbar UI renderer',async()=>{
+test('Real workbench must consume the toolbar View injected by Public Shell',async()=>{
  const path=ui+'tool-slices/workbench.js';
- const text=files.get(path).replace("from './toolbar-customizer.js'","from './different-customizer.js'");
+ const text=files.get(path).replace('presentation?.toolbarCustomizerView','presentation?.differentView');
  assert.notEqual(text,files.get(path));
  assert.equal(await codeOf({[path]:text}),'REAL_TOOLBAR_UI_SOURCE_DRIFT');
 });

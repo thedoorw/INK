@@ -1,6 +1,6 @@
 // DEV1 tool-specific option projection. Uses the existing host and shared field primitive.
 // No app-owned state, new menu controller, CSS width family, or raster algorithm here.
-import {field,esc,renderDev1DrawingOptions} from '../../shared-controls.js';
+import {field,esc} from '../../shared-controls.js';
 import {getDev1Tool,getDev1Availability,dev1ActiveKey,DEV1_RASTER_KEYS} from './catalog.js';
 import {setDev1RasterOption,dev1RasterRuntime,dev1RasterMaskScope,DEV1_RASTER_OPTION_FIELDS} from './raster-session.js';
 
@@ -25,7 +25,9 @@ const numberField=(key,label,value,min,max)=>{
 };
 const readout=(label,value)=>'<span class="field-row" role="status"><span>'+esc(label)+'</span><output>'+esc(value)+'</output></span>';
 const btn=(key,label,disabled=false)=>'<button type="button" data-dev1-action="'+key+'"'+(disabled?' disabled':'')+'>'+esc(label)+'</button>';
-export function renderDev1Options(snapshot,host){
+// Real draws this field markup from the already-loaded Public shell ESM.
+// The Native module only owns the option values, validation and commands.
+export function renderDev1Options(snapshot,host,renderDrawingOptions){
  const tool=dev1ActiveKey(snapshot,host)||String(snapshot?.tool||'');
  const cfg=getDev1Tool(tool);
  if(!cfg||!snapshot?.docs?.length||!getDev1Availability(tool,host,snapshot).available)return '';
@@ -66,7 +68,8 @@ export function renderDev1Options(snapshot,host){
  }else if(DRAW.has(tool)){
   const settings=host.select?.('tool.settings',{tool})||null;
   if(!settings)return '';
-  html=renderDev1DrawingOptions(cfg.label,settings);
+  if(typeof renderDrawingOptions!=='function')throw Error('INK_PUBLIC_DEV1_DRAWING_VIEW_REQUIRED');
+  html=renderDrawingOptions(cfg.label,settings);
  }else if(tool==='eraser'){
   const last=host.app?.lastDrawTool,settings=last?host.select?.('tool.settings',{tool:last}):null;
   if(!Number.isFinite(settings?.size))return '';

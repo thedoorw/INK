@@ -10,6 +10,7 @@ import {fileURLToPath} from 'node:url';
 const UI='src/ui/ink017/';
 const PREVIEW='preview/ink-ui-shared/';
 const SAFE_TOOLBAR_UI=UI+'tool-slices/toolbar-customizer.js';
+const TOOLBAR_VIEW=UI+'tool-slices/toolbar-customizer-view.js';
 const NATIVE_WORKBENCH=UI+'tool-slices/workbench.js';
 const SIZE_VIEW='src/ui/minimal-test-shell/size-dialog-view.js';
 const NATIVE_STATE='src/ui/minimal-test-shell/modules.js';
@@ -43,7 +44,7 @@ const FILES=Object.freeze([
   'stage-runtime.css',SIZE_VIEW,NATIVE_STATE,ARTBOARD_SOURCE,
   BRAND_VIEW,BRAND_CONTROLLER,
   PREVIEW+'index.html',PREVIEW+'preview-entry.js',PREVIEW+'mock-host.js',
-  SAFE_TOOLBAR_UI,NATIVE_WORKBENCH,...LEASED
+  SAFE_TOOLBAR_UI,TOOLBAR_VIEW,NATIVE_WORKBENCH,...LEASED
 ]);
 
 export class SameSourceError extends Error {
@@ -170,6 +171,8 @@ function checkPreviewEntrypoint(entry,mock){
     'MOCK_IMPORTS_CORE_OR_UI',imports.join(','));
   demand(/mountToolbarCustomizer\s*\(\s*root\s*,\s*grouped\s*,\s*\{[\s\S]*?storage\s*:\s*memory\s*,\s*allowPresetFiles\s*:\s*false/.test(mock),
     'MOCK_TOOLBAR_IO_SEAM_MISSING');
+  demand(/presentation\s*:\s*presentation\.toolbarCustomizerView/.test(mock),
+    'MOCK_TOOLBAR_SHARED_VIEW_NOT_INJECTED');
   demand(!/\b(?:import\s*\(|require\s*\()/.test(mock),'MOCK_DYNAMIC_IMPORT');
   const forbidden=[
     /\b(?:localStorage|sessionStorage|indexedDB|caches|CacheStorage)\b/,
@@ -193,6 +196,9 @@ function checkRealEntrypoint(html,entry,bundle){
   const brandScript=html.indexOf('src="src/ui/branding-view.js"');
   const brandController=html.indexOf('src="src/ui/branding-settings.js"');
   demand(brandScript>=0&&brandController>brandScript,'REAL_BRANDING_VIEW_ORDER');
+  const sizeScript=html.indexOf('src="src/ui/minimal-test-shell/size-dialog-view.js"');
+  const nativeBoot=html.indexOf('src="dist/startup/ink-boot.mjs"');
+  demand(sizeScript>=0&&nativeBoot>sizeScript,'REAL_NEW_DOCUMENT_EXTERNAL_VIEW_ORDER');
   const entryMarkup=/\bnew URL\(\s*['"]([^'"]*markup\.html)['"]\s*,\s*import\.meta\.url\s*\)/.exec(entry)?.[1];
   const entryShell=/\bimport\s*\(\s*new URL\(\s*['"]([^'"]*shell\.js)['"]\s*,\s*import\.meta\.url\s*\)\.href\s*\)/.exec(entry)?.[1];
   demand(entryMarkup&&entryShell,'REAL_ENTRY_SOURCE_CONTRACT');
@@ -224,7 +230,11 @@ function checkUiGraph(contents){
           'UI_REAL_EXTENSION_NOT_GATED',resolved);
         continue;
       }
-      demand(LEASED_SET.has(resolved),'UI_IMPORT_OUTSIDE_LEASE',`${current} => ${resolved}`);
+      // The Public Shell may also import the explicitly inspected, host-
+      // injected toolbar View. Its Native persistence and file I/O remain
+      // disabled in Mock via the memory-only adapter contract below.
+      demand(LEASED_SET.has(resolved)||resolved===TOOLBAR_VIEW,
+        'UI_IMPORT_OUTSIDE_LEASE',`${current} => ${resolved}`);
       demand(/\.m?js$/.test(resolved),'UI_IMPORT_NOT_MODULE',resolved);
       queue.push(resolved);
     }
@@ -268,10 +278,12 @@ export async function verifySameSource(reader,{scope='presentation',expectedHead
     'PREVIEW_EXTRA_SOURCE_FILES',children.join(','));
   checkPreviewHtml(get(PREVIEW+'index.html'));
   checkPreviewEntrypoint(get(PREVIEW+'preview-entry.js'),get(PREVIEW+'mock-host.js'));
-  demand(importsOf(get(NATIVE_STATE)).some(spec=>localPath(NATIVE_STATE,spec)===SIZE_VIEW),
+  demand(!importsOf(get(NATIVE_STATE)).some(spec=>localPath(NATIVE_STATE,spec)===SIZE_VIEW)&&
+    /globalThis\.INK_SIZE_DIALOG_VIEW\?\.renderNewDocumentSizeDialog/.test(get(NATIVE_STATE)),
     'REAL_NEW_DOCUMENT_VIEW_DRIFT');
   demand(importsOf(get(SIZE_VIEW)).length===0,'NEW_DOCUMENT_VIEW_HAS_NATIVE_IMPORTS');
-  demand(/renderNewDocumentSizeDialog\s*\(/.test(get(NATIVE_STATE)),
+  demand(/renderNewDocumentSizeDialogFromPublic\s*\(/.test(get(NATIVE_STATE))&&
+    /INK_SIZE_DIALOG_VIEW\s*=\s*Object\.freeze/.test(get(SIZE_VIEW)),
     'REAL_NEW_DOCUMENT_VIEW_NOT_USED');
   demand(/export const ARTBOARD_PPI_MIN\s*=\s*36\b/.test(get(ARTBOARD_SOURCE))&&
     /export const ARTBOARD_PPI_MAX\s*=\s*2400\b/.test(get(ARTBOARD_SOURCE)),
@@ -283,12 +295,21 @@ export async function verifySameSource(reader,{scope='presentation',expectedHead
     'BRANDING_VIEW_IMPURE');
   demand(/INK_BRANDING_VIEW\?\.createBrandingView/.test(get(BRAND_CONTROLLER)),
     'REAL_BRANDING_VIEW_NOT_USED');
-  demand(importsOf(get(NATIVE_WORKBENCH)).some(spec=>
-    localPath(NATIVE_WORKBENCH,spec)===SAFE_TOOLBAR_UI),
+  demand(importsOf(get(UI+'shell.js')).some(spec=>
+    localPath(UI+'shell.js',spec)===TOOLBAR_VIEW)&&
+    importsOf(get(NATIVE_WORKBENCH)).some(spec=>
+      localPath(NATIVE_WORKBENCH,spec)===SAFE_TOOLBAR_UI)&&
+    !importsOf(get(NATIVE_WORKBENCH)).some(spec=>
+      localPath(NATIVE_WORKBENCH,spec)===TOOLBAR_VIEW)&&
+    /presentation\?\.toolbarCustomizerView/.test(get(NATIVE_WORKBENCH)),
     'REAL_TOOLBAR_UI_SOURCE_DRIFT');
   demand(importsOf(get(SAFE_TOOLBAR_UI)).length===0,'SHARED_TOOLBAR_NATIVE_DEPENDENCY');
   demand(/storage\s*,\s*allowPresetFiles\s*=\s*true/.test(get(SAFE_TOOLBAR_UI)),
     'SHARED_TOOLBAR_SAFE_HOST_SEAM_MISSING');
+  demand(importsOf(get(TOOLBAR_VIEW)).length===0&&
+    !/\b(?:localStorage|sessionStorage|FileReader|Blob|createObjectURL|XMLHttpRequest|indexedDB|fetch\s*\()\b/.test(get(TOOLBAR_VIEW))&&
+    /toolbarCustomizerView\s*=\s*Object\.freeze/.test(get(TOOLBAR_VIEW)),
+    'TOOLBAR_VIEW_IMPURE');
   checkRealEntrypoint(get('index.html'),get(UI+'entry.js'),get('dist/startup/ink-shell.mjs'));
   const reached=checkUiGraph(contents);
   const shared=LEASED.map(path=>({path,git_blob_sha:contents.get(path).blob}));
@@ -296,7 +317,7 @@ export async function verifySameSource(reader,{scope='presentation',expectedHead
     status:'PRESENTATION_SOURCE_PASS',sharedFiles:shared,esmReached:reached,
     browserVisualParity:'NOT_VERIFIED_BY_STATIC_GUARD',
     previewHost:'MOCK_ONLY',realHost:'NATIVE_ONLY',
-    sharedAuxiliaryFiles:[SIZE_VIEW,BRAND_VIEW,'stage-runtime.css',SAFE_TOOLBAR_UI].map(path=>({path,git_blob_sha:contents.get(path).blob})),
+    sharedAuxiliaryFiles:[SIZE_VIEW,BRAND_VIEW,'stage-runtime.css',TOOLBAR_VIEW,SAFE_TOOLBAR_UI].map(path=>({path,git_blob_sha:contents.get(path).blob})),
     excludedFromClaim:['Native tool registry/options','other Native size dialogs (canvas/PPI/artwork)','canvas/Renderer',
       'Native branding storage/files/export, Drive','unapproved Mobile Master redesign','visual pixel parity']};
   if(scope==='catalog'||scope==='full'){

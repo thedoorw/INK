@@ -42,6 +42,8 @@
   </div>
   <script src="src/ui/branding-view.js" defer></script>
   <script src="src/ui/branding-settings.js" defer></script>
+  <!-- Pure public presentation must load before the compiled Native controller. -->
+  <script type="module" src="src/ui/minimal-test-shell/size-dialog-view.js"></script>
   <div id="documentStatusStrip" class="status-cluster" data-ink-runtime-bridge-compat="legacy"></div>
   <script src="build-identity.js"></script>
   <script src="src/agent/g2-direct-opt-in.js"></script>

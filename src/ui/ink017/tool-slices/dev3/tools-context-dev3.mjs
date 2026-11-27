@@ -1,5 +1,5 @@
 // DEV3 isolated tool slice for UR2 assembly. No shell, menu, History or document owner.
-import {esc, field, renderDev3ShapeOptions} from '../../shared-controls.js';
+import {esc, field} from '../../shared-controls.js';
 import {navigatorZoomText} from '../../panels/navigator-zoom-curve.mjs';
 
 const SHAPES = Object.freeze(['line','arrow','rect','ellipse','triangle']);
@@ -111,7 +111,9 @@ export function activateDev3Tool(host,id,variant) {
  if (id==='guide')return {ok:true,changed:false,result:{mode:'guide-commands-only'}}; // no fake canvas placement mode
  failure('Tool not installed: '+id);
 }
-export function dev3OptionsMarkup(host,id,variant='') {
+// The active Public Shell injects its pure Shape View; Native retains all
+// selection/command/validation logic, without bundling a second View copy.
+export function dev3OptionsMarkup(host,id,variant='',renderShapeOptions) {
  const s=current(host),d=doc(s);if(!d)return '';
  const o=host.select('tool.options') || {},obj=s.target?.refs?.length===1?s.object:null,editable=obj&&!obj.locked;
  if(id==='text'){
@@ -125,7 +127,8 @@ export function dev3OptionsMarkup(host,id,variant='') {
  }
  if(id==='shape'){
   const selectedShape=obj?.type==='shape'?obj:null;
-  return renderDev3ShapeOptions(o,selectedShape);
+  if(typeof renderShapeOptions!=='function')throw Error('INK_PUBLIC_DEV3_SHAPE_VIEW_REQUIRED');
+  return renderShapeOptions(o,selectedShape);
  }
  if(id==='nodes'){
   const active=nodeKind(host,s);
@@ -212,14 +215,14 @@ export function dev3Perform(host,id,key,value,target,guideId) {
  }
  failure('No Native receiver for '+id+'/'+key);
 }
-export function mountDev3Options(root,host,feedback=()=>{},{subscribeUpdates=true}={}) {
+export function mountDev3Options(root,host,feedback=()=>{},{subscribeUpdates=true,renderShapeOptions}={}) {
  let activeId='',activeVariant='',guideId='',disposed=false;
  const ac=new AbortController(),signal=ac.signal;
  const paint=()=>{
   if(disposed)return;
   const snapshot=current(host),guides=doc(snapshot)?.guides||[];
   if(!guides.some(g=>g.id===guideId))guideId=guides[0]?.id||'';
-  root.innerHTML=dev3OptionsMarkup(host,activeId,activeId==='guide'?guideId:activeVariant);
+  root.innerHTML=dev3OptionsMarkup(host,activeId,activeId==='guide'?guideId:activeVariant,renderShapeOptions);
   root.dataset.nativeTarget=JSON.stringify(host.target());
   root.dataset.dev3Tool=activeId;
  };

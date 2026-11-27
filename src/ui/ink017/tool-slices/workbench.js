@@ -1,10 +1,10 @@
-import {esc,arrangeToolOptions} from '../shared-controls.js';
+import {esc} from '../shared-controls.js';
 import {mountToolbarCustomizer} from './toolbar-customizer.js';
 import {UI_B_RASTER_TOOL_IDS} from '../../../../ui/capability-raster-tools.js';
 import {TOOL_GROUPS,toolAvailability,activeToolContext,activateToolContext,rasterGeometryAvailable} from './registry.js';
 import {renderDev1Options,mountDev1Options} from './dev1/options.js';
 import {mountDev2SafetyGuard,dev2OptionsMarkup,mountDev2Options} from './dev2/index.mjs';
-import {dev3OptionsMarkup,mountDev3Options} from './dev3/tools-context-dev3.mjs';
+import {mountDev3Options} from './dev3/tools-context-dev3.mjs';
 import {mountCompletionTools,completionOptionsMarkup,mountCompletionOptions} from './completion-tools.js';
 
 // Historical presenters remain the fallback for isolated Native/test mounts.
@@ -23,6 +23,17 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
  const identity=root.querySelector('#contextIdentity'),controls=root.querySelector('#contextControls'),toggle=root.querySelector('#contextToggle');
  const rt=host.app?.uiComposition?.rasterTools;
  const presenter=typeof presentation?.renderToolRail==='function'&&typeof presentation?.updateToolRailButton==='function'?presentation:{renderToolRail:fallbackRailMarkup,updateToolRailButton:fallbackRailButton};
+ // These View functions are loaded by canonical Public shell.js at runtime.
+ // Native may consume the detached DTOs but must not bundle their markup.
+ const publicView=Object.freeze({
+  drawing:typeof presentation?.renderDev1DrawingOptions==='function'?presentation.renderDev1DrawingOptions:null,
+  shape:typeof presentation?.renderDev3ShapeOptions==='function'?presentation.renderDev3ShapeOptions:null,
+  arrange:typeof presentation?.arrangeToolOptions==='function'?presentation.arrangeToolOptions:null,
+  customizer:presentation?.toolbarCustomizerView??null
+ });
+ if([publicView.drawing,publicView.shape,publicView.arrange].some(fn=>typeof fn!=='function')||
+    ['createDialog','createRow','status'].some(key=>typeof publicView.customizer?.[key]!=='function'))
+  throw Error('INK_PUBLIC_TOOL_VIEW_CONTRACT_REQUIRED');
  // A detached, frozen display DTO prevents Public callbacks from mutating the
  // registry objects used by the compiled Core command/availability controller.
  const displayGroups=Object.freeze(TOOL_GROUPS.map(g=>Object.freeze({id:g.id,label:g.label,items:Object.freeze(g.items.map(item=>Object.freeze({id:item.id,label:item.label,icon:item.icon})))})));
@@ -38,7 +49,9 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
  bar.classList.add('tools-context');
  let expanded=false;
  const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(()=>{frame=0;render()})};
- const toolbarCustomization=mountToolbarCustomizer(root,TOOL_GROUPS,{signal,onLayoutChanged:schedule,feedback});
+ const toolbarCustomization=mountToolbarCustomizer(root,TOOL_GROUPS,{
+  signal,onLayoutChanged:schedule,feedback,presentation:publicView.customizer
+ });
  const completion=mountCompletionTools(root,host,feedback,signal,schedule);
  // DEV2 guard is installed before any activation, using existing cancellation
  // owner. It intercepts unsafe canvas events even before owner notifications.
@@ -97,7 +110,7 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
  // Extra parameters stay in the same delegated event root when moved into a
  // Native Popover. No copied input values or second parameter state owner.
  function arrangeOptions(){
-  arrangeToolOptions(options,bar,optionAbort.signal,{expanded});
+  publicView.arrange(options,bar,optionAbort.signal,{expanded});
  }
  function stopOptions(){options.querySelector('[popover]')?.hidePopover?.();mount?.dispose?.();mount=null;optionAbort?.abort();optionAbort=null;options.replaceChildren();}
  // Slice subscriptions are centralized here to preserve in-progress input and
@@ -109,9 +122,9 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
   if(!context){options.textContent='No applicable tool options';return}
   const {group,item}=context;
   if(group.owner===4){options.innerHTML=completionOptionsMarkup(completion);mountCompletionOptions(options,completion,feedback,optionAbort.signal);}
-  else if(group.owner===1){options.innerHTML=renderDev1Options(s,host);mountDev1Options(options,host,optionAbort.signal);}
+  else if(group.owner===1){options.innerHTML=renderDev1Options(s,host,publicView.drawing);mountDev1Options(options,host,optionAbort.signal);}
   else if(group.owner===2)mount=mountDev2Options(options,host,item.id,{subscribeUpdates:false,onFeedback:feedback,onCancel:()=>{viewContext=null;choose(TOOL_GROUPS[0],TOOL_GROUPS[0].items[0])},onApplied:()=>{viewContext=null;signature='';schedule()}});
-  else{mount=mountDev3Options(options,host,feedback,{subscribeUpdates:false});mount.render(group.id,item.id);}
+  else{mount=mountDev3Options(options,host,feedback,{subscribeUpdates:false,renderShapeOptions:publicView.shape});mount.render(group.id,item.id);}
   arrangeOptions();
   // All Native option receivers have been mounted before Public presentation
   // decorates labels/layout. Stable input identifiers and listeners stay Core-owned.
