@@ -6,6 +6,24 @@ const clone=x=>x==null?x:JSON.parse(JSON.stringify(x));
 const ok=()=>({ok:true,changed:true,mock:true});
 const target=()=>({documentId:'mock-a4',pageId:'mock-page',generation:1,refs:[]});
 
+// Only the blank paper shown by the Mock stage. Keep this small bitmap local to
+// the browser; neither Native's Renderer nor Document/Core may enter the preview.
+function blankPagePreview(d,width=220,height=150){
+ if(!d)return null;
+ const w=Math.max(48,Math.min(512,Math.round(Number(width)||220)));
+ const h=Math.max(36,Math.min(384,Math.round(Number(height)||150)));
+ const pageW=Number(d.width)*96/25.4,pageH=Number(d.height)*96/25.4;
+ const fitBounds={x:-pageW/2,y:-pageH/2,w:pageW,h:pageH};
+ const scale=Math.min((w-14)/pageW,(h-14)/pageH);
+ const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+ const ctx=canvas.getContext('2d');
+ if(!ctx)return null;
+ ctx.clearRect(0,0,w,h);
+ ctx.fillStyle='#fffef9'; // Native's initial blank-paper color.
+ ctx.fillRect((w-pageW*scale)/2,(h-pageH*scale)/2,pageW*scale,pageH*scale);
+ return{pageId:'mock-page',width:w,height:h,padding:7,fitBounds,trimBounds:{...fitBounds},scale,dataUrl:canvas.toDataURL('image/png')};
+}
+
 function makeState(fixture){
  const active=fixture!=='empty',selection=['selection','image','text','shape','locked','history'].includes(fixture);
  const isImage=fixture==='image',isText=fixture==='text',isShape=fixture==='shape',locked=fixture==='locked';
@@ -126,15 +144,31 @@ if(fixtures.length!==20||new Set(fixtures.map(g=>g.id)).size!==20)throw Error('M
 
 export function createMockHost(){
  let state=makeState('a4'),index=0,entries=[{index:0,label:'History start'}],historyLimit=30;
+ let viewportWidth=0,viewportHeight=0,fittedZoom=100;
  const supportedFixtures=new Set(['a4','empty','selection','image','text','shape','locked','history']);
  const subscribers=new Set(),receipts=new Set();
  const notify=()=>subscribers.forEach(fn=>fn(clone(state)));
  const getSnapshot=()=>clone(state);
  const getHistory=()=>({index,limit:historyLimit,entries:clone(entries)});
  const emitReceipt=(command,result)=>receipts.forEach(fn=>fn({...command,result}));
- const setFixture=fixture=>{
+ let lastPreview=null;
+ const updateViewport=viewport=>{
+  viewportWidth=Number(viewport?.width)||0;viewportHeight=Number(viewport?.height)||0;
+  fittedZoom=100;
+  const d=state.docs[0];
+  if(d&&viewportWidth>112&&viewportHeight>112){
+   const pageW=d.width*96/25.4,pageH=d.height*96/25.4;
+   // Native fitArtboard: 56px padding on each side, scale clamped to 3–1200%.
+   fittedZoom=Math.max(3,Math.min(1200,100*Math.min((viewportWidth-112)/pageW,(viewportHeight-112)/pageH)));
+  }
+  return fittedZoom;
+ };
+ const setFixture=(fixture,viewport={})=>{
   if(!supportedFixtures.has(fixture))fixture='a4';
+  lastPreview=null;
   state=makeState(fixture);index=0;entries=[{index:0,label:'History start'}];
+  updateViewport(viewport);
+  if(state.docs[0])state.docs[0].camera.zoom=fittedZoom;
   if(fixture==='selection'){
    entries.push({index:1,label:'繪製幾何'});
    index=1;
@@ -145,12 +179,26 @@ export function createMockHost(){
   }
   notify();return fixture;
  };
- const select=(name)=>{
+ const resizeViewport=viewport=>{
+  const oldWidth=viewportWidth,oldHeight=viewportHeight;
+  const next=updateViewport(viewport);
+  // Resize changes the next fit target, but Native keeps the live camera and
+  // its History unchanged until the user explicitly presses Fit.
+  if(oldWidth!==viewportWidth||oldHeight!==viewportHeight)notify();
+  return next;
+ };
+ const select=(name,args={})=>{
   const d=state.docs[0];
   if(name==='session.list')return d?[{sessionId:'mock-session',title:d.name,active:true,dirty:false}]:[];
   if(name==='session.transfer')return{ready:false};
   if(name==='document.current')return{open:!!d,title:d?.name||'',width:d?.width,height:d?.height};
-  if(name==='page.preview')return null;
+  if(name==='page.preview'){
+   if(!d)return null;
+   const width=Math.max(48,Math.min(512,Math.round(Number(args?.width)||220)));
+   const height=Math.max(36,Math.min(384,Math.round(Number(args?.height)||150)));
+   if(lastPreview?.width!==width||lastPreview?.height!==height)lastPreview=blankPagePreview(d,width,height);
+   return lastPreview;
+  }
   if(name==='path.list')return{paths:[]};
   if(name==='tool.presets')return{status:'AVAILABLE',tool:'brush',selected:null,presets:[]};
   if(name==='tool.settings')return !state.docs.length
@@ -188,11 +236,41 @@ export function createMockHost(){
   else result={ok:false,mock:true,error:{code:'MOCK_UNSUPPORTED',message:'Not simulated in the Mock Host'}};
   emitReceipt(c,result);notify();return result;
  };
+ // Same page-to-preview projection as Native's Navigator port, using the real
+ // viewport dimensions but only the Mock camera; no Renderer or Core imports.
+ const navigator=Object.freeze({
+  read:({width,height,fitBounds,scale})=>{
+   if(!state.docs.length||!(width>0&&height>0&&scale>0)||!fitBounds)return null;
+   const camera=state.docs[0].camera,zoom=Number(camera.zoom)/100;
+   if(!(zoom>0))return null;
+   const centerX=width/2-Number(camera.x)/zoom*scale;
+   const centerY=height/2-Number(camera.y)/zoom*scale;
+   const viewW=viewportWidth||fitBounds.w*fittedZoom/100;
+   const viewH=viewportHeight||fitBounds.h*fittedZoom/100;
+   const halfW=viewW*scale/(2*zoom),halfH=viewH*scale/(2*zoom);
+   const projected=[[centerX-halfW,centerY-halfH],[centerX+halfW,centerY-halfH],
+    [centerX+halfW,centerY+halfH],[centerX-halfW,centerY+halfH]];
+   const left=(width-fitBounds.w*scale)/2,top=(height-fitBounds.h*scale)/2;
+   const fullPage=projected[0][0]<=left&&projected[0][1]<=top&&
+    projected[2][0]>=width-left&&projected[2][1]>=height-top;
+   return fullPage?[[left,top],[width-left,top],[width-left,height-top],[left,height-top]]:projected;
+  },
+  pan:({offsetX,offsetY,originX,originY,scale})=>{
+   if(!state.docs.length||!(scale>0)||![offsetX,offsetY,originX,originY].every(Number.isFinite))
+    return{ok:false,error:{message:'Navigator viewport unavailable'}};
+   const zoom=state.docs[0].camera.zoom/100;
+   return dispatch({type:'camera.patch',patch:{x:-(originX+offsetX/scale)*zoom,y:-(originY+offsetY/scale)*zoom},source:'navigator'});
+  }
+ });
  const execute=async (id,args={})=>{
   let result;
   if(id==='history.undo.v1')result=dispatch({type:'history.undo'});
   else if(id==='history.redo.v1')result=dispatch({type:'history.redo'});
-  else if(id==='view.zoom.set.v1'||id==='view.zoom.by.v1')result=dispatch({type:'camera.patch',patch:{zoom:id==='view.zoom.set.v1'?(args.scale||1)*100:Math.round((state.docs[0]?.camera.zoom||100)*(args.factor||1))}});
+  else if(id==='view.fit.content.v1'||id==='view.fit.artboard.v1')result=dispatch({type:'camera.patch',patch:{zoom:fittedZoom,x:0,y:0}});
+  else if(id==='view.zoom.set.v1'||id==='view.zoom.by.v1'){
+   const zoom=id==='view.zoom.set.v1'?Number(args.scale??1)*100:(state.docs[0]?.camera.zoom||100)*Number(args.factor??1);
+   result=dispatch({type:'camera.patch',patch:{zoom:Math.max(3,Math.min(12800,Number.isFinite(zoom)?zoom:100))}});
+  }
   else result={ok:false,mock:true,error:{code:'MOCK_NO_NATIVE',message:'Preview only; Native commands are disabled'}};
   return result;
  };
@@ -308,6 +386,6 @@ export function createMockHost(){
   const stopResize=observeMockContextWidth(root,bar,()=>{lastOptions='';update()},signal);
   return{render:update,expand:setExpanded,dispose:()=>{stopResize();unsub();clearTimeout(hold);layoutAbort?.abort();customizer.dispose();menu.remove()}};
  }
- const host={kind:'MOCK',setFixture,getSnapshot,getHistory,select,execute,dispatch,target,subscribe(fn){subscribers.add(fn);return()=>subscribers.delete(fn)},subscribeCommands(fn){receipts.add(fn);return()=>receipts.delete(fn)},mountMenuUi,mountToolsWorkbench,shellApi,navigator:null,dispose(){subscribers.clear();receipts.clear()}};
+ const host={kind:'MOCK',setFixture,resizeViewport,getSnapshot,getHistory,select,execute,dispatch,target,subscribe(fn){subscribers.add(fn);return()=>subscribers.delete(fn)},subscribeCommands(fn){receipts.add(fn);return()=>receipts.delete(fn)},mountMenuUi,mountToolsWorkbench,shellApi,navigator,dispose(){subscribers.clear();receipts.clear()}};
  return host;
 }

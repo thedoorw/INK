@@ -131,14 +131,39 @@ async function main(){
   const ui=await mountNativeShell(host,shell);
   const fixtureControl=document.getElementById('mockFixture');
   const status=document.getElementById('mockLiveStatus');
+  const viewport=shell.querySelector('#artboardStage');
+  shell.querySelector('.workspace').style.backgroundColor='#dedede'; // Native canvas background, Mock only.
+  stage.style.backgroundColor='#fffef9';
+  let fittedZoom=100;
+  const syncMockStage=snapshot=>{
+    const d=snapshot.docs[0];if(!d)return;
+    const scale=fittedZoom/100,zoom=d.camera.zoom/fittedZoom;
+    stage.style.width=(d.width*96/25.4*scale)+'px';
+    stage.style.height=(d.height*96/25.4*scale)+'px';
+    stage.style.transform=`translate(-50%,-50%) translate(${d.camera.x}px,${d.camera.y}px) scale(${zoom})`;
+    // Native paints a 1px screen-space frame and a 5px/18px shadow; CSS
+    // lengths are inverse-scaled so zoom does not make the frame thicker.
+    stage.style.outline=`${1/zoom}px solid rgba(0,0,0,.58)`;
+    stage.style.boxShadow=`0 ${5/zoom}px ${18/zoom}px rgba(0,0,0,.42)`;
+  };
+  host.subscribe(syncMockStage);
   function setFixture(fixture){
-    const chosen=host.setFixture(fixture);
+    const r=viewport.getBoundingClientRect();
+    const chosen=host.setFixture(fixture,{width:r.width,height:r.height});
+    fittedZoom=host.getSnapshot().docs[0]?.camera.zoom||100;
+    syncMockStage(host.getSnapshot());
     stage.hidden=chosen==='empty';
     fixtureControl.value=chosen;
     document.documentElement.dataset.previewFixture=chosen;
     status.textContent='狀態：'+fixtureControl.selectedOptions[0].textContent+' · Mock only';
     return chosen;
   }
+  const resizeObserver=new ResizeObserver(()=>{
+    const r=viewport.getBoundingClientRect();
+    fittedZoom=host.resizeViewport({width:r.width,height:r.height});
+    syncMockStage(host.getSnapshot()); // Preserve camera, selected fixture, and History.
+  });
+  resizeObserver.observe(viewport);
   mockNewDocument.bindCreate(()=>setFixture('a4'));
   fixtureControl.addEventListener('change',()=>setFixture(fixtureControl.value));
   document.getElementById('mockDialog').addEventListener('click',()=>ui.command('history-limit'));
