@@ -1,5 +1,5 @@
 import {mountDock} from './right-dock.js';
-import {esc,selected,field,iconButton,drag} from './shared-controls.js';
+import {esc,selected,field,iconButton,drag,renderDev1DrawingOptions,renderDev3ShapeOptions,arrangeToolOptions,toolbarCustomizerView} from './shared-controls.js';
 
 // Public presentation of the existing Native-owned tool registry. These
 // callbacks receive detached display metadata only; Core chooses tools and
@@ -46,7 +46,7 @@ export async function mountNativeShell(host,root){
   const sig=dialogAbort.signal;overlay.querySelector('.dialog-close').addEventListener('click',close,{signal:sig});overlay.querySelector('[data-cancel]').addEventListener('click',close,{signal:sig});
   overlay.querySelector('[data-apply]').addEventListener('click',async()=>{const args=Object.fromEntries([...overlay.querySelectorAll('[data-key]')].map(e=>[e.dataset.key,e.type==='number'?Number(e.value):e.value]));const button=overlay.querySelector('[data-apply]'),status=overlay.querySelector('[data-dialog-status]');if(button.disabled)return;button.disabled=true;status.textContent='';try{const r=await apply(args);if(r?.ok)close();else status.textContent=r?.error?.message||'Unable to apply changes.'}catch(e){status.textContent=e.message||String(e);feedback(e.message)}finally{button.disabled=false}},{signal:sig});
   (overlay.querySelector('.dialog-body input,.dialog-body select')||overlay.querySelector('[data-apply]'))?.focus();overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close()}if(e.key==='Tab'){const els=[...overlay.querySelectorAll('button,input,select')].filter(e=>!e.disabled),i=els.indexOf(document.activeElement);if(e.shiftKey&&i===0){e.preventDefault();els.at(-1).focus()}else if(!e.shiftKey&&i===els.length-1){e.preventDefault();els[0].focus()}}},{signal:sig});
-  drag(overlay.querySelector('.dialog-header'),e=>{if(e.target.closest('button'))return;const d=overlay.querySelector('.dialog');d.style.transform=`translate(${e.clientX-innerWidth/2}px,${e.clientY-innerHeight/2}px)`},()=>{},sig);
+  drag(overlay.querySelector('.dialog-header'),e=>{if(e.target.closest('button'))return;const d=overlay.querySelector('.dialog');d.style.transform=`translate(${e.clientX-innerWidth/2}px,${e.clientY-innerHeight/2}px)`},()=>{},sig,{ignoreSelector:'button,[role="button"],a[href],input,select,textarea,[contenteditable="true"]'});
  }
  function imageDialog(kind){const s=host.getSnapshot(),t=host.target(),o=s.object,d=s.docs[0];if(kind!=='canvas-size'&&(!o?.raster||o.locked)){feedback('Select an unlocked image');return}
   const canvas=kind==='canvas-size',crop=kind==='crop',w=canvas?d.width:o.raster.width,h=canvas?d.height:o.raster.height;
@@ -200,7 +200,7 @@ export async function mountNativeShell(host,root){
   $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
   contextToolbar.render(s);
  }
- const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton,renderToolMenu,updateToolContextIdentity,decorateToolOptions,decorateToolWorkbench});
+ const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton,renderToolMenu,updateToolContextIdentity,renderDev1DrawingOptions,renderDev3ShapeOptions,arrangeToolOptions,toolbarCustomizerView,decorateToolOptions,decorateToolWorkbench});
  const syncBrandName=()=>{
   const name=globalThis.INK_BRANDING?.getName?.()||'INK';
   $('#logoButton').title=name;
