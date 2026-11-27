@@ -1,4 +1,8 @@
 /* #317 — INK site-default branding: Master UI geometry and governed candidate release. */
+// The Native browser boot owns registration; the Public leased ESM stays pure
+// when esbuild imports its field/esc helpers into compiled Core.
+import {registerInkPublicViews} from './ink017/shared-controls.js';
+registerInkPublicViews();
 (() => {
   'use strict';
   const LEGACY_KEY='ink.web.branding.active.v1';

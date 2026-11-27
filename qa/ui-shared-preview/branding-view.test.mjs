@@ -5,7 +5,9 @@ import {resolve,join} from 'node:path';
 import vm from 'node:vm';
 
 const root=resolve(import.meta.dirname,'../..');
-const source=await readFile(join(root,'src/ui/branding-view.js'),'utf8');
+const sharedSource=await readFile(join(root,'src/ui/ink017/shared-controls.js'),'utf8');
+assert.match(sharedSource,/export function registerInkPublicViews\s*\(/,
+ 'Branding factory must be explicitly registered from leased Public UI module');
 const controller=await readFile(join(root,'src/ui/branding-settings.js'),'utf8');
 const preview=await readFile(join(root,'preview/ink-ui-shared/preview-entry.js'),'utf8');
 
@@ -50,8 +52,13 @@ function scene({native=false}={}){
   Blob:class {constructor(parts,options){this.parts=parts;this.options=options}},
   setTimeout:callback=>timers.push(callback)};
  context.window=context;
- vm.runInNewContext(source,context,{filename:'branding-view.js'});
- if(native)vm.runInNewContext(controller,context,{filename:'branding-settings.js'});
+ vm.runInNewContext(sharedSource.replace(/^export\s+/gm,''),context,{filename:'shared-controls-branding.js'});
+ vm.runInNewContext('registerInkPublicViews()',context);
+ if(native){
+  assert.match(controller,/import\s*\{registerInkPublicViews\}\s*from/);
+  vm.runInNewContext(controller.replace(/^import[^\n]+\nregisterInkPublicViews\(\);\n/m,''),context,
+   {filename:'branding-settings.js'});
+ }
  return {context,doc,events,requests,storage,links,exports,timers};
 }
 const select=(node,predicate)=>{

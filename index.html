@@ -40,10 +40,8 @@
     </main>
     <input id="projectFileInput" type="file" accept=".ink,.json,.psd,.psb,.ai,application/json" hidden>
   </div>
-  <script src="src/ui/branding-view.js" defer></script>
-  <script src="src/ui/branding-settings.js" defer></script>
-  <!-- Pure public presentation must load before the compiled Native controller. -->
-  <script type="module" src="src/ui/minimal-test-shell/size-dialog-view.js"></script>
+  <!-- One V2-leased Public UI module registers all pure display views before Native boot. -->
+  <script type="module" src="src/ui/branding-settings.js"></script>
   <div id="documentStatusStrip" class="status-cluster" data-ink-runtime-bridge-compat="legacy"></div>
   <script src="build-identity.js"></script>
   <script src="src/agent/g2-direct-opt-in.js"></script>

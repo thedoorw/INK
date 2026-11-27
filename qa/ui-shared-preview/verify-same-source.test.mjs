@@ -18,10 +18,10 @@ const parts=[
  'panels/swatches.js','right-dock.js','shared-controls.js','shell.js','tokens.css'
 ];
 const files=new Map();
-for(const path of [...parts.map(x=>ui+x),ui+'tool-slices/toolbar-customizer.js',ui+'tool-slices/toolbar-customizer-view.js',ui+'tool-slices/workbench.js',
-  'stage-runtime.css','src/ui/minimal-test-shell/size-dialog-view.js',
+for(const path of [...parts.map(x=>ui+x),ui+'tool-slices/toolbar-customizer.js',ui+'tool-slices/workbench.js',
+  'stage-runtime.css',
   'src/ui/minimal-test-shell/modules.js','src/document/artboard.js',
-  'src/ui/branding-view.js','src/ui/branding-settings.js',preview+'index.html',
+  'src/ui/branding-settings.js',preview+'index.html',
   preview+'preview-entry.js',preview+'mock-host.js']){
   files.set(path,await readFile(join(root,path),'utf8'));
 }
@@ -40,9 +40,7 @@ for(const path of nativeToolSources)files.set(path,'synthetic Native source plac
 files.set('index.html',`<link rel="stylesheet" href="stage-runtime.css">
  <link rel="stylesheet" href="src/ui/ink017/tokens.css">
  <link rel="preload" href="src/ui/ink017/markup.html">
- <script src="src/ui/branding-view.js" defer></script>
- <script src="src/ui/branding-settings.js" defer></script>
- <script type="module" src="src/ui/minimal-test-shell/size-dialog-view.js"></script>
+ <script type="module" src="src/ui/branding-settings.js"></script>
  <script type="module" src="dist/startup/ink-boot.mjs"></script>
  <script type="module" src="dist/startup/ink-shell.mjs"></script>`);
 files.set(ui+'entry.js',`const markup=await fetch(new URL('./markup.html',import.meta.url));
@@ -98,15 +96,15 @@ test('Preview and Real new-document UI must use one pure template',async()=>{
  assert.equal(await codeOf({[path]:text}),'REAL_NEW_DOCUMENT_VIEW_DRIFT');
 });
 test('New-document view must not import Document or Storage',async()=>{
- const path='src/ui/minimal-test-shell/size-dialog-view.js';
+ const path=ui+'shared-controls.js';
  const text="import '../../document/size.js';\n"+files.get(path);
- assert.equal(await codeOf({[path]:text}),'NEW_DOCUMENT_VIEW_HAS_NATIVE_IMPORTS');
+ assert.equal(await codeOf({[path]:text}),'UI_IMPORT_OUTSIDE_LEASE');
 });
 test('Preview and Real import the exact same Branding pure view',async()=>{
  const report=await verifySameSource(reader());
- assert.ok(report.sharedAuxiliaryFiles.some(item=>item.path==='src/ui/branding-view.js'));
- const path=preview+'index.html';
- const text=files.get(path).replace('../../src/ui/branding-view.js','./branding-view.js');
+ assert.ok(report.leasedViews.some(item=>item.id==='branding'&&item.source===ui+'shared-controls.js'));
+ const path=preview+'preview-entry.js';
+ const text=files.get(path).replace('../../src/ui/ink017/shared-controls.js','./branding-view.js');
  assert.equal(await codeOf({[path]:text}),'PREVIEW_SOURCE_DRIFT');
 });
 test('Real branding controller must use the shared View and retain action boundary',async()=>{
@@ -115,7 +113,7 @@ test('Real branding controller must use the shared View and retain action bounda
  assert.equal(await codeOf({[path]:text}),'REAL_BRANDING_VIEW_NOT_USED');
 });
 test('Branding pure view must never call network, storage or file APIs',async()=>{
- const path='src/ui/branding-view.js';
+ const path=ui+'shared-controls.js';
  const text=files.get(path)+'\nlocalStorage.setItem("test", "bad");';
  assert.equal(await codeOf({[path]:text}),'BRANDING_VIEW_IMPURE');
 });

@@ -2,7 +2,8 @@
 // It intentionally does not import Native entry.js, native-host.js or Core.
 import {mountNativeShell} from '../../src/ui/ink017/shell.js';
 import {createMockHost} from './mock-host.js';
-import {renderNewDocumentSizeDialog} from '../../src/ui/minimal-test-shell/size-dialog-view.js';
+import {renderNewDocumentSizeDialog,registerInkPublicViews} from '../../src/ui/ink017/shared-controls.js';
+registerInkPublicViews();
 
 // Same markup as Native, but the surrounding preview Host owns only a memory
 // fixture. It never imports the Native state module or Document size engine.

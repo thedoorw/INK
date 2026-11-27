@@ -1,6 +1,5 @@
 import {mountDock} from './right-dock.js';
-import {esc,selected,field,iconButton,drag,renderDev1DrawingOptions,renderDev3ShapeOptions,arrangeToolOptions} from './shared-controls.js';
-import {toolbarCustomizerView} from './tool-slices/toolbar-customizer-view.js';
+import {esc,selected,field,iconButton,drag,renderDev1DrawingOptions,renderDev3ShapeOptions,arrangeToolOptions,toolbarCustomizerView} from './shared-controls.js';
 
 // Public presentation of the existing Native-owned tool registry. These
 // callbacks receive detached display metadata only; Core chooses tools and

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {renderNewDocumentSizeDialog} from '../../src/ui/minimal-test-shell/size-dialog-view.js';
+import {renderNewDocumentSizeDialog} from '../../src/ui/ink017/shared-controls.js';
 
 test('New Document has the Native size-dialog structure without Native dependencies',()=>{
  const html=renderNewDocumentSizeDialog({ppiMin:36,ppiMax:2400,presetOptions:'<option value="0">A4</option>'});

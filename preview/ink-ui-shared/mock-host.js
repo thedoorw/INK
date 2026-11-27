@@ -38,6 +38,26 @@ const NATIVE_TOOL_SOURCE_BLOBS=Object.freeze({
  'tool-slices/dev2/index.mjs':'920d96506e06217d3d7de78a26e768ec1d2b4811',
  'tool-slices/dev3/tools-context-dev3.mjs':'12be3a89e31063eb504f631794add97f040d4894'
 });
+// Mirror Native Workbench's ResizeObserver-driven option repaint without
+// importing Core. Overflow arrangement moves live fields into the More popover;
+// a width change must first restore the canonical Public markup before measuring.
+export function observeMockContextWidth(root,bar,relayout,signal){
+ const width=()=>`${root.getBoundingClientRect().width}:${bar.clientWidth}`;
+ let measured=width(),frame=0,disposed=false;
+ const schedule=()=>{
+  if(disposed||width()===measured||frame)return;
+  frame=requestAnimationFrame(()=>{
+   frame=0;
+   if(disposed||signal?.aborted||width()===measured)return;
+   measured=width();relayout();measured=width();
+  });
+ };
+ const observer=new ResizeObserver(schedule);
+ observer.observe(bar);observer.observe(root);
+ const dispose=()=>{if(disposed)return;disposed=true;observer.disconnect();if(frame)cancelAnimationFrame(frame);frame=0;};
+ if(signal?.aborted)dispose();else signal?.addEventListener('abort',dispose,{once:true});
+ return dispose;
+}
 const icon=(body,styled=false)=>'<svg viewBox="0 0 24 24"'+(styled?' fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"':'')+' aria-hidden="true">'+(body.startsWith('<')?body:'<path d="'+body+'"/>')+'</svg>';
 const row=(id,label,shape,variants,styled=false)=>({id,label,items:variants.map(([itemId,itemLabel,body=shape])=>({id:itemId,label:itemLabel,icon:icon(body,styled)}))});
 const fixtures=[
@@ -284,7 +304,8 @@ export function createMockHost(){
   });
   const unsub=()=>subscribers.delete(update);subscribers.add(update);signal.addEventListener('abort',unsub,{once:true});
   setExpanded(true);update();
-  return{render:update,expand:setExpanded,dispose:()=>{unsub();clearTimeout(hold);layoutAbort?.abort();customizer.dispose();menu.remove()}};
+  const stopResize=observeMockContextWidth(root,bar,()=>{lastOptions='';update()},signal);
+  return{render:update,expand:setExpanded,dispose:()=>{stopResize();unsub();clearTimeout(hold);layoutAbort?.abort();customizer.dispose();menu.remove()}};
  }
  const host={kind:'MOCK',setFixture,getSnapshot,getHistory,select,execute,dispatch,target,subscribe(fn){subscribers.add(fn);return()=>subscribers.delete(fn)},subscribeCommands(fn){receipts.add(fn);return()=>receipts.delete(fn)},mountMenuUi,mountToolsWorkbench,shellApi,navigator:null,dispose(){subscribers.clear();receipts.clear()}};
  return host;
