@@ -132,7 +132,16 @@ async function main(){
   const fixtureControl=document.getElementById('mockFixture');
   const status=document.getElementById('mockLiveStatus');
   const viewport=shell.querySelector('#artboardStage');
-  shell.querySelector('.workspace').style.backgroundColor='#dedede'; // Native canvas background, Mock only.
+  // Native draws its gray workspace into a canvas, not into the shared
+  // #workspace or #artboardStage CSS. Keep both canonical computed styles.
+  const backdrop=document.createElement('div');
+  backdrop.dataset.mockCanvasBackdrop='true';
+  backdrop.setAttribute('aria-hidden','true');
+  backdrop.style.position='absolute';
+  backdrop.style.inset='0';
+  backdrop.style.backgroundColor='#dedede';
+  backdrop.style.pointerEvents='none';
+  viewport.prepend(backdrop);
   stage.style.backgroundColor='#fffef9';
   let fittedZoom=100;
   const syncMockStage=snapshot=>{

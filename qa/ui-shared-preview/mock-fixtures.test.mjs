@@ -183,6 +183,20 @@ test('Mock frame and responsive stage use CSSOM without copying Public layout CS
  assert.doesNotMatch(entry,/stage\.style\.border\s*=/);
 });
 
+test('Mock gray canvas backdrop does not change shared workspace CSS or pointer/AX boundary',()=>{
+ const entry=readFileSync(resolve(fileURLToPath(new URL('.',import.meta.url)),
+  '../../preview/ink-ui-shared/preview-entry.js'),'utf8');
+ assert.match(entry,/backdrop=document\.createElement\('div'\)/);
+ assert.match(entry,/backdrop\.setAttribute\('aria-hidden','true'\)/);
+ assert.match(entry,/backdrop\.style\.position='absolute'/);
+ assert.match(entry,/backdrop\.style\.inset='0'/);
+ assert.match(entry,/backdrop\.style\.backgroundColor='#dedede'/);
+ assert.match(entry,/backdrop\.style\.pointerEvents='none'/);
+ assert.match(entry,/viewport\.prepend\(backdrop\)/);
+ assert.doesNotMatch(entry,/querySelector\(['"]\.workspace['"]\)\.style\./);
+ assert.doesNotMatch(entry,/viewport\.style\./);
+});
+
 test('selection, image, text, locked and history fixtures are distinct and repeatable',()=>{
  const host=mock.createMockHost();
  for(const name of ['selection','image','text','locked','history']){
