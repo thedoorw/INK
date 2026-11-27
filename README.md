@@ -17,4 +17,4 @@
 3. 正式發布前，檢查 Public PR 的 **exact HEAD／BASE、diff**，以及三項 `public-release-*` required checks **全部 SUCCESS**，再交由 USER 對該精確版本作**第二次正式發布核准**。
 4. 取得核准後才正常合併 Public PR；確認 Pages、正式 Browser 載入、版本身分及受影響功能。未測項目如實標示 `NOT_RUN`。
 
-UI-only 修改不必重新發布 Core。Core 發布也不得把已核准的 Public UI 換回舊版。任何超出 V2 18 路徑的 UI 變更，須先按 Private 現行規範處理，不能自行擴張 Public UI 權責。
+UI-only 修改不必重新發布 Core。Core 發布也不得把已核准的 Public UI 換回舊版。未納入 V2 18 路徑的產品 UI 仍依 Private 現行規範處理；Public 自有靜態資產（例如 `assets/favicon-user.png`）則依既有檔案權責與核准流程小修，不因此擴張 18 路徑 UI 租約。
