@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>INK UI · Same-source Preview (Mock)</title>
+  <title>INK UI MASTER · Public Same-source Preview (Mock)</title>
   <link rel="stylesheet" href="../../src/ui/ink017/tokens.css">
   <style>
-    #mockControls{position:fixed;bottom:10px;left:54px;z-index:120;background:#fff;color:#222;border:1px solid #bbb;border-radius:5px;padding:5px;display:flex;gap:5px;align-items:center;font:12px system-ui;box-shadow:0 2px 9px #0002}
-    #mockControls button{min-height:25px}#mockControls [aria-pressed="true"]{background:#dceeff;border-color:#579bdf}
+    #mockControls{position:fixed;bottom:10px;left:54px;z-index:120;background:#fff;color:#222;border:1px solid #bbb;border-radius:5px;padding:5px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 64px);font:12px system-ui;box-shadow:0 2px 9px #0002}
+    #mockControls button,#mockControls select{min-height:25px;max-width:180px}#mockControls output{font-size:11px;color:#666}
     html[data-preview-clean="true"] #mockControls{display:none}
     .preview-page{background:#fff;width:min(42vh,45%);aspect-ratio:210/297;box-shadow:0 3px 18px #0002;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
     .preview-empty{font:14px system-ui;color:#777;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap}
@@ -16,12 +16,22 @@
 </head>
 <body>
   <div id="app"></div>
-  <nav id="mockControls" aria-label="Preview fixtures">
-    <span>MOCK · No Core</span>
-    <button type="button" data-fixture="a4">A4 fixture</button>
-    <button type="button" data-fixture="empty">No document</button>
-    <button type="button" data-fixture="selection">Selected object</button>
-    <button type="button" id="hideFixtureControls">Hide</button>
+  <nav id="mockControls" aria-label="UI MASTER Preview controls">
+    <strong>UI MASTER · MOCK</strong>
+    <label for="mockFixture">狀態</label>
+    <select id="mockFixture" aria-label="Preview state">
+      <option value="a4">A4 空白文件</option>
+      <option value="empty">未開啟文件</option>
+      <option value="selection">選取向量物件</option>
+      <option value="image">選取影像</option>
+      <option value="text">選取文字</option>
+      <option value="locked">鎖定圖層</option>
+      <option value="history">含歷史記錄</option>
+    </select>
+    <button type="button" id="mockDialog">示例對話框</button>
+    <button type="button" id="mockRefresh">刷新 UI</button>
+    <button type="button" id="hideFixtureControls">隱藏控制</button>
+    <output id="mockLiveStatus" role="status" aria-live="polite">僅 Mock Host · 不連真作品</output>
   </nav>
   <script type="module" src="./preview-entry.js"></script>
 </body>
