@@ -5,6 +5,15 @@ import {createMockHost} from './mock-host.js';
 import {renderNewDocumentSizeDialog,registerInkPublicViews} from '../../src/ui/ink017/shared-controls.js';
 registerInkPublicViews();
 
+function createMemorySizePresets(){
+ const saved=[];
+ return Object.freeze({
+  save:preset=>{saved.push({...preset});return saved.length-1;},
+  get:index=>saved[index]?{...saved[index]}:null,
+  all:()=>saved.map(preset=>({...preset}))
+ });
+}
+
 // Same markup as Native, but the surrounding preview Host owns only a memory
 // fixture. It never imports the Native state module or Document size engine.
 function mountMockNewDocumentDialog(shell,host){
@@ -25,6 +34,9 @@ function mountMockNewDocumentDialog(shell,host){
  if(!modal)throw Error('MOCK_NEW_DOCUMENT_VIEW_CONTRACT');
  const field=name=>modal.querySelector('[data-size-field="'+name+'"]');
  const status=modal.querySelector('[data-size-preview]');
+ const presets=createMemorySizePresets();
+ const presetSelect=modal.querySelector('[data-size-preset]');
+ const presetSave=modal.querySelector('[data-size-save-preset]');
  const renderPreview=()=>{
   const width=Number(field('width').value),height=Number(field('height').value),ppi=Number(field('ppi').value);
   const unit=field('units').value,factor=({mm:1,cm:10,'in':25.4,px:25.4/ppi})[unit];
@@ -35,6 +47,7 @@ function mountMockNewDocumentDialog(shell,host){
  let onCreate=()=>host.setFixture('a4');
  const open=()=>{
   field('width').value='210';field('height').value='297';field('units').value='mm';field('ppi').value='300';
+  presetSelect.value='';
   renderPreview();modal.showModal();field('width').focus();
  };
  const dismiss=()=>{if(modal.open)modal.close()};
@@ -50,9 +63,21 @@ function mountMockNewDocumentDialog(shell,host){
   }
  });
  modal.addEventListener('input',renderPreview);
- for(const selector of ['[data-size-save-preset]','[data-size-preset]']){
-  const control=modal.querySelector(selector);if(control){control.disabled=true;control.title='Mock Preview: local presets disabled';}
- }
+ presetSelect.addEventListener('change',()=>{
+  if(presetSelect.value==='')return;
+  const chosen=presets.get(Number(presetSelect.value));if(!chosen)return;
+  for(const key of ['units','width','height','ppi'])field(key).value=String(chosen[key]);
+  renderPreview();
+ });
+ presetSave.addEventListener('click',()=>{
+  const width=Number(field('width').value),height=Number(field('height').value),ppi=Number(field('ppi').value);
+  if(!(width>0&&height>0&&ppi>=36&&ppi<=2400&&Number.isFinite(width*height*ppi))){renderPreview();return;}
+  const name=window.prompt('Preset name','Custom')?.trim();if(!name)return;
+  const index=presets.save({name,units:field('units').value,width,height,ppi});
+  const option=document.createElement('option');option.value=String(index);option.textContent=name;
+  presetSelect.append(option);
+  dismiss(); // Like Native Save preset, but without storage or document writes.
+ });
  view.append(opener,modal);slot.append(view);utilities.append(slot);panel.append(header,utilities);shell.append(panel);
  return {panel,modal,bindCreate:callback=>{onCreate=callback}};
 }

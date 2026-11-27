@@ -197,6 +197,31 @@ test('Mock gray canvas backdrop does not change shared workspace CSS or pointer/
  assert.doesNotMatch(entry,/viewport\.style\./);
 });
 
+test('Mock New Document presets are enabled, selectable after reopen, and memory-only',async()=>{
+ const entry=readFileSync(resolve(fileURLToPath(new URL('.',import.meta.url)),
+  '../../preview/ink-ui-shared/preview-entry.js'),'utf8');
+ const start=entry.indexOf('function createMemorySizePresets(){');
+ const end=entry.indexOf('\n}\n',start)+2;
+ assert.ok(start>=0&&end>start,'isolated Mock memory store exists');
+ const isolated=entry.slice(start,end)+'\nexport {createMemorySizePresets};';
+ const {createMemorySizePresets}=await import('data:text/javascript;base64,'+
+  Buffer.from(isolated).toString('base64'));
+ const presets=createMemorySizePresets();
+ assert.deepEqual(presets.all(),[]);
+ assert.equal(presets.save({name:'Draft A4',units:'mm',width:210,height:297,ppi:300}),0);
+ const applied=presets.get(0);
+ assert.deepEqual(applied,{name:'Draft A4',units:'mm',width:210,height:297,ppi:300});
+ applied.width=999;
+ assert.equal(presets.get(0).width,210,'reopen reads detached memory preset');
+ assert.equal(presets.get(99),null);
+ assert.match(entry,/presetSelect\.addEventListener\('change'/);
+ assert.match(entry,/presetSave\.addEventListener\('click'/);
+ assert.match(entry,/presetSelect\.append\(option\)/);
+ assert.match(entry,/presetSelect\.value=''/);
+ assert.doesNotMatch(entry,/presetSelect\.disabled\s*=|presetSave\.disabled\s*=/);
+ assert.doesNotMatch(entry,/\b(?:localStorage|sessionStorage|indexedDB|FileReader|XMLHttpRequest|WebSocket)\b/);
+});
+
 test('selection, image, text, locked and history fixtures are distinct and repeatable',()=>{
  const host=mock.createMockHost();
  for(const name of ['selection','image','text','locked','history']){
