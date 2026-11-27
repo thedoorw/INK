@@ -1,21 +1,23 @@
 // #765 Design-time fixture adapter. Zero access to Native app, renderer,
 // Document, History, local storage, service workers, or Google Drive.
 // All operations below are in-memory previews, never real document mutations.
+import {mountToolbarCustomizer} from '../../src/ui/ink017/tool-slices/toolbar-customizer.js';
 const clone=x=>x==null?x:JSON.parse(JSON.stringify(x));
 const ok=()=>({ok:true,changed:true,mock:true});
 const target=()=>({documentId:'mock-a4',pageId:'mock-page',generation:1,refs:[]});
 
 function makeState(fixture){
- const active=fixture!=='empty',selection=['selection','image','text','locked','history'].includes(fixture);
- const isImage=fixture==='image',isText=fixture==='text',locked=fixture==='locked';
+ const active=fixture!=='empty',selection=['selection','image','text','shape','locked','history'].includes(fixture);
+ const isImage=fixture==='image',isText=fixture==='text',isShape=fixture==='shape',locked=fixture==='locked';
  const layers=[
   {id:'mock-layer-1',name:isText?'標題文字':isImage?'照片':'圖層 1',type:isText?'text':isImage?'image':'path',visible:true,locked:false,opacity:100,preview:null},
   ...(locked?[{id:'mock-layer-2',name:'背景',type:'shape',visible:true,locked:true,opacity:100,preview:null}]:[])
  ];
  const doc=active?{id:'mock-a4',name:'A4 · MOCK',title:'A4 · MOCK',width:210,height:297,ppi:300,units:'mm',artboard:{widthMm:210,heightMm:297,ppi:300,unit:'mm'},selection:locked?'mock-layer-2':'mock-layer-1',layers,camera:{zoom:100,x:0,y:0},guides:[],canvasMode:'document'}:null;
  return{kind:'MOCK',docs:doc?[doc]:[],activeDoc:doc?.id||null,
-  object:selection?{id:'mock-object',objectId:'mock-object',type:isImage?'image':isText?'text':'path',locked,x:35,y:40,w:80,h:90,rotate:0,fill:'#d7eafa',blendMode:'source-over',adjustments:[],raster:isImage?{width:800,height:1200}:null,font:'Arial',weight:400,size:32,leading:40,tracking:0,textColor:'#202020',text:'INK UI',align:'left',paragraph:{align:'left',indentLeft:0},target:target()}:null,
-  target:target(),tool:isImage?'brush':isText?'text':'pen',paint:{foreground:'#000000',background:'#ffffff',alpha:100},
+  object:selection?{id:'mock-object',objectId:'mock-object',type:isImage?'image':isText?'text':isShape?'shape':'path',locked,x:35,y:40,w:80,h:90,rotate:0,fill:'#d7eafa',blendMode:'source-over',adjustments:[],raster:isImage?{width:800,height:1200}:null,font:'Arial',weight:400,size:32,leading:40,tracking:0,textColor:'#202020',text:'INK UI',align:'left',paragraph:{align:'left',indentLeft:0},target:target()}:null,
+  target:target(),tool:isImage?'brush':isText?'text':isShape?'line':'pen',paint:{foreground:'#000000',background:'#ffffff',alpha:100},
+  mockShapeOptions:{shapeType:'line',shapeFill:false},
   swatches:[{id:'recent',name:'Recent colors',open:true,colors:['#202020','#ffffff','#b63c36','#d18b2f','#d7c64b','#3d875d','#2f718f','#594f9a']}],
   swatchSelection:'recent',toolOptions:{'brush.size':12,'select.aspect':0},
   guides:{show:true,lock:false,snap:true},layout:1,adjustmentEditorId:null,
@@ -34,7 +36,7 @@ const NATIVE_TOOL_SOURCE_BLOBS=Object.freeze({
  'tool-slices/completion-tools.js':'231ee540ef7a9849b4bbb255fe0626d0e681a8ff',
  'tool-slices/dev1/catalog.js':'2a445686f3dff82336c3d984eba0ada252a58cb6',
  'tool-slices/dev2/index.mjs':'920d96506e06217d3d7de78a26e768ec1d2b4811',
- 'tool-slices/dev3/tools-context-dev3.mjs':'c9c93d615edfea97d8f1fca339eca7826328eba6'
+ 'tool-slices/dev3/tools-context-dev3.mjs':'3db1fbfa2d337c54eafff055f5369026b6e60234'
 });
 const icon=(body,styled=false)=>'<svg viewBox="0 0 24 24"'+(styled?' fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"':'')+' aria-hidden="true">'+(body.startsWith('<')?body:'<path d="'+body+'"/>')+'</svg>';
 const row=(id,label,shape,variants,styled=false)=>({id,label,items:variants.map(([itemId,itemLabel,body=shape])=>({id:itemId,label:itemLabel,icon:icon(body,styled)}))});
@@ -103,7 +105,7 @@ if(fixtures.length!==20||new Set(fixtures.map(g=>g.id)).size!==20)throw Error('M
 
 export function createMockHost(){
  let state=makeState('a4'),index=0,entries=[{index:0,label:'History start'}],historyLimit=30;
- const supportedFixtures=new Set(['a4','empty','selection','image','text','locked','history']);
+ const supportedFixtures=new Set(['a4','empty','selection','image','text','shape','locked','history']);
  const subscribers=new Set(),receipts=new Set();
  const notify=()=>subscribers.forEach(fn=>fn(clone(state)));
  const getSnapshot=()=>clone(state);
@@ -130,7 +132,10 @@ export function createMockHost(){
   if(name==='page.preview')return null;
   if(name==='path.list')return{paths:[]};
   if(name==='tool.presets')return{status:'AVAILABLE',tool:'brush',selected:null,presets:[]};
-  if(name==='tool.settings')return{size:12,opacity:.88,flow:.82,smoothing:.46,pressure:.95,taper:.42,wetness:.36,bristle:.18};
+  if(name==='tool.settings')return !state.docs.length
+   ?{size:12,opacity:.88,flow:.82,smoothing:.46,pressure:.95,taper:.42,wetness:.36,bristle:.18}
+   :{size:2,opacity:1,smoothing:.66,pressure:.15,taper:.04,...state.mockDrawingSettings};
+  if(name==='tool.options')return{...state.mockShapeOptions};
   return null;
  };
  const record=label=>{entries=entries.slice(0,index+1);index++;entries.push({index,label});notify()};
@@ -140,7 +145,15 @@ export function createMockHost(){
   else if(c.type==='history.redo')index=Math.min(entries.length-1,index+1);
   else if(c.type==='history.jump')index=Math.max(0,Math.min(entries.length-1,Number(c.index)||0));
   else if(c.type==='tool.set'){state.tool=String(c.value||'select');}
-  else if(c.type==='tool.option')state.toolOptions[c.key]=c.value;
+  else if(c.type==='tool.option'){
+   state.toolOptions[c.key]=c.value;
+   const match=/^(?:pen|pencil|marker|brush|airbrush)\.(size|opacity|flow|smoothing|pressure|taper|wetness|grain|bristle|softness)$/.exec(String(c.key));
+   if(match){state.mockDrawingSettings??={};state.mockDrawingSettings[match[1]]=Number(c.value);}
+   if(c.key==='shape:type')state.mockShapeOptions.shapeType=String(c.value);
+   else if(c.key==='shape:defaultFill')state.mockShapeOptions.shapeFill=c.value==='On';
+   else if(state.object?.type==='shape'&&['shape:w','shape:h','shape:rotate','shape:fill'].includes(c.key))
+    state.object[c.key.slice(6)]=c.key==='shape:fill'?String(c.value):Number(c.value);
+  }
   else if(c.type==='paint.reset'){state.paint.foreground='#000000';state.paint.background='#ffffff'}
   else if(c.type==='paint.swap'){const p=state.paint;[p.foreground,p.background]=[p.background,p.foreground]}
   else if(c.type==='paint.patch')Object.assign(state.paint,c.patch);
@@ -171,7 +184,7 @@ export function createMockHost(){
  function mountToolsWorkbench(root,feedback,signal,presentation){
   const rail=root.querySelector('.tool-area'),controls=root.querySelector('#contextControls'),bar=root.querySelector('.context-float');
   const identity=root.querySelector('#contextIdentity'),toggle=root.querySelector('#contextToggle');
-  let expanded=true,lastOptions='';
+  let expanded=true,lastOptions='',layoutAbort=null;
   const grouped=fixtures,byId=new Map(grouped.map(g=>[g.id,g]));
   rail.innerHTML=presentation.renderToolRail(grouped);
   controls.innerHTML='<div id="contextToolOptions"></div><div id="transformControls" hidden></div>';
@@ -211,7 +224,8 @@ export function createMockHost(){
    if(!g||!item)return 'No applicable tool options';
    if(item.id==='select'&&!state.object)return '<div data-dev1-options-tool="select"><div class="context-parameter-group" role="group" aria-label="Object transform"><span class="field-row" role="status"><span>Object selection</span><output>No selection</output></span></div></div>';
    if(item.id==='select'&&state.object)return '<div data-dev1-options-tool="select"><div class="context-parameter-group" role="group" aria-label="Object transform"><span class="field-row" role="status"><span>Object selection</span><output>Mock selected object</output></span></div></div>';
-   if(g.id==='drawing')return '<div data-dev1-options-tool="'+item.id+'"><div class="context-parameter-group" role="group" aria-label="'+item.label+' parameters"><span class="field-row" role="status"><span>Size px</span><output>12</output></span></div></div>';
+   if(g.id==='drawing')return '<div data-dev1-options-tool="'+item.id+'">'+presentation.renderDev1DrawingOptions(item.label,select('tool.settings'))+'</div>';
+   if(g.id==='shape')return presentation.renderDev3ShapeOptions(select('tool.options'),state.object?.type==='shape'?state.object:null);
    return 'No applicable tool options';
   };
   const update=()=>{
@@ -222,7 +236,12 @@ export function createMockHost(){
    }
    toggle.disabled=!state.docs.length;
    presentation.updateToolContextIdentity(identity,{groupId:context?.id||null,itemId:item?.id||null,label:item?.label||'工具'});
-   const html=optionMarkup();if(html!==lastOptions){optionRoot.innerHTML=html;lastOptions=html;}
+   const html=optionMarkup();
+   if(html!==lastOptions){
+    layoutAbort?.abort();layoutAbort=new AbortController();
+    optionRoot.innerHTML=html;lastOptions=html;
+    presentation.arrangeToolOptions(optionRoot,bar,layoutAbort.signal,{expanded});
+   }
    if(state.docs.length&&context&&item){optionRoot.dataset.uiPresentation='public';optionRoot.dataset.uiGroup=context.id;optionRoot.dataset.uiItem=item.id;}
    else{delete optionRoot.dataset.uiPresentation;delete optionRoot.dataset.uiGroup;delete optionRoot.dataset.uiItem;}
    optionRoot.dataset.nativeTarget=JSON.stringify(target());
@@ -239,13 +258,32 @@ export function createMockHost(){
   rail.addEventListener('click',event=>{if(suppressClick){suppressClick=false;event.preventDefault();event.stopImmediatePropagation()}},{capture:true,signal});
   menu.addEventListener('click',event=>{const button=event.target.closest('[data-variant]');if(!button)return;const g=byId.get(menu.opener?.dataset.group),item=g?.items.find(t=>t.id===button.dataset.variant);if(g&&item)selectTool(g,item);closeMenu(true)},{signal});
   menu.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeMenu(true)}},{signal});
-  toggle.addEventListener('click',()=>setExpanded(!expanded),{signal});
-  // Native toolbar customization reads browser storage and file presets; it
-  // must remain disabled in a safe Mock until a pure UI display seam exists.
-  root.querySelector('#railCustomize').addEventListener('click',()=>feedback('Mock preview: Native toolbar customization unavailable'),{signal});
+  toggle.addEventListener('click',()=>{setExpanded(!expanded);lastOptions='';update()},{signal});
+  // Only an in-memory Mock command is dispatched; the exact Public renderer
+  // supplies field IDs/markup while Real Native owns validation and commands.
+  optionRoot.addEventListener('change',event=>{
+   const input=event.target.closest('[data-key]');
+   if(!input||!optionRoot.contains(input))return;
+   const fullKey=input.dataset.key;
+   if(fullKey.startsWith('shape:')){
+    dispatch({type:'tool.option',key:fullKey,value:input.value});
+    return;
+   }
+   if(!fullKey.startsWith('dev1:'))return;
+   const key=fullKey.slice(5),value=Number(input.value);
+   if(!Number.isFinite(value)||value<(key==='size'?1:0)||value>(key==='size'?300:100))return;
+   const item=currentItem(current());if(!item)return;
+   dispatch({type:'tool.option',key:item.id+'.'+key,value:key==='size'?value:value/100});
+  },{signal});
+  // The exact Native UI-owned renderer is safe in Mock with a private memory
+  // store. File preset IO is disabled; nothing reaches browser storage.
+  const memory={value:null,getItem(){return this.value},setItem(_key,value){this.value=value}};
+  const customizer=mountToolbarCustomizer(root,grouped,{
+   signal,onLayoutChanged:update,feedback,storage:memory,allowPresetFiles:false
+  });
   const unsub=()=>subscribers.delete(update);subscribers.add(update);signal.addEventListener('abort',unsub,{once:true});
   setExpanded(true);update();
-  return{render:update,expand:setExpanded,dispose:()=>{unsub();clearTimeout(hold);menu.remove()}};
+  return{render:update,expand:setExpanded,dispose:()=>{unsub();clearTimeout(hold);layoutAbort?.abort();customizer.dispose();menu.remove()}};
  }
  const host={kind:'MOCK',setFixture,getSnapshot,getHistory,select,execute,dispatch,target,subscribe(fn){subscribers.add(fn);return()=>subscribers.delete(fn)},subscribeCommands(fn){receipts.add(fn);return()=>receipts.delete(fn)},mountMenuUi,mountToolsWorkbench,shellApi,navigator:null,dispose(){subscribers.clear();receipts.clear()}};
  return host;

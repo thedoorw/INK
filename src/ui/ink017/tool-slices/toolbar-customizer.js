@@ -12,13 +12,20 @@ export function normalizeToolbarArrangement(value,groups){
  return {version:1,visible,extra};
 }
 
-export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedback}={}){
+// `storage` and `allowPresetFiles` are optional UI-only Host seams. Native
+// keeps its existing browser persistence/export behavior by default. The
+// isolated Mock Preview injects an in-memory store and disables file IO.
+export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedback,storage,allowPresetFiles=true}={}){
+ const store=storage??{
+  getItem:key=>localStorage.getItem(key),
+  setItem:(key,value)=>localStorage.setItem(key,value)
+ };
  const rail=root.querySelector('.tool-area'),button=root.querySelector('#railCustomize');
  if(!rail||!button)throw Error('Toolbar customizer requires the existing rail and launcher');
  const cells=new Map([...rail.querySelectorAll('[data-group]')].map(el=>[el.dataset.group,el.closest('.tool-cell')]));
  const byId=new Map(groups.map(group=>[group.id,group]));
  let state=normalizeToolbarArrangement(null,groups),draft=null,origin=null;
- try{state=normalizeToolbarArrangement(JSON.parse(localStorage.getItem(KEY)||'null'),groups);}catch{ /* Storage unavailable: retain defaults. */ }
+ try{state=normalizeToolbarArrangement(JSON.parse(store.getItem(KEY)||'null'),groups);}catch{ /* Storage unavailable: retain defaults. */ }
 
  const dialog=document.createElement('dialog');
  dialog.className='ink-toolbar-customize';
@@ -35,6 +42,13 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
  const fileInput=document.createElement('input');
  fileInput.type='file';fileInput.accept='.json,application/json';fileInput.hidden=true;
  dialog.append(fileInput);root.append(dialog);
+ if(!allowPresetFiles){
+  for(const control of dialog.querySelectorAll('[data-tb-action=save],[data-tb-action=load]')){
+   control.disabled=true;
+   control.title='Mock Preview: file presets are disabled';
+  }
+  fileInput.disabled=true;
+ }
 
  function arrange(value){
   for(const id of [...value.visible,...value.extra]){const cell=cells.get(id);if(!cell)continue;cell.hidden=!value.visible.includes(id);rail.append(cell);}
@@ -84,11 +98,12 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
  }
  function apply(){
   const next=normalizeToolbarArrangement(draft,groups);
-  try{localStorage.setItem(KEY,JSON.stringify(next));}
+  try{store.setItem(KEY,JSON.stringify(next));}
   catch{message('無法儲存工具列設定。檢查瀏覽器儲存權限後再試。');return;}
   state=next;arrange(state);close();feedback?.('工具列已更新');
  }
  function save(){
+  if(!allowPresetFiles){message('Mock Preview does not save files.');return;}
   const data=JSON.stringify(normalizeToolbarArrangement(draft,groups),null,2);
   const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),link=document.createElement('a');
   link.href=url;link.download='INK-toolbar-preset.json';link.click();
@@ -102,9 +117,13 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
   if(action==='apply')return apply();
   if(action==='reset'){draft=normalizeToolbarArrangement(null,groups);repaint();return;}
   if(action==='save')return save();
-  if(action==='load')return fileInput.click();
+  if(action==='load'){
+   if(!allowPresetFiles){message('Mock Preview does not open files.');return;}
+   return fileInput.click();
+  }
  }
  async function onFileChange(){
+  if(!allowPresetFiles)return;
   const file=fileInput.files?.[0];fileInput.value='';if(!file)return;
   if(!file.size||file.size>MAX_PRESET_BYTES){message('預設檔必須是 16KB 以下的 JSON。');return;}
   try{

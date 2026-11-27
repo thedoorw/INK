@@ -1,6 +1,6 @@
 // DEV1 tool-specific option projection. Uses the existing host and shared field primitive.
 // No app-owned state, new menu controller, CSS width family, or raster algorithm here.
-import {field,esc} from '../../shared-controls.js';
+import {field,esc,renderDev1DrawingOptions} from '../../shared-controls.js';
 import {getDev1Tool,getDev1Availability,dev1ActiveKey,DEV1_RASTER_KEYS} from './catalog.js';
 import {setDev1RasterOption,dev1RasterRuntime,dev1RasterMaskScope,DEV1_RASTER_OPTION_FIELDS} from './raster-session.js';
 
@@ -23,7 +23,6 @@ const numberField=(key,label,value,min,max)=>{
  const f=field('dev1:'+key,label,value,'number');
  return f.replace('step="any"','step="any" min="'+min+'" max="'+max+'"');
 };
-const row=(key,value)=>numberField(key,LABELS[key],key==='size'?value:Math.round(value*10000)/100,key==='size'?1:0,key==='size'?300:100);
 const readout=(label,value)=>'<span class="field-row" role="status"><span>'+esc(label)+'</span><output>'+esc(value)+'</output></span>';
 const btn=(key,label,disabled=false)=>'<button type="button" data-dev1-action="'+key+'"'+(disabled?' disabled':'')+'>'+esc(label)+'</button>';
 export function renderDev1Options(snapshot,host){
@@ -67,10 +66,7 @@ export function renderDev1Options(snapshot,host){
  }else if(DRAW.has(tool)){
   const settings=host.select?.('tool.settings',{tool})||null;
   if(!settings)return '';
-  const keys=['size','opacity','flow','smoothing','pressure','taper','wetness','grain','bristle','softness']
-   .filter(key=>Number.isFinite(settings[key]));
-  html='<div class="context-parameter-group" role="group" aria-label="'+esc(cfg.label)+' parameters">'+
-   keys.map(key=>row(key,settings[key])).join('')+'</div>';
+  html=renderDev1DrawingOptions(cfg.label,settings);
  }else if(tool==='eraser'){
   const last=host.app?.lastDrawTool,settings=last?host.select?.('tool.settings',{tool:last}):null;
   if(!Number.isFinite(settings?.size))return '';

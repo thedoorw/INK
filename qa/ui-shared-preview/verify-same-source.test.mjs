@@ -18,7 +18,10 @@ const parts=[
  'panels/swatches.js','right-dock.js','shared-controls.js','shell.js','tokens.css'
 ];
 const files=new Map();
-for(const path of [...parts.map(x=>ui+x),preview+'index.html',
+for(const path of [...parts.map(x=>ui+x),ui+'tool-slices/toolbar-customizer.js',ui+'tool-slices/workbench.js',
+  'stage-runtime.css','src/ui/minimal-test-shell/size-dialog-view.js',
+  'src/ui/minimal-test-shell/modules.js','src/document/artboard.js',
+  'src/ui/branding-view.js','src/ui/branding-settings.js',preview+'index.html',
   preview+'preview-entry.js',preview+'mock-host.js']){
   files.set(path,await readFile(join(root,path),'utf8'));
 }
@@ -37,6 +40,8 @@ for(const path of nativeToolSources)files.set(path,'synthetic Native source plac
 files.set('index.html',`<link rel="stylesheet" href="stage-runtime.css">
  <link rel="stylesheet" href="src/ui/ink017/tokens.css">
  <link rel="preload" href="src/ui/ink017/markup.html">
+ <script src="src/ui/branding-view.js" defer></script>
+ <script src="src/ui/branding-settings.js" defer></script>
  <script type="module" src="dist/startup/ink-shell.mjs"></script>`);
 files.set(ui+'entry.js',`const markup=await fetch(new URL('./markup.html',import.meta.url));
  const {mountNativeShell}=await import(new URL('./shell.js',import.meta.url).href);`);
@@ -78,6 +83,47 @@ test('preview cannot replace canonical stylesheet',async()=>{
  const text=files.get(path).replace('../../src/ui/ink017/tokens.css','./tokens.css');
  assert.equal(await codeOf({[path]:text}),'PREVIEW_SOURCE_DRIFT');
 });
+test('Preview and Real must load canonical stage CSS for dialogs',async()=>{
+ const path=preview+'index.html';
+ const text=files.get(path).replace('../../stage-runtime.css','./stage-runtime.css');
+ assert.equal(await codeOf({[path]:text}),'PREVIEW_SOURCE_DRIFT');
+});
+test('Preview and Real new-document UI must use one pure template',async()=>{
+ const path='src/ui/minimal-test-shell/modules.js';
+ const text=files.get(path).replace("from './size-dialog-view.js'","from './copy-size-dialog-view.js'");
+ assert.notEqual(text,files.get(path));
+ assert.equal(await codeOf({[path]:text}),'REAL_NEW_DOCUMENT_VIEW_DRIFT');
+});
+test('New-document view must not import Document or Storage',async()=>{
+ const path='src/ui/minimal-test-shell/size-dialog-view.js';
+ const text="import '../../document/size.js';\n"+files.get(path);
+ assert.equal(await codeOf({[path]:text}),'NEW_DOCUMENT_VIEW_HAS_NATIVE_IMPORTS');
+});
+test('Preview and Real import the exact same Branding pure view',async()=>{
+ const report=await verifySameSource(reader());
+ assert.ok(report.sharedAuxiliaryFiles.some(item=>item.path==='src/ui/branding-view.js'));
+ const path=preview+'index.html';
+ const text=files.get(path).replace('../../src/ui/branding-view.js','./branding-view.js');
+ assert.equal(await codeOf({[path]:text}),'PREVIEW_SOURCE_DRIFT');
+});
+test('Real branding controller must use the shared View and retain action boundary',async()=>{
+ const path='src/ui/branding-settings.js';
+ const text=files.get(path).replace('INK_BRANDING_VIEW?.createBrandingView','INK_BRANDING_LEGACY?.createBrandingView');
+ assert.equal(await codeOf({[path]:text}),'REAL_BRANDING_VIEW_NOT_USED');
+});
+test('Branding pure view must never call network, storage or file APIs',async()=>{
+ const path='src/ui/branding-view.js';
+ const text=files.get(path)+'\nlocalStorage.setItem("test", "bad");';
+ assert.equal(await codeOf({[path]:text}),'BRANDING_VIEW_IMPURE');
+});
+test('Mock branding view must disable upload/export and external navigation',async()=>{
+ const path=preview+'preview-entry.js';
+ const original=files.get(path);
+ const text=original.replace("['logoChoose','logoInput','candidateButton']","['logoChoose','candidateButton']");
+ assert.equal(await codeOf({[path]:text}),'MOCK_BRANDING_IO_CONTROLS_NOT_DISABLED');
+ const text2=original.replace("event=>event.preventDefault()","event=>{}");
+ assert.equal(await codeOf({[path]:text2}),'MOCK_BRANDING_EXTERNAL_LINK_NOT_GATED');
+});
 test('preview cannot inline a second copy of the shell markup',async()=>{
  const path=preview+'index.html';
  const text=files.get(path).replace('<div id="app"></div>',
@@ -93,6 +139,22 @@ test('Mock must not import Native tool registry / Core',async()=>{
  const path=preview+'mock-host.js';
  const text=`import {TOOL_GROUPS} from '../../src/ui/ink017/tool-slices/registry.js';\n`+files.get(path);
  assert.equal(await codeOf({[path]:text}),'MOCK_IMPORTS_CORE_OR_UI');
+});
+test('Mock toolbar customizer must use memory and disable file IO',async()=>{
+ const path=preview+'mock-host.js';
+ const text=files.get(path).replace('allowPresetFiles:false','allowPresetFiles:true');
+ assert.equal(await codeOf({[path]:text}),'MOCK_TOOLBAR_IO_SEAM_MISSING');
+});
+test('shared toolbar UI renderer must not acquire Native dependencies',async()=>{
+ const path=ui+'tool-slices/toolbar-customizer.js';
+ const text="import '../../document/storage.js';\n"+files.get(path);
+ assert.equal(await codeOf({[path]:text}),'SHARED_TOOLBAR_NATIVE_DEPENDENCY');
+});
+test('Real workbench must still load the same toolbar UI renderer',async()=>{
+ const path=ui+'tool-slices/workbench.js';
+ const text=files.get(path).replace("from './toolbar-customizer.js'","from './different-customizer.js'");
+ assert.notEqual(text,files.get(path));
+ assert.equal(await codeOf({[path]:text}),'REAL_TOOLBAR_UI_SOURCE_DRIFT');
 });
 test('Real-only WORK extension must stay gated away from Mock',async()=>{
  const path=ui+'menu-ui.js';

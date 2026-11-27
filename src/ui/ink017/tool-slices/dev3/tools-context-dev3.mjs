@@ -1,5 +1,5 @@
 // DEV3 isolated tool slice for UR2 assembly. No shell, menu, History or document owner.
-import {esc, field} from '../../shared-controls.js';
+import {esc, field, renderDev3ShapeOptions} from '../../shared-controls.js';
 import {navigatorZoomText} from '../../panels/navigator-zoom-curve.mjs';
 
 const SHAPES = Object.freeze(['line','arrow','rect','ellipse','triangle']);
@@ -125,9 +125,7 @@ export function dev3OptionsMarkup(host,id,variant='') {
  }
  if(id==='shape'){
   const selectedShape=obj?.type==='shape'?obj:null;
-  let body=field('shape:type','Shape',o.shapeType||'line','text',SHAPES)+field('shape:defaultFill','Fill new',o.shapeFill?'On':'Off','text',['Off','On']);
-  if(selectedShape)body+='<fieldset'+(selectedShape.locked?' disabled':'')+'>'+numeric('shape:w','W',selectedShape.w,0.001,10000000)+numeric('shape:h','H',selectedShape.h,0.001,10000000)+numeric('shape:rotate','Rotate °',selectedShape.rotate,-360000,360000)+field('shape:fill','Object fill',selectedShape.fill||'#202020','color')+'</fieldset>';
-  return group('Shape defaults and selected object',body);
+  return renderDev3ShapeOptions(o,selectedShape);
  }
  if(id==='nodes'){
   const active=nodeKind(host,s);

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>INK UI MASTER · Public Same-source Preview (Mock)</title>
+  <!-- Same order and exact stylesheet bytes as the Real INK entry. -->
+  <link rel="stylesheet" href="../../stage-runtime.css">
   <link rel="stylesheet" href="../../src/ui/ink017/tokens.css">
   <style>
     #mockControls{position:fixed;bottom:10px;left:54px;z-index:120;background:#fff;color:#222;border:1px solid #bbb;border-radius:5px;padding:5px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 64px);font:12px system-ui;box-shadow:0 2px 9px #0002}
@@ -25,6 +27,7 @@
       <option value="selection">選取向量物件</option>
       <option value="image">選取影像</option>
       <option value="text">選取文字</option>
+      <option value="shape">選取 Shape 直線</option>
       <option value="locked">鎖定圖層</option>
       <option value="history">含歷史記錄</option>
     </select>
@@ -33,6 +36,8 @@
     <button type="button" id="hideFixtureControls">隱藏控制</button>
     <output id="mockLiveStatus" role="status" aria-live="polite">僅 Mock Host · 不連真作品</output>
   </nav>
+  <!-- Same pure DOM builder as Real, never the IO-owning branding controller. -->
+  <script src="../../src/ui/branding-view.js" defer></script>
   <script type="module" src="./preview-entry.js"></script>
 </body>
 </html>

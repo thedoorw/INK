@@ -9,6 +9,13 @@ import {fileURLToPath} from 'node:url';
 
 const UI='src/ui/ink017/';
 const PREVIEW='preview/ink-ui-shared/';
+const SAFE_TOOLBAR_UI=UI+'tool-slices/toolbar-customizer.js';
+const NATIVE_WORKBENCH=UI+'tool-slices/workbench.js';
+const SIZE_VIEW='src/ui/minimal-test-shell/size-dialog-view.js';
+const NATIVE_STATE='src/ui/minimal-test-shell/modules.js';
+const ARTBOARD_SOURCE='src/document/artboard.js';
+const BRAND_VIEW='src/ui/branding-view.js';
+const BRAND_CONTROLLER='src/ui/branding-settings.js';
 const LEASED=Object.freeze([
   'markup.html','menu-ui.js','panels/adjustments.js','panels/brushes.js',
   'panels/character-typography.js','panels/character.js','panels/color.js',
@@ -33,8 +40,10 @@ const NATIVE_TOOL_IDS=Object.freeze([
 ]);
 const FILES=Object.freeze([
   'index.html','src/ui/ink017/entry.js','dist/startup/ink-shell.mjs',
+  'stage-runtime.css',SIZE_VIEW,NATIVE_STATE,ARTBOARD_SOURCE,
+  BRAND_VIEW,BRAND_CONTROLLER,
   PREVIEW+'index.html',PREVIEW+'preview-entry.js',PREVIEW+'mock-host.js',
-  ...LEASED
+  SAFE_TOOLBAR_UI,NATIVE_WORKBENCH,...LEASED
 ]);
 
 export class SameSourceError extends Error {
@@ -107,8 +116,13 @@ function checkPreviewHtml(html){
     'PREVIEW_ENTRY_MISSING');
   const css=[...html.matchAll(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']([^"']+)["']/gi)]
     .map(m=>m[1]);
-  demand(css.length===1,'PREVIEW_STYLESHEET_COPY',css.join(','));
-  mustLoadCanonical(localPath(PREVIEW+'index.html',css[0]),UI+'tokens.css',UI+'tokens.css');
+  demand(css.length===2,'PREVIEW_STYLESHEET_COPY',css.join(','));
+  mustLoadCanonical(localPath(PREVIEW+'index.html',css[0]),'stage-runtime.css','stage-runtime.css');
+  mustLoadCanonical(localPath(PREVIEW+'index.html',css[1]),UI+'tokens.css',UI+'tokens.css');
+  const scripts=[...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)].map(m=>m[1]);
+  demand(scripts.length===2,'PREVIEW_BRANDING_SCRIPT_COUNT',scripts.join(','));
+  mustLoadCanonical(localPath(PREVIEW+'index.html',scripts[0]),BRAND_VIEW,BRAND_VIEW);
+  demand(scripts[1]==='./preview-entry.js','PREVIEW_BRANDING_VIEW_ORDER');
   demand(!/<(?:div|section|main|aside|header|footer)\b[^>]*\bid=["'](?:shell|rightDock|mainMenu|workspace)["']/i.test(html),
     'COPIED_SHELL_MARKUP');
   const inlineStyles=[...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map(x=>x[1]);
@@ -129,18 +143,33 @@ function checkPreviewHtml(html){
 function checkPreviewEntrypoint(entry,mock){
   const shell=/\bimport\s*\{\s*mountNativeShell\s*\}\s*from\s*['"]([^'"]+)['"]/.exec(entry)?.[1];
   const host=/\bimport\s*\{\s*createMockHost\s*\}\s*from\s*['"]([^'"]+)['"]/.exec(entry)?.[1];
-  demand(shell&&host,'PREVIEW_BOOT_IMPORT_CONTRACT');
+  const size=/\bimport\s*\{\s*renderNewDocumentSizeDialog\s*\}\s*from\s*['"]([^'"]+)['"]/.exec(entry)?.[1];
+  demand(shell&&host&&size,'PREVIEW_BOOT_IMPORT_CONTRACT');
   mustLoadCanonical(localPath(PREVIEW+'preview-entry.js',shell),UI+'shell.js',UI+'shell.js');
   demand(localPath(PREVIEW+'preview-entry.js',host)===PREVIEW+'mock-host.js','PREVIEW_MOCK_HOST_CONTRACT');
-  demand(importsOf(entry).length===2,'PREVIEW_EXTRA_IMPORTS',importsOf(entry).join(','));
+  mustLoadCanonical(localPath(PREVIEW+'preview-entry.js',size),SIZE_VIEW,SIZE_VIEW);
+  demand(importsOf(entry).length===3,'PREVIEW_EXTRA_IMPORTS',importsOf(entry).join(','));
+  demand(/renderNewDocumentSizeDialog\s*\(\s*\{\s*ppiMin\s*:\s*36\s*,\s*ppiMax\s*:\s*2400/.test(entry),
+    'PREVIEW_SIZE_PPI_CONTRACT');
   const markup=/\bnew URL\(\s*['"]([^'"]*markup\.html)['"]\s*,\s*import\.meta\.url\s*\)/.exec(entry)?.[1];
   demand(markup,'PREVIEW_MARKUP_IMPORT_CONTRACT');
   mustLoadCanonical(localPath(PREVIEW+'preview-entry.js',markup),UI+'markup.html',UI+'markup.html');
   demand(/\bmountNativeShell\s*\(\s*host\s*,\s*shell\s*\)/.test(entry),'PREVIEW_NATIVE_SHELL_REUSE');
   demand(/\bDOMParser\b/.test(entry),'PREVIEW_MARKUP_PARSER_MISSING');
+  demand(/INK_BRANDING_VIEW\?\.createBrandingView/.test(entry),'MOCK_BRANDING_VIEW_MISSING');
+  demand(/\[\s*'logoChoose'\s*,\s*'logoInput'\s*,\s*'candidateButton'\s*\]/.test(entry),
+    'MOCK_BRANDING_IO_CONTROLS_NOT_DISABLED');
+  demand(/view\.ownerLink\.addEventListener\(['"]click['"],\s*event\s*=>\s*event\.preventDefault\(\)\)/.test(entry),
+    'MOCK_BRANDING_EXTERNAL_LINK_NOT_GATED');
+  demand(!/\b(?:localStorage|sessionStorage|FileReader|Blob|URL\.createObjectURL)\b/.test(entry),
+    'PREVIEW_BRANDING_IO_FORBIDDEN');
   demand(!/\b(?:innerHTML|insertAdjacentHTML|document\.write)\s*(?:=|\()/.test(entry),
     'PREVIEW_COPIED_UI_TEMPLATE');
-  demand(importsOf(mock).length===0,'MOCK_IMPORTS_CORE_OR_UI',importsOf(mock).join(','));
+  const imports=importsOf(mock);
+  demand(imports.length===1&&localPath(PREVIEW+'mock-host.js',imports[0])===SAFE_TOOLBAR_UI,
+    'MOCK_IMPORTS_CORE_OR_UI',imports.join(','));
+  demand(/mountToolbarCustomizer\s*\(\s*root\s*,\s*grouped\s*,\s*\{[\s\S]*?storage\s*:\s*memory\s*,\s*allowPresetFiles\s*:\s*false/.test(mock),
+    'MOCK_TOOLBAR_IO_SEAM_MISSING');
   demand(!/\b(?:import\s*\(|require\s*\()/.test(mock),'MOCK_DYNAMIC_IMPORT');
   const forbidden=[
     /\b(?:localStorage|sessionStorage|indexedDB|caches|CacheStorage)\b/,
@@ -153,12 +182,17 @@ function checkPreviewEntrypoint(entry,mock){
 }
 
 function checkRealEntrypoint(html,entry,bundle){
+  demand(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']stage-runtime\.css["']/i.test(html),
+    'REAL_STAGE_STYLESHEET_DRIFT');
   demand(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']src\/ui\/ink017\/tokens\.css["']/i.test(html),
     'REAL_TOKENS_STYLESHEET_DRIFT');
   demand(/<link\b[^>]*\brel=["']preload["'][^>]*\bhref=["']src\/ui\/ink017\/markup\.html["']/i.test(html),
     'REAL_MARKUP_PRELOAD_DRIFT');
   demand(/<script\b[^>]*\bsrc=["']dist\/startup\/ink-shell\.mjs["']/i.test(html),
     'REAL_SHELL_BUNDLE_MISSING');
+  const brandScript=html.indexOf('src="src/ui/branding-view.js"');
+  const brandController=html.indexOf('src="src/ui/branding-settings.js"');
+  demand(brandScript>=0&&brandController>brandScript,'REAL_BRANDING_VIEW_ORDER');
   const entryMarkup=/\bnew URL\(\s*['"]([^'"]*markup\.html)['"]\s*,\s*import\.meta\.url\s*\)/.exec(entry)?.[1];
   const entryShell=/\bimport\s*\(\s*new URL\(\s*['"]([^'"]*shell\.js)['"]\s*,\s*import\.meta\.url\s*\)\.href\s*\)/.exec(entry)?.[1];
   demand(entryMarkup&&entryShell,'REAL_ENTRY_SOURCE_CONTRACT');
@@ -234,6 +268,27 @@ export async function verifySameSource(reader,{scope='presentation',expectedHead
     'PREVIEW_EXTRA_SOURCE_FILES',children.join(','));
   checkPreviewHtml(get(PREVIEW+'index.html'));
   checkPreviewEntrypoint(get(PREVIEW+'preview-entry.js'),get(PREVIEW+'mock-host.js'));
+  demand(importsOf(get(NATIVE_STATE)).some(spec=>localPath(NATIVE_STATE,spec)===SIZE_VIEW),
+    'REAL_NEW_DOCUMENT_VIEW_DRIFT');
+  demand(importsOf(get(SIZE_VIEW)).length===0,'NEW_DOCUMENT_VIEW_HAS_NATIVE_IMPORTS');
+  demand(/renderNewDocumentSizeDialog\s*\(/.test(get(NATIVE_STATE)),
+    'REAL_NEW_DOCUMENT_VIEW_NOT_USED');
+  demand(/export const ARTBOARD_PPI_MIN\s*=\s*36\b/.test(get(ARTBOARD_SOURCE))&&
+    /export const ARTBOARD_PPI_MAX\s*=\s*2400\b/.test(get(ARTBOARD_SOURCE)),
+    'NEW_DOCUMENT_PPI_BOUNDS_DRIFT');
+  const brandView=get(BRAND_VIEW);
+  demand(/INK_BRANDING_VIEW\s*=\s*Object\.freeze\(\{createBrandingView\}\)/.test(brandView),
+    'BRANDING_PURE_VIEW_EXPORT_MISSING');
+  demand(!/\b(?:import\s*\(|require\s*\(|fetch\s*\(|localStorage|sessionStorage|FileReader|Blob|createObjectURL|XMLHttpRequest|indexedDB)\b/.test(brandView),
+    'BRANDING_VIEW_IMPURE');
+  demand(/INK_BRANDING_VIEW\?\.createBrandingView/.test(get(BRAND_CONTROLLER)),
+    'REAL_BRANDING_VIEW_NOT_USED');
+  demand(importsOf(get(NATIVE_WORKBENCH)).some(spec=>
+    localPath(NATIVE_WORKBENCH,spec)===SAFE_TOOLBAR_UI),
+    'REAL_TOOLBAR_UI_SOURCE_DRIFT');
+  demand(importsOf(get(SAFE_TOOLBAR_UI)).length===0,'SHARED_TOOLBAR_NATIVE_DEPENDENCY');
+  demand(/storage\s*,\s*allowPresetFiles\s*=\s*true/.test(get(SAFE_TOOLBAR_UI)),
+    'SHARED_TOOLBAR_SAFE_HOST_SEAM_MISSING');
   checkRealEntrypoint(get('index.html'),get(UI+'entry.js'),get('dist/startup/ink-shell.mjs'));
   const reached=checkUiGraph(contents);
   const shared=LEASED.map(path=>({path,git_blob_sha:contents.get(path).blob}));
@@ -241,8 +296,9 @@ export async function verifySameSource(reader,{scope='presentation',expectedHead
     status:'PRESENTATION_SOURCE_PASS',sharedFiles:shared,esmReached:reached,
     browserVisualParity:'NOT_VERIFIED_BY_STATIC_GUARD',
     previewHost:'MOCK_ONLY',realHost:'NATIVE_ONLY',
-    excludedFromClaim:['Native tool registry/options','Native size dialog','canvas/Renderer',
-      'branding/Drive','unapproved Mobile Master redesign','visual pixel parity']};
+    sharedAuxiliaryFiles:[SIZE_VIEW,BRAND_VIEW,'stage-runtime.css',SAFE_TOOLBAR_UI].map(path=>({path,git_blob_sha:contents.get(path).blob})),
+    excludedFromClaim:['Native tool registry/options','other Native size dialogs (canvas/PPI/artwork)','canvas/Renderer',
+      'Native branding storage/files/export, Drive','unapproved Mobile Master redesign','visual pixel parity']};
   if(scope==='catalog'||scope==='full'){
     report.toolSnapshot=await checkFrozenToolSnapshot(reader,get(PREVIEW+'mock-host.js'));
     report.status='PRESENTATION_AND_CATALOG_PIN_PASS';

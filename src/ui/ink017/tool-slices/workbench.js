@@ -1,4 +1,4 @@
-import {esc} from '../shared-controls.js';
+import {esc,arrangeToolOptions} from '../shared-controls.js';
 import {mountToolbarCustomizer} from './toolbar-customizer.js';
 import {UI_B_RASTER_TOOL_IDS} from '../../../../ui/capability-raster-tools.js';
 import {TOOL_GROUPS,toolAvailability,activeToolContext,activateToolContext,rasterGeometryAvailable} from './registry.js';
@@ -97,22 +97,7 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
  // Extra parameters stay in the same delegated event root when moved into a
  // Native Popover. No copied input values or second parameter state owner.
  function arrangeOptions(){
-  if(!expanded||!options.firstElementChild)return;
-  const fields=[...options.querySelectorAll('label.field-row,span.field-row[role=status],button[data-dev1-action],button[data-dev2-action],button[data-dev3-action],button[data-completion-action]')];
-  if(!fields.length||bar.scrollWidth<=bar.clientWidth+1)return;
-  const extra=document.createElement('div');extra.className='context-more-menu';extra.id='toolOptionsMore';extra.setAttribute('popover','auto');extra.setAttribute('role','group');extra.setAttribute('aria-label','更多工具選項');
-  const more=document.createElement('button');more.type='button';more.className='context-drawing-more';more.textContent='更多';more.setAttribute('aria-expanded','false');more.setAttribute('aria-controls',extra.id);
-  options.append(more,extra);
-  // Measure the real labels and controls, including the More button itself.
-  // Shrink to content; move trailing fields only until the bounded row fits.
-  for(const field of fields.slice().reverse()){
-   if(bar.scrollWidth<=bar.clientWidth+1)break;
-   if(field.closest('fieldset:disabled')){if(field.matches('button,input,select'))field.disabled=true;field.querySelectorAll('input,select,button').forEach(el=>el.disabled=true)}
-   extra.prepend(field);
-  }
-  more.addEventListener('click',()=>{if(extra.matches(':popover-open')){extra.hidePopover();return}const box=more.getBoundingClientRect();extra.style.left=Math.min(box.left,Math.max(8,innerWidth-276))+'px';extra.style.top='8px';extra.showPopover();extra.style.top=Math.max(8,box.top-extra.getBoundingClientRect().height-6)+'px';more.setAttribute('aria-expanded','true');extra.querySelector('input:not(:disabled),select:not(:disabled),button:not(:disabled)')?.focus()},{signal:optionAbort.signal});
-  extra.addEventListener('toggle',()=>more.setAttribute('aria-expanded',String(extra.matches(':popover-open'))),{signal:optionAbort.signal});
-  extra.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();extra.hidePopover();more.focus()}},{signal:optionAbort.signal});
+  arrangeToolOptions(options,bar,optionAbort.signal,{expanded});
  }
  function stopOptions(){options.querySelector('[popover]')?.hidePopover?.();mount?.dispose?.();mount=null;optionAbort?.abort();optionAbort=null;options.replaceChildren();}
  // Slice subscriptions are centralized here to preserve in-progress input and

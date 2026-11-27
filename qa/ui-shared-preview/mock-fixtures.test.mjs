@@ -4,12 +4,16 @@ import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 import test from 'node:test';
 
-// Import the Mock in an isolated data module. This intentionally requires no
-// DOM, Browser, Native registry, Core, local storage, network or test Runner.
+// Import the fixture state in an isolated data module. The pure toolbar view
+// mount is intentionally a no-op here: these assertions never mount a DOM,
+// while the separate same-source tests verify the actual shared import.
 const path=resolve(fileURLToPath(new URL('.',import.meta.url)),'../../preview/ink-ui-shared/mock-host.js');
 const source=readFileSync(path,'utf8');
 const injected='\nexport { fixtures, NATIVE_TOOL_SOURCE_BLOBS };';
-const mock=await import('data:text/javascript;base64,'+Buffer.from(source+injected).toString('base64'));
+const isolated=source.replace(/^import \{mountToolbarCustomizer\} from '[^']+';$/m,
+ 'const mountToolbarCustomizer=()=>({dispose(){}});');
+assert.notEqual(isolated,source,'toolbar shared view must be imported by Mock');
+const mock=await import('data:text/javascript;base64,'+Buffer.from(isolated+injected).toString('base64'));
 
 test('Mock catalog is exactly the pinned 20 Native display groups / 41 items',()=>{
  const ids=['select','marquee','lasso','wand','crop','eyedropper','drawing','healing','stamp','eraser','fill','local','tone','vector-pen','text','nodes','shape','guide','pan','zoom'];

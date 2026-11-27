@@ -141,15 +141,8 @@
     refresh(true);
     statusText('未提交變更已清除；網站設定沒有改變。');
   };
-  const makeFile=(parent,id,label,kind)=>{
-    const row=make('div',{class:'ink-branding-file-row'});
-    const heading=make('label',{for:id},label);
-    const controls=make('div',{class:'ink-branding-file-controls'});
-    const chooser=make('button',{type:'button',class:'ink-branding-file-choose','data-ink-brand-choose':kind},'選擇圖檔');
-    const filename=make('span',{class:'ink-branding-file-name'},'未選擇檔案');
+  const bindFile=(chooser,input,filename,label,kind)=>{
     filenames[kind]=filename;
-    const input=make('input',{id,type:'file',accept:[...MIME].join(','),hidden:''});
-    input.hidden=true;
     chooser.addEventListener('click',()=>input.click());
     input.addEventListener('change',()=>{
       const file=input.files?.[0];input.value='';
@@ -175,8 +168,6 @@
       reader.onerror=()=>{pending--;refresh();statusText(label+' 無法讀取圖檔。');};
       reader.readAsDataURL(file);
     });
-    controls.append(chooser,filename,input);
-    row.append(heading,controls);parent.append(row);
   };
   const exportCandidate=()=>{
     if(pending||!updated())return;
@@ -205,62 +196,24 @@
   };
   function mount(){
     if(backdrop)return;
-    backdrop=make('div',{class:'ink-branding-backdrop',hidden:''});
-    backdrop.hidden=true;
-    panel=make('section',{class:'ink-branding-panel',role:'dialog','aria-modal':'true',
-      'aria-label':'網站品牌設定','aria-describedby':'inkBrandHelp'});
-    header=make('header',{class:'dialog-header ink-branding-header'});
-    const title=make('h2',{},'網站品牌設定');
-    const x=make('button',{type:'button',class:'dialog-close','aria-label':'關閉品牌設定'},'×');
-    x.addEventListener('click',close);header.append(title,x);panel.append(header);
-    const body=make('div',{class:'ink-branding-pref-body'});
-    const content=make('div',{class:'ink-branding-pref-content'});
-    const fields=make('div',{class:'ink-branding-fields'});
-    const makeText=(key,label,max)=>{
-      const lab=make('label',{for:'inkBrand'+key},label);
-      const input=make('input',{id:'inkBrand'+key,type:'text',maxlength:String(max)});
+    // The Real controller owns data and commands; the Mock imports only this
+    // same pure DOM view, never this controller or its storage/upload/export IO.
+    const view=globalThis.INK_BRANDING_VIEW?.createBrandingView({ownerUpload:OWNER_UPLOAD});
+    if(!view)throw Error('INK_BRANDING_VIEW_MISSING');
+    ({backdrop,panel,header,nameInput,titleInput,logoImage,faviconImage,status,clearButton}=view);
+    button=view.candidateButton;
+    view.close.addEventListener('click',close);
+    for(const [key,input,max] of [['name',nameInput,32],['title',titleInput,100]]){
       input.addEventListener('input',()=>{
         draft[key]=input.value.slice(0,max);
         refresh(); // preserve the cursor, selection and typed spacing
       });
-      fields.append(lab,input);return input;
-    };
-    nameInput=makeText('name','Application Name',32);
-    titleInput=makeText('title','Browser Title',100);
-    content.append(fields);
-    const preview=make('div',{class:'ink-branding-preview'});
-    const logoGroup=make('div',{class:'ink-branding-preview-item'});
-    logoGroup.append(make('span',{class:'ink-branding-preview-label'},'Logo'));
-    logoImage=make('img',{alt:'網站 Logo 預覽'});
-    logoGroup.append(logoImage);
-    const faviconGroup=make('div',{class:'ink-branding-preview-item'});
-    faviconGroup.append(make('span',{class:'ink-branding-preview-label'},'Favicon'));
-    faviconImage=make('img',{alt:'網站 Favicon 預覽'});
-    faviconGroup.append(faviconImage);
-    preview.append(logoGroup,faviconGroup);content.append(preview);
-    makeFile(content,'inkBrandLogoFile','Choose Logo','logo');
-    const faviconRow=make('div',{class:'ink-branding-file-row'});
-    const ownerLink=make('a',{
-      href:OWNER_UPLOAD,target:'_blank',rel:'noopener noreferrer',
-      'data-ink-brand-owner-favicon':''
-    },'在 GitHub 更換 Favicon');
-    faviconRow.append(make('label',{},'Favicon'),ownerLink);
-    content.append(faviconRow);
-    content.append(make('p',{id:'inkBrandHelp',class:'ink-branding-help'},
-      'Favicon：在 GitHub 上傳 favicon-user.png 並提交，重新整理 INK 即生效。其他網站設定仍由 INK PUBLISH 發布。'));
-    body.append(content);panel.append(body);
-    status=make('p',{class:'ink-branding-status',role:'status','aria-live':'polite'});
-    status.hidden=true;
-    panel.append(status);
-    const footer=make('div',{class:'dialog-footer ink-branding-actions'});
-    clearButton=make('button',{type:'button','data-ink-brand-clear':''},'清除');
+    }
+    bindFile(view.logoChoose,view.logoInput,view.logoFilename,'Choose Logo','logo');
     clearButton.addEventListener('click',reset);
-    button=make('button',{type:'button','data-ink-brand-public-candidate':'',class:'primary'},'下載其他設定候選');
     button.addEventListener('click',exportCandidate);
-    const dismiss=make('button',{type:'button','data-ink-brand-close':''},'關閉');
-    dismiss.addEventListener('click',close);
-    footer.append(clearButton,button,dismiss);panel.append(footer);
-    backdrop.append(panel);document.body.append(backdrop);
+    view.dismiss.addEventListener('click',close);
+    document.body.append(backdrop);
     backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
     backdrop.addEventListener('keydown',e=>{
       if(e.key==='Escape'){e.preventDefault();close();}

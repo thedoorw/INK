@@ -4,6 +4,83 @@ export const selected=s=>s.object;
 export const selectedLayer=s=>{const d=activeDoc(s);return d?.layers.find(l=>l.id===d.selection)};
 export const range=(label,value,min=0,max=100)=>`<label class="range-row"><span>${esc(label)}</span><input class="shared-slider" aria-label="${esc(label)}" type="range" min="${min}" max="${max}" value="${value}"><output>${value}</output></label>`;
 export function field(key,label,value,type='number',options,accessibleName=label){return `<label class="field-row"><span>${esc(label)}</span>${options?`<select data-key="${key}" aria-label="${esc(accessibleName)}">${options.map(o=>`<option ${o===value?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input data-key="${key}" aria-label="${esc(accessibleName)}" type="${type}" value="${esc(value)}" ${type==='number'?'step="any"':''}>`}</label>`}
+// Public-owned, side-effect-free drawing-options markup. Native owns actual
+// settings, validation and command listeners; Mock supplies in-memory values.
+// This is one actual renderer for both hosts once the Native bundle consumes
+// the updated adapter. No Core module is imported here.
+const DRAW_OPTION_LABELS=Object.freeze({
+ size:'Size px',opacity:'Opacity %',flow:'Flow %',smoothing:'Smoothing %',
+ pressure:'Pressure %',taper:'Taper %',wetness:'Wetness %',grain:'Grain %',
+ bristle:'Bristle %',softness:'Softness %'
+});
+export function renderDev1DrawingOptions(label,settings){
+ if(!settings)return '';
+ const keys=['size','opacity','flow','smoothing','pressure','taper','wetness','grain','bristle','softness']
+  .filter(key=>Number.isFinite(settings[key]));
+ const rows=keys.map(key=>{
+  const value=key==='size'?settings[key]:Math.round(settings[key]*10000)/100;
+  return field('dev1:'+key,DRAW_OPTION_LABELS[key],value,'number')
+   .replace('step="any"','step="any" min="'+(key==='size'?1:0)+'" max="'+(key==='size'?300:100)+'"');
+ }).join('');
+ return '<div class="context-parameter-group" role="group" aria-label="'+esc(label)+' parameters">'+rows+'</div>';
+}
+
+// Same Public shape-option fields are consumed by Native's DEV3 adapter and
+// the UI MASTER Mock. The adapters own values and commands, never this renderer.
+export function renderDev3ShapeOptions(options={},selectedShape=null){
+ const shapes=['line','arrow','rect','ellipse','triangle'];
+ const shape=shapes.includes(options.shapeType)?options.shapeType:'line';
+ let body=field('shape:type','Shape',shape,'text',shapes)+
+  field('shape:defaultFill','Fill new',options.shapeFill?'On':'Off','text',['Off','On']);
+ if(selectedShape){
+  const numeric=(key,label,value,min,max)=>field(key,label,value)
+   .replace('step="any"','step="any" min="'+min+'" max="'+max+'"');
+  body+='<fieldset'+(selectedShape.locked?' disabled':'')+'>'+
+   numeric('shape:w','W',selectedShape.w,0.001,10000000)+
+   numeric('shape:h','H',selectedShape.h,0.001,10000000)+
+   numeric('shape:rotate','Rotate °',selectedShape.rotate,-360000,360000)+
+   field('shape:fill','Object fill',selectedShape.fill||'#202020','color')+'</fieldset>';
+ }
+ return '<div class="context-parameter-group" role="group" aria-label="Shape defaults and selected object">'+body+'</div>';
+}
+
+// Public-only context layout: the same bounded-row / More arrangement for
+// Native and Mock. This handles DOM presentation; no command receives writes.
+export function arrangeToolOptions(options,bar,signal,{expanded=true}={}){
+ if(!expanded||!options?.firstElementChild||!bar||!signal)return false;
+ const fields=[...options.querySelectorAll('label.field-row,span.field-row[role=status],button[data-dev1-action],button[data-dev2-action],button[data-dev3-action],button[data-completion-action]')];
+ if(!fields.length||bar.scrollWidth<=bar.clientWidth+1)return false;
+ const extra=document.createElement('div');
+ extra.className='context-more-menu';extra.id='toolOptionsMore';
+ extra.setAttribute('popover','auto');extra.setAttribute('role','group');
+ extra.setAttribute('aria-label','更多工具選項');
+ const more=document.createElement('button');more.type='button';
+ more.className='context-drawing-more';more.textContent='更多';
+ more.setAttribute('aria-expanded','false');more.setAttribute('aria-controls',extra.id);
+ options.append(more,extra);
+ for(const part of fields.slice().reverse()){
+  if(bar.scrollWidth<=bar.clientWidth+1)break;
+  if(part.closest('fieldset:disabled')){
+   if(part.matches('button,input,select'))part.disabled=true;
+   part.querySelectorAll('input,select,button').forEach(el=>el.disabled=true);
+  }
+  extra.prepend(part);
+ }
+ more.addEventListener('click',()=>{
+  if(extra.matches(':popover-open')){extra.hidePopover();return;}
+  const box=more.getBoundingClientRect();
+  extra.style.left=Math.min(box.left,Math.max(8,innerWidth-276))+'px';
+  extra.style.top='8px';extra.showPopover();
+  extra.style.top=Math.max(8,box.top-extra.getBoundingClientRect().height-6)+'px';
+  more.setAttribute('aria-expanded','true');
+  extra.querySelector('input:not(:disabled),select:not(:disabled),button:not(:disabled)')?.focus();
+ },{signal});
+ extra.addEventListener('toggle',()=>more.setAttribute('aria-expanded',String(extra.matches(':popover-open'))),{signal});
+ extra.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();extra.hidePopover();more.focus();}
+ },{signal});
+ return true;
+}
 // A panel may expose an existing Native tool without inventing a second command route.
 // Keep empty-state actions honest: activation selects a tool, not an object or a document edit.
 export function nativeToolEmptyState(message,tool,label,s){
