@@ -12,8 +12,10 @@ async function main(){
   if(!shell?.querySelector('#artboardStage'))throw Error('MOCK_UI_MARKUP_CONTRACT');
   shell.querySelector('#toast').id='ui017Toast';
   const input=document.createElement('input');
-  input.id='importImageFile';input.type='file';input.accept='image/*';input.hidden=true;
+  input.id='importImageFile';input.type='file';input.accept='image/*';input.hidden=true;input.disabled=true;
   shell.append(input);
+  // No local file may enter a Mock fixture through the shared menu.
+  shell.querySelector('#openFile').disabled=true;
   const stage=document.createElement('div');stage.id='mockStage';stage.setAttribute('aria-label','Mock artboard (no Native renderer)');
   stage.className='preview-page';
   shell.querySelector('#artboardStage').append(stage);
