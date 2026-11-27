@@ -11,6 +11,9 @@ async function main(){
   const shell=parsed.querySelector('#shell');
   if(!shell?.querySelector('#artboardStage'))throw Error('MOCK_UI_MARKUP_CONTRACT');
   shell.querySelector('#toast').id='ui017Toast';
+  const input=document.createElement('input');
+  input.id='importImageFile';input.type='file';input.accept='image/*';input.hidden=true;
+  shell.append(input);
   const stage=document.createElement('div');stage.id='mockStage';stage.setAttribute('aria-label','Mock artboard (no Native renderer)');
   stage.className='preview-page';
   shell.querySelector('#artboardStage').append(stage);
