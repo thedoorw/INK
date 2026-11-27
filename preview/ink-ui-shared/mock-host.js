@@ -38,24 +38,25 @@ const NATIVE_TOOL_SOURCE_BLOBS=Object.freeze({
  'tool-slices/dev2/index.mjs':'920d96506e06217d3d7de78a26e768ec1d2b4811',
  'tool-slices/dev3/tools-context-dev3.mjs':'12be3a89e31063eb504f631794add97f040d4894'
 });
-// Mirror Native Workbench's ResizeObserver-driven option repaint without
-// importing Core. Overflow arrangement moves live fields into the More popover;
-// a width change must first restore the canonical Public markup before measuring.
+// Mirror Native Workbench's post-layout ResizeObserver repaint without
+// importing Core. An initial render can precede final overflow measurement;
+// scrollWidth can also change while the outer widths remain exactly equal.
+// Rebuild canonical Public markup before arranging live fields into More.
 export function observeMockContextWidth(root,bar,relayout,signal){
- const width=()=>`${root.getBoundingClientRect().width}:${bar.clientWidth}`;
- let measured=width(),frame=0,disposed=false;
+ const layout=()=>[root.getBoundingClientRect().width,bar.clientWidth,bar.scrollWidth].join(':');
+ let measured=null,frame=0,disposed=false;
  const schedule=()=>{
-  if(disposed||width()===measured||frame)return;
+  if(disposed||layout()===measured||frame)return;
   frame=requestAnimationFrame(()=>{
    frame=0;
-   if(disposed||signal?.aborted||width()===measured)return;
-   measured=width();relayout();measured=width();
+   if(disposed||signal?.aborted||layout()===measured)return;
+   measured=layout();relayout();measured=layout();
   });
  };
  const observer=new ResizeObserver(schedule);
  observer.observe(bar);observer.observe(root);
  const dispose=()=>{if(disposed)return;disposed=true;observer.disconnect();if(frame)cancelAnimationFrame(frame);frame=0;};
- if(signal?.aborted)dispose();else signal?.addEventListener('abort',dispose,{once:true});
+ if(signal?.aborted)dispose();else{signal?.addEventListener('abort',dispose,{once:true});schedule();}
  return dispose;
 }
 const icon=(body,styled=false)=>'<svg viewBox="0 0 24 24"'+(styled?' fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"':'')+' aria-hidden="true">'+(body.startsWith('<')?body:'<path d="'+body+'"/>')+'</svg>';
