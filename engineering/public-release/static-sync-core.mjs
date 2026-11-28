@@ -82,7 +82,13 @@ export const PUBLIC_UI_PRESENTATION_PATHS_V2=Object.freeze([
 // This is an ownership migration, not a folder-wide allowlist.
 export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
  ...PUBLIC_UI_PRESENTATION_PATHS_V2,
- 'src/ui/ink017/toolbar-customizer-view.js'
+ 'src/ui/ink017/toolbar-customizer-view.js',
+ 'src/ui/branding-settings-view.js',
+ 'src/ui/minimal-test-shell/size-dialog-view.js',
+ 'src/ui/minimal-test-shell/runtime-view.js',
+ 'src/agent/g2-direct-boot-view.mjs',
+ 'src/document/drive-native-link-view.mjs',
+ 'src/ui/stage-shell-view.js'
 ].sort());
 export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
 export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
@@ -248,6 +254,30 @@ export function assertPresentationClosure(files,leasedPaths=PUBLIC_UI_PRESENTATI
     const shell=files.get(SHELL_PATH).bytes.toString('utf8');
     assert.match(shell,/import\s*\{\s*toolbarCustomizerPresentation\s*\}\s*from\s*["']\.\/toolbar-customizer-view\.js["']/,
       'DUAL_TOOLBAR_PUBLIC_VIEW_NOT_BOUND');
+  }
+  const views=[
+    ['src/ui/branding-settings-view.js',['createBrandingDialogView']],
+    ['src/ui/minimal-test-shell/size-dialog-view.js',['sizeDialogMarkup']],
+    ['src/ui/minimal-test-shell/runtime-view.js',
+      ['renderMinimalControlsView','renderMinimalStateView','renderMinimalStatusView']],
+    ['src/agent/g2-direct-boot-view.mjs',['g2ConnectionLabel','createG2ConnectControl']],
+    ['src/document/drive-native-link-view.mjs',['createDriveDialogView','appendDriveRecoveryChoices']],
+    ['src/ui/stage-shell-view.js',['renderStageShellView']]
+  ];
+  for(const [p,required] of views)if(owned.has(p)){
+    const view=files.get(p).bytes.toString('utf8');
+    for(const name of required)
+      assert.match(view,new RegExp('\\bexport\\s+function\\s+'+name+'\\s*\\('),
+        'DUAL_PRESENTATION_VIEW_EXPORT:'+p+':'+name);
+  }
+  if(owned.has('src/ui/minimal-test-shell/runtime-view.js'))
+    assert.match(files.get('src/ui/minimal-test-shell/runtime-view.js').bytes.toString('utf8'),
+      /import\s*\{\s*sizeDialogMarkup\s*\}\s*from\s*['"]\.\/size-dialog-view\.js['"]/,
+      'DUAL_PRESENTATION_SIZE_VIEW_LINK');
+  if(owned.has('src/ui/stage-shell-view.js')){
+    const view=files.get('src/ui/stage-shell-view.js').bytes.toString('utf8');
+    for(const id of ['inkBootGate','emptyHint','textEditor','textInput','textCommit','textCancel'])
+      assert.ok(view.includes(id),'DUAL_PRESENTATION_STAGE_NODE:'+id);
   }
   const markup=files.get('src/ui/ink017/markup.html').bytes.toString('utf8');
   assert.ok(!/<\s*(?:script|iframe)\b|\bon[a-z]+\s*=/.test(markup),
@@ -674,7 +704,7 @@ function checkedMenu(f){
 function verifyInstalledUiBridge(base){
   verifyUiBridgeFiles(base.files);
 }
-function verifyUiBridgeFiles(files,ui){
+export function verifyUiBridgeFiles(files,ui){
   const shell=files.get('dist/startup/ink-shell.mjs');
   assert.ok(shell?.mode==='100644'&&Buffer.isBuffer(shell.bytes),'UI_BRIDGE_SHELL_MISSING');
   if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA){
@@ -682,6 +712,26 @@ function verifyUiBridgeFiles(files,ui){
       /import\(new URL\(["']\.\/shell\.js["'],new URL\(["']src\/ui\/ink017\/entry\.js["'],document\.baseURI\)\.href\)\.href\)/,
       'UI_BRIDGE_EXTERNAL_SHELL_NOT_INSTALLED');
     assertPresentationClosure(files,presentationPathsForLease(ui));
+    const leased=new Set(presentationPathsForLease(ui));
+    const bindings=[
+      ['src/ui/branding-settings-view.js','src/ui/branding-settings.js',
+        /import\(['"]\.\/branding-settings-view\.js['"]\)/],
+      ['src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js',
+        /import\s*\{\s*renderMinimalControlsView\s*,\s*renderMinimalStateView\s*,\s*renderMinimalStatusView\s*\}\s*from\s*['"]\.\/runtime-view\.js['"]/],
+      ['src/agent/g2-direct-boot-view.mjs','src/agent/g2-direct-boot.mjs',
+        /import\s*\{\s*g2ConnectionLabel\s*,\s*createG2ConnectControl\s*\}\s*from\s*['"]\.\/g2-direct-boot-view\.mjs['"]/],
+      ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs',
+        /import\s*\{\s*createDriveDialogView\s*,\s*appendDriveRecoveryChoices\s*\}\s*from\s*['"]\.\/drive-native-link-view\.mjs['"]/],
+      ['src/ui/stage-shell-view.js','index.html',
+        /<script\s+type="module"\s+src="src\/ui\/stage-shell-view\.js"\s*><\/script>/]
+    ];
+    for(const [view,controller,pattern] of bindings)if(leased.has(view)){
+      const source=files.get(controller);
+      assert.ok(source?.mode==='100644'&&Buffer.isBuffer(source.bytes),
+        'UI_BRIDGE_CONTROLLER_REQUIRED:'+controller);
+      assert.match(source.bytes.toString('utf8'),pattern,
+        'UI_BRIDGE_PUBLIC_VIEW_NOT_BOUND:'+view);
+    }
   }else{
     assert.match(shell.bytes.toString('utf8'),
       /import\(new URL\(["']\.\/menu-ui\.js["'],new URL\(["']src\/ui\/ink017\/shell\.js["'],document\.baseURI\)\.href\)\.href\)/,
@@ -691,10 +741,22 @@ function verifyUiBridgeFiles(files,ui){
   assert.ok(worker?.mode==='100644'&&Buffer.isBuffer(worker.bytes),'UI_BRIDGE_SW_MISSING');
   const source=worker.bytes.toString('utf8');
   assert.match(source,/['"]\.\/src\/ui\/ink017\/menu-ui\.js['"]/,'UI_BRIDGE_SW_OFFLINE_MISSING');
-  if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA)
-    for(const p of presentationPathsForLease(ui))
+  if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA){
+    const leased=new Set(presentationPathsForLease(ui));
+    for(const p of leased)
       assert.ok(source.includes(JSON.stringify('./'+p))||source.includes("'./"+p+"'"),
         'UI_BRIDGE_SW_OFFLINE_PRESENTATION:'+p);
+    const controllers=[
+      ['src/ui/branding-settings-view.js','src/ui/branding-settings.js'],
+      ['src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js'],
+      ['src/agent/g2-direct-boot-view.mjs','src/agent/g2-direct-boot.mjs'],
+      ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs']
+    ];
+    for(const [view,controller] of controllers)if(leased.has(view))
+      assert.ok(source.includes(JSON.stringify('./'+controller))||
+        source.includes("'./"+controller+"'"),
+        'UI_BRIDGE_SW_OFFLINE_CONTROLLER:'+controller);
+  }
   assert.match(source,/networkFirstAsset\(event\.request/,'UI_BRIDGE_SW_NETWORK_FIRST_MISSING');
 }
 export function verifyUiOnlyPlan({base,candidateFiles,cfg,changedPaths}){
