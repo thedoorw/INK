@@ -461,7 +461,7 @@ const BUNDLE_COLOR='src/ui/ink017/panels/color.js';
 const BUNDLE_TOKENS='src/ui/ink017/tokens.css';
 const REAL_SVG_ICON="url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2012%2012'%3E%3Cpath%20d='M2.5%204.5%206%208%209.5%204.5'%20fill='none'%20stroke='%23666666'%20stroke-width='1.25'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E\")";
 const BUNDLE_META=['BUILD_INFO.json','PUBLISH_RECEIPT.json','pages-build-identity.txt'];
-const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';import {renderCompletionOptions} from './completion-options-view.js';import {renderNativeToolParameters} from './native-tool-params-view.js';import {presentCompletionOverlay} from './completion-overlay-view.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
+const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';import {renderCompletionOptions} from './completion-options-view.js';import {renderNativeToolParameters} from './native-tool-params-view.js';import {presentCompletionOverlay} from './completion-overlay-view.js';import {presentCropOverlay} from './crop-overlay-view.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
 const bundleControllers=[
  'src/ui/branding-settings.js','src/ui/minimal-test-shell/modules.js',
  'src/agent/g2-direct-boot.mjs','src/document/drive-native-link-startup.mjs',
@@ -495,6 +495,7 @@ function bundleFixture({missingCharacterSW=false,missingToolbarSW=false}={}){
   p==='src/ui/ink017/native-tool-params-view.js'?'export function renderNativeToolParameters({markup}){return markup}':
   p==='src/agent/popup-client-view.js'?'export function createPrivateReadOnlyMenuRow(){}':
   p==='src/ui/ink017/completion-overlay-view.js'?'export function presentCompletionOverlay(markup){return markup}':
+  p==='src/ui/ink017/crop-overlay-view.js'?'export function presentCropOverlay(markup){return markup}':
   p===UI_MENU?menuSource('snapState','Public A'):p.endsWith('.html')?'<main>INK</main>':
   p.endsWith('.css')?':root{--ink-color:blue}':`export const label=${JSON.stringify(p)};`));
  s.build.runtime.files=runtimeRows(s.sourceFiles);
