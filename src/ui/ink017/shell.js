@@ -1,5 +1,6 @@
 import {mountDock} from './right-dock.js';
 import {esc,selected,field,iconButton,drag} from './shared-controls.js';
+import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';
 
 // Public presentation of the existing Native-owned tool registry. These
 // callbacks receive detached display metadata only; Core chooses tools and
@@ -200,7 +201,7 @@ export async function mountNativeShell(host,root){
   $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
   contextToolbar.render(s);
  }
- const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton,renderToolMenu,updateToolContextIdentity,decorateToolOptions,decorateToolWorkbench});
+ const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton,renderToolMenu,updateToolContextIdentity,decorateToolOptions,decorateToolWorkbench,toolbarCustomizer:toolbarCustomizerPresentation});
  const syncBrandName=()=>{
   const name=globalThis.INK_BRANDING?.getName?.()||'INK';
   $('#logoButton').title=name;
