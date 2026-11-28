@@ -2,11 +2,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {readFileSync,existsSync} from 'node:fs';
 import {checkEvent,isControlOnly} from './verify-static-sync.mjs';
-import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,uiBundlePaths,verifyUiBundleOnlyPlan,expectedUiBundleMetadata,PUBLIC_UI_PRESENTATION_PATHS,PUBLIC_UI_SHARED_CONTROL_EXPORTS,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
+import {makePlan,verifyPlan,validateBase,validateBuild,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,uiBundlePaths,verifyUiBundleOnlyPlan,expectedUiBundleMetadata,verifyUiBridgeFiles,assertStagePresentationCss,PUBLIC_UI_PRESENTATION_PATHS,PUBLIC_UI_PRESENTATION_PATHS_V2,PUBLIC_UI_SHARED_CONTROL_EXPORTS,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
 import {createHash} from 'node:crypto';
 const cfg=JSON.parse(await readFile(new URL('./static-sync.allowlist.json',import.meta.url)));
 const sha=c=>c.repeat(40),file=s=>{const bytes=Buffer.from(s);return{bytes,sha:blob(bytes),mode:'100644'}};
+test('actual checked-out Public receipt and UI bridge remain verifiable across V2 lease migration',async()=>{
+ const root=new URL('../../',import.meta.url);
+ const read=async path=>{const bytes=await readFile(new URL(path,root));return {bytes,sha:blob(bytes),mode:'100644'}};
+ const [buildItem,receiptItem]=await Promise.all([read('BUILD_INFO.json'),read('PUBLISH_RECEIPT.json')]);
+ const build=JSON.parse(buildItem.bytes),receipt=JSON.parse(receiptItem.bytes);
+ const paths=new Set([...build.runtime.files.map(r=>r.path),
+  ...receipt.managed_files.map(r=>r.path),'PUBLISH_RECEIPT.json','pages-build-identity.txt']);
+ const files=new Map(await Promise.all([...paths].map(async path=>[path,await read(path)])));
+ const prior=validateBase({head:sha('a'),tree:sha('b'),files},cfg);
+ const runtime=new Map(build.runtime.files.map(row=>[row.path,files.get(row.path)]));
+ validateBuild(build,runtime,cfg);
+ assert.deepEqual(prior.ui_release,build.ui_release);
+ assert.ok([PUBLIC_UI_PRESENTATION_PATHS_V2.length,PUBLIC_UI_PRESENTATION_PATHS.length]
+  .includes(prior.ui_release?.files?.length),
+  'actual checked-out Public must retain a known exact V2 presentation lease');
+ verifyUiBridgeFiles(runtime,prior.ui_release);
+});
 function inputs(){
  const sourceFiles=new Map([['index.html',file('<html></html>')],['build-identity.js',file("self.INK_BUILD_ID = 'src-123456789012345678901234';")],['manifest.webmanifest',file('{}')],['service-worker.js',file('// worker')],['service-worker-runtime.js',file('// worker')]]);
  const files=[...sourceFiles].sort().map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}));
@@ -209,7 +227,7 @@ test('next Private Core release fails closed if compiled shell loses the externa
 });
 test('next Private Core release fails closed if SW loses menu offline closure or network-first',()=>{
  for(const [workerBody,pattern] of [
-  ['function networkFirstAsset(request){};networkFirstAsset(event.request);',/UI_BRIDGE_SW_OFFLINE_MISSING/],
+  ['function networkFirstAsset(request){};networkFirstAsset(event.request);',/UI_BRIDGE_SW_SOURCE_SHELL_REQUIRED/],
   ['const SOURCE_SHELL=["./src/ui/ink017/menu-ui.js"];function cacheOnly(request){};',/UI_BRIDGE_SW_NETWORK_FIRST_MISSING/]
  ]){
   const x=dualCoreFixture();
@@ -459,21 +477,58 @@ const BUNDLE_SHELL='src/ui/ink017/shell.js';
 const BUNDLE_SHARED='src/ui/ink017/shared-controls.js';
 const BUNDLE_COLOR='src/ui/ink017/panels/color.js';
 const BUNDLE_TOKENS='src/ui/ink017/tokens.css';
+const BUNDLE_STAGE_CSS='src/ui/stage-presentation.css';
 const REAL_SVG_ICON="url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2012%2012'%3E%3Cpath%20d='M2.5%204.5%206%208%209.5%204.5'%20fill='none'%20stroke='%23666666'%20stroke-width='1.25'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E\")";
 const BUNDLE_META=['BUILD_INFO.json','PUBLISH_RECEIPT.json','pages-build-identity.txt'];
-const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
-const bundleWorker=()=>`const SOURCE_SHELL=[${PUBLIC_UI_PRESENTATION_PATHS.map(p=>JSON.stringify('./'+p)).join(',')}];networkFirstAsset(event.request);`;
+const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';import {renderCompletionOptions} from './completion-options-view.js';import {renderNativeToolParameters} from './native-tool-params-view.js';import {presentCompletionOverlay} from './completion-overlay-view.js';import {presentCropOverlay} from './crop-overlay-view.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
+const bundleControllers=[
+ 'src/ui/branding-settings.js','src/ui/minimal-test-shell/modules.js',
+ 'src/agent/g2-direct-boot.mjs','src/document/drive-native-link-startup.mjs',
+ 'src/agent/popup-client.js','src/agent/work-runtime-read-controls.mjs',
+ 'src/document/multi-view-workspace.js','src/agent/runtime-bridge.js',
+ 'src/artwork-import/ingress-consent.js'
+];
+const stageImports="import {createMultiViewPane,updateMultiViewPane,createMultiViewGrid,createFixedDocumentCanvas} from './multi-view-view.js';import {createReadonlyCompareView} from './compare-readonly-view.js';import {createRuntimeBridgeControls,presentRuntimeBridgeControls} from './runtime-bridge-view.js';import {createArtworkIngressConsentView,artworkIngressSuccessText,artworkIngressErrorText} from './artwork-ingress-view.js';";
+const bundleStage=()=>stageImports+"globalThis.INK_PUBLIC_DOCUMENT_VIEWS=Object.freeze({createMultiViewPane,updateMultiViewPane,createMultiViewGrid,createFixedDocumentCanvas,createReadonlyCompareView,createRuntimeBridgeControls,presentRuntimeBridgeControls,createArtworkIngressConsentView,artworkIngressSuccessText,artworkIngressErrorText});export function renderStageShellView(){/* inkBootGate emptyHint textEditor textInput textCommit textCancel */}";
+const bundleWorker=()=>`const SOURCE_SHELL=[${[...PUBLIC_UI_PRESENTATION_PATHS,...bundleControllers].map(p=>JSON.stringify('./'+p)).join(',')}];networkFirstAsset(event.request);`;
 const runtimeRows=files=>[...files].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}))
   .sort((a,b)=>a.path.localeCompare(b.path,'en'));
-function bundleFixture({missingCharacterSW=false}={}){
+function bundleFixture({missingCharacterSW=false,missingToolbarSW=false}={}){
  const s=inputs();
+ s.sourceFiles.set('index.html',file('<main></main><link rel="stylesheet" href="src/ui/stage-presentation.css"><script type="module" src="src/ui/stage-shell-view.js"></script>'));
+ s.sourceFiles.set('src/ui/branding-settings.js',file("const viewPromise=import('./branding-settings-view.js');"));
+ s.sourceFiles.set('src/ui/minimal-test-shell/modules.js',file("import {renderMinimalControlsView,renderMinimalStateView,renderMinimalStatusView} from './runtime-view.js';"));
+ s.sourceFiles.set('src/agent/g2-direct-boot.mjs',file("import {g2ConnectionLabel,createG2ConnectControl} from './g2-direct-boot-view.mjs';"));
+ s.sourceFiles.set('src/document/drive-native-link-startup.mjs',file("import {createDriveDialogView,appendDriveRecoveryChoices} from './drive-native-link-view.mjs';"));
+ s.sourceFiles.set('src/agent/popup-client.js',file("import {createPrivateReadOnlyMenuRow} from './popup-client-view.js';"));
+ s.sourceFiles.set('src/agent/work-runtime-read-controls.mjs',file("import {createWorkReadDialog,presentWorkRecipeState} from '../ui/work-runtime-read-view.mjs';"));
+ s.sourceFiles.set('src/document/multi-view-workspace.js',file('globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createMultiViewGrid;globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createMultiViewPane;globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.updateMultiViewPane;'));
+ s.sourceFiles.set('src/agent/runtime-bridge.js',file('globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createRuntimeBridgeControls;globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.presentRuntimeBridgeControls;'));
+ s.sourceFiles.set('src/artwork-import/ingress-consent.js',file('globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createArtworkIngressConsentView;globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.artworkIngressSuccessText;globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.artworkIngressErrorText;'));
  s.sourceFiles.set('dist/startup/ink-shell.mjs',file(
   'await import(new URL("./shell.js",new URL("src/ui/ink017/entry.js",document.baseURI).href).href);'));
  s.sourceFiles.set('service-worker-runtime.js',file(missingCharacterSW?
   bundleWorker().replace('"./src/ui/ink017/panels/character-typography.js",',''):
-  bundleWorker()));
+  missingToolbarSW?bundleWorker().replace('"./src/ui/ink017/toolbar-customizer-view.js"',''):bundleWorker()));
  for(const p of PUBLIC_UI_PRESENTATION_PATHS)s.sourceFiles.set(p,file(p===BUNDLE_SHELL?bundleShell():
   p===BUNDLE_SHARED?PUBLIC_UI_SHARED_CONTROL_EXPORTS.map(name=>`export const ${name}=()=>{};`).join('\n'):
+  p==='src/ui/branding-settings-view.js'?'export function createBrandingDialogView(){}':
+  p==='src/ui/minimal-test-shell/size-dialog-view.js'?'export function sizeDialogMarkup(){}':
+  p==='src/ui/minimal-test-shell/runtime-view.js'?"import {sizeDialogMarkup} from './size-dialog-view.js';export function renderMinimalControlsView(){};export function renderMinimalStateView(){};export function renderMinimalStatusView(){}":
+  p==='src/agent/g2-direct-boot-view.mjs'?'export function g2ConnectionLabel(){};export function createG2ConnectControl(){}':
+  p==='src/document/drive-native-link-view.mjs'?'export function createDriveDialogView(){};export function appendDriveRecoveryChoices(){}':
+  p==='src/ui/stage-shell-view.js'?bundleStage():
+  p==='src/ui/multi-view-view.js'?'export function createMultiViewPane(){};export function updateMultiViewPane(){};export function createMultiViewGrid(){};export function createFixedDocumentCanvas(){}':
+  p==='src/ui/compare-readonly-view.js'?'export function createReadonlyCompareView(){}':
+  p==='src/ui/runtime-bridge-view.js'?'export function createRuntimeBridgeControls(){};export function presentRuntimeBridgeControls(){}':
+  p==='src/ui/artwork-ingress-view.js'?'export function createArtworkIngressConsentView(){};export function artworkIngressSuccessText(){};export function artworkIngressErrorText(){}':
+  p==='src/ui/work-runtime-read-view.mjs'?'export function createWorkReadDialog(){};export function createWorkRecipeForm(){};export function presentWorkRecipeState(){}':
+  p===BUNDLE_STAGE_CSS?':root{color:#222;background:#f4f4f4}':
+  p==='src/ui/ink017/completion-options-view.js'?"import {field,esc} from './shared-controls.js';export function renderCompletionOptions(){}":
+  p==='src/ui/ink017/native-tool-params-view.js'?'export function renderNativeToolParameters({markup}){return markup}':
+  p==='src/agent/popup-client-view.js'?'export function createPrivateReadOnlyMenuRow(){}':
+  p==='src/ui/ink017/completion-overlay-view.js'?'export function presentCompletionOverlay(markup){return markup}':
+  p==='src/ui/ink017/crop-overlay-view.js'?'export function presentCropOverlay(markup){return markup}':
   p===UI_MENU?menuSource('snapState','Public A'):p.endsWith('.html')?'<main>INK</main>':
   p.endsWith('.css')?':root{--ink-color:blue}':`export const label=${JSON.stringify(p)};`));
  s.build.runtime.files=runtimeRows(s.sourceFiles);
@@ -483,7 +538,7 @@ function bundleFixture({missingCharacterSW=false}={}){
  const candidateFiles=new Map(base.files);
  candidateFiles.set(BUNDLE_COLOR,file('export const label="Public B color";'));
  candidateFiles.set(BUNDLE_TOKENS,file(':root{--ink-color:green}'));
- if(missingCharacterSW)return {base,candidateFiles};
+ if(missingCharacterSW||missingToolbarSW)return {base,candidateFiles};
  const metadata=expectedUiBundleMetadata({base,candidateFiles,cfg});
  candidateFiles.set('BUILD_INFO.json',metadata.buildItem);
  candidateFiles.set('PUBLISH_RECEIPT.json',metadata.receiptItem);
@@ -492,6 +547,180 @@ function bundleFixture({missingCharacterSW=false}={}){
  return {base,candidateFiles,metadata,changedPaths};
 }
 function verifyBundle(x){return verifyUiBundleOnlyPlan({...x,cfg});}
+test('#788 18-path published V2 receipt remains valid before Public-view lease migration',()=>{
+ const x=bundleFixture(),files=new Map(x.candidateFiles);
+ const before=JSON.parse(files.get('BUILD_INFO.json').bytes);
+ const receipt=JSON.parse(files.get('PUBLISH_RECEIPT.json').bytes);
+ const legacy=structuredClone(before.ui_release);
+ legacy.files=legacy.files.filter(row=>PUBLIC_UI_PRESENTATION_PATHS_V2.includes(row.path));
+ delete legacy.version;
+ legacy.version='ui-'+hash(Buffer.from(canonical(legacy))).slice(0,24);
+ assert.equal(legacy.files.length,18);
+ before.ui_release=structuredClone(legacy);
+ receipt.ui_release=structuredClone(legacy);
+ const buildFile=file(JSON.stringify(before,null,2)+'\n');
+ files.set('BUILD_INFO.json',buildFile);
+ receipt.managed_files=receipt.managed_files.map(row=>row.path==='BUILD_INFO.json'?{
+  path:'BUILD_INFO.json',bytes:buildFile.bytes.length,sha256:hash(buildFile.bytes),git_blob_sha:buildFile.sha
+ }:row);
+ files.set('PUBLISH_RECEIPT.json',file(JSON.stringify(receipt,null,2)+'\n'));
+ const base={head:sha('a'),tree:sha('b'),files};
+ assert.deepEqual(validateBase(base,cfg).ui_release.files.map(row=>row.path),PUBLIC_UI_PRESENTATION_PATHS_V2);
+ const candidate=new Map(files);
+ candidate.set('src/ui/ink017/toolbar-customizer-view.js',file('export const revisedToolbarView=true;'));
+ const next=expectedUiBundleMetadata({base,candidateFiles:candidate,cfg});
+ candidate.set('BUILD_INFO.json',next.buildItem);
+ candidate.set('PUBLISH_RECEIPT.json',next.receiptItem);
+ candidate.set('pages-build-identity.txt',next.identityItem);
+ assert.equal(verifyUiBundleOnlyPlan({base,candidateFiles:candidate,cfg,
+  changedPaths:[...next.changedUiPaths,...BUNDLE_META].sort()}).status,'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
+ assert.deepEqual(next.uiLease.files.map(row=>row.path),PUBLIC_UI_PRESENTATION_PATHS);
+});
+test('#788 extra view requires published source, same-origin module binding and offline closure',()=>{
+ const x=bundleFixture();
+ const without=new Map(x.base.files);without.delete('src/ui/ink017/toolbar-customizer-view.js');
+ const missingBase={...x.base,files:without};
+ assert.throws(()=>expectedUiBundleMetadata({base:missingBase,candidateFiles:x.candidateFiles,cfg}),
+  /UI_BUNDLE_SOURCE_NOT_PUBLISHED|PRIOR_FILE_MISSING/);
+ const unbound=new Map(x.candidateFiles);
+ unbound.set(BUNDLE_SHELL,file(bundleShell().replace("import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';",'')));
+ assert.throws(()=>expectedUiBundleMetadata({base:x.base,candidateFiles:unbound,cfg}),
+  /DUAL_TOOLBAR_PUBLIC_VIEW_NOT_BOUND/);
+ const missing=bundleFixture({missingToolbarSW:true});
+ assert.throws(()=>expectedUiBundleMetadata({...missing,cfg}),
+  /UI_BRIDGE_SW_OFFLINE_PRESENTATION:.*toolbar-customizer-view/);
+});
+test('#788 Public-only branding and size presentation edits preserve all Core controller blobs',()=>{
+ const x=bundleFixture(),base=x.candidateFiles;
+ const nextBase={head:sha('8'),tree:sha('9'),files:base};
+ const candidate=new Map(base);
+ const presentation='src/ui/branding-settings-view.js';
+ candidate.set(presentation,file('export function createBrandingDialogView(){return {visualOnly:true}}'));
+ const meta=expectedUiBundleMetadata({base:nextBase,candidateFiles:candidate,cfg});
+ candidate.set('BUILD_INFO.json',meta.buildItem);
+ candidate.set('PUBLISH_RECEIPT.json',meta.receiptItem);
+ candidate.set('pages-build-identity.txt',meta.identityItem);
+ assert.deepEqual(meta.changedUiPaths,[presentation]);
+ assert.equal(verifyUiBundleOnlyPlan({base:nextBase,candidateFiles:candidate,cfg,
+  changedPaths:[presentation,...BUNDLE_META].sort()}).status,'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
+ for(const protectedPath of bundleControllers.concat('index.html','dist/startup/ink-shell.mjs'))
+  assert.equal(candidate.get(protectedPath).sha,base.get(protectedPath).sha,
+    'protected controller unchanged '+protectedPath);
+ assert.notEqual(meta.pagesRevision,
+  JSON.parse(base.get('BUILD_INFO.json').bytes).dual_source?.pages_build_identity);
+});
+test('#788 added Public presenters cannot import Core or bypass their native binding',()=>{
+ const views=[
+  ['src/ui/branding-settings-view.js','src/ui/branding-settings.js'],
+  ['src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js'],
+  ['src/agent/g2-direct-boot-view.mjs','src/agent/g2-direct-boot.mjs'],
+  ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs'],
+  ['src/ui/stage-shell-view.js','index.html'],
+  ['src/agent/popup-client-view.js','src/agent/popup-client.js'],
+  ['src/ui/work-runtime-read-view.mjs','src/agent/work-runtime-read-controls.mjs']
+ ];
+ for(const [view,controller] of views){
+  const x=bundleFixture(),unbound=new Map(x.candidateFiles);
+  unbound.set(controller,file('/* missing bound presenter */'));
+  assert.throws(()=>verifyUiBridgeFiles(unbound,x.metadata.uiLease),
+    /UI_BRIDGE_PUBLIC_VIEW_NOT_BOUND/,controller);
+  const nonlocal=new Map(x.candidateFiles);
+  nonlocal.set(view,file("import '../../core/index.js';\n"+x.candidateFiles.get(view).bytes));
+  assert.throws(()=>expectedUiBundleMetadata({base:x.base,candidateFiles:nonlocal,cfg}),
+    /DUAL_PRESENTATION_(?:CORE_IMPORT|NONLOCAL_IMPORT)/,view);
+ }
+});
+test('#788 Drive compiled fallback cannot impersonate a live Public view import',()=>{
+ const x=bundleFixture(),candidate=new Map(x.candidateFiles);
+ candidate.set('src/document/drive-native-link-startup.mjs',file(
+  "import {createDriveDialogView as fallbackDriveDialogView,appendDriveRecoveryChoices as fallbackDriveRecoveryChoices} from './drive-native-link-view.mjs';"));
+ assert.throws(()=>verifyUiBridgeFiles(candidate,x.metadata.uiLease),
+  /UI_BRIDGE_DRIVE_PUBLIC_URL_REQUIRED/);
+ candidate.set('src/document/drive-native-link-startup.mjs',file(
+  "import {createDriveDialogView as fallbackDriveDialogView,appendDriveRecoveryChoices as fallbackDriveRecoveryChoices} from './drive-native-link-view.mjs';const publicURL=new URL('./drive-native-link-view.mjs',document.baseURI);"));
+ assert.throws(()=>verifyUiBridgeFiles(candidate,x.metadata.uiLease),
+  /UI_BRIDGE_DRIVE_DYNAMIC_IMPORT_REQUIRED/);
+});
+test('#788 offline view and protected controller are an atomic SW inventory',()=>{
+ for(const p of [
+  'src/ui/branding-settings-view.js','src/ui/stage-shell-view.js',
+  'src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js',
+  'src/document/drive-native-link-startup.mjs','src/agent/g2-direct-boot-view.mjs',
+  'src/ui/stage-presentation.css','src/ui/multi-view-view.js',
+  'src/ui/compare-readonly-view.js','src/ui/runtime-bridge-view.js',
+  'src/ui/artwork-ingress-view.js','src/ui/work-runtime-read-view.mjs',
+  'src/agent/work-runtime-read-controls.mjs','src/document/multi-view-workspace.js',
+  'src/agent/runtime-bridge.js','src/artwork-import/ingress-consent.js'
+ ]){
+  const x=bundleFixture(),candidate=new Map(x.candidateFiles);
+  candidate.set('service-worker-runtime.js',file(bundleWorker().replace(JSON.stringify('./'+p),
+    JSON.stringify('./missing-offline-asset.js'))));
+  assert.throws(()=>verifyUiBridgeFiles(candidate,x.metadata.uiLease),
+    /UI_BRIDGE_SW_OFFLINE_(?:PRESENTATION|CONTROLLER)/,p);
+ }
+});
+test('#788 SW entries in comments or unrelated strings are not accepted as offline closure',()=>{
+ const missing='src/ui/branding-settings-view.js';
+ const worker=bundleWorker();
+ const without=worker.replace(JSON.stringify('./'+missing),'');
+ const x=bundleFixture();
+ const commented=new Map(x.candidateFiles);
+ commented.set('service-worker-runtime.js',file(without+'\n// ./'+missing+'\n'));
+ assert.throws(()=>verifyUiBridgeFiles(commented,x.metadata.uiLease),
+  /UI_BRIDGE_SW_OFFLINE_PRESENTATION:.*branding-settings-view/);
+ const injected=new Map(x.candidateFiles);
+ injected.set('service-worker-runtime.js',file(without+'\nconst fakeLabel="./'+missing+'";\n'));
+ assert.throws(()=>verifyUiBridgeFiles(injected,x.metadata.uiLease),
+  /UI_BRIDGE_SW_OFFLINE_PRESENTATION:.*branding-settings-view/);
+ const spoofed=new Map(x.candidateFiles);
+ spoofed.set('service-worker-runtime.js',file('// '+bundleWorker()+'\nnetworkFirstAsset(event.request);'));
+ assert.throws(()=>verifyUiBridgeFiles(spoofed,x.metadata.uiLease),
+  /UI_BRIDGE_SW_SOURCE_SHELL_REQUIRED/);
+});
+test('#788 stage presentation CSS admits responsive paint/type and denies layout, hit testing and remote CSS',()=>{
+ const stagePath=new URL('../../src/ui/stage-presentation.css',import.meta.url);
+ const actual=existsSync(stagePath)?readFileSync(stagePath,'utf8'):
+  ':root{font-family:system-ui;color:#222;background:#f4f4f4}@media(max-width:820px){.ink-view-mode{font-size:9px}}';
+ assert.doesNotThrow(()=>assertStagePresentationCss(actual));
+ assert.doesNotThrow(()=>assertStagePresentationCss(actual+'\n.ink-size-actions{gap:12px}'));
+ assert.equal(PUBLIC_UI_PRESENTATION_PATHS.length,36);
+ for(const rule of [
+  '.ink-view-pane{position:fixed}',
+  '.ink-view-pane{inset:0}',
+  '.ink-view-pane{z-index:999}',
+  '.ink-view-pane{pointer-events:none}',
+  '.ink-view-pane{touch-action:none}',
+  '.ink-view-pane{width:100vw}',
+  '.ink-view-pane{transform:scale(0)}',
+  '.ink-view-pane{visibility:hidden}',
+  '.ink-view-pane{display:none}',
+  '.ink-view-pane{opacity:0}',
+  '.stage-wrap{gap:12px}',
+  '.ink-size-dialog{padding:18px}',
+  '.ink-branding-panel{width:500px}',
+  'dialog.ink-drive-native-dialog{min-height:500px}',
+  '.ink-size-actions{display:none}',
+  '.ink-size-actions{display:none!important}',
+  '.ink-branding-panel .ink-branding-actions{height:100vh}',
+  '@import url(https://example.com/a.css);',
+  '.ink-view-pane{background:url(https://example.com/a.svg)}',
+  '@keyframes hide{from{color:red}to{color:blue}}',
+  '.ink-view-pane{border:100px solid red}',
+  '.ink-view-pane{border:999em solid red}',
+  '.ink-view-pane{border:100vw solid red}',
+  '.ink-view-pane{border:var(--layout) solid red}'
+ ])assert.throws(()=>assertStagePresentationCss(actual+'\n'+rule),
+  /DUAL_STAGE_CSS_/,rule);
+ const f=bundleFixture();
+ const noStyle=new Map(f.candidateFiles);
+ noStyle.set('index.html',file('<script type="module" src="src/ui/stage-shell-view.js"></script>'));
+ assert.throws(()=>verifyUiBridgeFiles(noStyle,f.metadata.uiLease),
+  /UI_BRIDGE_PUBLIC_VIEW_NOT_BOUND:src\/ui\/stage-presentation\.css/);
+ const outOfLane=new Map(f.candidateFiles);
+ outOfLane.set(BUNDLE_STAGE_CSS,file('.stage-wrap{pointer-events:none}'));
+ assert.throws(()=>expectedUiBundleMetadata({base:f.base,candidateFiles:outOfLane,cfg}),
+  /DUAL_STAGE_CSS_PROPERTY:pointer-events/);
+});
 test('V2 Public UI-only color/tokens changes preserve Native/Core exact bytes and rotate full SW identity',()=>{
  const x=bundleFixture();
  assert.equal(uiBundlePaths(x.changedPaths),true);
@@ -510,7 +739,7 @@ test('V2 Public UI-only color/tokens changes preserve Native/Core exact bytes an
  for(const [p,f] of x.base.files)if(!x.changedPaths.includes(p))
   assert.equal(x.candidateFiles.get(p).sha,f.sha,'Core or UI unmodified '+p);
 });
-test('V2 Public A→B→A rollback and Core C sync preserve all 18 Public presentation paths',()=>{
+test('V2 Public A→B→A rollback and Core C sync preserve the exact leased presentation paths',()=>{
  const x=bundleFixture();
  const baseB={head:sha('6'),tree:sha('7'),files:x.candidateFiles};
  const rollback=new Map(baseB.files);
@@ -527,7 +756,7 @@ test('V2 Public A→B→A rollback and Core C sync preserve all 18 Public presen
  const baseC={head:sha('8'),tree:sha('9'),files:x.candidateFiles};
  const published=JSON.parse(baseC.files.get('BUILD_INFO.json').bytes);
  const sourceFiles=new Map(published.runtime.files.map(row=>[row.path,baseC.files.get(row.path)]));
- sourceFiles.set('index.html',file('<html>Private Core C</html>'));
+ sourceFiles.set('index.html',file('<html>Private Core C<link rel="stylesheet" href="src/ui/stage-presentation.css"><script type="module" src="src/ui/stage-shell-view.js"></script></html>'));
  sourceFiles.set(BUNDLE_COLOR,x.base.files.get(BUNDLE_COLOR));
  const nextBuild=structuredClone(published);
  delete nextBuild.ui_release;delete nextBuild.dual_source;

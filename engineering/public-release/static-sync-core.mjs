@@ -57,7 +57,7 @@ export function validateBase(base,cfg){
 const PAGES_BUILD_IDENTITY='pages-build-identity.txt';
 const DUAL_SOURCE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V1';
 const UI_RELEASE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V1';
-export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
+export const PUBLIC_UI_PRESENTATION_PATHS_V2=Object.freeze([
   'src/ui/ink017/markup.html',
   'src/ui/ink017/menu-ui.js',
   'src/ui/ink017/panels/adjustments.js',
@@ -77,10 +77,200 @@ export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
   'src/ui/ink017/shell.js',
   'src/ui/ink017/tokens.css'
 ].sort());
+// #788: recognize the immutable, already-deployed 18-path V2 lease while
+// allowing a new lease only once its extra Public view is truly published.
+// This is an ownership migration, not a folder-wide allowlist.
+export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
+ ...PUBLIC_UI_PRESENTATION_PATHS_V2,
+ 'src/ui/ink017/toolbar-customizer-view.js',
+ 'src/ui/branding-settings-view.js',
+ 'src/ui/minimal-test-shell/size-dialog-view.js',
+ 'src/ui/minimal-test-shell/runtime-view.js',
+ 'src/agent/g2-direct-boot-view.mjs',
+ 'src/document/drive-native-link-view.mjs',
+ 'src/ui/stage-shell-view.js',
+ 'src/ui/ink017/completion-options-view.js',
+ 'src/ui/ink017/native-tool-params-view.js',
+ 'src/agent/popup-client-view.js',
+ 'src/ui/ink017/completion-overlay-view.js',
+ 'src/ui/ink017/crop-overlay-view.js',
+ 'src/ui/multi-view-view.js',
+ 'src/ui/compare-readonly-view.js',
+ 'src/ui/runtime-bridge-view.js',
+ 'src/ui/artwork-ingress-view.js',
+ 'src/ui/work-runtime-read-view.mjs',
+ 'src/ui/stage-presentation.css'
+].sort());
 export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
 export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
 const SHELL_PATH='src/ui/ink017/shell.js';
 const SHARED_CONTROLS_PATH='src/ui/ink017/shared-controls.js';
+const STAGE_PAINT_PATH='src/ui/stage-presentation.css';
+// Stage positioning, hit-testing and geometry remain protected. Only explicit
+// paint/type properties may cross this independent Public CSS release lane.
+export function assertStagePresentationCss(source){
+  assert.ok(!/[\\\x00-\x08\x0b\x0c\x0e-\x1f]/.test(source),
+    'DUAL_STAGE_CSS_ESCAPE');
+  const css=source.replace(/\/\*[\s\S]*?\*\//g,'');
+  assert.ok(!/\/\*|\*\//.test(css),'DUAL_STAGE_CSS_COMMENT');
+  const allowed=new Set([
+    'background','background-color','color','border','border-top','border-right',
+    'border-bottom','border-left','border-color','border-top-color',
+    'border-right-color','border-bottom-color','border-left-color','border-radius',
+    'box-shadow','text-shadow','outline','outline-color','outline-offset',
+    'font','font-family','font-size','font-weight','font-style','font-variant',
+    'letter-spacing','line-height','text-align','text-decoration',
+    'text-overflow','white-space','overflow-wrap','word-break'
+  ]);
+  // Exact selector + declaration pairs extracted from reviewed dialog interiors.
+  // In particular no modal root, stage, canvas, backdrop or overlay receives
+  // any additional sizing or interaction authority.
+  const layoutSpecs=[
+    ['.text-editor textarea','min-height'],
+    ['.text-editor-actions','display justify-content gap margin-top'],
+    ['.ink-size-actions','display grid-template-columns gap margin-top'],
+    ['.ink-size-dialog .dialog-header h2','margin'],
+    ['.ink-size-dialog input[type="number"],.ink-size-dialog select','width min-height'],
+    ['.ink-size-dialog label>input[type="checkbox"]','width min-height margin-right'],
+    ['.ink-size-grid','display grid-template-columns gap margin-bottom'],
+    ['.ink-size-row','display gap align-items margin-top'],
+    ['.ink-size-row select','min-width'],
+    ['.ink-size-preview','min-height margin-top padding'],
+    ['.ink-canvas-preview','height margin-top'],
+    ['.ink-canvas-before,.ink-canvas-after','max-width max-height'],
+    ['.ink-size-dialog[data-size-dialog="new"] .ink-new-size-groups','display gap'],
+    ['.ink-size-dialog[data-size-dialog="new"] .ink-new-size-pair','display grid-template-columns gap'],
+    ['.ink-size-dialog[data-size-dialog="new"] .ink-new-size-metadata','padding-top'],
+    ['.ink-size-dialog[data-size-dialog="new"] .ink-new-orientation','display justify-content align-items gap padding-top'],
+    ['.ink-size-dialog[data-size-dialog="new"] .ink-new-orientation label','display align-items gap min-width'],
+    ['.ink-size-dialog[data-size-dialog="new"] .ink-new-presets','display grid-template-columns gap align-items'],
+    ['.ink-size-dialog[data-size-dialog="new"] .ink-new-presets select','min-width'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-layout','display gap'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-result','display gap'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-size-line','display grid-template-columns align-items gap'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-size-line label','display grid-template-columns align-items gap min-width'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-size-line input,.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-size-line select','min-width'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-lock','display align-items gap width min-height'],
+    ['.ink-size-dialog .ink-artwork-anchor-grid','min-width padding margin display grid-template-columns align-items column-gap'],
+    ['.ink-size-dialog .ink-artwork-anchor-grid legend','padding'],
+    ['.ink-size-dialog .ink-artwork-anchor-cells','display grid-template-columns gap width'],
+    ['.ink-size-dialog .ink-artwork-anchor-cell','display width height'],
+    ['.ink-size-dialog .ink-artwork-anchor-face','box-sizing width height display place-items'],
+    ['.ink-size-dialog .ink-artwork-anchor-dot','grid-area'],
+    ['.ink-size-dialog .ink-artwork-anchor-check','grid-area'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-artwork-options','display align-items justify-content gap'],
+    ['.ink-size-dialog[data-size-dialog="artwork"] .ink-size-preview','margin min-height'],
+    ['.ink-branding-logo','max-width max-height object-fit display margin'],
+    ['.ink-branding-panel>.ink-branding-header','box-sizing display align-items justify-content height min-height flex padding'],
+    ['.ink-branding-panel>.ink-branding-header h2','margin padding'],
+    ['.ink-branding-panel>.ink-branding-header button','box-sizing height min-height width min-width flex padding'],
+    ['.ink-branding-pref-content','box-sizing display flex-direction gap padding'],
+    ['.ink-branding-fields','display grid-template-columns grid-auto-rows column-gap align-items'],
+    ['.ink-branding-panel .ink-branding-fields label','margin'],
+    ['.ink-branding-panel .ink-branding-fields input[type=text]','box-sizing display height min-height width min-width margin padding'],
+    ['.ink-branding-panel .ink-branding-preview','display align-items gap min-height margin'],
+    ['.ink-branding-panel .ink-branding-preview-item','display align-items gap min-width max-width'],
+    ['.ink-branding-panel .ink-branding-preview-label','flex'],
+    ['.ink-branding-panel .ink-branding-preview img','display max-width max-height object-fit'],
+    ['.ink-branding-panel .ink-branding-preview-item:last-child img','width height'],
+    ['.ink-branding-file-row','display grid-template-columns align-items min-width min-height gap'],
+    ['.ink-branding-panel .ink-branding-file-row>label','margin'],
+    ['.ink-branding-file-controls','display align-items gap min-width height'],
+    ['.ink-branding-panel .ink-branding-file-choose','box-sizing flex height min-height min-width padding'],
+    ['.ink-branding-file-name','min-width'],
+    ['.ink-branding-panel .ink-branding-help','margin'],
+    ['.ink-branding-panel>.ink-branding-status','box-sizing flex min-height margin padding'],
+    ['.ink-branding-panel .ink-branding-actions','box-sizing display grid-template-columns align-items gap height min-height flex margin padding'],
+    ['.ink-branding-panel .ink-branding-actions button','box-sizing min-width height min-height padding'],
+    ['.ink-branding-panel .ink-branding-actions button.primary','width'],
+    ['.ink-branding-fields,.ink-branding-file-row','grid-template-columns gap'],
+    ['.ink-branding-panel .ink-branding-actions','flex-basis'],
+    ['.ink-branding-panel .ink-branding-actions button.primary','grid-column grid-row'],
+    ['.ink-branding-panel .ink-branding-actions button:first-child,.ink-branding-panel .ink-branding-actions button:last-child','grid-row'],
+    ['.ink-drive-native-dialog>header','display justify-content align-items gap'],
+    ['.ink-drive-native-dialog>button','width min-height'],
+    ['.ink-drive-native-dialog>p','margin'],
+    ['.ink-drive-native-dialog>div','display flex-direction gap'],
+    ['.ink-drive-native-dialog>div button','min-height'],
+    ['.ink-drive-native-dialog>a','display']
+  ];
+  const interior=new Map();
+  for(const [selector,names] of layoutSpecs){
+    const entries=interior.get(selector)??new Set();
+    for(const name of names.split(' '))entries.add(name);
+    interior.set(selector,entries);
+  }
+  let declarations=0;
+  function parseRules(input){
+    let pos=0;
+    while(pos<input.length){
+      while(/\s/.test(input[pos]??''))pos++;
+      if(pos===input.length)break;
+      const opening=input.indexOf('{',pos);
+      assert.ok(opening>=0,'DUAL_STAGE_CSS_RULE');
+      const head=input.slice(pos,opening).trim();
+      assert.ok(head&&!/[;}]/.test(head),'DUAL_STAGE_CSS_SELECTOR');
+      let depth=1,closing=opening+1;
+      while(closing<input.length&&depth){
+        if(input[closing]==='{')depth++;
+        if(input[closing]==='}')depth--;
+        closing++;
+      }
+      assert.equal(depth,0,'DUAL_STAGE_CSS_BRACES');
+      const body=input.slice(opening+1,closing-1);
+      if(head.startsWith('@')){
+        assert.match(head,/^@media\s*\(\s*(?:max|min)-width\s*:\s*\d{2,4}px\s*\)$/i,
+          'DUAL_STAGE_CSS_AT_RULE');
+        parseRules(body);
+      }else{
+        assert.ok(!/[{}@]/.test(head),'DUAL_STAGE_CSS_SELECTOR');
+        assert.ok(!/[{}]/.test(body),'DUAL_STAGE_CSS_NESTING');
+        for(const entry of body.split(';')){
+          if(!entry.trim())continue;
+          const match=entry.trim().match(/^([a-z][a-z-]*)\s*:\s*(\S[\s\S]*)$/i);
+          assert.ok(match,'DUAL_STAGE_CSS_DECLARATION');
+          const property=match[1].toLowerCase(),value=match[2];
+          const interiorProperty=interior.get(head)?.has(property)??false;
+          assert.ok(allowed.has(property)||interiorProperty,
+            'DUAL_STAGE_CSS_PROPERTY:'+property+':'+head);
+          assert.ok(!/(?:\burl\s*\(|\bimage-set\s*\(|\bpaint\s*\(|\bexpression\s*\(|@|[{}])/i.test(value),
+            'DUAL_STAGE_CSS_VALUE:'+property);
+          if(/^border(?:-(?:top|right|bottom|left))?$|^outline$/.test(property)){
+            // Border paint may not become a 999em/100vw geometry override.
+            const lengths=[...value.matchAll(/(-?(?:\d+(?:\.\d+)?|\.\d+))(px|em|rem|vh|vw|vmin|vmax|pt|pc|cm|mm|in|q|ch|ex|%)/gi)];
+            assert.ok(lengths.every(m=>m[2].toLowerCase()==='px'&&Number(m[1])<=4&&Number(m[1])>=0),
+              'DUAL_STAGE_CSS_BORDER_SIZE');
+            assert.ok([...value.matchAll(/\bvar\s*\(\s*--([a-z-]+)/gi)]
+              .every(m=>['border','primary','line','accent'].includes(m[1])),
+              'DUAL_STAGE_CSS_BORDER_TOKEN');
+          }
+          if(interiorProperty){
+            const displayValue=value.replace(/\s*!important\s*$/i,'').trim();
+            assert.ok(!/\b(?:\d+(?:\.\d+)?(?:vh|vw|vmin|vmax)|display\s*:\s*none)\b/i.test(value)&&
+              !(property==='display'&&/^(?:none|contents|table|flow-root)$/i.test(displayValue)),
+              'DUAL_STAGE_CSS_LAYOUT_VALUE:'+property);
+            const numericPx=[...value.matchAll(/(\d+(?:\.\d+)?)px/gi)];
+            assert.ok(numericPx.every(m=>Number(m[1])<=512),
+              'DUAL_STAGE_CSS_LAYOUT_RANGE:'+property);
+            assert.ok([...value.matchAll(/(\d+(?:\.\d+)?)%/g)]
+              .every(m=>Number(m[1])<=100)&&
+              [...value.matchAll(/\brepeat\s*\(\s*(\d+)/g)]
+                .every(m=>Number(m[1])<=4)&&
+              !/\b(?:calc|env|attr|anchor)\s*\(/i.test(value),
+              'DUAL_STAGE_CSS_LAYOUT_RANGE:'+property);
+            if(/\bvar\s*\(/.test(value))
+              assert.ok(property==='min-height'&&/^var\(--action-height,\s*28px\)$/.test(value),
+                'DUAL_STAGE_CSS_LAYOUT_TOKEN:'+property);
+          }
+          declarations++;
+        }
+      }
+      pos=closing;
+    }
+  }
+  parseRules(css);
+  assert.ok(declarations>0,'DUAL_STAGE_CSS_EMPTY');
+}
 // A Public style/update is not allowed to break the ESM helper ABI required
 // by the external shell/panels (and originally consumed by compiled Tools).
 export const PUBLIC_UI_SHARED_CONTROL_EXPORTS=Object.freeze([
@@ -92,6 +282,17 @@ export function leasedRows(ui){
   return ui.schema===PUBLIC_UI_BUNDLE_SCHEMA?ui.files:[{
     path:ui.path,bytes:ui.bytes,sha256:ui.sha256,git_blob_sha:ui.git_blob_sha
   }];
+}
+function presentationPathsForLease(ui){
+ if(ui?.schema!==PUBLIC_UI_BUNDLE_SCHEMA)return PUBLIC_UI_PRESENTATION_PATHS_V2;
+ // Candidate assembly has not generated its signed lease rows yet.
+ if(!ui.files)return PUBLIC_UI_PRESENTATION_PATHS;
+ const paths=ui.files?.map(row=>row.path);
+ if(JSON.stringify(paths)===JSON.stringify(PUBLIC_UI_PRESENTATION_PATHS_V2))
+  return PUBLIC_UI_PRESENTATION_PATHS_V2;
+ if(JSON.stringify(paths)===JSON.stringify(PUBLIC_UI_PRESENTATION_PATHS))
+  return PUBLIC_UI_PRESENTATION_PATHS;
+ throw Error('UI_LEASE_EXACT_PRESENTATION_PATHS');
 }
 export function dualSchemaForUi(ui){
   return ui.schema===PUBLIC_UI_BUNDLE_SCHEMA?DUAL_BUNDLE_SCHEMA:DUAL_SOURCE_SCHEMA;
@@ -167,8 +368,10 @@ function executableMask(source){
   code(0);
   return chars.join('');
 }
-export function assertPresentationClosure(files){
-  const owned=new Set(PUBLIC_UI_PRESENTATION_PATHS);
+export function assertPresentationClosure(files,leasedPaths=PUBLIC_UI_PRESENTATION_PATHS){
+  const owned=new Set(leasedPaths);
+  if(owned.has(STAGE_PAINT_PATH))
+    assertStagePresentationCss(files.get(STAGE_PAINT_PATH)?.bytes?.toString('utf8')??'');
   for(const p of owned){
     const f=files.get(p);
     assert.ok(f?.mode==='100644'&&Buffer.isBuffer(f.bytes),
@@ -226,6 +429,90 @@ export function assertPresentationClosure(files){
     }
     if(p===SHELL_PATH)assert.equal(menuCalls,1,'DUAL_PRESENTATION_MENU_DYNAMIC_REQUIRED');
   }
+  if(owned.has('src/ui/ink017/toolbar-customizer-view.js')){
+    const shell=files.get(SHELL_PATH).bytes.toString('utf8');
+    assert.match(shell,/import\s*\{\s*toolbarCustomizerPresentation\s*\}\s*from\s*["']\.\/toolbar-customizer-view\.js["']/,
+      'DUAL_TOOLBAR_PUBLIC_VIEW_NOT_BOUND');
+  }
+  if(owned.has('src/ui/ink017/completion-options-view.js')){
+    const source=files.get('src/ui/ink017/completion-options-view.js').bytes.toString('utf8');
+    assert.match(source,/\bexport\s+function\s+renderCompletionOptions\s*\(/,
+      'DUAL_COMPLETION_VIEW_EXPORT');
+    assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
+      /import\s*\{\s*renderCompletionOptions\s*\}\s*from\s*['"]\.\/completion-options-view\.js['"]/,
+      'DUAL_COMPLETION_PUBLIC_VIEW_NOT_BOUND');
+  }
+  if(owned.has('src/ui/ink017/native-tool-params-view.js')){
+    const source=files.get('src/ui/ink017/native-tool-params-view.js').bytes.toString('utf8');
+    assert.match(source,/\bexport\s+function\s+renderNativeToolParameters\s*\(/,
+      'DUAL_NATIVE_PARAMS_VIEW_EXPORT');
+    assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
+      /import\s*\{\s*renderNativeToolParameters\s*\}\s*from\s*['"]\.\/native-tool-params-view\.js['"]/,
+      'DUAL_NATIVE_PARAMS_PUBLIC_VIEW_NOT_BOUND');
+  }
+  if(owned.has('src/ui/ink017/completion-overlay-view.js')){
+    const source=files.get('src/ui/ink017/completion-overlay-view.js').bytes.toString('utf8');
+    assert.match(source,/\bexport\s+function\s+presentCompletionOverlay\s*\(/,
+      'DUAL_COMPLETION_OVERLAY_VIEW_EXPORT');
+    assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
+      /import\s*\{\s*presentCompletionOverlay\s*\}\s*from\s*['"]\.\/completion-overlay-view\.js['"]/,
+      'DUAL_COMPLETION_OVERLAY_PUBLIC_VIEW_NOT_BOUND');
+  }
+  if(owned.has('src/ui/ink017/crop-overlay-view.js')){
+    const source=files.get('src/ui/ink017/crop-overlay-view.js').bytes.toString('utf8');
+    assert.match(source,/\bexport\s+function\s+presentCropOverlay\s*\(/,
+      'DUAL_CROP_OVERLAY_VIEW_EXPORT');
+    assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
+      /import\s*\{\s*presentCropOverlay\s*\}\s*from\s*['"]\.\/crop-overlay-view\.js['"]/,
+      'DUAL_CROP_OVERLAY_PUBLIC_VIEW_NOT_BOUND');
+  }
+  const views=[
+    ['src/ui/branding-settings-view.js',['createBrandingDialogView']],
+    ['src/ui/minimal-test-shell/size-dialog-view.js',['sizeDialogMarkup']],
+    ['src/ui/minimal-test-shell/runtime-view.js',
+      ['renderMinimalControlsView','renderMinimalStateView','renderMinimalStatusView']],
+    ['src/agent/g2-direct-boot-view.mjs',['g2ConnectionLabel','createG2ConnectControl']],
+    ['src/document/drive-native-link-view.mjs',['createDriveDialogView','appendDriveRecoveryChoices']],
+    ['src/ui/stage-shell-view.js',['renderStageShellView']],
+    ['src/agent/popup-client-view.js',['createPrivateReadOnlyMenuRow']]
+    ,['src/ui/multi-view-view.js',
+      ['createMultiViewPane','updateMultiViewPane','createMultiViewGrid','createFixedDocumentCanvas']],
+    ['src/ui/compare-readonly-view.js',['createReadonlyCompareView']],
+    ['src/ui/runtime-bridge-view.js',['createRuntimeBridgeControls','presentRuntimeBridgeControls']],
+    ['src/ui/artwork-ingress-view.js',
+      ['createArtworkIngressConsentView','artworkIngressSuccessText','artworkIngressErrorText']],
+    ['src/ui/work-runtime-read-view.mjs',
+      ['createWorkReadDialog','createWorkRecipeForm','presentWorkRecipeState']]
+  ];
+  for(const [p,required] of views)if(owned.has(p)){
+    const view=files.get(p).bytes.toString('utf8');
+    for(const name of required)
+      assert.match(view,new RegExp('\\bexport\\s+function\\s+'+name+'\\s*\\('),
+        'DUAL_PRESENTATION_VIEW_EXPORT:'+p+':'+name);
+  }
+  if(owned.has('src/ui/minimal-test-shell/runtime-view.js'))
+    assert.match(files.get('src/ui/minimal-test-shell/runtime-view.js').bytes.toString('utf8'),
+      /import\s*\{\s*sizeDialogMarkup\s*\}\s*from\s*['"]\.\/size-dialog-view\.js['"]/,
+      'DUAL_PRESENTATION_SIZE_VIEW_LINK');
+  if(owned.has('src/ui/stage-shell-view.js')){
+    const view=files.get('src/ui/stage-shell-view.js').bytes.toString('utf8');
+    for(const id of ['inkBootGate','emptyHint','textEditor','textInput','textCommit','textCancel'])
+      assert.ok(view.includes(id),'DUAL_PRESENTATION_STAGE_NODE:'+id);
+    if(owned.has('src/ui/multi-view-view.js')){
+      for(const [module,functions] of [
+        ['multi-view-view.js','createMultiViewPane,updateMultiViewPane,createMultiViewGrid,createFixedDocumentCanvas'],
+        ['compare-readonly-view.js','createReadonlyCompareView'],
+        ['runtime-bridge-view.js','createRuntimeBridgeControls,presentRuntimeBridgeControls'],
+        ['artwork-ingress-view.js','createArtworkIngressConsentView,artworkIngressSuccessText,artworkIngressErrorText']
+      ]){
+        assert.ok(view.includes("from './"+module+"'")&&
+          functions.split(',').every(name=>new RegExp('\\b'+name+'\\b').test(view)),
+          'DUAL_STAGE_PUBLIC_VIEW_IMPORT:'+module);
+      }
+      assert.match(view,/INK_PUBLIC_DOCUMENT_VIEWS\s*=\s*Object\.freeze\s*\(/,
+        'DUAL_STAGE_DOCUMENT_VIEWS_BINDING');
+    }
+  }
   const markup=files.get('src/ui/ink017/markup.html').bytes.toString('utf8');
   assert.ok(!/<\s*(?:script|iframe)\b|\bon[a-z]+\s*=/.test(markup),
     'DUAL_PRESENTATION_MARKUP_EXEC');
@@ -265,7 +552,7 @@ function verifiedUiLease(base,prior,cfg){
   let unsigned;
   if(ui.schema===PUBLIC_UI_BUNDLE_SCHEMA){
     assert.ok(Array.isArray(ui.files),'UI_LEASE_FILES');
-    assert.deepEqual(ui.files.map(row=>row.path),PUBLIC_UI_PRESENTATION_PATHS,
+    assert.deepEqual(ui.files.map(row=>row.path),presentationPathsForLease(ui),
       'UI_LEASE_EXACT_PRESENTATION_PATHS');
     for(const row of ui.files){
       assert.deepEqual(Object.keys(row).sort(),
@@ -651,14 +938,64 @@ function checkedMenu(f){
 function verifyInstalledUiBridge(base){
   verifyUiBridgeFiles(base.files);
 }
-function verifyUiBridgeFiles(files,ui){
+export function verifyUiBridgeFiles(files,ui){
   const shell=files.get('dist/startup/ink-shell.mjs');
   assert.ok(shell?.mode==='100644'&&Buffer.isBuffer(shell.bytes),'UI_BRIDGE_SHELL_MISSING');
   if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA){
     assert.match(shell.bytes.toString('utf8'),
       /import\(new URL\(["']\.\/shell\.js["'],new URL\(["']src\/ui\/ink017\/entry\.js["'],document\.baseURI\)\.href\)\.href\)/,
       'UI_BRIDGE_EXTERNAL_SHELL_NOT_INSTALLED');
-    assertPresentationClosure(files);
+    assertPresentationClosure(files,presentationPathsForLease(ui));
+    const leased=new Set(presentationPathsForLease(ui));
+    const bindings=[
+      ['src/ui/branding-settings-view.js','src/ui/branding-settings.js',
+        /import\(['"]\.\/branding-settings-view\.js['"]\)/],
+      ['src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js',
+        /import\s*\{\s*renderMinimalControlsView\s*,\s*renderMinimalStateView\s*,\s*renderMinimalStatusView\s*\}\s*from\s*['"]\.\/runtime-view\.js['"]/],
+      ['src/agent/g2-direct-boot-view.mjs','src/agent/g2-direct-boot.mjs',
+        /import\s*\{\s*g2ConnectionLabel\s*,\s*createG2ConnectControl\s*\}\s*from\s*['"]\.\/g2-direct-boot-view\.mjs['"]/],
+      ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs',
+        /import\s*\{\s*createDriveDialogView(?:\s+as\s+fallbackDriveDialogView)?\s*,\s*appendDriveRecoveryChoices(?:\s+as\s+fallbackDriveRecoveryChoices)?\s*\}\s*from\s*['"]\.\/drive-native-link-view\.mjs['"]/],
+      ['src/ui/stage-shell-view.js','index.html',
+        /<script\s+type="module"\s+src="src\/ui\/stage-shell-view\.js"\s*><\/script>/],
+      ['src/agent/popup-client-view.js','src/agent/popup-client.js',
+        /import\s*\{\s*createPrivateReadOnlyMenuRow\s*\}\s*from\s*['"]\.\/popup-client-view\.js['"]/],
+      ['src/ui/stage-presentation.css','index.html',
+        /<link\s+rel="stylesheet"\s+href="src\/ui\/stage-presentation\.css"\s*>/],
+      ['src/ui/work-runtime-read-view.mjs','src/agent/work-runtime-read-controls.mjs',
+        /import\s*\{\s*createWorkReadDialog\s*,\s*presentWorkRecipeState\s*\}\s*from\s*['"]\.\.\/ui\/work-runtime-read-view\.mjs['"]/]
+    ];
+    for(const [view,controller,pattern] of bindings)if(leased.has(view)){
+      const source=files.get(controller);
+      assert.ok(source?.mode==='100644'&&Buffer.isBuffer(source.bytes),
+        'UI_BRIDGE_CONTROLLER_REQUIRED:'+controller);
+      assert.match(source.bytes.toString('utf8'),pattern,
+        'UI_BRIDGE_PUBLIC_VIEW_NOT_BOUND:'+view);
+      if(view==='src/document/drive-native-link-view.mjs'&&
+          source.bytes.toString('utf8').includes('as fallbackDriveDialogView')){
+        assert.match(source.bytes.toString('utf8'),
+          /new\s+URL\(['"]\.\/drive-native-link-view\.mjs['"]\s*,/,
+          'UI_BRIDGE_DRIVE_PUBLIC_URL_REQUIRED');
+        assert.match(source.bytes.toString('utf8'),/await\s+import\(publicURL\)/,
+          'UI_BRIDGE_DRIVE_DYNAMIC_IMPORT_REQUIRED');
+      }
+    }
+    const globalBindings=[
+      ['src/ui/multi-view-view.js','src/document/multi-view-workspace.js',
+        ['createMultiViewPane','updateMultiViewPane','createMultiViewGrid']],
+      ['src/ui/runtime-bridge-view.js','src/agent/runtime-bridge.js',
+        ['createRuntimeBridgeControls','presentRuntimeBridgeControls']],
+      ['src/ui/artwork-ingress-view.js','src/artwork-import/ingress-consent.js',
+        ['createArtworkIngressConsentView','artworkIngressSuccessText','artworkIngressErrorText']]
+    ];
+    for(const [view,controller,names] of globalBindings)if(leased.has(view)){
+      const source=files.get(controller)?.bytes?.toString('utf8');
+      assert.ok(source,'UI_BRIDGE_CONTROLLER_REQUIRED:'+controller);
+      assert.match(source,/globalThis\.INK_PUBLIC_DOCUMENT_VIEWS/,
+        'UI_BRIDGE_PUBLIC_VIEW_NOT_BOUND:'+view);
+      for(const name of names)assert.match(source,new RegExp('\\b'+name+'\\b'),
+        'UI_BRIDGE_PUBLIC_VIEW_API_NOT_BOUND:'+view+':'+name);
+    }
   }else{
     assert.match(shell.bytes.toString('utf8'),
       /import\(new URL\(["']\.\/menu-ui\.js["'],new URL\(["']src\/ui\/ink017\/shell\.js["'],document\.baseURI\)\.href\)\.href\)/,
@@ -667,12 +1004,51 @@ function verifyUiBridgeFiles(files,ui){
   const worker=files.get('service-worker-runtime.js');
   assert.ok(worker?.mode==='100644'&&Buffer.isBuffer(worker.bytes),'UI_BRIDGE_SW_MISSING');
   const source=worker.bytes.toString('utf8');
-  assert.match(source,/['"]\.\/src\/ui\/ink017\/menu-ui\.js['"]/,'UI_BRIDGE_SW_OFFLINE_MISSING');
-  if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA)
-    for(const p of PUBLIC_UI_PRESENTATION_PATHS)
-      assert.ok(source.includes(JSON.stringify('./'+p))||source.includes("'./"+p+"'"),
+  // A path in a comment or unrelated string is not offline inventory. The
+  // actual worker places module paths in SOURCE_SHELL and APP_SHELL, with the
+  // latter spreading SOURCE_SHELL; both named arrays are checked as literals.
+  const extractInventory=(name,{required=false}={})=>{
+    const head=new RegExp('\\bconst\\s+'+name+
+      '\\s*=\\s*(?:Object\\.freeze\\(\\s*)?\\[').exec(executableMask(source));
+    const declaration=head&&new RegExp('^\\bconst\\s+'+name+
+      '\\s*=\\s*(?:Object\\.freeze\\(\\s*)?\\[([\\s\\S]*?)\\]\\s*\\)?\\s*;')
+      .exec(source.slice(head.index));
+    if(!declaration){assert.ok(!required,'UI_BRIDGE_SW_'+name+'_REQUIRED');return []}
+    const entries=declaration[1].replace(/\/\*[\s\S]*?\*\//g,'')
+      .replace(/\/\/[^\r\n]*/g,'');
+    const literal=/(['"])(\.\/[A-Za-z0-9._/-]*)\1/g;
+    const found=[...entries.matchAll(literal)].map(match=>match[2]);
+    const residual=entries.replace(literal,'')
+      .replace(/\.\.\.self\.INK_STARTUP_ASSETS|\.\.\.SOURCE_SHELL/g,'')
+      .replace(/[\s,]/g,'');
+    assert.equal(residual,'','UI_BRIDGE_SW_INVENTORY_SYNTAX:'+name);
+    return found;
+  };
+  const inventory=new Set([...extractInventory('SOURCE_SHELL',{required:true}),
+    ...extractInventory('APP_SHELL')]);
+  assert.ok(inventory.has('./src/ui/ink017/menu-ui.js'),'UI_BRIDGE_SW_OFFLINE_MISSING');
+  if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA){
+    const leased=new Set(presentationPathsForLease(ui));
+    for(const p of leased)
+      assert.ok(inventory.has('./'+p),
         'UI_BRIDGE_SW_OFFLINE_PRESENTATION:'+p);
-  assert.match(source,/networkFirstAsset\(event\.request/,'UI_BRIDGE_SW_NETWORK_FIRST_MISSING');
+    const controllers=[
+      ['src/ui/branding-settings-view.js','src/ui/branding-settings.js'],
+      ['src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js'],
+      ['src/agent/g2-direct-boot-view.mjs','src/agent/g2-direct-boot.mjs'],
+      ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs'],
+      ['src/agent/popup-client-view.js','src/agent/popup-client.js'],
+      ['src/ui/work-runtime-read-view.mjs','src/agent/work-runtime-read-controls.mjs'],
+      ['src/ui/multi-view-view.js','src/document/multi-view-workspace.js'],
+      ['src/ui/runtime-bridge-view.js','src/agent/runtime-bridge.js'],
+      ['src/ui/artwork-ingress-view.js','src/artwork-import/ingress-consent.js']
+    ];
+    for(const [view,controller] of controllers)if(leased.has(view))
+      assert.ok(inventory.has('./'+controller),
+        'UI_BRIDGE_SW_OFFLINE_CONTROLLER:'+controller);
+  }
+  assert.match(executableMask(source),/networkFirstAsset\(event\.request/,
+    'UI_BRIDGE_SW_NETWORK_FIRST_MISSING');
 }
 export function verifyUiOnlyPlan({base,candidateFiles,cfg,changedPaths}){
   assert.ok(uiOnlyPaths(changedPaths),'UI_ONLY_EXACT_PATHS');
