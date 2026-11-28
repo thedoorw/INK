@@ -1,5 +1,10 @@
 import {mountDock} from './right-dock.js';
 import {esc,selected,field,iconButton,drag} from './shared-controls.js';
+import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';
+import {renderCompletionOptions} from './completion-options-view.js';
+import {renderNativeToolParameters} from './native-tool-params-view.js';
+import {presentCompletionOverlay} from './completion-overlay-view.js';
+import {presentCropOverlay} from './crop-overlay-view.js';
 
 // Public presentation of the existing Native-owned tool registry. These
 // callbacks receive detached display metadata only; Core chooses tools and
@@ -29,6 +34,28 @@ export function decorateToolOptions(element,{groupId,itemId}){
  element.dataset.uiItem=itemId;
 }
 export function decorateToolWorkbench(root){root.dataset.uiToolsOwner='public';}
+export function createToolGroupMenu(root){
+ const menu=document.createElement('div');
+ menu.id='toolGroupMenu';menu.className='drawing-tool-menu';
+ menu.setAttribute('popover','manual');menu.setAttribute('role','menu');
+ root.append(menu);return menu;
+}
+export function renderToolOptionsContainers(){
+ return '<div id="contextToolOptions"></div><div id="transformControls" hidden></div>';
+}
+export function createMoreToolOptions(){
+ const extra=document.createElement('div');extra.className='context-more-menu';extra.id='toolOptionsMore';
+ extra.setAttribute('popover','auto');extra.setAttribute('role','group');extra.setAttribute('aria-label','更多工具選項');
+ const more=document.createElement('button');more.type='button';more.className='context-drawing-more';
+ more.textContent='更多';more.setAttribute('aria-expanded','false');more.setAttribute('aria-controls',extra.id);
+ return {extra,more};
+}
+export function updateContextToggle(toggle,expanded){
+ toggle.setAttribute('aria-label',expanded?'收合工具選項':'展開工具選項');
+ toggle.title=toggle.getAttribute('aria-label');
+ toggle.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="'+
+  (expanded?'M6 9l6 6 6-6':'M6 15l6-6 6 6')+'" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+}
 
 // Public-owned presentation depends on the narrow adapter supplied by the
 // compiled Core entry; never construct or import a second Native host here.
@@ -200,7 +227,7 @@ export async function mountNativeShell(host,root){
   $('#colorState .fg').style.background=s.paint.foreground;$('#colorState .bg').hidden=false;$('#colorState .bg').style.background=s.paint.background;$('#resetColors').disabled=$('#swapColors').disabled=!s.docs.length;
   contextToolbar.render(s);
  }
- const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton,renderToolMenu,updateToolContextIdentity,decorateToolOptions,decorateToolWorkbench});
+ const contextToolbar=host.mountToolsWorkbench(root,feedback,signal,{renderToolRail,updateToolRailButton,renderToolMenu,updateToolContextIdentity,decorateToolOptions,decorateToolWorkbench,createToolGroupMenu,renderToolOptionsContainers,createMoreToolOptions,updateContextToggle,renderCompletionOptions,renderNativeToolParameters,presentCompletionOverlay,presentCropOverlay,toolbarCustomizer:toolbarCustomizerPresentation});
  const syncBrandName=()=>{
   const name=globalThis.INK_BRANDING?.getName?.()||'INK';
   $('#logoButton').title=name;
