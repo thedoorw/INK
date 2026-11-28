@@ -19,7 +19,7 @@ export function nativeViewportMatrix(app,rect){
 const matrixAttr=m=>'matrix('+m.join(' ')+')';
 const edges=d=>'<path class="completion-edge-dark" d="'+d+'"/><path class="completion-edge-light" d="'+d+'"/>';
 
-export function mountCompletionOverlay(host,session,signal){
+export function mountCompletionOverlay(host,session,signal,presentOverlay=null){
  const app=host.app,canvas=app.el.canvas,svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
  svg.classList.add('completion-overlay');svg.setAttribute('aria-hidden','true');document.body.append(svg);
  let frame=0,disposed=false,cachedMask=null,cachedImage='',cachedOutline='';
@@ -61,7 +61,7 @@ export function mountCompletionOverlay(host,session,signal){
    if(anchors.length&&draft.cursor&&!draft.dragging){const p=M.point(view,draft.cursor),last=anchors.at(-1);html+='<path class="completion-preview" d="M'+last.x+' '+last.y+'L'+p.x+' '+p.y+'"/>';}
    for(const a of anchors){for(const side of ['in','out']){const v=a[side];if(v.x||v.y)html+='<path class="completion-handle" d="M'+a.x+' '+a.y+'L'+(a.x+v.x)+' '+(a.y+v.y)+'"/><circle class="completion-anchor" r="2" cx="'+(a.x+v.x)+'" cy="'+(a.y+v.y)+'"/>';}html+='<circle class="completion-anchor" r="3" cx="'+a.x+'" cy="'+a.y+'"/>';}
   }
-  svg.innerHTML=html;
+  svg.innerHTML=typeof presentOverlay==='function'?presentOverlay(html):html;
  }
  const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(draw)};
  const resize=new ResizeObserver(schedule);resize.observe(canvas);window.addEventListener('resize',schedule,{signal});window.addEventListener('scroll',schedule,{capture:true,signal});

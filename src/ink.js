@@ -361,10 +361,17 @@ class Renderer{
 function createSecondaryDocumentView(app,session){
   const main=app.el.wrap,parent=main.parentElement;
   if(!main||!parent)throw new Error('INK_COMPARE_STAGE_UNAVAILABLE');
-  const pair=document.createElement('div');pair.id='inkDocumentPair';pair.className='ink-document-pair';
-  const sidebar=document.createElement('section');sidebar.className='ink-compare-readonly';sidebar.setAttribute('aria-label','唯讀比較文件');
-  sidebar.innerHTML='<div class="ink-compare-label">Secondary · Read only</div><div class="ink-compare-canvas"><canvas aria-label="INK secondary read-only canvas"></canvas></div>';
-  const host=sidebar.querySelector('.ink-compare-canvas'),canvas=sidebar.querySelector('canvas');
+  const create=globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createReadonlyCompareView;
+  let pair,sidebar,host,canvas;
+  if(typeof create==='function')({pair,sidebar,host,canvas}=create());
+  else{
+    pair=document.createElement('div');pair.id='inkDocumentPair';pair.className='ink-document-pair';
+    sidebar=document.createElement('section');sidebar.className='ink-compare-readonly';sidebar.setAttribute('aria-label','唯讀比較文件');
+    sidebar.innerHTML='<div class="ink-compare-label">Secondary · Read only</div><div class="ink-compare-canvas"><canvas aria-label="INK secondary read-only canvas"></canvas></div>';
+    host=sidebar.querySelector('.ink-compare-canvas');canvas=sidebar.querySelector('canvas');
+  }
+  if(pair?.id!=='inkDocumentPair'||!sidebar?.classList.contains('ink-compare-readonly')||
+    !host?.contains(canvas)||canvas?.tagName!=='CANVAS')throw Error('INK_UI_COMPARE_VIEW_CONTRACT');
   parent.insertBefore(pair,main);pair.append(main,sidebar);
   const readOnly=Object.freeze({
     doc:session.doc,documentOpen:true,renderPreference:'canvas2d',draft:null,interaction:null,
@@ -397,9 +404,15 @@ function createSecondaryDocumentView(app,session){
 function createFixedSessionView(app,session,host,target){
   if(!host||!session||!target||target.sessionId!==session.sessionId||target.generation!==session.generation)
     throw new Error('INK_VIEW_STALE_TARGET');
-  const canvas=document.createElement('canvas');
-  canvas.setAttribute('aria-label','INK document '+session.doc.title+' canvas');
-  canvas.className='ink-fixed-view-canvas';host.append(canvas);
+  const create=globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createFixedDocumentCanvas;
+  const canvas=typeof create==='function'?create(document,String(session.doc.title||'')):document.createElement('canvas');
+  if(typeof create!=='function'){
+    canvas.setAttribute('aria-label','INK document '+session.doc.title+' canvas');
+    canvas.className='ink-fixed-view-canvas';
+  }
+  if(canvas.tagName!=='CANVAS'||!canvas.classList.contains('ink-fixed-view-canvas'))
+    throw Error('INK_UI_FIXED_VIEW_CANVAS_CONTRACT');
+  host.append(canvas);
   const proxy={
     doc:session.doc,documentOpen:true,renderPreference:'canvas2d',draft:null,interaction:null,
     pathEditing:null,strokeEdit:null,hover:null,selection:[],tool:'select',

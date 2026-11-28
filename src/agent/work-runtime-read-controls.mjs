@@ -1,5 +1,7 @@
 // First-party DOM transport only. All state still comes from inkPublicApi.
 // Fixed read tools and an opt-in, staged Recipe form; no arbitrary JavaScript.
+import {createWorkReadDialog,presentWorkRecipeState} from '../ui/work-runtime-read-view.mjs';
+
 export const WORK_READ_TOOLS = Object.freeze([
   'get_ink_context', 'get_ink_capabilities', 'get_ink_recipe_inventory', 'get_ink_history'
 ]);
@@ -31,22 +33,15 @@ export function mountWorkRuntimeReadControls({ globalObject, documentObject, ent
     if (!existing.open) existing.showModal();
     return existing;
   }
-  const root = documentObject.createElement('dialog');
-  root.setAttribute('data-ink-work-read-controls', '1');
-  root.setAttribute('data-extension-entry', entry);
-  const title = documentObject.createElement('h2');
-  title.textContent = titleText;
-  const output = documentObject.createElement('pre');
-  output.setAttribute('aria-live', 'polite');
-  output.setAttribute('aria-label', 'WORK Native structured receipt');
-  root.append(title);
+  const {root,output,buttons,close,recipe} = createWorkReadDialog(documentObject,
+    Object.freeze({entry,titleText,tools:WORK_READ_TOOLS}));
+  if(root?.tagName!=='DIALOG'||!output||!close||buttons.size!==WORK_READ_TOOLS.length||
+    (entry!=='recipe-engine'&&!recipe))throw Error('INK_UI_WORK_RECIPE_VIEW_CONTRACT');
   const caller = createWorkRecipeCaller(globalObject, { expectedFormat });
   let busy = false;
   for (const tool of WORK_READ_TOOLS) {
-    const button = documentObject.createElement('button');
-    button.type = 'button';
-    button.textContent = tool;
-    button.setAttribute('data-read-tool', tool);
+    const button = buttons.get(tool);
+    if(button?.getAttribute('data-read-tool')!==tool)throw Error('INK_UI_WORK_READ_BUTTON_CONTRACT');
     button.addEventListener('click', async () => {
       if (busy) return;
       busy = true;
@@ -55,15 +50,9 @@ export function mountWorkRuntimeReadControls({ globalObject, documentObject, ent
       catch (error) { output.textContent = JSON.stringify({ status: 'FAILED', tool, error: String(error.message || error) }); }
       finally { busy = false; button.disabled = false; }
     });
-    root.append(button);
   }
-  if (entry !== 'recipe-engine') mountRecipeForm(documentObject, root, caller, output);
-  root.append(output);
-  const close = documentObject.createElement('button');
-  close.type = 'button';
-  close.textContent = '關閉 WORK Recipe 呼叫';
+  if(recipe)bindRecipeForm(recipe,caller,output);
   close.addEventListener('click', () => root.close());
-  root.append(close);
   documentObject.body.append(root);
   root.showModal();
   root.querySelector(entry === 'recipe-engine' ? 'button[data-read-tool="get_ink_recipe_inventory"]' : 'button')?.focus();
@@ -170,33 +159,13 @@ export function createWorkRecipeCaller(globalObject, { now = () => Date.now(), e
   });
 }
 
-function mountRecipeForm(doc, root, caller, output) {
-  const section = doc.createElement('fieldset');
-  const legend = doc.createElement('legend');
-  legend.textContent = 'Recipe 分階段呼叫';
-  const help = doc.createElement('p');
-  help.textContent = '先完成三個唯讀呼叫並確認測試文件。逐步輸入該階段 JSON；核准及執行僅限已取得授權的提案。';
-  const label = doc.createElement('label');
-  label.textContent = 'Recipe 階段輸入 JSON';
-  const input = doc.createElement('textarea');
-  input.setAttribute('aria-label', 'Recipe 階段輸入 JSON');
-  input.rows = 8; input.cols = 60; input.value = '{}';
-  label.append(input);
-  const consentLabel = doc.createElement('label');
-  consentLabel.textContent = '本次核准或執行的 proposalId';
-  const consent = doc.createElement('input');
-  consent.type = 'text'; consent.autocomplete = 'off';
-  consent.setAttribute('aria-label', '本次核准或執行的 proposalId');
-  consentLabel.append(consent);
-  const state = doc.createElement('pre');
-  state.setAttribute('aria-label', 'Recipe 呼叫狀態');
-  state.setAttribute('aria-live', 'polite');
-  const refresh = () => { state.textContent = JSON.stringify(caller.state(), null, 2); };
-  section.append(legend, help, label, consentLabel);
+function bindRecipeForm({section,input,consent,state,buttons},caller,output) {
+  if(!section||!input||!consent||!state||buttons.size!==5)throw Error('INK_UI_WORK_RECIPE_FORM_CONTRACT');
+  const refresh = () => presentWorkRecipeState(state,Object.freeze({...caller.state()}));
   let busy = false;
   for (const action of ['analyze','translate','propose','approve','execute']) {
-    const button = doc.createElement('button');
-    button.type = 'button'; button.textContent = 'Recipe ' + action;
+    const button=buttons.get(action);
+    if(!button)throw Error('INK_UI_WORK_RECIPE_ACTION_CONTRACT');
     button.addEventListener('click', async () => {
       if (busy) return;
       busy = true; button.disabled = true;
@@ -208,9 +177,8 @@ function mountRecipeForm(doc, root, caller, output) {
         output.textContent = JSON.stringify({ status:'FAILED', action, error:String(error.message || error) });
       } finally { busy = false; button.disabled = false; refresh(); }
     });
-    section.append(button);
   }
-  section.append(state); root.append(section); refresh();
+  refresh();
 }
 
 const EXTENSION_PROFILES = Object.freeze({

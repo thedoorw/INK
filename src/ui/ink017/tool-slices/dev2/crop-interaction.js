@@ -16,7 +16,7 @@ const handlePoints=r=>({
 });
 const escapeNumber=v=>Number(v.toFixed(3));
 
-export function mountDev2CropInteraction(root,host,{onFeedback=()=>{}}={}){
+export function mountDev2CropInteraction(root,host,{onFeedback=()=>{},presentOverlay}={}){
  const app=host.app,canvas=app?.el?.canvas,selection=app?.selectedObjects?.();
  if(!canvas||selection?.length!==1)throw Error('Crop requires one selected image');
  const found=selection[0],object=found.object,raster=object?.rasterState?.colorRaster;
@@ -88,7 +88,7 @@ export function mountDev2CropInteraction(root,host,{onFeedback=()=>{}}={}){
    const s=M.point(g.pixelToScreen,{x:px,y:py});
    if(finite(s.x)&&finite(s.y))html+='<rect data-crop-handle="'+key+'" x="'+escapeNumber(s.x-4)+'" y="'+escapeNumber(s.y-4)+'" width="8" height="8" fill="#fff" stroke="#333" stroke-width="1"/>';
   }
-  svg.innerHTML=html;
+  svg.innerHTML=typeof presentOverlay==='function'?presentOverlay(html):html;
  }
  function schedule(){if(!disposed&&!frame)frame=requestAnimationFrame(draw)}
  function hit(pos,g){

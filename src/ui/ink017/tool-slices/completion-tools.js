@@ -127,10 +127,10 @@ export function completionOptionsMarkup(session){
   '<span class="field-row" role="status">'+count+' px</span>'+b('mask','套用遮色片',!count)+b('clear','取消選取',!s.selection);
 }
 
-export function mountCompletionTools(root,host,feedback,signal,onChange){
+export function mountCompletionTools(root,host,feedback,signal,onChange,presentOverlay=null){
  const session=createCompletionSession(host,{onChange});instances.set(host,session);
  const canvas=host.app.el.canvas;
- const overlay=mountCompletionOverlay(host,session,signal);
+ const overlay=mountCompletionOverlay(host,session,signal,presentOverlay);
  let pointer=null,closing=false;
  const consume=e=>{e.preventDefault();e.stopImmediatePropagation()};
  const safe=fn=>{try{return fn()}catch(e){feedback(e.message);return null}};

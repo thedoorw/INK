@@ -339,11 +339,13 @@ async function loadPattern(host,file,token,isDisposed){
   return {ok:true,changed:true};
  }finally{bitmap.close?.()}
 }
-export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{},onApplied=()=>{},subscribeUpdates=true}={}){
+export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{},onApplied=()=>{},subscribeUpdates=true,renderOptions,presentCropOverlay}={}){
  if(!root?.addEventListener||!TOOL_IDS.has(id))throw Error('DEV2_MOUNT_INVALID');
  let disposed=false,busy=false,crop=null;
  const abort=new AbortController(),{signal}=abort;
- const paint=()=>{if(disposed)return;root.innerHTML=dev2OptionsMarkup(host,id);root.dataset.nativeTarget=JSON.stringify(host.target());crop?.syncForm()};
+ const paint=()=>{if(disposed)return;const markup=dev2OptionsMarkup(host,id);
+  root.innerHTML=typeof renderOptions==='function'?renderOptions({owner:2,toolId:id,markup}):markup;
+  root.dataset.nativeTarget=JSON.stringify(host.target());crop?.syncForm()};
  const notify=error=>onFeedback(error?.message||String(error));
  const change=async event=>{
   if(disposed||busy)return;
@@ -420,7 +422,7 @@ export function mountDev2Options(root,host,id,{onFeedback=()=>{},onCancel=()=>{}
  root.addEventListener('change',change,{signal});root.addEventListener('click',click,{signal});
  const unsubscribe=subscribeUpdates?(host.subscribe?.(()=>{if(!busy)paint()})||(()=>{})):(()=>{});
  paint();
- if(id==='crop'&&dev2Availability(host,'crop').available)try{crop=mountDev2CropInteraction(root,host,{onFeedback:notify})}
+ if(id==='crop'&&dev2Availability(host,'crop').available)try{crop=mountDev2CropInteraction(root,host,{onFeedback:notify,presentOverlay:presentCropOverlay})}
  catch(error){notify(error)} // Numeric crop remains usable if no interactive canvas.
  return {render:paint,dispose(){if(disposed)return;disposed=true;abort.abort();crop?.dispose();unsubscribe();root.replaceChildren()}};
 }

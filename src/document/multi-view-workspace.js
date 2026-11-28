@@ -44,12 +44,17 @@ export function installMultiViewWorkspace(app,{createFixedView}={}){
     const current=p.target.sessionId===active()&&!p.readOnly;
     node.dataset.inkViewId=p.viewId;node.dataset.sessionId=p.target.sessionId;
     node.dataset.readOnly=String(p.readOnly);node.dataset.active=String(current);
-    const title=node.querySelector('.ink-view-title'),label=node.querySelector('.ink-view-mode');
     const e=registry.get(p.target.sessionId);
-    title.textContent=String(e?.doc?.title||'Untitled')+(e?.values?.dirty?' *':'');
-    label.textContent=p.readOnly?'Reference · Read only':current?'Editing':'Editable';
-    node.querySelector('[data-view-readonly]').textContent=p.readOnly?'Unlock':'Read only';
-    node.querySelector('[data-view-readonly]').setAttribute('aria-pressed',String(p.readOnly));
+    const update=globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.updateMultiViewPane;
+    if(typeof update==='function')update(node,Object.freeze({title:String(e?.doc?.title||'Untitled'),
+      dirty:Boolean(e?.values?.dirty),readOnly:Boolean(p.readOnly),active:current}));
+    else{
+      const title=node.querySelector('.ink-view-title'),label=node.querySelector('.ink-view-mode');
+      title.textContent=String(e?.doc?.title||'Untitled')+(e?.values?.dirty?' *':'');
+      label.textContent=p.readOnly?'Reference · Read only':current?'Editing':'Editable';
+      node.querySelector('[data-view-readonly]').textContent=p.readOnly?'Unlock':'Read only';
+      node.querySelector('[data-view-readonly]').setAttribute('aria-pressed',String(p.readOnly));
+    }
   };
   function build(){
     if(!enabled||disposed)return;
@@ -59,8 +64,14 @@ export function installMultiViewWorkspace(app,{createFixedView}={}){
       const fragment=document.createDocumentFragment();
       for(const pane of panes){
         const entry=assertOpen(pane.target.sessionId);
-        const cell=document.createElement('section');cell.className='ink-view-pane';cell.dataset.inkViewId=pane.viewId;
-        cell.innerHTML='<header class="ink-view-header"><button type="button" data-view-focus class="ink-view-title"></button><span class="ink-view-mode"></span><button type="button" data-view-readonly></button><button type="button" data-view-hide aria-label="Hide view">×</button></header><div class="ink-view-body"></div>';
+        const create=globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createMultiViewPane;
+        const cell=typeof create==='function'?create():document.createElement('section');
+        if(typeof create!=='function'){
+          cell.className='ink-view-pane';
+          cell.innerHTML='<header class="ink-view-header"><button type="button" data-view-focus class="ink-view-title"></button><span class="ink-view-mode"></span><button type="button" data-view-readonly></button><button type="button" data-view-hide aria-label="Hide view">×</button></header><div class="ink-view-body"></div>';
+        }
+        if(!cell.classList.contains('ink-view-pane')||!cell.querySelector('.ink-view-body'))fail('INK_UI_MULTI_VIEW_CONTRACT');
+        cell.dataset.inkViewId=pane.viewId;
         const body=cell.querySelector('.ink-view-body');
         if(entry.sessionId===active()&&!pane.readOnly)body.append(stage);
         else views.set(pane.viewId,createFixedView(entry,body,pane.target));
@@ -75,7 +86,12 @@ export function installMultiViewWorkspace(app,{createFixedView}={}){
     if(grid)return;
     const parent=stage.parentElement;
     if(!parent)fail('INK_VIEW_STAGE_UNAVAILABLE');
-    grid=document.createElement('div');grid.className='ink-view-grid';grid.setAttribute('aria-label','INK document views');
+    const create=globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createMultiViewGrid;
+    grid=typeof create==='function'?create():document.createElement('div');
+    if(typeof create!=='function'){
+      grid.className='ink-view-grid';grid.setAttribute('aria-label','INK document views');
+    }
+    if(!grid.classList.contains('ink-view-grid'))fail('INK_UI_MULTI_VIEW_GRID_CONTRACT');
     parent.replaceChild(grid,stage);
     grid.addEventListener('pointerdown',event=>{
       const cell=event.target.closest('[data-ink-view-id]'),pane=cell&&panes.find(x=>x.viewId===cell.dataset.inkViewId);

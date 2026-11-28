@@ -11,6 +11,7 @@
   <link rel="icon" href="assets/favicon.png?v=95de05792e06" type="image/png" sizes="64x64">
   <title>INK v0.1 · Web</title>
   <link rel="stylesheet" href="stage-runtime.css">
+  <link rel="stylesheet" href="src/ui/stage-presentation.css">
   <link rel="stylesheet" href="src/ui/ink017/tokens.css">
   <link rel="modulepreload" href="dist/startup/ink-boot.mjs">
   <link rel="modulepreload" href="dist/startup/ink-shell.mjs">
@@ -40,6 +41,7 @@
     </main>
     <input id="projectFileInput" type="file" accept=".ink,.json,.psd,.psb,.ai,application/json" hidden>
   </div>
+  <script type="module" src="src/ui/stage-shell-view.js"></script>
   <script src="src/ui/branding-settings.js" defer></script>
   <div id="documentStatusStrip" class="status-cluster" data-ink-runtime-bridge-compat="legacy"></div>
   <script src="build-identity.js"></script>

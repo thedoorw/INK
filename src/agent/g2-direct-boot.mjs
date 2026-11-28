@@ -2,6 +2,7 @@ import {normalizeG2DocumentRequest} from './g2-create-document.mjs';
 import {createInkRuntimeLink} from './ink-runtime-link.mjs';
 import {createG2ResumeGate} from './g2-direct-resume.mjs';
 import {SOURCE_SHA as G2_SOURCE_SHA} from './g2-direct-browser-transport.mjs';
+import {g2ConnectionLabel,createG2ConnectControl} from './g2-direct-boot-view.mjs';
 
 export function installG2DirectBoot(globalObject=globalThis,{
   installRuntime,now=()=>Date.now(),
@@ -31,11 +32,8 @@ export function installG2DirectBoot(globalObject=globalThis,{
     button.disabled=disconnecting;
     const runtime=active?.status();
     const failed=runtime?.driver.phase==='CHECK_FAILED';
-    const label=paired&&!failed?'已連線 CHAT · 斷線'
-      :failed?'連線暫停 · 取消'
-      :runtime?.recovering?'重新連線中 · 取消'
-      :preparation?'等待文件或尺寸 · 取消'
-      :active?'連線中 · 取消':reason==='IDLE'?'連線 CHAT':'已斷線 · 連線 CHAT';
+    const label=g2ConnectionLabel({paired,failed,recovering:runtime?.recovering,
+      preparation:Boolean(preparation),active:Boolean(active),reason});
     button.title=runtime?.driver.error || (reason==='IDLE'||reason==='DISCONNECTED'?'':reason);
     if(button.firstChild.textContent!==label)button.firstChild.textContent=label;
     button.setAttribute('aria-pressed',String(paired));
@@ -230,16 +228,9 @@ export function installG2DirectBoot(globalObject=globalThis,{
   const mount=()=>{
     const group=documentObject?.querySelector?.('#mainMenu .menu-pane[aria-label="plugins"] .menu-group');
     if(!group||group.contains(button))return;
-    const host=documentObject.createElement('div');
-    host.className='menu-item-host';
-    button=documentObject.createElement('button');
-    button.type='button';
-    button.className='menu-row';
-    button.setAttribute('data-ink-g2-connect','');
-    button.setAttribute('role','menuitem');
-    const label=documentObject.createElement('span');
-    label.className='menu-label';
-    button.append(label);
+    const view=createG2ConnectControl(documentObject);
+    const host=view.host;
+    button=view.button;
     button.addEventListener('click',click);
     host.append(button);
     group.append(host);

@@ -1,7 +1,22 @@
 import { ARTBOARD_PPI_MAX, ARTBOARD_PPI_MIN } from '../../document/artboard.js';
 import { canvasSizePreview, dimensionToMm, mmToDimension, normalizeNewDocumentSizeRequest } from '../../document/size.js';
+import {renderMinimalControlsView,renderMinimalStateView,renderMinimalStatusView} from './runtime-view.js';
 
-const escapeText=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+// Bundled source functions remain compatibility fallbacks. The actual browser
+// presenter must be imported from the Public URL after the protected Core was
+// compiled, or a Public-only edit could never change these visible controls.
+let publicViewPromise;
+const loadPublicView=()=>publicViewPromise??=import(new URL('./runtime-view.js',
+  new URL('src/ui/minimal-test-shell/modules.js',document.baseURI).href).href);
+const subscribePublicView=(ctx,install)=>{
+  let active=true;
+  ctx.cleanup(()=>{active=false;});
+  void loadPublicView().then(view=>{if(active)install(view)}).catch(error=>{
+    console.error('INK_MINIMAL_PUBLIC_VIEW_LOAD_FAILED',error);
+    if(active)ctx.services.report('INK_MINIMAL_PUBLIC_VIEW_LOAD_FAILED');
+  });
+};
+
 const run=(ctx,id,args={})=>{
   try{
     const result=ctx.commands.execute(id,args);
@@ -19,39 +34,27 @@ export function dismissSizeDialog(dialog,event=null){
   if(event?.type!=='cancel')dialog.close();
   return true;
 }
-const button=(action,label,pressed=false)=>'<button type="button" data-action="'+action+'"'+(pressed?' aria-pressed="true"':'')+'>'+label+'</button>';
 
 export function createMinimalControlsModule(){
   return Object.freeze({id:'minimal.controls.v1',slot:'controls',mount(ctx){
+    let paint=renderMinimalControlsView;
     const render=()=>{
       const tool=ctx.selectors.get('tool.current'),history=ctx.selectors.get('history.summary')||{},doc=ctx.selectors.get('document.current')||{};
-      const sessions=ctx.selectors.get('session.list')||[],comparison=ctx.selectors.get('session.compare')||{},clip=ctx.selectors.get('session.transfer')||{},views=ctx.selectors.get('session.views')||{layout:1};
-       const recovery=ctx.selectors.get('session.recovery.list')||[];
-       const recoveryOptions=recovery.length
-         ?'<option value="">Choose saved document…</option>'+recovery.map(item=>'<option value="'+escapeText(item.key)+'">'+escapeText(item.title||item.documentId||'Untitled')+(item.kind==='legacy'?' (legacy)':'')+'</option>').join('')
-         :'<option value="">No recoverable documents</option>';
-      const sessionButtons=sessions.map(item=>'<button type="button" data-action="session-select" data-session-id="'+escapeText(item.sessionId)+'" aria-pressed="'+Boolean(item.active)+'" title="'+escapeText(item.title)+'">'+escapeText(item.title||'Untitled')+(item.dirty?' *':'')+'</button>').join('');
-      const compareCandidate=sessions.find(item=>!item.active&&item.sessionId!==comparison.secondary);
-      const compareToggle=comparison.secondary?'Compare off':compareCandidate?'Compare '+escapeText(compareCandidate.title||'B'):'Compare (open B)';
-
-      const brandLogo=globalThis.INK_BRANDING?.getLogo?.() || 'assets/ink-mark.svg';
-      const specialist=
-        '<div class="ink-control-group ink-branding-launch"><img data-ink-brand-logo class="ink-branding-logo-toolbar" alt="INK LOGO" src="'+escapeText(brandLogo)+'">'+button('branding-open','品牌')+'</div>'+ 
-        '<div class="ink-control-group">'+button('new-a4','New A4')+button('open','Open')+button('save','Save')+'</div>'+
-         '<div class="ink-control-group ink-recovery-controls"><label>Recover <select data-recovery-key aria-label="Recover existing document">'+recoveryOptions+'</select></label>'+button('session-restore','Restore')+'</div>'+
-        '<div class="ink-control-group ink-session-buttons">'+sessionButtons+button('session-close','Close')+(views.enabled?'':button('session-compare',compareToggle))+button('view-1','1 view',views.enabled&&views.layout===1)+button('view-2','2 views',views.enabled&&views.layout===2)+button('view-4','4 views',views.enabled&&views.layout===4)+button('session-copy','Copy selected')+button('session-paste','Paste'+(clip.ready?' ('+clip.count+')':''))+'</div>'+
-        '<div class="ink-control-group">'+button('tool-select','Select',tool==='select')+button('tool-pen','Pen',tool==='pen')+button('tool-brush','Brush',tool==='brush')+button('tool-pan','Pan',tool==='pan')+'</div>'+
-        '<div class="ink-control-group">'+button('undo','Undo',false)+(button('redo','Redo',false))+button('fit','Fit')+button('zoom100','100%')+'</div>'+
-        '<div class="ink-control-group">'+button('preview','Preview',ctx.services.isPreviewVisible())+button('export-png','PNG')+button('export-svg','SVG')+button('export-pdf','PDF')+'</div>'+
-        '<span class="ink-control-spacer"></span><span class="ink-state-meta">'+escapeText(doc.open?(doc.dirty?'dirty':'saved'):'no document')+' · '+(history.applied||0)+' history</span>';
-      ctx.root.innerHTML=document.documentElement?.dataset?.ui==='ink017'
-        ?'<section class="ink-tools-group"><h2>Recover saved document</h2><div class="ink-tools-action-row"><select data-recovery-key aria-label="Recover existing document">'+recoveryOptions+'</select>'+button('session-restore','Restore')+'</div></section>'+
-         '<section class="ink-tools-group"><h2>Open documents</h2><div class="ink-session-buttons">'+(sessionButtons||'<span class="ink-state-meta">No open documents</span>')+'</div></section>'+
-         '<details class="ink-tools-diagnostics"><summary>Document preview</summary><div class="ink-tools-specialist">'+button('preview','Preview',ctx.services.isPreviewVisible())+'</div></details>'
-        :specialist;
+      ctx.root.innerHTML=paint({tool,history,doc,
+        sessions:ctx.selectors.get('session.list')||[],
+        comparison:ctx.selectors.get('session.compare')||{},
+        clip:ctx.selectors.get('session.transfer')||{},views:ctx.selectors.get('session.views')||{layout:1},
+        recovery:ctx.selectors.get('session.recovery.list')||[],
+        brandLogo:globalThis.INK_BRANDING?.getLogo?.()||'assets/ink-mark.svg',
+        previewVisible:ctx.services.isPreviewVisible(),
+        ink017:document.documentElement?.dataset?.ui==='ink017'});
     };
     let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;render();});};
     render();
+    subscribePublicView(ctx,view=>{
+      if(typeof view.renderMinimalControlsView!=='function')throw Error('INK_MINIMAL_CONTROLS_PUBLIC_CONTRACT');
+      paint=view.renderMinimalControlsView;schedule();
+    });
     ctx.listen(ctx.root,'click',event=>{
       const action=event.target.closest('[data-action]')?.dataset.action;if(!action)return;
       if(action==='branding-open'){globalThis.dispatchEvent(new Event('ink:branding-open'));return;}
@@ -97,6 +100,7 @@ export function createMinimalControlsModule(){
 
 export function createMinimalStateModule(){
   return Object.freeze({id:'minimal.state.v1',slot:'state',mount(ctx){
+    let paint=renderMinimalStateView;
     const presetKey='ink-document-size-presets-v1';
     const activeSession=()=>{const list=ctx.selectors.get('session.list')||[];return list.find(item=>item.active)||null;};
     const loadPresets=()=>{try{const value=JSON.parse(localStorage.getItem(presetKey)||'[]');return Array.isArray(value)?value.slice(0,24):[];}catch{return[];}};
@@ -159,25 +163,21 @@ export function createMinimalStateModule(){
       dialog.dataset.units=unit(dialog)||'mm';if(kind==='artwork'||kind==='canvas')syncArtworkAnchorLabel(dialog);dialog.showModal();setTimeout(()=>{const first=dialog.querySelector('[data-size-field]')||dialog.querySelector('[data-size-preset]')||dialog.querySelector('[data-size-cancel]');first?.focus()},0);
     };
     const render=()=>{
-      const doc=ctx.selectors.get('document.current')||{},page=ctx.selectors.get('page.active')||{},layers=ctx.selectors.get('layer.list')||[],history=ctx.selectors.get('history.summary')||{entries:[],applied:0};
-      const preview=ctx.services.isPreviewVisible()?ctx.selectors.get('page.preview',{width:240,height:160}):null;
-      const layerRows=layers.slice().reverse().map(layer=>'<div class="ink-state-row"><button type="button" class="'+(layer.active?'active':'')+'" data-layer-id="'+escapeText(layer.id)+'">'+escapeText(layer.name)+'</button><span class="ink-state-meta">'+layer.objectCount+'</span></div>').join('');
-      const historyRows=(history.entries||[]).map((entry,index)=>'<button type="button" class="ink-history-row'+(history.applied===index+1?' active':'')+'" data-history-applied="'+(index+1)+'"><span>'+escapeText(entry.label)+'</span><span>'+(entry.applied?'✓':'↺')+'</span></button>').join('');
-      const inspect=document.documentElement?.dataset?.ui==='ink017';
-      const presetOptions=loadPresets().map((item,index)=>'<option value="'+index+'">'+escapeText(item.name||('Preset '+(index+1)))+'</option>').join('');
-      ctx.root.innerHTML=
-        '<section class="ink-state-section"><h2>Document</h2><div class="ink-state-body"><div>'+escapeText(doc.open?(doc.title||'Untitled'):'No document')+'</div><div class="ink-state-meta">'+(doc.open?escapeText(page.name||'')+' · '+(doc.dirty?'dirty':'clean'):'New, Open or Recover a saved document')+'</div><div class="ink-size-actions"><button type="button" data-size-open="new">New…</button><button data-size-open="canvas"'+(doc.open?'':' disabled')+'>Canvas Size…</button><button data-size-open="ppi"'+(doc.open?'':' disabled')+'>Output PPI…</button><button data-size-open="artwork"'+(doc.open?'':' disabled')+'>Resize Artwork…</button></div></div></section>'+
-        (inspect?'<details class="ink-tools-diagnostics"><summary>Inspect layers and history</summary>':'')+'<section class="ink-state-section"><h2>Layers</h2><div class="ink-state-body">'+layerRows+'<button type="button" data-layer-add class="ink-block-action">+ Layer</button></div></section>'+
-        '<section class="ink-state-section"><h2>History</h2><div class="ink-state-body">'+historyRows+'</div></section>'+
-        (inspect?'</details>':'')+(ctx.services.isPreviewVisible()?'<section class="ink-state-section"><h2>Preview</h2><div class="ink-state-body">'+(preview?.dataUrl?'<img class="ink-preview" alt="Current page preview" src="'+preview.dataUrl+'">':'<div class="ink-state-meta">No preview</div>')+'</div></section>':'')+
-        '<dialog class="ink-size-dialog" data-size-dialog="new" aria-labelledby="ink-new-title"><header class="dialog-header"><h2 id="ink-new-title">New Document</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close New Document">×</button></header><div class="dialog-body"><div class="ink-new-size-groups"><div class="ink-new-size-pair" role="group" aria-label="Width and height"><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label></div><div class="ink-new-size-pair ink-new-size-metadata" role="group" aria-label="Units and resolution"><label>Units<select data-size-field="units"><option>px</option><option selected>mm</option><option>cm</option><option>in</option></select></label><label>PPI<input data-size-field="ppi" type="number" min="'+ARTBOARD_PPI_MIN+'" max="'+ARTBOARD_PPI_MAX+'" step="1"></label></div><div class="ink-new-orientation" role="group" aria-label="Orientation and proportions"><label><input data-size-field="lock" type="checkbox" checked> Lock proportions</label><button data-size-swap type="button">Swap orientation</button></div><div class="ink-new-presets"><select data-size-preset><option value="">Local preset…</option>'+presetOptions+'</select><button data-size-save-preset type="button">Save preset</button></div></div><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Create</button></footer></dialog>'+
-        '<dialog class="ink-size-dialog" data-size-dialog="canvas" aria-labelledby="ink-canvas-title"><header class="dialog-header"><h2 id="ink-canvas-title">Canvas Size</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Canvas Size">×</button></header><div class="dialog-body"><div class="ink-size-grid"><label>Mode<select data-size-field="mode"><option value="absolute">Absolute</option><option value="relative">Relative</option></select></label><label>Units<select data-size-field="units"><option>px</option><option>mm</option><option>cm</option><option>in</option></select></label><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label></div><fieldset class="ink-artwork-anchor-grid"><legend>Anchor</legend><div class="ink-artwork-anchor-cells">'+artworkAnchorOptions()+'</div><span class="ink-artwork-anchor-current"><span data-artwork-anchor-label aria-live="polite">Center</span></span></fieldset><div class="ink-canvas-preview" aria-hidden="true"><span class="ink-canvas-before"></span><span class="ink-canvas-after"></span></div><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>'+
-        '<dialog class="ink-size-dialog" data-size-dialog="ppi" aria-labelledby="ink-ppi-title"><header class="dialog-header"><h2 id="ink-ppi-title">Output Resolution</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Output Resolution">×</button></header><div class="dialog-body"><label>PPI<input data-size-field="ppi" type="number" min="'+ARTBOARD_PPI_MIN+'" max="'+ARTBOARD_PPI_MAX+'" step="1"></label><div class="ink-size-preview" data-size-preview></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>'+
-        '<dialog class="ink-size-dialog" data-size-dialog="artwork" aria-labelledby="ink-artwork-title"><header class="dialog-header"><h2 id="ink-artwork-title">Resize Whole Artwork</h2><button type="button" class="dialog-close" data-size-cancel aria-label="Close Resize Whole Artwork">×</button></header><div class="dialog-body"><div class="ink-artwork-layout"><section class="ink-artwork-result" aria-label="Resulting artwork size"><div class="ink-artwork-size-line" role="group" aria-label="Resulting width height and units"><label>Width<input data-size-field="width" type="number" step="any"></label><label>Height<input data-size-field="height" type="number" step="any"></label><label>Units<select data-size-field="units"><option>px</option><option>mm</option><option>cm</option><option>in</option></select></label></div><div class="ink-artwork-options"><label class="ink-artwork-lock"><input data-size-field="lock" type="checkbox" checked> Lock proportions</label><span class="ink-artwork-info" tabindex="0" role="img" aria-label="Canvas and root artwork scale together; raster source pixels remain unchanged." title="Canvas and root artwork scale together; raster source pixels remain unchanged.">ⓘ</span></div><div class="ink-size-preview" data-size-preview role="status"></div></section><fieldset class="ink-artwork-anchor-grid"><legend>Anchor</legend><div class="ink-artwork-anchor-cells">'+artworkAnchorOptions()+'</div><span class="ink-artwork-anchor-current"><span data-artwork-anchor-label aria-live="polite">Center</span></span></fieldset></div></div><footer class="dialog-footer ink-size-dialog-actions"><button class="secondary" data-size-cancel type="button">Cancel</button><button class="primary" data-size-apply type="button">Apply</button></footer></dialog>';
+      const doc=ctx.selectors.get('document.current')||{},page=ctx.selectors.get('page.active')||{},
+        layers=ctx.selectors.get('layer.list')||[],history=ctx.selectors.get('history.summary')||{entries:[],applied:0};
+      const previewVisible=ctx.services.isPreviewVisible();
+      const preview=previewVisible?ctx.selectors.get('page.preview',{width:240,height:160}):null;
+      ctx.root.innerHTML=paint({doc,page,layers,history,preview,previewVisible,
+        inspect:document.documentElement?.dataset?.ui==='ink017',presets:loadPresets(),
+        anchorOptions:artworkAnchorOptions(),ppiMin:ARTBOARD_PPI_MIN,ppiMax:ARTBOARD_PPI_MAX});
       const appRoot=document.getElementById('app');if(appRoot)appRoot.dataset.documentActive=String(Boolean(doc.open));
     };
     let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;const open=dialogOpen();if(open){if(open.dataset.sizeDialog==='new'&&open.dataset.applying==='true')return;if(!targetCurrent(open)){open.close();ctx.services.report('Document changed while size dialog was open');render();}return;}render();});};
     render();
+    subscribePublicView(ctx,view=>{
+      if(typeof view.renderMinimalStateView!=='function')throw Error('INK_MINIMAL_STATE_PUBLIC_CONTRACT');
+      paint=view.renderMinimalStateView;schedule();
+    });
     ctx.listen(ctx.root,'click',async event=>{
       const opener=event.target.closest('[data-size-open]');if(opener){const d=ctx.root.querySelector('[data-size-dialog="'+opener.dataset.sizeOpen+'"]');if(d)initializeDialog(d,opener.dataset.sizeOpen);return;}
       const dialog=event.target.closest('dialog[data-size-dialog]');
@@ -254,13 +254,20 @@ export function createMinimalStateModule(){
 
 export function createMinimalStatusModule(){
   return Object.freeze({id:'minimal.status.v1',slot:'status',mount(ctx){
+    let paint=renderMinimalStatusView;
     const render=()=>{
       const doc=ctx.selectors.get('document.current')||{},view=ctx.selectors.get('view.current')||{},tool=ctx.selectors.get('tool.current')||'',identity=ctx.services.buildIdentity();
       const worker=identity.worker||{};
-      ctx.root.innerHTML='<span>INK minimal test shell</span><span>'+escapeText(tool)+'</span><span>'+Math.round((view.scale||1)*100)+'%</span><span>source '+escapeText(identity.sourceBuildId||'unbound')+'</span><span>SW '+escapeText(worker.state||'idle')+'</span><span>'+escapeText(doc.dirty?'autosave pending/dirty':'ready')+'</span>';
+      ctx.root.innerHTML=paint({tool,scale:view.scale,
+        sourceBuildId:identity.sourceBuildId,workerState:worker.state,dirty:doc.dirty});
     };
     let frame=0;const schedule=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;render();});};
-    render();ctx.selectors.subscribe(schedule);ctx.cleanup(()=>{if(frame)cancelAnimationFrame(frame);});
+    render();
+    subscribePublicView(ctx,view=>{
+      if(typeof view.renderMinimalStatusView!=='function')throw Error('INK_MINIMAL_STATUS_PUBLIC_CONTRACT');
+      paint=view.renderMinimalStatusView;schedule();
+    });
+    ctx.selectors.subscribe(schedule);ctx.cleanup(()=>{if(frame)cancelAnimationFrame(frame);});
   }});
 }
 
