@@ -236,16 +236,31 @@ export function assertStagePresentationCss(source){
           assert.ok(!/(?:\burl\s*\(|\bimage-set\s*\(|\bpaint\s*\(|\bexpression\s*\(|@|[{}])/i.test(value),
             'DUAL_STAGE_CSS_VALUE:'+property);
           if(/^border(?:-(?:top|right|bottom|left))?$|^outline$/.test(property)){
-            const widths=[...value.matchAll(/(?:^|\s)(\d+(?:\.\d+)?)px(?=\s|$)/g)];
-            assert.ok(widths.every(m=>Number(m[1])<=4),'DUAL_STAGE_CSS_BORDER_SIZE');
+            // Border paint may not become a 999em/100vw geometry override.
+            const lengths=[...value.matchAll(/(-?(?:\d+(?:\.\d+)?|\.\d+))(px|em|rem|vh|vw|vmin|vmax|pt|pc|cm|mm|in|q|ch|ex|%)/gi)];
+            assert.ok(lengths.every(m=>m[2].toLowerCase()==='px'&&Number(m[1])<=4&&Number(m[1])>=0),
+              'DUAL_STAGE_CSS_BORDER_SIZE');
+            assert.ok([...value.matchAll(/\bvar\s*\(\s*--([a-z-]+)/gi)]
+              .every(m=>['border','primary','line','accent'].includes(m[1])),
+              'DUAL_STAGE_CSS_BORDER_TOKEN');
           }
           if(interiorProperty){
+            const displayValue=value.replace(/\s*!important\s*$/i,'').trim();
             assert.ok(!/\b(?:\d+(?:\.\d+)?(?:vh|vw|vmin|vmax)|display\s*:\s*none)\b/i.test(value)&&
-              !(property==='display'&&/^(?:none|contents|table|flow-root)$/i.test(value)),
+              !(property==='display'&&/^(?:none|contents|table|flow-root)$/i.test(displayValue)),
               'DUAL_STAGE_CSS_LAYOUT_VALUE:'+property);
             const numericPx=[...value.matchAll(/(\d+(?:\.\d+)?)px/gi)];
             assert.ok(numericPx.every(m=>Number(m[1])<=512),
               'DUAL_STAGE_CSS_LAYOUT_RANGE:'+property);
+            assert.ok([...value.matchAll(/(\d+(?:\.\d+)?)%/g)]
+              .every(m=>Number(m[1])<=100)&&
+              [...value.matchAll(/\brepeat\s*\(\s*(\d+)/g)]
+                .every(m=>Number(m[1])<=4)&&
+              !/\b(?:calc|env|attr|anchor)\s*\(/i.test(value),
+              'DUAL_STAGE_CSS_LAYOUT_RANGE:'+property);
+            if(/\bvar\s*\(/.test(value))
+              assert.ok(property==='min-height'&&/^var\(--action-height,\s*28px\)$/.test(value),
+                'DUAL_STAGE_CSS_LAYOUT_TOKEN:'+property);
           }
           declarations++;
         }
