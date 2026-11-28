@@ -14,8 +14,7 @@ export function createBrandingDialogView({ownerUpload,accept}){
   const backdrop=make('div',{class:'ink-branding-backdrop',hidden:''});
   backdrop.hidden=true;
   const panel=make('section',{class:'ink-branding-panel',role:'dialog','aria-modal':'true',
-    'aria-label':'網站品牌設定','aria-describedby':'inkBrandHelp',
-    'data-ink788-ui-release':'B'});
+    'aria-label':'網站品牌設定','aria-describedby':'inkBrandHelp'});
   const header=make('header',{class:'dialog-header ink-branding-header'});
   const title=make('h2',{},'網站品牌設定');
   const closeX=make('button',{type:'button',class:'dialog-close','aria-label':'關閉品牌設定'},'×');
