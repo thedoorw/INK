@@ -90,7 +90,8 @@ export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
  'src/document/drive-native-link-view.mjs',
  'src/ui/stage-shell-view.js',
  'src/ui/ink017/completion-options-view.js',
- 'src/ui/ink017/native-tool-params-view.js'
+ 'src/ui/ink017/native-tool-params-view.js',
+ 'src/agent/popup-client-view.js'
 ].sort());
 export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
 export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
@@ -280,7 +281,8 @@ export function assertPresentationClosure(files,leasedPaths=PUBLIC_UI_PRESENTATI
       ['renderMinimalControlsView','renderMinimalStateView','renderMinimalStatusView']],
     ['src/agent/g2-direct-boot-view.mjs',['g2ConnectionLabel','createG2ConnectControl']],
     ['src/document/drive-native-link-view.mjs',['createDriveDialogView','appendDriveRecoveryChoices']],
-    ['src/ui/stage-shell-view.js',['renderStageShellView']]
+    ['src/ui/stage-shell-view.js',['renderStageShellView']],
+    ['src/agent/popup-client-view.js',['createPrivateReadOnlyMenuRow']]
   ];
   for(const [p,required] of views)if(owned.has(p)){
     const view=files.get(p).bytes.toString('utf8');
@@ -741,7 +743,9 @@ export function verifyUiBridgeFiles(files,ui){
       ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs',
         /import\s*\{\s*createDriveDialogView\s*,\s*appendDriveRecoveryChoices\s*\}\s*from\s*['"]\.\/drive-native-link-view\.mjs['"]/],
       ['src/ui/stage-shell-view.js','index.html',
-        /<script\s+type="module"\s+src="src\/ui\/stage-shell-view\.js"\s*><\/script>/]
+        /<script\s+type="module"\s+src="src\/ui\/stage-shell-view\.js"\s*><\/script>/],
+      ['src/agent/popup-client-view.js','src/agent/popup-client.js',
+        /import\s*\{\s*createPrivateReadOnlyMenuRow\s*\}\s*from\s*['"]\.\/popup-client-view\.js['"]/]
     ];
     for(const [view,controller,pattern] of bindings)if(leased.has(view)){
       const source=files.get(controller);
@@ -768,7 +772,8 @@ export function verifyUiBridgeFiles(files,ui){
       ['src/ui/branding-settings-view.js','src/ui/branding-settings.js'],
       ['src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js'],
       ['src/agent/g2-direct-boot-view.mjs','src/agent/g2-direct-boot.mjs'],
-      ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs']
+      ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs'],
+      ['src/agent/popup-client-view.js','src/agent/popup-client.js']
     ];
     for(const [view,controller] of controllers)if(leased.has(view))
       assert.ok(source.includes(JSON.stringify('./'+controller))||
