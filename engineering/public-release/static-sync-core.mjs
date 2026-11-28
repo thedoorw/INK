@@ -57,7 +57,7 @@ export function validateBase(base,cfg){
 const PAGES_BUILD_IDENTITY='pages-build-identity.txt';
 const DUAL_SOURCE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V1';
 const UI_RELEASE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V1';
-export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
+export const PUBLIC_UI_PRESENTATION_PATHS_V2=Object.freeze([
   'src/ui/ink017/markup.html',
   'src/ui/ink017/menu-ui.js',
   'src/ui/ink017/panels/adjustments.js',
@@ -77,6 +77,13 @@ export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
   'src/ui/ink017/shell.js',
   'src/ui/ink017/tokens.css'
 ].sort());
+// #788: recognize the immutable, already-deployed 18-path V2 lease while
+// allowing a new lease only once its extra Public view is truly published.
+// This is an ownership migration, not a folder-wide allowlist.
+export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
+ ...PUBLIC_UI_PRESENTATION_PATHS_V2,
+ 'src/ui/ink017/toolbar-customizer-view.js'
+].sort());
 export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
 export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
 const SHELL_PATH='src/ui/ink017/shell.js';
@@ -92,6 +99,17 @@ export function leasedRows(ui){
   return ui.schema===PUBLIC_UI_BUNDLE_SCHEMA?ui.files:[{
     path:ui.path,bytes:ui.bytes,sha256:ui.sha256,git_blob_sha:ui.git_blob_sha
   }];
+}
+function presentationPathsForLease(ui){
+ if(ui?.schema!==PUBLIC_UI_BUNDLE_SCHEMA)return PUBLIC_UI_PRESENTATION_PATHS_V2;
+ // Candidate assembly has not generated its signed lease rows yet.
+ if(!ui.files)return PUBLIC_UI_PRESENTATION_PATHS;
+ const paths=ui.files?.map(row=>row.path);
+ if(JSON.stringify(paths)===JSON.stringify(PUBLIC_UI_PRESENTATION_PATHS_V2))
+  return PUBLIC_UI_PRESENTATION_PATHS_V2;
+ if(JSON.stringify(paths)===JSON.stringify(PUBLIC_UI_PRESENTATION_PATHS))
+  return PUBLIC_UI_PRESENTATION_PATHS;
+ throw Error('UI_LEASE_EXACT_PRESENTATION_PATHS');
 }
 export function dualSchemaForUi(ui){
   return ui.schema===PUBLIC_UI_BUNDLE_SCHEMA?DUAL_BUNDLE_SCHEMA:DUAL_SOURCE_SCHEMA;
@@ -167,8 +185,8 @@ function executableMask(source){
   code(0);
   return chars.join('');
 }
-export function assertPresentationClosure(files){
-  const owned=new Set(PUBLIC_UI_PRESENTATION_PATHS);
+export function assertPresentationClosure(files,leasedPaths=PUBLIC_UI_PRESENTATION_PATHS){
+  const owned=new Set(leasedPaths);
   for(const p of owned){
     const f=files.get(p);
     assert.ok(f?.mode==='100644'&&Buffer.isBuffer(f.bytes),
@@ -226,6 +244,11 @@ export function assertPresentationClosure(files){
     }
     if(p===SHELL_PATH)assert.equal(menuCalls,1,'DUAL_PRESENTATION_MENU_DYNAMIC_REQUIRED');
   }
+  if(owned.has('src/ui/ink017/toolbar-customizer-view.js')){
+    const shell=files.get(SHELL_PATH).bytes.toString('utf8');
+    assert.match(shell,/import\s*\{\s*toolbarCustomizerPresentation\s*\}\s*from\s*["']\.\/toolbar-customizer-view\.js["']/,
+      'DUAL_TOOLBAR_PUBLIC_VIEW_NOT_BOUND');
+  }
   const markup=files.get('src/ui/ink017/markup.html').bytes.toString('utf8');
   assert.ok(!/<\s*(?:script|iframe)\b|\bon[a-z]+\s*=/.test(markup),
     'DUAL_PRESENTATION_MARKUP_EXEC');
@@ -265,7 +288,7 @@ function verifiedUiLease(base,prior,cfg){
   let unsigned;
   if(ui.schema===PUBLIC_UI_BUNDLE_SCHEMA){
     assert.ok(Array.isArray(ui.files),'UI_LEASE_FILES');
-    assert.deepEqual(ui.files.map(row=>row.path),PUBLIC_UI_PRESENTATION_PATHS,
+    assert.deepEqual(ui.files.map(row=>row.path),presentationPathsForLease(ui),
       'UI_LEASE_EXACT_PRESENTATION_PATHS');
     for(const row of ui.files){
       assert.deepEqual(Object.keys(row).sort(),
@@ -658,7 +681,7 @@ function verifyUiBridgeFiles(files,ui){
     assert.match(shell.bytes.toString('utf8'),
       /import\(new URL\(["']\.\/shell\.js["'],new URL\(["']src\/ui\/ink017\/entry\.js["'],document\.baseURI\)\.href\)\.href\)/,
       'UI_BRIDGE_EXTERNAL_SHELL_NOT_INSTALLED');
-    assertPresentationClosure(files);
+    assertPresentationClosure(files,presentationPathsForLease(ui));
   }else{
     assert.match(shell.bytes.toString('utf8'),
       /import\(new URL\(["']\.\/menu-ui\.js["'],new URL\(["']src\/ui\/ink017\/shell\.js["'],document\.baseURI\)\.href\)\.href\)/,
@@ -669,7 +692,7 @@ function verifyUiBridgeFiles(files,ui){
   const source=worker.bytes.toString('utf8');
   assert.match(source,/['"]\.\/src\/ui\/ink017\/menu-ui\.js['"]/,'UI_BRIDGE_SW_OFFLINE_MISSING');
   if(ui?.schema===PUBLIC_UI_BUNDLE_SCHEMA)
-    for(const p of PUBLIC_UI_PRESENTATION_PATHS)
+    for(const p of presentationPathsForLease(ui))
       assert.ok(source.includes(JSON.stringify('./'+p))||source.includes("'./"+p+"'"),
         'UI_BRIDGE_SW_OFFLINE_PRESENTATION:'+p);
   assert.match(source,/networkFirstAsset\(event\.request/,'UI_BRIDGE_SW_NETWORK_FIRST_MISSING');
