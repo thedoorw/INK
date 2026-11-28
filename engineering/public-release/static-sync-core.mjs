@@ -92,7 +92,8 @@ export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
  'src/ui/ink017/completion-options-view.js',
  'src/ui/ink017/native-tool-params-view.js',
  'src/agent/popup-client-view.js',
- 'src/ui/ink017/completion-overlay-view.js'
+ 'src/ui/ink017/completion-overlay-view.js',
+ 'src/ui/ink017/crop-overlay-view.js'
 ].sort());
 export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
 export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
@@ -282,6 +283,14 @@ export function assertPresentationClosure(files,leasedPaths=PUBLIC_UI_PRESENTATI
     assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
       /import\s*\{\s*presentCompletionOverlay\s*\}\s*from\s*['"]\.\/completion-overlay-view\.js['"]/,
       'DUAL_COMPLETION_OVERLAY_PUBLIC_VIEW_NOT_BOUND');
+  }
+  if(owned.has('src/ui/ink017/crop-overlay-view.js')){
+    const source=files.get('src/ui/ink017/crop-overlay-view.js').bytes.toString('utf8');
+    assert.match(source,/\bexport\s+function\s+presentCropOverlay\s*\(/,
+      'DUAL_CROP_OVERLAY_VIEW_EXPORT');
+    assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
+      /import\s*\{\s*presentCropOverlay\s*\}\s*from\s*['"]\.\/crop-overlay-view\.js['"]/,
+      'DUAL_CROP_OVERLAY_PUBLIC_VIEW_NOT_BOUND');
   }
   const views=[
     ['src/ui/branding-settings-view.js',['createBrandingDialogView']],
