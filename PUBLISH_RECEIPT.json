@@ -3,10 +3,10 @@
   "action": "ui-only",
   "source_sha": "df8e9f0b8e8004b23e9b4e9025139f99580f010a",
   "source_tree": "3d43f18b69452ed7ebf81184f7b407d1916d6fca",
-  "runtime_digest_sha256": "f9c22d9ee5491dfe99b9ac6bfda90c6f8436a616224f2d15cefa089224287870",
+  "runtime_digest_sha256": "e74942bb9c4689e59ffd418e5739edec6ed21f69929c240dae95662b4e452016",
   "package_manifest_sha256": "20a4a7ed070d037b333370f98703f2ea566e6b7ef6f939f04503457054eb5b17",
   "allowlist_digest_sha256": "2d990d9452d029b119b77beecda47d594fda3977049ac1a5d0b7ad49a7aeaa69",
-  "previous_target_commit": "b83237cdb20bef1e64532ba73edbdfcf81d0fa02",
+  "previous_target_commit": "d528e49a60fff75290c44233605b824ff07443ff",
   "authority_reference": "https://github.com/thedoorw/INK-Browser-QA/issues/788",
   "managed_files": [
     {
@@ -36,8 +36,8 @@
     {
       "path": "BUILD_INFO.json",
       "bytes": 88507,
-      "sha256": "f7354144bd87bb080ea405c00c2025af7993ebcb126f293a510b89370dcf701e",
-      "git_blob_sha": "2d61a46911f3fb229a349f43f11bd42647b6de76"
+      "sha256": "a9706457e812d43843484241e4afa7d660dc2d985767f314c147bc1a6298652a",
+      "git_blob_sha": "fc3ca53abf8512ca62c72a4bb032ff6ade695928"
     },
     {
       "path": "build-identity.js",
@@ -2183,9 +2183,9 @@
     },
     {
       "path": "src/ui/branding-settings-view.js",
-      "bytes": 4271,
-      "sha256": "6571d6eabaff58f4f082460b095004b20c45d0f1957a0c962be83b3f2b22b2b9",
-      "git_blob_sha": "f90a721b99b65ab83db1e23e552eb5a8113dd045"
+      "bytes": 4237,
+      "sha256": "a49dd73a6e3fedb9f9fc245b67de5b5b0bdd4b78fb1b32d796c280fd0b1da46c",
+      "git_blob_sha": "e1e170ed964d439a53ef1165994337fe07dbdb8e"
     },
     {
       "path": "src/ui/branding-settings.js",
@@ -2611,8 +2611,8 @@
   "ui_release": {
     "schema": "INK703_PUBLIC_UI_RELEASE_V2",
     "repo": "thedoorw/INK",
-    "base_head": "b83237cdb20bef1e64532ba73edbdfcf81d0fa02",
-    "base_tree": "16c85d9cb14c921eb84f20a57fdc477741315dbf",
+    "base_head": "d528e49a60fff75290c44233605b824ff07443ff",
+    "base_tree": "68523c2eea61507fc2b5de5c330461ed80597c75",
     "files": [
       {
         "path": "src/agent/g2-direct-boot-view.mjs",
@@ -2640,9 +2640,9 @@
       },
       {
         "path": "src/ui/branding-settings-view.js",
-        "bytes": 4271,
-        "sha256": "6571d6eabaff58f4f082460b095004b20c45d0f1957a0c962be83b3f2b22b2b9",
-        "git_blob_sha": "f90a721b99b65ab83db1e23e552eb5a8113dd045"
+        "bytes": 4237,
+        "sha256": "a49dd73a6e3fedb9f9fc245b67de5b5b0bdd4b78fb1b32d796c280fd0b1da46c",
+        "git_blob_sha": "e1e170ed964d439a53ef1165994337fe07dbdb8e"
       },
       {
         "path": "src/ui/compare-readonly-view.js",
@@ -2831,13 +2831,13 @@
         "git_blob_sha": "b2a675e9379829fcca1ee0631420105ad94e18f8"
       }
     ],
-    "version": "ui-000fa3d875dfc86844d8b5d8"
+    "version": "ui-80da7bb7b46e175b80b223bb"
   },
   "dual_source": {
     "schema": "INK703_DUAL_SOURCE_PUBLISH_V2",
     "private_runtime_digest_sha256": "8f2c0ba56ec5affda3149b6f2520a8f8c74119cfccae61c5ba5eae3af126aaf4",
-    "composite_runtime_digest_sha256": "f9c22d9ee5491dfe99b9ac6bfda90c6f8436a616224f2d15cefa089224287870",
-    "ui_release_version": "ui-000fa3d875dfc86844d8b5d8",
-    "pages_build_identity": "e03144f0d3ba9465fd2df3c54d203a1538f6f8a9"
+    "composite_runtime_digest_sha256": "e74942bb9c4689e59ffd418e5739edec6ed21f69929c240dae95662b4e452016",
+    "ui_release_version": "ui-80da7bb7b46e175b80b223bb",
+    "pages_build_identity": "d6b8baf8a314de7671553bb6844b0941cd199040"
   }
 }
