@@ -630,6 +630,17 @@ test('#788 added Public presenters cannot import Core or bypass their native bin
     /DUAL_PRESENTATION_(?:CORE_IMPORT|NONLOCAL_IMPORT)/,view);
  }
 });
+test('#788 Drive compiled fallback cannot impersonate a live Public view import',()=>{
+ const x=bundleFixture(),candidate=new Map(x.candidateFiles);
+ candidate.set('src/document/drive-native-link-startup.mjs',file(
+  "import {createDriveDialogView as fallbackDriveDialogView,appendDriveRecoveryChoices as fallbackDriveRecoveryChoices} from './drive-native-link-view.mjs';"));
+ assert.throws(()=>verifyUiBridgeFiles(candidate,x.metadata.uiLease),
+  /UI_BRIDGE_DRIVE_PUBLIC_URL_REQUIRED/);
+ candidate.set('src/document/drive-native-link-startup.mjs',file(
+  "import {createDriveDialogView as fallbackDriveDialogView,appendDriveRecoveryChoices as fallbackDriveRecoveryChoices} from './drive-native-link-view.mjs';const publicURL=new URL('./drive-native-link-view.mjs',document.baseURI);"));
+ assert.throws(()=>verifyUiBridgeFiles(candidate,x.metadata.uiLease),
+  /UI_BRIDGE_DRIVE_DYNAMIC_IMPORT_REQUIRED/);
+});
 test('#788 offline view and protected controller are an atomic SW inventory',()=>{
  for(const p of [
   'src/ui/branding-settings-view.js','src/ui/stage-shell-view.js',
@@ -689,11 +700,15 @@ test('#788 stage presentation CSS admits responsive paint/type and denies layout
   '.ink-branding-panel{width:500px}',
   'dialog.ink-drive-native-dialog{min-height:500px}',
   '.ink-size-actions{display:none}',
+  '.ink-size-actions{display:none!important}',
   '.ink-branding-panel .ink-branding-actions{height:100vh}',
   '@import url(https://example.com/a.css);',
   '.ink-view-pane{background:url(https://example.com/a.svg)}',
   '@keyframes hide{from{color:red}to{color:blue}}',
-  '.ink-view-pane{border:100px solid red}'
+  '.ink-view-pane{border:100px solid red}',
+  '.ink-view-pane{border:999em solid red}',
+  '.ink-view-pane{border:100vw solid red}',
+  '.ink-view-pane{border:var(--layout) solid red}'
  ])assert.throws(()=>assertStagePresentationCss(actual+'\n'+rule),
   /DUAL_STAGE_CSS_/,rule);
  const f=bundleFixture();
