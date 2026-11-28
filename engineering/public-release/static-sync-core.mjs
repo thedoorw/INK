@@ -88,7 +88,9 @@ export const PUBLIC_UI_PRESENTATION_PATHS=Object.freeze([
  'src/ui/minimal-test-shell/runtime-view.js',
  'src/agent/g2-direct-boot-view.mjs',
  'src/document/drive-native-link-view.mjs',
- 'src/ui/stage-shell-view.js'
+ 'src/ui/stage-shell-view.js',
+ 'src/ui/ink017/completion-options-view.js',
+ 'src/ui/ink017/native-tool-params-view.js'
 ].sort());
 export const PUBLIC_UI_BUNDLE_SCHEMA='INK703_PUBLIC_UI_RELEASE_V2';
 export const DUAL_BUNDLE_SCHEMA='INK703_DUAL_SOURCE_PUBLISH_V2';
@@ -254,6 +256,22 @@ export function assertPresentationClosure(files,leasedPaths=PUBLIC_UI_PRESENTATI
     const shell=files.get(SHELL_PATH).bytes.toString('utf8');
     assert.match(shell,/import\s*\{\s*toolbarCustomizerPresentation\s*\}\s*from\s*["']\.\/toolbar-customizer-view\.js["']/,
       'DUAL_TOOLBAR_PUBLIC_VIEW_NOT_BOUND');
+  }
+  if(owned.has('src/ui/ink017/completion-options-view.js')){
+    const source=files.get('src/ui/ink017/completion-options-view.js').bytes.toString('utf8');
+    assert.match(source,/\bexport\s+function\s+renderCompletionOptions\s*\(/,
+      'DUAL_COMPLETION_VIEW_EXPORT');
+    assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
+      /import\s*\{\s*renderCompletionOptions\s*\}\s*from\s*['"]\.\/completion-options-view\.js['"]/,
+      'DUAL_COMPLETION_PUBLIC_VIEW_NOT_BOUND');
+  }
+  if(owned.has('src/ui/ink017/native-tool-params-view.js')){
+    const source=files.get('src/ui/ink017/native-tool-params-view.js').bytes.toString('utf8');
+    assert.match(source,/\bexport\s+function\s+renderNativeToolParameters\s*\(/,
+      'DUAL_NATIVE_PARAMS_VIEW_EXPORT');
+    assert.match(files.get(SHELL_PATH).bytes.toString('utf8'),
+      /import\s*\{\s*renderNativeToolParameters\s*\}\s*from\s*['"]\.\/native-tool-params-view\.js['"]/,
+      'DUAL_NATIVE_PARAMS_PUBLIC_VIEW_NOT_BOUND');
   }
   const views=[
     ['src/ui/branding-settings-view.js',['createBrandingDialogView']],
