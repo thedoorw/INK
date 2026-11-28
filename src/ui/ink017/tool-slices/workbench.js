@@ -31,15 +31,24 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
  let hold=null,suppressClick=false,opener=null,menuGroup=null;
  const remembered=new Map(),buttons=new Map();
  rail.innerHTML=presenter.renderToolRail(displayGroups);
- const menu=document.createElement('div');menu.id='toolGroupMenu';menu.className='drawing-tool-menu';menu.setAttribute('popover','manual');menu.setAttribute('role','menu');root.append(menu);
+ const menu=typeof presenter.createToolGroupMenu==='function'?
+  presenter.createToolGroupMenu(root):document.createElement('div');
+ if(typeof presenter.createToolGroupMenu!=='function'){
+  menu.id='toolGroupMenu';menu.className='drawing-tool-menu';menu.setAttribute('popover','manual');menu.setAttribute('role','menu');root.append(menu);
+ }
+ if(menu.id!=='toolGroupMenu'||menu.getAttribute('popover')!=='manual'||menu.getAttribute('role')!=='menu')
+  throw Error('INK_UI_TOOL_GROUP_MENU_CONTRACT');
  for(const button of rail.querySelectorAll('[data-group]'))buttons.set(button.dataset.group,button);
- controls.innerHTML='<div id="contextToolOptions"></div><div id="transformControls" hidden></div>';
+ controls.innerHTML=presenter.renderToolOptionsContainers?.()??
+  '<div id="contextToolOptions"></div><div id="transformControls" hidden></div>';
  const options=controls.querySelector('#contextToolOptions');
+ if(!options||!controls.querySelector('#transformControls'))throw Error('INK_UI_TOOL_OPTIONS_VIEW_CONTRACT');
  bar.classList.add('tools-context');
  let expanded=false;
  const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(()=>{frame=0;render()})};
- const toolbarCustomization=mountToolbarCustomizer(root,TOOL_GROUPS,{signal,onLayoutChanged:schedule,feedback});
- const completion=mountCompletionTools(root,host,feedback,signal,schedule);
+ const toolbarCustomization=mountToolbarCustomizer(root,TOOL_GROUPS,{signal,onLayoutChanged:schedule,feedback,presentation:presentation?.toolbarCustomizer});
+ const completion=mountCompletionTools(root,host,feedback,signal,schedule,
+  typeof presenter.presentCompletionOverlay==='function'?presenter.presentCompletionOverlay:null);
  // DEV2 guard is installed before any activation, using existing cancellation
  // owner. It intercepts unsafe canvas events even before owner notifications.
  const safety=rt?mountDev2SafetyGuard(host,{eventTarget:window,onStop:schedule}):null;
@@ -100,8 +109,15 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
   if(!expanded||!options.firstElementChild)return;
   const fields=[...options.querySelectorAll('label.field-row,span.field-row[role=status],button[data-dev1-action],button[data-dev2-action],button[data-dev3-action],button[data-completion-action]')];
   if(!fields.length||bar.scrollWidth<=bar.clientWidth+1)return;
-  const extra=document.createElement('div');extra.className='context-more-menu';extra.id='toolOptionsMore';extra.setAttribute('popover','auto');extra.setAttribute('role','group');extra.setAttribute('aria-label','更多工具選項');
-  const more=document.createElement('button');more.type='button';more.className='context-drawing-more';more.textContent='更多';more.setAttribute('aria-expanded','false');more.setAttribute('aria-controls',extra.id);
+  const control=presenter.createMoreToolOptions?.();
+  const extra=control?.extra??document.createElement('div');
+  const more=control?.more??document.createElement('button');
+  if(!control){
+   extra.className='context-more-menu';extra.id='toolOptionsMore';extra.setAttribute('popover','auto');extra.setAttribute('role','group');extra.setAttribute('aria-label','更多工具選項');
+   more.type='button';more.className='context-drawing-more';more.textContent='更多';more.setAttribute('aria-expanded','false');more.setAttribute('aria-controls',extra.id);
+  }
+  if(extra.id!=='toolOptionsMore'||extra.getAttribute('popover')!=='auto'||
+    more.getAttribute('aria-controls')!==extra.id)throw Error('INK_UI_TOOL_MORE_CONTRACT');
   options.append(more,extra);
   // Measure the real labels and controls, including the More button itself.
   // Shrink to content; move trailing fields only until the bounded row fits.
@@ -123,16 +139,33 @@ export function mountToolsWorkbench(root,host,feedback,signal,presentation){
   if(!s.docs.length){options.textContent='No document';return}
   if(!context){options.textContent='No applicable tool options';return}
   const {group,item}=context;
-  if(group.owner===4){options.innerHTML=completionOptionsMarkup(completion);mountCompletionOptions(options,completion,feedback,optionAbort.signal);}
-  else if(group.owner===1){options.innerHTML=renderDev1Options(s,host);mountDev1Options(options,host,optionAbort.signal);}
-  else if(group.owner===2)mount=mountDev2Options(options,host,item.id,{subscribeUpdates:false,onFeedback:feedback,onCancel:()=>{viewContext=null;choose(TOOL_GROUPS[0],TOOL_GROUPS[0].items[0])},onApplied:()=>{viewContext=null;signature='';schedule()}});
-  else{mount=mountDev3Options(options,host,feedback,{subscribeUpdates:false});mount.render(group.id,item.id);}
+  // Public sees only final display text and a detached tool identifier. It
+  // cannot receive Host, target leases, capability or History authority.
+  const renderOptions=typeof presenter.renderNativeToolParameters==='function'?
+   data=>presenter.renderNativeToolParameters(Object.freeze({...data,groupId:group.id})):null;
+  if(group.owner===4){
+   const state=completion.snapshot(),opts=completion.runtime?.rasterOptions?.()||{};
+   const display=Object.freeze({id:state.id,count:state.count,pixels:state.pixels,
+    selection:Boolean(state.selection),options:Object.freeze({...state.options})});
+   options.innerHTML=typeof presenter.renderCompletionOptions==='function'?
+    presenter.renderCompletionOptions(display,Object.freeze({...opts})):
+    completionOptionsMarkup(completion);
+   mountCompletionOptions(options,completion,feedback,optionAbort.signal);
+  }
+  else if(group.owner===1){const markup=renderDev1Options(s,host);
+   options.innerHTML=renderOptions?renderOptions({owner:1,toolId:item.id,markup}):markup;
+   mountDev1Options(options,host,optionAbort.signal);}
+  else if(group.owner===2)mount=mountDev2Options(options,host,item.id,{subscribeUpdates:false,renderOptions,presentCropOverlay:presenter.presentCropOverlay,onFeedback:feedback,onCancel:()=>{viewContext=null;choose(TOOL_GROUPS[0],TOOL_GROUPS[0].items[0])},onApplied:()=>{viewContext=null;signature='';schedule()}});
+  else{mount=mountDev3Options(options,host,feedback,{subscribeUpdates:false,renderOptions});mount.render(group.id,item.id);}
   arrangeOptions();
   // All Native option receivers have been mounted before Public presentation
   // decorates labels/layout. Stable input identifiers and listeners stay Core-owned.
   presenter.decorateToolOptions?.(options,Object.freeze({groupId:group.id,itemId:item.id}));
  }
- function setExpanded(value){expanded=value;bar.classList.toggle('expanded',value);toggle.setAttribute('aria-expanded',String(value));toggle.setAttribute('aria-label',value?'收合工具選項':'展開工具選項');toggle.title=toggle.getAttribute('aria-label');signature='';schedule();toggle.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="'+(value?'M6 9l6 6 6-6':'M6 15l6-6 6 6')+'" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';}
+ function setExpanded(value){expanded=value;bar.classList.toggle('expanded',value);toggle.setAttribute('aria-expanded',String(value));signature='';schedule();
+  if(typeof presenter.updateContextToggle==='function')presenter.updateContextToggle(toggle,value);
+  else{toggle.setAttribute('aria-label',value?'收合工具選項':'展開工具選項');toggle.title=toggle.getAttribute('aria-label');toggle.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="'+(value?'M6 9l6 6 6-6':'M6 15l6-6 6 6')+'" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';}
+ }
  toggle.addEventListener('click',()=>setExpanded(!expanded),{signal});
  options.addEventListener('focusout',schedule,{signal});
  const observer=new ResizeObserver(()=>{signature='';schedule()});observer.observe(bar);observer.observe(root);

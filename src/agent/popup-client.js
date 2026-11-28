@@ -1,5 +1,6 @@
 import {siteOrigin, buildId, sourceSha, scope, readOnlyScope, sameScope, popupLifetime, validBinding, validNonce,
   fromPeer, loadedIdentity, validDelivery, projectResult} from "./popup-policy.js";
+import {createPrivateReadOnlyMenuRow} from './popup-client-view.js';
 
 let popup, port, challenge, active, pending, delivery, handshake, sessionId, testTarget, edit;
 let negotiated = readOnlyScope, sequence = 0;
@@ -118,19 +119,7 @@ function mountPrivatePluginMenu() {
     const pane = activeMenu?.querySelector('.menu-pane[aria-label="plugins"]');
     const group = pane?.querySelector(".menu-group");
     if (!group || group.querySelector("[data-ink-readonly-popup]")) return;
-    const host = document.createElement("div");
-    host.className = "menu-item-host";
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "menu-row";
-    button.setAttribute("role", "menuitem");
-    button.setAttribute("data-ink-readonly-popup", "");
-    const label = document.createElement("span");
-    label.className = "menu-label";
-    label.textContent = "開啟私人唯讀連線";
-    button.append(label);
-    host.append(button);
-    group.append(host);
+    group.append(createPrivateReadOnlyMenuRow(document));
   };
   const attach = () => {
     const menu = document.getElementById("mainMenu");

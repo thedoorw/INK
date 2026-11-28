@@ -214,14 +214,15 @@ export function dev3Perform(host,id,key,value,target,guideId) {
  }
  failure('No Native receiver for '+id+'/'+key);
 }
-export function mountDev3Options(root,host,feedback=()=>{},{subscribeUpdates=true}={}) {
+export function mountDev3Options(root,host,feedback=()=>{},{subscribeUpdates=true,renderOptions}={}) {
  let activeId='',activeVariant='',guideId='',disposed=false;
  const ac=new AbortController(),signal=ac.signal;
  const paint=()=>{
   if(disposed)return;
   const snapshot=current(host),guides=doc(snapshot)?.guides||[];
   if(!guides.some(g=>g.id===guideId))guideId=guides[0]?.id||'';
-  root.innerHTML=dev3OptionsMarkup(host,activeId,activeId==='guide'?guideId:activeVariant);
+  const markup=dev3OptionsMarkup(host,activeId,activeId==='guide'?guideId:activeVariant);
+  root.innerHTML=typeof renderOptions==='function'?renderOptions({owner:3,toolId:activeId,markup}):markup;
   root.dataset.nativeTarget=JSON.stringify(host.target());
   root.dataset.dev3Tool=activeId;
  };

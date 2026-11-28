@@ -674,30 +674,30 @@ export function mountInkRuntimeBridgeControls(bridge, container, {
 } = {}) {
   if (!bridge || !container || typeof document === 'undefined') throw new TypeError('Runtime Bridge controls require bridge and container');
 
-  const root = document.createElement('div');
-  root.setAttribute('data-ink-runtime-bridge-controls', '1');
-
-  const status = document.createElement('span');
-  status.setAttribute('data-ink-runtime-status', '1');
-  const pending = document.createElement('span');
-  pending.setAttribute('data-ink-runtime-pending', '1');
-  const error = document.createElement('span');
-  error.setAttribute('data-ink-runtime-error', '1');
-  error.setAttribute('role', 'alert');
-
-  const connect = document.createElement('button');
-  const revoke = document.createElement('button');
-  const check = document.createElement('button');
-  const approve = document.createElement('button');
-  const reject = document.createElement('button');
-  connect.type = revoke.type = check.type = approve.type = reject.type = 'button';
-  connect.textContent = 'Connect CHAT';
-  revoke.textContent = 'Disconnect';
-  check.textContent = 'Check request';
-  approve.textContent = 'Approve request';
-  reject.textContent = 'Reject request';
-
-  root.append(status, pending, error, connect, revoke, check, approve, reject);
+  const publicCreate=globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.createRuntimeBridgeControls;
+  const view=typeof publicCreate==='function'?publicCreate():null;
+  const root=view?.root??document.createElement('div');
+  if(!view)root.setAttribute('data-ink-runtime-bridge-controls','1');
+  const status=view?.elements?.status??document.createElement('span');
+  const pending=view?.elements?.pending??document.createElement('span');
+  const error=view?.elements?.error??document.createElement('span');
+  const connect=view?.elements?.connect??document.createElement('button');
+  const revoke=view?.elements?.revoke??document.createElement('button');
+  const check=view?.elements?.check??document.createElement('button');
+  const approve=view?.elements?.approve??document.createElement('button');
+  const reject=view?.elements?.reject??document.createElement('button');
+  if(!view){
+    status.setAttribute('data-ink-runtime-status','1');
+    pending.setAttribute('data-ink-runtime-pending','1');
+    error.setAttribute('data-ink-runtime-error','1');error.setAttribute('role','alert');
+    connect.type=revoke.type=check.type=approve.type=reject.type='button';
+    connect.textContent='Connect CHAT';revoke.textContent='Disconnect';
+    check.textContent='Check request';approve.textContent='Approve request';reject.textContent='Reject request';
+    root.append(status,pending,error,connect,revoke,check,approve,reject);
+  }
+  if(root.getAttribute('data-ink-runtime-bridge-controls')!=='1'||
+    [status,pending,error,connect,revoke,check,approve,reject].some(el=>!root.contains(el)))
+    throw Error('INK_UI_RUNTIME_BRIDGE_VIEW_CONTRACT');
   container.append(root);
 
   let disposed = false;
@@ -708,18 +708,24 @@ export function mountInkRuntimeBridgeControls(bridge, container, {
     if (disposed) return;
     const state = bridge.status();
     const consent = bridge.pendingConsent();
-    status.textContent = state.paired
-      ? (busy ? 'CHAT connected · working' : 'CHAT connected')
-      : (state.pairInFlight || busy ? 'CHAT connecting' : 'CHAT disconnected');
-    pending.textContent = consent
-      ? consent.action + ' · ' + consent.requestId + (consent.summary?.proposalId ? ' · proposal ' + consent.summary.proposalId : '')
-      : 'No pending request';
-    error.textContent = lastError || '';
-    connect.disabled = busy || state.paired || state.pairInFlight || state.ready === false;
-    revoke.disabled = busy || (!state.paired && !state.pairInFlight);
-    check.disabled = busy || !state.accepting;
-    approve.disabled = busy || !consent;
-    reject.disabled = busy || !consent;
+    const publicPresent=globalThis.INK_PUBLIC_DOCUMENT_VIEWS?.presentRuntimeBridgeControls;
+    if(typeof publicPresent==='function')publicPresent(Object.freeze({status,pending,error,connect,revoke,check,approve,reject}),
+      Object.freeze({paired:Boolean(state.paired),pairInFlight:Boolean(state.pairInFlight),
+        ready:state.ready!==false,accepting:Boolean(state.accepting),
+        pendingAction:String(consent?.action||''),pendingRequestId:String(consent?.requestId||''),
+        pendingProposalId:String(consent?.summary?.proposalId||''),busy,error:lastError||''}));
+    else{
+      status.textContent=state.paired?(busy?'CHAT connected · working':'CHAT connected'):
+        (state.pairInFlight||busy?'CHAT connecting':'CHAT disconnected');
+      pending.textContent=consent?consent.action+' · '+consent.requestId+
+        (consent.summary?.proposalId?' · proposal '+consent.summary.proposalId:''):'No pending request';
+      error.textContent=lastError||'';
+      connect.disabled=busy||state.paired||state.pairInFlight||state.ready===false;
+      revoke.disabled=busy||(!state.paired&&!state.pairInFlight);
+      check.disabled=busy||!state.accepting;
+      approve.disabled=busy||!consent;
+      reject.disabled=busy||!consent;
+    }
   };
 
   const run = async operation => {

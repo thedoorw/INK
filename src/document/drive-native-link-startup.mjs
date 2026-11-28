@@ -1,5 +1,7 @@
 import {createDriveNativeLinks,parseDriveNativeLink,makeDriveNativeLink} from './drive-native-links.mjs';
 import {createDriveTokenProvider} from './drive-native-auth.mjs';
+import {createDriveDialogView as fallbackDriveDialogView,
+  appendDriveRecoveryChoices as fallbackDriveRecoveryChoices} from './drive-native-link-view.mjs';
 
 // One first-party UI/service for both a new Native document and a pinned Drive URL.
 // This is not an independent Document, History, Renderer or token persistence owner.
@@ -7,27 +9,27 @@ export async function mountDriveNativeLink(app,{config,ready,documentObject=docu
   const identity=parseDriveNativeLink(locationObject.href);
   if(!identity&&!config?.clientId&&typeof config?.getAccessToken!=='function')return null;
   await ready;
+  // The startup chunk is compiled Core. Resolve its view at the actual Public
+  // document base, as #703 does for shell.js, to keep display edits independent.
+  // Its bundled original is retained only for old/offline mixed deployments.
+  let view={createDriveDialogView:fallbackDriveDialogView,
+    appendDriveRecoveryChoices:fallbackDriveRecoveryChoices};
+  try{
+    const base=documentObject.baseURI||locationObject.href;
+    const publicURL=new URL('./drive-native-link-view.mjs',
+      new URL('src/document/drive-native-link-startup.mjs',base).href).href;
+    const candidate=await import(publicURL);
+    if(typeof candidate.createDriveDialogView!=='function'||
+       typeof candidate.appendDriveRecoveryChoices!=='function')throw Error('INK_DRIVE_PUBLIC_VIEW_CONTRACT');
+    view=candidate;
+  }catch(error){console.error('INK_DRIVE_PUBLIC_VIEW_FALLBACK',error);}
+  const {createDriveDialogView,appendDriveRecoveryChoices}=view;
   // The old body-appended section was clipped by INK's overflow:hidden shell.
   // A native dialog enters the browser top layer; all actual OAuth requests
   // remain on the existing in-dialog user-click handlers, never on menu hover.
-  const panel=documentObject.createElement('dialog');
-  panel.className='ink-drive-native-dialog';
-  panel.setAttribute('aria-label','INK Google Drive 作品');
-  const header=documentObject.createElement('header');
-  const heading=documentObject.createElement('strong');heading.textContent='Google Drive 私人作品';
-  const dismiss=documentObject.createElement('button');dismiss.type='button';
-  dismiss.textContent='關閉';dismiss.setAttribute('aria-label','關閉 Google Drive 操作視窗');
+  const {panel,dismiss,status,open,save,recover,found,link}=
+    createDriveDialogView(documentObject,{hasIdentity:Boolean(identity)});
   dismiss.addEventListener('click',()=>panel.close());
-  header.append(heading,dismiss);
-  const status=documentObject.createElement('p');status.setAttribute('role','status');
-  const open=documentObject.createElement('button');open.type='button';open.textContent='授權並開啟 Drive 作品';open.hidden=!identity;
-  const save=documentObject.createElement('button');save.type='button';
-  save.textContent=identity?'儲存新版本並取得連結':'儲存到 Google Drive 並取得作品連結';
-  const recover=documentObject.createElement('button');recover.type='button';
-  recover.textContent='從 Google Drive 找回作品';
-  const found=documentObject.createElement('div');found.setAttribute('aria-label','INK 已儲存的作品');found.hidden=true;
-  const link=documentObject.createElement('a');link.textContent='開啟已保存版本';link.hidden=true;
-  panel.append(header,status,open,save,recover,found,link);
   documentObject.body.append(panel);
   let getAccessToken;
   try {
@@ -140,15 +142,7 @@ export async function mountDriveNativeLink(app,{config,ready,documentObject=docu
       await getAccessToken();
       const items=await client.listRecoverable();
       if(!items.length){status.textContent='找不到此 INK Google 帳號授權可存取的 INK 作品。';return;}
-      const heading=documentObject.createElement('p');
-      heading.textContent='找到 '+items.length+' 個 INK 儲存版本，請選擇要開啟的作品：';
-      found.append(heading);
-      for(const item of items){
-        const button=documentObject.createElement('button');button.type='button';
-        const when=item.createdTime&&Number.isFinite(Date.parse(item.createdTime))
-          ?new Date(item.createdTime).toLocaleString():'儲存版本';
-        button.textContent=when+' · '+item.name;
-        button.addEventListener('click',async()=>{
+      appendDriveRecoveryChoices(documentObject,found,items,async(item,button)=>{
           button.disabled=true;
           try{
             const recoveredLink=makeDriveNativeLink(locationObject.origin+locationObject.pathname,item);
@@ -158,9 +152,7 @@ export async function mountDriveNativeLink(app,{config,ready,documentObject=docu
             status.textContent='已從 Google Drive 找回並校驗 Native 作品。';
           }catch(error){pinnedOpenConfirmed=false;status.textContent=error.code||'INK_LINK_RECOVERY_FAILED';}
           finally{refreshSaveEligibility();button.disabled=false;}
-        });
-        found.append(button);
-      }
+      });
       found.hidden=false;
       status.textContent='已列出此 INK 應用程式可存取的私有作品。';
     }catch(error){status.textContent=error.code||'INK_LINK_DISCOVERY_FAILED';}

@@ -36,7 +36,22 @@ export async function mountInk017(app){
  shell.querySelector('#workspace').setAttribute('aria-label','Artwork workspace');shell.querySelector('#toast').id='ui017Toast';
  const input=document.createElement('input');input.id='importImageFile';input.type='file';input.accept='image/*';input.hidden=true;shell.append(input);
  const utilities=document.querySelector('#nativeFunctionHost');
- if(utilities){const panel=document.createElement('section');panel.id='nativeFunctionDialog';panel.className='native-function-dialog';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Document tools');panel.setAttribute('aria-modal','true');const header=document.createElement('header');header.className='dialog-header';const title=document.createElement('h2');title.textContent='Document tools';const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Close Document tools');close.className='dialog-close native-function-close';header.append(title,close);bindNativeFunctionPanelDismissal(panel,shell,close);panel.append(header,utilities);utilities.hidden=false;shell.append(panel);}
+ if(utilities){
+  // The Public markup is the visible dialog authority. Retain a legacy
+  // fallback only while older published UI leases are in circulation.
+  let panel=shell.querySelector('#nativeFunctionDialog');
+  if(!panel){
+   panel=document.createElement('section');panel.id='nativeFunctionDialog';panel.className='native-function-dialog';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Document tools');panel.setAttribute('aria-modal','true');
+   const header=document.createElement('header');header.className='dialog-header';
+   const title=document.createElement('h2');title.textContent='Document tools';
+   const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Close Document tools');close.className='dialog-close native-function-close';
+   header.append(title,close);panel.append(header);
+  }
+  const close=panel.querySelector('.native-function-close');
+  if(!close||panel.querySelectorAll('#nativeFunctionHost').length)throw Error('INK_UI_DOCUMENT_TOOLS_VIEW_CONTRACT');
+  bindNativeFunctionPanelDismissal(panel,shell,close);
+  panel.append(utilities);utilities.hidden=false;shell.append(panel);
+ }
  app.el.app.classList.remove('ink-minimal-app');app.el.app.classList.add('ink017-native-app');
  const wrap=app.el.wrap;shell.querySelector('#artboardStage').append(wrap);document.querySelector('#app').append(shell);
  // Keep the Core-owned Native adapter in the compiled startup entry. The

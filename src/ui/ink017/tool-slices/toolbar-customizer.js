@@ -12,7 +12,7 @@ export function normalizeToolbarArrangement(value,groups){
  return {version:1,visible,extra};
 }
 
-export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedback}={}){
+export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedback,presentation}={}){
  const rail=root.querySelector('.tool-area'),button=root.querySelector('#railCustomize');
  if(!rail||!button)throw Error('Toolbar customizer requires the existing rail and launcher');
  const cells=new Map([...rail.querySelectorAll('[data-group]')].map(el=>[el.dataset.group,el.closest('.tool-cell')]));
@@ -23,7 +23,7 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
  const dialog=document.createElement('dialog');
  dialog.className='ink-toolbar-customize';
  dialog.setAttribute('aria-label','自訂工具列');
- dialog.innerHTML='<header class="ink-toolbar-customize-head"><strong>自訂工具列</strong><button type="button" data-tb-action="cancel" aria-label="關閉">×</button></header>'+
+ const fallbackMarkup='<header class="ink-toolbar-customize-head"><strong>自訂工具列</strong><button type="button" data-tb-action="cancel" aria-label="關閉">×</button></header>'+
   '<p class="ink-toolbar-customize-description">自訂單欄工具組的排列與顯示。隱藏的工具可隨時從右側移回，所有 Native 工具功能仍保留。</p>'+
   '<div class="ink-toolbar-customize-columns"><section><h3>工具列</h3><div class="ink-toolbar-customize-list" data-tb-list="visible"></div></section>'+
   '<section><h3>輔助項目工具</h3><div class="ink-toolbar-customize-list" data-tb-list="extra"></div></section></div>'+
@@ -32,6 +32,9 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
   '<button type="button" data-tb-action="save">儲存預設…</button><button type="button" data-tb-action="load">載入預設…</button>'+
   '<span class="ink-toolbar-customize-actions-spacer"></span><button type="button" data-tb-action="cancel">取消</button>'+
   '<button type="button" class="ink-toolbar-customize-primary" data-tb-action="apply">完成</button></footer>';
+ dialog.innerHTML=typeof presentation?.toolbarCustomizerMarkup==='function'?presentation.toolbarCustomizerMarkup():fallbackMarkup;
+ for(const selector of ['[data-tb-list="visible"]','[data-tb-list="extra"]','[role="status"]','[data-tb-action="apply"]'])
+  if(!dialog.querySelector(selector))throw Error('INK_UI_TOOLBAR_VIEW_CONTRACT');
  const fileInput=document.createElement('input');
  fileInput.type='file';fileInput.accept='.json,application/json';fileInput.hidden=true;
  dialog.append(fileInput);root.append(dialog);
@@ -42,7 +45,7 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
  }
  function message(value){dialog.querySelector('[role=status]').textContent=value;}
  function close(){if(dialog.open)dialog.close();draft=null;origin?.focus?.();}
- function row(id,kind,index){
+ function fallbackRow(id,kind,index){
   const g=byId.get(id),el=document.createElement('div');
   el.className='ink-toolbar-customize-row';
   const picture=document.createElement('span');picture.className='ink-toolbar-customize-icon';picture.innerHTML=g.items[0].icon;picture.setAttribute('aria-hidden','true');
@@ -56,6 +59,14 @@ export function mountToolbarCustomizer(root,groups,{signal,onLayoutChanged,feedb
    action('up','↑',index===0);action('down','↓',index===draft.visible.length-1);
    action('hide','移出',draft.visible.length===1);
   } else action('show','加入');
+  return el;
+ }
+ const displayGroups=new Map(groups.map(g=>[g.id,Object.freeze({id:g.id,label:g.label,icon:g.items[0].icon})]));
+ function row(id,kind,index){
+  if(typeof presentation?.createToolbarCustomizerRow!=='function')return fallbackRow(id,kind,index);
+  const el=presentation.createToolbarCustomizerRow(displayGroups.get(id),Object.freeze({kind,index,visibleCount:draft.visible.length}));
+  if(!(el instanceof HTMLElement)||!el.classList.contains('ink-toolbar-customize-row')||
+      [...el.querySelectorAll('button')].some(button=>button.dataset.tbId!==id))throw Error('INK_UI_TOOLBAR_ROW_CONTRACT');
   return el;
  }
  function repaint(){
