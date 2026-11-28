@@ -464,7 +464,8 @@ const BUNDLE_META=['BUILD_INFO.json','PUBLISH_RECEIPT.json','pages-build-identit
 const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';import {renderCompletionOptions} from './completion-options-view.js';import {renderNativeToolParameters} from './native-tool-params-view.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
 const bundleControllers=[
  'src/ui/branding-settings.js','src/ui/minimal-test-shell/modules.js',
- 'src/agent/g2-direct-boot.mjs','src/document/drive-native-link-startup.mjs'
+ 'src/agent/g2-direct-boot.mjs','src/document/drive-native-link-startup.mjs',
+ 'src/agent/popup-client.js'
 ];
 const bundleWorker=()=>`const SOURCE_SHELL=[${[...PUBLIC_UI_PRESENTATION_PATHS,...bundleControllers].map(p=>JSON.stringify('./'+p)).join(',')}];networkFirstAsset(event.request);`;
 const runtimeRows=files=>[...files].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}))
@@ -476,6 +477,7 @@ function bundleFixture({missingCharacterSW=false,missingToolbarSW=false}={}){
  s.sourceFiles.set('src/ui/minimal-test-shell/modules.js',file("import {renderMinimalControlsView,renderMinimalStateView,renderMinimalStatusView} from './runtime-view.js';"));
  s.sourceFiles.set('src/agent/g2-direct-boot.mjs',file("import {g2ConnectionLabel,createG2ConnectControl} from './g2-direct-boot-view.mjs';"));
  s.sourceFiles.set('src/document/drive-native-link-startup.mjs',file("import {createDriveDialogView,appendDriveRecoveryChoices} from './drive-native-link-view.mjs';"));
+ s.sourceFiles.set('src/agent/popup-client.js',file("import {createPrivateReadOnlyMenuRow} from './popup-client-view.js';"));
  s.sourceFiles.set('dist/startup/ink-shell.mjs',file(
   'await import(new URL("./shell.js",new URL("src/ui/ink017/entry.js",document.baseURI).href).href);'));
  s.sourceFiles.set('service-worker-runtime.js',file(missingCharacterSW?
@@ -491,6 +493,7 @@ function bundleFixture({missingCharacterSW=false,missingToolbarSW=false}={}){
   p==='src/ui/stage-shell-view.js'?'export function renderStageShellView(){/* inkBootGate emptyHint textEditor textInput textCommit textCancel */}':
   p==='src/ui/ink017/completion-options-view.js'?"import {field,esc} from './shared-controls.js';export function renderCompletionOptions(){}":
   p==='src/ui/ink017/native-tool-params-view.js'?'export function renderNativeToolParameters({markup}){return markup}':
+  p==='src/agent/popup-client-view.js'?'export function createPrivateReadOnlyMenuRow(){}':
   p===UI_MENU?menuSource('snapState','Public A'):p.endsWith('.html')?'<main>INK</main>':
   p.endsWith('.css')?':root{--ink-color:blue}':`export const label=${JSON.stringify(p)};`));
  s.build.runtime.files=runtimeRows(s.sourceFiles);
@@ -577,7 +580,8 @@ test('#788 added Public presenters cannot import Core or bypass their native bin
   ['src/ui/minimal-test-shell/runtime-view.js','src/ui/minimal-test-shell/modules.js'],
   ['src/agent/g2-direct-boot-view.mjs','src/agent/g2-direct-boot.mjs'],
   ['src/document/drive-native-link-view.mjs','src/document/drive-native-link-startup.mjs'],
-  ['src/ui/stage-shell-view.js','index.html']
+  ['src/ui/stage-shell-view.js','index.html'],
+  ['src/agent/popup-client-view.js','src/agent/popup-client.js']
  ];
  for(const [view,controller] of views){
   const x=bundleFixture(),unbound=new Map(x.candidateFiles);
