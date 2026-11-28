@@ -1818,8 +1818,8 @@
       },
       {
         "path": "src/ui/branding-settings-view.js",
-        "bytes": 4271,
-        "sha256": "6571d6eabaff58f4f082460b095004b20c45d0f1957a0c962be83b3f2b22b2b9"
+        "bytes": 4237,
+        "sha256": "a49dd73a6e3fedb9f9fc245b67de5b5b0bdd4b78fb1b32d796c280fd0b1da46c"
       },
       {
         "path": "src/ui/branding-settings.js",
@@ -2172,7 +2172,7 @@
         "sha256": "0ec314094336d78748b8e5a15b5eeef4d0003d99f09c99c8cc960fe91d908e3a"
       }
     ],
-    "package_digest_sha256": "f9c22d9ee5491dfe99b9ac6bfda90c6f8436a616224f2d15cefa089224287870"
+    "package_digest_sha256": "e74942bb9c4689e59ffd418e5739edec6ed21f69929c240dae95662b4e452016"
   },
   "publisher": {
     "pipeline": "transport009-static-sync",
@@ -2185,8 +2185,8 @@
   "ui_release": {
     "schema": "INK703_PUBLIC_UI_RELEASE_V2",
     "repo": "thedoorw/INK",
-    "base_head": "b83237cdb20bef1e64532ba73edbdfcf81d0fa02",
-    "base_tree": "16c85d9cb14c921eb84f20a57fdc477741315dbf",
+    "base_head": "d528e49a60fff75290c44233605b824ff07443ff",
+    "base_tree": "68523c2eea61507fc2b5de5c330461ed80597c75",
     "files": [
       {
         "path": "src/agent/g2-direct-boot-view.mjs",
@@ -2214,9 +2214,9 @@
       },
       {
         "path": "src/ui/branding-settings-view.js",
-        "bytes": 4271,
-        "sha256": "6571d6eabaff58f4f082460b095004b20c45d0f1957a0c962be83b3f2b22b2b9",
-        "git_blob_sha": "f90a721b99b65ab83db1e23e552eb5a8113dd045"
+        "bytes": 4237,
+        "sha256": "a49dd73a6e3fedb9f9fc245b67de5b5b0bdd4b78fb1b32d796c280fd0b1da46c",
+        "git_blob_sha": "e1e170ed964d439a53ef1165994337fe07dbdb8e"
       },
       {
         "path": "src/ui/compare-readonly-view.js",
@@ -2405,14 +2405,14 @@
         "git_blob_sha": "b2a675e9379829fcca1ee0631420105ad94e18f8"
       }
     ],
-    "version": "ui-000fa3d875dfc86844d8b5d8"
+    "version": "ui-80da7bb7b46e175b80b223bb"
   },
   "dual_source": {
     "schema": "INK703_DUAL_SOURCE_PUBLISH_V2",
     "private_runtime_digest_sha256": "8f2c0ba56ec5affda3149b6f2520a8f8c74119cfccae61c5ba5eae3af126aaf4",
-    "composite_runtime_digest_sha256": "f9c22d9ee5491dfe99b9ac6bfda90c6f8436a616224f2d15cefa089224287870",
-    "ui_release_version": "ui-000fa3d875dfc86844d8b5d8",
-    "pages_build_identity": "e03144f0d3ba9465fd2df3c54d203a1538f6f8a9"
+    "composite_runtime_digest_sha256": "e74942bb9c4689e59ffd418e5739edec6ed21f69929c240dae95662b4e452016",
+    "ui_release_version": "ui-80da7bb7b46e175b80b223bb",
+    "pages_build_identity": "d6b8baf8a314de7671553bb6844b0941cd199040"
   },
   "qualification": {
     "status": "REVIEW_REQUIRED",
@@ -2430,7 +2430,7 @@
   },
   "publication": {
     "kind": "ui-only",
-    "previous_target_commit": "b83237cdb20bef1e64532ba73edbdfcf81d0fa02",
+    "previous_target_commit": "d528e49a60fff75290c44233605b824ff07443ff",
     "runtime_bytes_unchanged_from_package": false
   }
 }
