@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {checkEvent,isControlOnly} from './verify-static-sync.mjs';
-import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,uiBundlePaths,verifyUiBundleOnlyPlan,expectedUiBundleMetadata,PUBLIC_UI_PRESENTATION_PATHS,PUBLIC_UI_SHARED_CONTROL_EXPORTS,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
+import {makePlan,verifyPlan,validateBase,blob,hash,canonical,safePath,allowed,uiOnlyPaths,verifyUiOnlyPlan,expectedUiOnlyMetadata,uiBundlePaths,verifyUiBundleOnlyPlan,expectedUiBundleMetadata,PUBLIC_UI_PRESENTATION_PATHS,PUBLIC_UI_PRESENTATION_PATHS_V2,PUBLIC_UI_SHARED_CONTROL_EXPORTS,pagesRevisionForDigest,verifyMenuHostContract,verifyQa637,qa637Only,qa637Event,QA637_ROOT,verifyQa646,qa646Only,qa646Event,QA646_ROOT} from './static-sync-core.mjs';
 import {createHash} from 'node:crypto';
 const cfg=JSON.parse(await readFile(new URL('./static-sync.allowlist.json',import.meta.url)));
 const sha=c=>c.repeat(40),file=s=>{const bytes=Buffer.from(s);return{bytes,sha:blob(bytes),mode:'100644'}};
@@ -461,17 +461,17 @@ const BUNDLE_COLOR='src/ui/ink017/panels/color.js';
 const BUNDLE_TOKENS='src/ui/ink017/tokens.css';
 const REAL_SVG_ICON="url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2012%2012'%3E%3Cpath%20d='M2.5%204.5%206%208%209.5%204.5'%20fill='none'%20stroke='%23666666'%20stroke-width='1.25'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E\")";
 const BUNDLE_META=['BUILD_INFO.json','PUBLISH_RECEIPT.json','pages-build-identity.txt'];
-const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
+const bundleShell=()=>"import './right-dock.js';import './shared-controls.js';import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';const menu=import(new URL('./menu-ui.js',import.meta.url).href);";
 const bundleWorker=()=>`const SOURCE_SHELL=[${PUBLIC_UI_PRESENTATION_PATHS.map(p=>JSON.stringify('./'+p)).join(',')}];networkFirstAsset(event.request);`;
 const runtimeRows=files=>[...files].map(([path,f])=>({path,bytes:f.bytes.length,sha256:hash(f.bytes)}))
   .sort((a,b)=>a.path.localeCompare(b.path,'en'));
-function bundleFixture({missingCharacterSW=false}={}){
+function bundleFixture({missingCharacterSW=false,missingToolbarSW=false}={}){
  const s=inputs();
  s.sourceFiles.set('dist/startup/ink-shell.mjs',file(
   'await import(new URL("./shell.js",new URL("src/ui/ink017/entry.js",document.baseURI).href).href);'));
  s.sourceFiles.set('service-worker-runtime.js',file(missingCharacterSW?
   bundleWorker().replace('"./src/ui/ink017/panels/character-typography.js",',''):
-  bundleWorker()));
+  missingToolbarSW?bundleWorker().replace('"./src/ui/ink017/toolbar-customizer-view.js"',''):bundleWorker()));
  for(const p of PUBLIC_UI_PRESENTATION_PATHS)s.sourceFiles.set(p,file(p===BUNDLE_SHELL?bundleShell():
   p===BUNDLE_SHARED?PUBLIC_UI_SHARED_CONTROL_EXPORTS.map(name=>`export const ${name}=()=>{};`).join('\n'):
   p===UI_MENU?menuSource('snapState','Public A'):p.endsWith('.html')?'<main>INK</main>':
@@ -483,7 +483,7 @@ function bundleFixture({missingCharacterSW=false}={}){
  const candidateFiles=new Map(base.files);
  candidateFiles.set(BUNDLE_COLOR,file('export const label="Public B color";'));
  candidateFiles.set(BUNDLE_TOKENS,file(':root{--ink-color:green}'));
- if(missingCharacterSW)return {base,candidateFiles};
+ if(missingCharacterSW||missingToolbarSW)return {base,candidateFiles};
  const metadata=expectedUiBundleMetadata({base,candidateFiles,cfg});
  candidateFiles.set('BUILD_INFO.json',metadata.buildItem);
  candidateFiles.set('PUBLISH_RECEIPT.json',metadata.receiptItem);
@@ -492,6 +492,49 @@ function bundleFixture({missingCharacterSW=false}={}){
  return {base,candidateFiles,metadata,changedPaths};
 }
 function verifyBundle(x){return verifyUiBundleOnlyPlan({...x,cfg});}
+test('#788 18-path published V2 receipt remains valid before Public-view lease migration',()=>{
+ const x=bundleFixture(),files=new Map(x.candidateFiles);
+ const before=JSON.parse(files.get('BUILD_INFO.json').bytes);
+ const receipt=JSON.parse(files.get('PUBLISH_RECEIPT.json').bytes);
+ const legacy=structuredClone(before.ui_release);
+ legacy.files=legacy.files.filter(row=>PUBLIC_UI_PRESENTATION_PATHS_V2.includes(row.path));
+ delete legacy.version;
+ legacy.version='ui-'+hash(Buffer.from(canonical(legacy))).slice(0,24);
+ assert.equal(legacy.files.length,18);
+ before.ui_release=structuredClone(legacy);
+ receipt.ui_release=structuredClone(legacy);
+ const buildFile=file(JSON.stringify(before,null,2)+'\n');
+ files.set('BUILD_INFO.json',buildFile);
+ receipt.managed_files=receipt.managed_files.map(row=>row.path==='BUILD_INFO.json'?{
+  path:'BUILD_INFO.json',bytes:buildFile.bytes.length,sha256:hash(buildFile.bytes),git_blob_sha:buildFile.sha
+ }:row);
+ files.set('PUBLISH_RECEIPT.json',file(JSON.stringify(receipt,null,2)+'\n'));
+ const base={head:sha('a'),tree:sha('b'),files};
+ assert.deepEqual(validateBase(base,cfg).ui_release.files.map(row=>row.path),PUBLIC_UI_PRESENTATION_PATHS_V2);
+ const candidate=new Map(files);
+ candidate.set('src/ui/ink017/toolbar-customizer-view.js',file('export const revisedToolbarView=true;'));
+ const next=expectedUiBundleMetadata({base,candidateFiles:candidate,cfg});
+ candidate.set('BUILD_INFO.json',next.buildItem);
+ candidate.set('PUBLISH_RECEIPT.json',next.receiptItem);
+ candidate.set('pages-build-identity.txt',next.identityItem);
+ assert.equal(verifyUiBundleOnlyPlan({base,candidateFiles:candidate,cfg,
+  changedPaths:[...next.changedUiPaths,...BUNDLE_META].sort()}).status,'PUBLIC_UI_BUNDLE_INTEGRITY_PASS');
+ assert.deepEqual(next.uiLease.files.map(row=>row.path),PUBLIC_UI_PRESENTATION_PATHS);
+});
+test('#788 extra view requires published source, same-origin module binding and offline closure',()=>{
+ const x=bundleFixture();
+ const without=new Map(x.base.files);without.delete('src/ui/ink017/toolbar-customizer-view.js');
+ const missingBase={...x.base,files:without};
+ assert.throws(()=>expectedUiBundleMetadata({base:missingBase,candidateFiles:x.candidateFiles,cfg}),
+  /UI_BUNDLE_SOURCE_NOT_PUBLISHED|PRIOR_FILE_MISSING/);
+ const unbound=new Map(x.candidateFiles);
+ unbound.set(BUNDLE_SHELL,file(bundleShell().replace("import {toolbarCustomizerPresentation} from './toolbar-customizer-view.js';",'')));
+ assert.throws(()=>expectedUiBundleMetadata({base:x.base,candidateFiles:unbound,cfg}),
+  /DUAL_TOOLBAR_PUBLIC_VIEW_NOT_BOUND/);
+ const missing=bundleFixture({missingToolbarSW:true});
+ assert.throws(()=>expectedUiBundleMetadata({...missing,cfg}),
+  /UI_BRIDGE_SW_OFFLINE_PRESENTATION:.*toolbar-customizer-view/);
+});
 test('V2 Public UI-only color/tokens changes preserve Native/Core exact bytes and rotate full SW identity',()=>{
  const x=bundleFixture();
  assert.equal(uiBundlePaths(x.changedPaths),true);
@@ -510,7 +553,7 @@ test('V2 Public UI-only color/tokens changes preserve Native/Core exact bytes an
  for(const [p,f] of x.base.files)if(!x.changedPaths.includes(p))
   assert.equal(x.candidateFiles.get(p).sha,f.sha,'Core or UI unmodified '+p);
 });
-test('V2 Public A→B→A rollback and Core C sync preserve all 18 Public presentation paths',()=>{
+test('V2 Public A→B→A rollback and Core C sync preserve the exact leased presentation paths',()=>{
  const x=bundleFixture();
  const baseB={head:sha('6'),tree:sha('7'),files:x.candidateFiles};
  const rollback=new Map(baseB.files);
